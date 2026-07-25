@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calculadora de estilo de vida · Coste mensual</title>
+<style>
+  :root{
+    --bg:#0f1420; --card:#1a2130; --card2:#222b3d; --line:#2c3648;
+    --txt:#e7ecf5; --mut:#93a0b5; --accent:#5b8def; --accent2:#37c98a;
+    --warn:#f0a63a; --danger:#e5687a; --chip:#263043;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:radial-gradient(1200px 600px at 80% -10%,#1a2740 0%,var(--bg) 55%);
+    color:var(--txt); line-height:1.45; padding-bottom:110px;
+  }
+  header{
+    padding:28px 20px 22px; text-align:center;
+    background:linear-gradient(135deg,#1c2b47,#141a28);
+    border-bottom:1px solid var(--line);
+  }
+  header h1{margin:0 0 6px; font-size:1.7rem}
+  header p{margin:0; color:var(--mut); font-size:.95rem}
+  .wrap{max-width:1080px; margin:0 auto; padding:20px}
+  .toolbar{
+    display:flex; flex-wrap:wrap; gap:10px; align-items:center; justify-content:center;
+    margin:0 auto 18px; max-width:1080px; padding:0 20px;
+  }
+  button.tool{
+    background:var(--chip); color:var(--txt); border:1px solid var(--line);
+    padding:9px 14px; border-radius:10px; cursor:pointer; font-size:.9rem; transition:.15s;
+  }
+  button.tool:hover{border-color:var(--accent); background:#2b3648}
+  #saveState{color:var(--accent2); font-size:.85rem; min-width:120px; text-align:left}
+  .grid{display:grid; grid-template-columns:1fr; gap:18px; align-items:start}
+  .cat{
+    background:var(--card); border:1px solid var(--line); border-radius:16px; overflow:hidden;
+    container-type:inline-size;
+  }
+  .cat-head{
+    display:flex; align-items:center; gap:10px; padding:14px 16px;
+    background:var(--card2); border-bottom:1px solid var(--line); cursor:pointer;
+  }
+  .cat-head .ico{font-size:1.3rem}
+  .cat-head h2{margin:0; font-size:1.05rem; flex:1}
+  .cat-head .sub{font-weight:700; color:var(--accent2); font-size:.95rem; white-space:nowrap}
+  .cat-body{padding:8px 12px 12px}
+  /* Fila: por defecto apilada en 2 líneas (tarjeta estrecha) */
+  .row{
+    display:grid; align-items:center; gap:6px 8px;
+    padding:8px 2px; border-bottom:1px dashed #232d40;
+    grid-template-columns:24px 1fr auto;
+    grid-template-areas:
+      "en main m"
+      "en ctrl del";
+  }
+  .row:last-child{border-bottom:none}
+  .row.off{opacity:.45}
+  .row > .en{grid-area:en; align-self:center}
+  .row > .rmain{grid-area:main; min-width:0}
+  .row > .rctrl{grid-area:ctrl; display:flex; align-items:center; gap:6px; flex-wrap:wrap}
+  .row > .m{grid-area:m; text-align:right; font-size:.9rem; font-weight:700; color:var(--accent); min-width:66px; white-space:nowrap}
+  .row > .del{grid-area:del; justify-self:end}
+  .rmain .name{font-size:.9rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; display:block}
+  .rmain .namein{width:100%; font-size:.9rem}
+  .rctrl input[type=number]{text-align:right}
+  .rctrl .q{width:46px}
+  .rctrl .p{width:58px}
+  .rctrl .per{width:106px; max-width:100%}
+  .rctrl .op{color:var(--mut); font-size:.8rem}
+  .del{background:none; border:none; color:var(--danger); cursor:pointer; font-size:1rem; padding:0}
+  .del.ph{cursor:default}
+  .del:hover{color:#ff8b9c}
+  /* Solo con 1 columna ancha: todo en una única línea.
+     Con 2 columnas (tarjetas ~511px) se mantiene el nombre encima de los valores. */
+  @container (min-width:560px){
+    .row{
+      grid-template-columns:24px 1fr auto auto 24px;
+      grid-template-areas:"en main ctrl m del";
+    }
+    .row > .rctrl{flex-wrap:nowrap}
+  }
+  input,select{
+    background:#0e1420; color:var(--txt); border:1px solid var(--line);
+    border-radius:8px; padding:6px 8px; font-size:.85rem; font-family:inherit;
+  }
+  input:focus,select:focus{outline:none; border-color:var(--accent)}
+  select{cursor:pointer}
+  input[type=checkbox]{width:18px; height:18px; accent-color:var(--accent2); cursor:pointer}
+  .addline{
+    margin-top:8px; width:100%; background:none; border:1px dashed var(--line);
+    color:var(--mut); padding:8px; border-radius:10px; cursor:pointer; font-size:.85rem;
+  }
+  .addline:hover{border-color:var(--accent); color:var(--accent)}
+  /* Summary */
+  .summary{
+    background:var(--card); border:1px solid var(--line); border-radius:16px;
+    padding:18px; margin-bottom:18px;
+  }
+  .summary h2{margin:0 0 14px; font-size:1.15rem}
+  .bar-row{display:grid; grid-template-columns:150px 1fr 92px 54px; gap:10px; align-items:center; margin-bottom:8px; font-size:.88rem}
+  .bar-track{background:#0e1420; border-radius:6px; height:14px; overflow:hidden}
+  .bar-fill{height:100%; border-radius:6px; background:linear-gradient(90deg,var(--accent),var(--accent2))}
+  .bar-row .amt{text-align:right; font-weight:700}
+  .bar-row .pct{text-align:right; color:var(--mut)}
+  .bar-row .lbl{color:var(--mut); overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+  /* Total bar */
+  .totalbar{
+    position:fixed; bottom:0; left:0; right:0; z-index:20;
+    background:rgba(16,22,34,.94); backdrop-filter:blur(8px);
+    border-top:1px solid var(--line); padding:14px 20px;
+  }
+  .totalbar .inner{
+    max-width:1080px; margin:0 auto; display:flex; flex-wrap:wrap; gap:22px; align-items:center; justify-content:center;
+  }
+  .totalbar .box{text-align:center}
+  .totalbar .box .k{font-size:.78rem; color:var(--mut); text-transform:uppercase; letter-spacing:.5px}
+  .totalbar .box .v{font-size:1.55rem; font-weight:800}
+  .totalbar .v.m{color:var(--accent)}
+  .totalbar .v.a{color:var(--accent2)}
+  .totalbar .v.d{color:var(--warn)}
+  .note{color:var(--mut); font-size:.82rem; text-align:center; margin:26px auto 0; max-width:760px}
+  a{color:var(--accent)}
+  @media(max-width:520px){
+    .bar-row{grid-template-columns:100px 1fr 72px 40px; font-size:.82rem}
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>🧮 Calculadora de estilo de vida</h1>
+  <p>Marca lo que quieres en tu día a día, ajusta cantidad, precio y frecuencia, y descubre cuánto te costaría al mes.</p>
+</header>
+
+<div class="toolbar">
+  <button class="tool" id="btnReset">♻️ Restablecer</button>
+  <button class="tool" id="btnExport">⬇️ Exportar datos</button>
+  <button class="tool" id="btnImport">⬆️ Importar datos</button>
+  <button class="tool" id="btnCollapse">🔽 Plegar todo</button>
+  <button class="tool" id="btnJubi" title="Abre la calculadora de jubilación con este gasto ya puesto">📤 Enviar a jubilación</button>
+  <span id="saveState"></span>
+  <input type="file" id="fileImport" accept="application/json" style="display:none">
+</div>
+
+<div class="wrap">
+  <div class="summary" id="summary">
+    <h2>📊 Resumen por categoría</h2>
+    <div id="summaryBody"></div>
+  </div>
+  <div class="grid" id="grid"></div>
+  <p class="note">
+    Los datos se guardan automáticamente en <b>este navegador</b> (no se envían a ningún sitio). Si borras el historial/caché
+    o cambias de dispositivo, usa <b>Exportar</b> para tener una copia. Las conversiones a mensual usan promedios
+    (30,44 días/mes · 4,35 semanas/mes). Los precios iniciales son solo orientativos: ajústalos a tu realidad.
+  </p>
+</div>
+
+<div class="totalbar">
+  <div class="inner">
+    <div class="box"><div class="k">Total mensual</div><div class="v m" id="totMes">0 €</div></div>
+    <div class="box"><div class="k">Total anual</div><div class="v a" id="totAnio">0 €</div></div>
+    <div class="box"><div class="k">Al día</div><div class="v d" id="totDia">0 €</div></div>
+    <div class="box"><div class="k">Líneas activas</div><div class="v" id="totLineas" style="color:var(--txt)">0</div></div>
+  </div>
+</div>
+
+<script>
+"use strict";
+
+let lastTotal = 0; // total mensual actual (para enviar a la calculadora de jubilación)
+
+/* ---- Frecuencias -> factor a MENSUAL ---- */
+const PERIODS = [
+  {v:'dia',    label:'al día',        f:365.25/12},
+  {v:'semana', label:'a la semana',   f:52.1786/12},
+  {v:'mes',    label:'al mes',        f:1},
+  {v:'trim',   label:'al trimestre',  f:1/3},
+  {v:'sem',    label:'al semestre',   f:1/6},
+  {v:'anual',  label:'al año',        f:1/12},
+  {v:'a2',     label:'cada 2 años',   f:1/24},
+  {v:'a3',     label:'cada 3 años',   f:1/36},
+  {v:'a5',     label:'cada 5 años',   f:1/60},
+  {v:'a10',    label:'cada 10 años',  f:1/120},
+];
+const FACTOR = Object.fromEntries(PERIODS.map(p=>[p.v,p.f]));
+
+/* ---- Catálogo de estilo de vida (¡cuanto más detalle, mejor!) ----
+   on: activado por defecto · q cantidad · p precio unitario · per frecuencia */
+const CATS = [
+{id:'vivienda', ico:'🏠', name:'Vivienda', items:[
+  {id:'v_alquiler', name:'Alquiler / hipoteca',        q:1, p:1100, per:'mes', on:true},
+  {id:'v_comunidad',name:'Comunidad de propietarios',  q:1, p:75,  per:'mes', on:true},
+  {id:'v_ibi',      name:'IBI',                         q:1, p:400, per:'anual', on:true},
+  {id:'v_seghogar', name:'Seguro de hogar',            q:1, p:250, per:'anual', on:true},
+  {id:'v_luz',      name:'Electricidad',               q:1, p:70,  per:'mes', on:true},
+  {id:'v_agua',     name:'Agua',                        q:1, p:35,  per:'mes', on:true},
+  {id:'v_gas',      name:'Gas / calefacción',          q:1, p:50,  per:'mes', on:true},
+  {id:'v_internet', name:'Internet fibra',             q:1, p:40,  per:'mes', on:true},
+  {id:'v_movil',    name:'Móvil / tarifa datos',       q:1, p:20,  per:'mes', on:true},
+  {id:'v_manten',   name:'Mantenimiento / reparaciones',q:1,p:400, per:'anual', on:false},
+  {id:'v_muebles',  name:'Muebles y decoración',       q:1, p:600, per:'anual', on:false},
+]},
+{id:'domestico', ico:'🧹', name:'Servicios domésticos', items:[
+  {id:'d_limpieza', name:'Persona de limpieza (sesión)',q:1, p:40, per:'semana', on:false},
+  {id:'d_plancha',  name:'Plancha / lavandería',       q:1, p:15, per:'semana', on:false},
+  {id:'d_jardin',   name:'Jardinería',                 q:1, p:60, per:'mes', on:false},
+  {id:'d_tinto',    name:'Tintorería',                 q:2, p:8,  per:'mes', on:false},
+  {id:'d_asist',    name:'Asistencia / cuidados',      q:1, p:350, per:'mes', on:false},
+]},
+{id:'comida', ico:'🍽️', name:'Alimentación', items:[
+  {id:'c_super',    name:'Compra supermercado',        q:1, p:100, per:'semana', on:true},
+  {id:'c_restau',   name:'Restaurante (comida/cena)',  q:2, p:22, per:'semana', on:true},
+  {id:'c_cafe',     name:'Café / desayuno fuera',      q:5, p:2.5,per:'semana', on:false},
+  {id:'c_delivery', name:'Comida a domicilio',         q:1, p:20, per:'semana', on:false},
+  {id:'c_special',  name:'Cenas / eventos especiales', q:1, p:60, per:'mes', on:false},
+  {id:'c_capricho', name:'Caprichos / snacks',         q:1, p:30, per:'mes', on:false},
+]},
+{id:'transporte', ico:'🚗', name:'Transporte', items:[
+  {id:'t_cuota',    name:'Cuota coche / renting',      q:1, p:300, per:'mes', on:false},
+  {id:'t_seguro',   name:'Seguro del coche',           q:1, p:520, per:'anual', on:false},
+  {id:'t_combu',    name:'Combustible',                q:1, p:120, per:'mes', on:false},
+  {id:'t_manten',   name:'Mantenimiento + ITV',        q:1, p:500, per:'anual', on:false},
+  {id:'t_parking',  name:'Parking / garaje',           q:1, p:130, per:'mes', on:false},
+  {id:'t_peajes',   name:'Peajes',                      q:1, p:15,  per:'mes', on:false},
+  {id:'t_publico',  name:'Transporte público / abono', q:1, p:40,  per:'mes', on:true},
+  {id:'t_taxi',     name:'Taxi / VTC',                 q:2, p:12,  per:'mes', on:false},
+  {id:'t_bici',     name:'Moto / bici / patinete',     q:1, p:300, per:'anual', on:false},
+]},
+{id:'ocio', ico:'🎬', name:'Ocio y suscripciones', items:[
+  {id:'o_gym',      name:'Gimnasio',                   q:1, p:40, per:'mes', on:false},
+  {id:'o_video',    name:'Streaming vídeo (Netflix…)', q:1, p:13, per:'mes', on:true},
+  {id:'o_musica',   name:'Música (Spotify…)',          q:1, p:11, per:'mes', on:true},
+  {id:'o_soft',     name:'Software / cloud / apps',    q:1, p:10, per:'mes', on:false},
+  {id:'o_eventos',  name:'Cine / teatro / conciertos', q:1, p:25, per:'mes', on:false},
+  {id:'o_fiesta',   name:'Salir de fiesta / copas',    q:1, p:35, per:'semana', on:false},
+  {id:'o_hobby',    name:'Hobbies',                    q:1, p:40, per:'mes', on:false},
+  {id:'o_libros',   name:'Libros / prensa',            q:1, p:15, per:'mes', on:false},
+  {id:'o_juegos',   name:'Videojuegos',               q:1, p:15, per:'mes', on:false},
+]},
+{id:'viajes', ico:'✈️', name:'Vacaciones y viajes', items:[
+  {id:'vj_dias',    name:'Vacaciones (días × €/día)',  q:20, p:100, per:'anual', on:true},
+  {id:'vj_escapada',name:'Escapadas fin de semana',    q:1,  p:250, per:'trim', on:false},
+  {id:'vj_vuelos',  name:'Vuelos / desplazamientos',   q:1,  p:400, per:'anual', on:false},
+]},
+{id:'salud', ico:'🩺', name:'Salud y bienestar', items:[
+  {id:'s_seguro',   name:'Seguro médico privado',      q:1, p:60, per:'mes', on:false},
+  {id:'s_dentista', name:'Dentista',                   q:1, p:300,per:'anual', on:false},
+  {id:'s_optica',   name:'Óptica / gafas / lentillas', q:1, p:200,per:'anual', on:false},
+  {id:'s_farmacia', name:'Farmacia / medicación',      q:1, p:20, per:'mes', on:false},
+  {id:'s_fisio',    name:'Fisioterapia / masajes',     q:1, p:45, per:'mes', on:false},
+  {id:'s_psico',    name:'Psicólogo / terapia',        q:1, p:60, per:'mes', on:false},
+  {id:'s_suple',    name:'Suplementos / nutrición',    q:1, p:25, per:'mes', on:false},
+]},
+{id:'personal', ico:'👕', name:'Cuidado personal y ropa', items:[
+  {id:'p_ropa',     name:'Ropa',                       q:1, p:900,per:'anual', on:true},
+  {id:'p_calzado',  name:'Calzado',                    q:1, p:250,per:'anual', on:false},
+  {id:'p_pelu',     name:'Peluquería / barbería',      q:1, p:20, per:'mes', on:false},
+  {id:'p_estetica', name:'Estética / uñas / spa',      q:1, p:40, per:'mes', on:false},
+  {id:'p_cosme',    name:'Cosmética / perfumería',     q:1, p:25, per:'mes', on:false},
+]},
+{id:'tecno', ico:'📱', name:'Tecnología', items:[
+  {id:'te_movil',   name:'Móvil nuevo',                q:1, p:900, per:'a3', on:true},
+  {id:'te_orden',   name:'Ordenador / portátil',       q:1, p:1300,per:'a5', on:false},
+  {id:'te_tablet',  name:'Tablet / e-reader',          q:1, p:400, per:'a5', on:false},
+  {id:'te_wear',    name:'Auriculares / wearables',    q:1, p:250, per:'a3', on:false},
+  {id:'te_gadgets', name:'Gadgets / accesorios',       q:1, p:150, per:'anual', on:false},
+  {id:'te_electro', name:'TV / electrodomésticos',     q:1, p:2000,per:'a10', on:false},
+]},
+{id:'mascotas', ico:'🐾', name:'Mascotas', items:[
+  {id:'m_comida',   name:'Comida',                     q:1, p:40, per:'mes', on:false},
+  {id:'m_vet',      name:'Veterinario',                q:1, p:300,per:'anual', on:false},
+  {id:'m_seguro',   name:'Seguro mascota',             q:1, p:12, per:'mes', on:false},
+  {id:'m_extra',    name:'Peluquería / accesorios',    q:1, p:20, per:'mes', on:false},
+]},
+{id:'familia', ico:'👶', name:'Familia e hijos', items:[
+  {id:'f_guarde',   name:'Guardería / colegio',        q:1, p:450,per:'mes', on:false},
+  {id:'f_extra',    name:'Extraescolares',             q:1, p:80, per:'mes', on:false},
+  {id:'f_ropa',     name:'Ropa y material',            q:1, p:60, per:'mes', on:false},
+  {id:'f_ocio',     name:'Ocio infantil',              q:1, p:50, per:'mes', on:false},
+  {id:'f_ahorro',   name:'Ahorro estudios',            q:1, p:100,per:'mes', on:false},
+]},
+{id:'otros', ico:'💡', name:'Otros e imprevistos', items:[
+  {id:'x_regalos',  name:'Regalos (cumples, Navidad)', q:1, p:600,per:'anual', on:false},
+  {id:'x_donac',    name:'Donaciones / ONG',           q:1, p:20, per:'mes', on:false},
+  {id:'x_seguros',  name:'Otros seguros (vida…)',      q:1, p:300,per:'anual', on:false},
+  {id:'x_banco',    name:'Comisiones bancarias',       q:1, p:60, per:'anual', on:false},
+  {id:'x_forma',    name:'Formación / cursos',         q:1, p:500,per:'anual', on:false},
+  {id:'x_imprev',   name:'Imprevistos / colchón',      q:1, p:100,per:'mes', on:true},
+]},
+];
+
+/* ---- Estado & persistencia ---- */
+const LS_KEY = 'estilo-vida-v1';
+let store = {values:{}, custom:{}, collapsed:{}};
+let customSeq = 0;
+
+function loadStore(){
+  try{
+    const raw = localStorage.getItem(LS_KEY);
+    if(raw){ const p = JSON.parse(raw); store = Object.assign({values:{},custom:{},collapsed:{}}, p); }
+  }catch(e){ console.warn('No se pudo leer el guardado', e); }
+}
+let saveTimer=null;
+function save(){
+  store.values = {};
+  document.querySelectorAll('.row').forEach(r=>{
+    store.values[r.dataset.id] = {
+      en: r.querySelector('.en').checked,
+      q:  r.querySelector('.q').value,
+      p:  r.querySelector('.p').value,
+      per:r.querySelector('.per').value,
+      nm: r.classList.contains('custom') ? r.querySelector('.namein').value : undefined,
+    };
+  });
+  try{ localStorage.setItem(LS_KEY, JSON.stringify(store)); }catch(e){}
+  const s = document.getElementById('saveState');
+  s.textContent = '✓ Guardado';
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(()=>{ s.textContent=''; }, 1400);
+}
+
+/* ---- Render ---- */
+const fmt = n => Math.round(n).toLocaleString('es-ES') + ' €';
+const fmt2 = n => (Math.round(n*100)/100).toLocaleString('es-ES',{minimumFractionDigits:0,maximumFractionDigits:2}) + ' €';
+
+function periodOptions(sel){
+  return PERIODS.map(p=>`<option value="${p.v}"${p.v===sel?' selected':''}>${p.label}</option>`).join('');
+}
+
+function rowHTML(catId, it, custom){
+  const v = store.values[it.id] || {};
+  const en  = v.en !== undefined ? v.en : it.on;
+  const q   = v.q  !== undefined ? v.q  : it.q;
+  const p   = v.p  !== undefined ? v.p  : it.p;
+  const per = v.per!== undefined ? v.per: it.per;
+  const nm  = custom ? (v.nm !== undefined ? v.nm : it.name) : it.name;
+  const nameCell = custom
+    ? `<input class="namein" type="text" value="${nm.replace(/"/g,'&quot;')}" placeholder="Concepto">`
+    : `<span class="name" title="${nm}">${nm}</span>`;
+  const del = custom ? `<button class="del" title="Eliminar línea">✕</button>` : `<span class="del ph"></span>`;
+  return `<div class="row${custom?' custom':''}${en?'':' off'}" data-id="${it.id}" data-cat="${catId}">
+    <input class="en" type="checkbox"${en?' checked':''}>
+    <div class="rmain">${nameCell}</div>
+    <div class="rctrl">
+      <input class="q" type="number" min="0" step="any" value="${q}">
+      <span class="op x">×</span>
+      <input class="p" type="number" min="0" step="any" value="${p}">
+      <select class="per">${periodOptions(per)}</select>
+    </div>
+    <span class="m">0 €</span>
+    ${del}
+  </div>`;
+}
+
+function render(){
+  const grid = document.getElementById('grid');
+  grid.innerHTML = CATS.map(cat=>{
+    const collapsed = store.collapsed[cat.id];
+    const rows = cat.items.map(it=>rowHTML(cat.id, it, false)).join('');
+    const customRows = (store.custom[cat.id]||[]).map(it=>rowHTML(cat.id, it, true)).join('');
+    return `<div class="cat" data-cat="${cat.id}">
+      <div class="cat-head">
+        <span class="ico">${cat.ico}</span>
+        <h2>${cat.name}</h2>
+        <span class="sub" data-sub="${cat.id}">0 €/mes</span>
+      </div>
+      <div class="cat-body" style="${collapsed?'display:none':''}">
+        ${rows}${customRows}
+        <button class="addline" data-add="${cat.id}">+ Añadir línea personalizada</button>
+      </div>
+    </div>`;
+  }).join('');
+  attach();
+  compute();
+}
+
+function attach(){
+  document.querySelectorAll('#grid input, #grid select').forEach(el=>{
+    el.addEventListener('input', ()=>{ onRowInput(el); });
+    el.addEventListener('change', ()=>{ onRowInput(el); });
+  });
+  document.querySelectorAll('.en').forEach(cb=>{
+    cb.addEventListener('change', ()=> cb.closest('.row').classList.toggle('off', !cb.checked));
+  });
+  document.querySelectorAll('button.del').forEach(b=>{
+    b.addEventListener('click', ()=>{
+      const row = b.closest('.row'); const cat = row.dataset.cat; const id = row.dataset.id;
+      store.custom[cat] = (store.custom[cat]||[]).filter(x=>x.id!==id);
+      delete store.values[id];
+      row.remove(); compute(); save();
+    });
+  });
+  document.querySelectorAll('[data-add]').forEach(b=>{
+    b.addEventListener('click', ()=> addCustom(b.dataset.add));
+  });
+  document.querySelectorAll('.cat-head').forEach(h=>{
+    h.addEventListener('click', e=>{
+      if(e.target.closest('.sub')) return;
+      const cat = h.parentElement.dataset.cat;
+      const body = h.nextElementSibling;
+      const now = body.style.display==='none';
+      body.style.display = now ? '' : 'none';
+      store.collapsed[cat] = !now;
+      save();
+    });
+  });
+}
+
+function onRowInput(el){ compute(); save(); }
+
+function addCustom(catId){
+  customSeq++;
+  const existing = Object.keys(store.values).concat((store.custom[catId]||[]).map(x=>x.id));
+  let id;
+  do { id = `${catId}_c${customSeq++}`; } while (existing.includes(id));
+  const item = {id, name:'', q:1, p:0, per:'mes', on:true};
+  store.custom[catId] = store.custom[catId]||[];
+  store.custom[catId].push(item);
+  const catEl = document.querySelector(`.cat[data-cat="${catId}"] .cat-body`);
+  const addBtn = catEl.querySelector('.addline');
+  addBtn.insertAdjacentHTML('beforebegin', rowHTML(catId, item, true));
+  attach();
+  const newRow = catEl.querySelector(`.row[data-id="${id}"] .namein`);
+  if(newRow) newRow.focus();
+  compute(); save();
+}
+
+/* ---- Cálculo ---- */
+function rowMonthly(row){
+  const en = row.querySelector('.en').checked;
+  const q  = parseFloat(row.querySelector('.q').value)||0;
+  const p  = parseFloat(row.querySelector('.p').value)||0;
+  const per= row.querySelector('.per').value;
+  const m = q * p * (FACTOR[per]||0);
+  return {m, en};
+}
+
+function compute(){
+  let total=0, activas=0;
+  const catTotals = {};
+  document.querySelectorAll('.cat').forEach(c=>{ catTotals[c.dataset.cat]=0; });
+
+  document.querySelectorAll('.row').forEach(row=>{
+    const {m, en} = rowMonthly(row);
+    row.querySelector('.m').textContent = fmt2(m) + '';
+    row.querySelector('.m').style.opacity = en ? 1 : .4;
+    if(en){
+      total += m; activas++;
+      catTotals[row.dataset.cat] += m;
+    }
+  });
+
+  document.querySelectorAll('[data-sub]').forEach(s=>{
+    s.textContent = fmt(catTotals[s.dataset.sub]||0) + '/mes';
+  });
+
+  lastTotal = total;
+  document.getElementById('totMes').textContent  = fmt(total);
+  document.getElementById('totAnio').textContent = fmt(total*12);
+  document.getElementById('totDia').textContent  = fmt2(total*12/365.25);
+  document.getElementById('totLineas').textContent = activas;
+
+  renderSummary(catTotals, total);
+}
+
+function renderSummary(catTotals, total){
+  const rows = CATS
+    .map(c=>({name:c.name, ico:c.ico, v:catTotals[c.id]||0}))
+    .filter(r=>r.v>0)
+    .sort((a,b)=>b.v-a.v);
+  const max = rows.length ? rows[0].v : 1;
+  const body = document.getElementById('summaryBody');
+  if(!rows.length){ body.innerHTML = `<p style="color:var(--mut);margin:0">Activa alguna línea para ver el desglose.</p>`; return; }
+  body.innerHTML = rows.map(r=>`
+    <div class="bar-row">
+      <span class="lbl">${r.ico} ${r.name}</span>
+      <span class="bar-track"><span class="bar-fill" style="width:${(r.v/max*100).toFixed(1)}%"></span></span>
+      <span class="amt">${fmt(r.v)}</span>
+      <span class="pct">${total?Math.round(r.v/total*100):0}%</span>
+    </div>`).join('');
+}
+
+/* ---- Toolbar ---- */
+document.getElementById('btnReset').addEventListener('click', ()=>{
+  if(!confirm('¿Borrar todos tus datos y volver a los valores iniciales?')) return;
+  localStorage.removeItem(LS_KEY);
+  store = {values:{}, custom:{}, collapsed:{}};
+  render();
+});
+document.getElementById('btnJubi').addEventListener('click', ()=>{
+  save();
+  const anual = Math.round(lastTotal*12);
+  try{ localStorage.setItem('gasto-jubilacion-anual', String(anual)); }catch(e){}
+  window.open('calculadora-jubilacion.html?gasto='+anual, '_blank');
+});
+document.getElementById('btnExport').addEventListener('click', ()=>{
+  save();
+  const blob = new Blob([JSON.stringify(store,null,2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'estilo-de-vida.json';
+  a.click();
+  URL.revokeObjectURL(a.href);
+});
+document.getElementById('btnImport').addEventListener('click', ()=> document.getElementById('fileImport').click());
+document.getElementById('fileImport').addEventListener('change', e=>{
+  const file = e.target.files[0]; if(!file) return;
+  const reader = new FileReader();
+  reader.onload = ()=>{
+    try{
+      const p = JSON.parse(reader.result);
+      store = Object.assign({values:{},custom:{},collapsed:{}}, p);
+      render(); save();
+      alert('Datos importados correctamente.');
+    }catch(err){ alert('El archivo no es válido.'); }
+  };
+  reader.readAsText(file);
+  e.target.value='';
+});
+let allCollapsed=false;
+document.getElementById('btnCollapse').addEventListener('click', e=>{
+  allCollapsed = !allCollapsed;
+  document.querySelectorAll('.cat').forEach(c=>{
+    c.querySelector('.cat-body').style.display = allCollapsed?'none':'';
+    store.collapsed[c.dataset.cat] = allCollapsed;
+  });
+  e.target.textContent = allCollapsed ? '🔼 Desplegar todo' : '🔽 Plegar todo';
+  save();
+});
+
+/* ---- Init ---- */
+loadStore();
+render();
+</script>
+</body>
+</html>

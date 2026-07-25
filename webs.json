@@ -1,0 +1,14 @@
+{
+  "calculadora-jubilacion.html": {
+    "title": "Calculadora de Jubilación / FIRE",
+    "description": "Simula tu ahorro, inversión y pensión para planificar cuándo podrías jubilarte.",
+    "emoji": "🏖️",
+    "tag": "Finanzas"
+  },
+  "calculadora-estilo-vida.html": {
+    "title": "Calculadora de estilo de vida",
+    "description": "Estima el coste mensual de tu estilo de vida y ajusta tu presupuesto.",
+    "emoji": "🧮",
+    "tag": "Finanzas"
+  }
+}

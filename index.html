@@ -101,7 +101,9 @@
       if (m.ok) meta = await m.json();
     } catch (_) { /* metadata is optional */ }
 
-    // Auto-discover pages from nginx's JSON directory listing.
+    // Auto-discover pages from nginx's JSON directory listing. /_list/ maps to
+    // the pages/ subfolder, so every entry is a publishable page (the landing
+    // itself, webs.json and favicon.ico live at the repo root, out of the way).
     const res = await fetch('_list/', { cache: 'no-cache' });
     if (!res.ok) throw new Error('listing ' + res.status);
     const entries = await res.json();
@@ -111,7 +113,7 @@
       .map(e => {
         const m = meta[e.name] || {};
         return {
-          href: e.name,
+          href: 'pages/' + e.name,
           title: m.title || prettify(e.name),
           description: m.description || ''
         };
@@ -119,7 +121,7 @@
       .sort((a, b) => a.title.localeCompare(b.title, 'en'));
 
     if (!pages.length) {
-      state.textContent = 'No pages published yet. Add an .html to the repository.';
+      state.textContent = 'No pages published yet. Add an .html to the pages/ folder.';
       return;
     }
 

@@ -2,20 +2,30 @@
 
 Static web pages hosted at **[webs.raular.com](https://webs.raular.com/)**.
 
-The home page is a showcase that lists every page in this repo automatically,
+The home page is a showcase that lists every page under `pages/` automatically,
 each with a live preview.
+
+## Layout
+
+```
+index.html      showcase landing (auto-discovers pages/)
+webs.json       optional per-page title & description
+favicon.ico     default tab icon for pages that define none
+pages/          the published pages — one .html each
+```
 
 ## Add a page
 
-Just commit an `.html` file and push:
+Drop a self-contained `.html` into `pages/` and push:
 
 ```sh
-git add my-page.html
+git add pages/my-page.html
 git commit -m "add my page"
 git push
 ```
 
-It appears on the home page within a few seconds. No build step.
+It appears on the home page within a few seconds, at
+`https://webs.raular.com/pages/my-page.html`. No build step.
 
 ## Optional: nicer title & description
 

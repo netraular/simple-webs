@@ -25,6 +25,11 @@
     font-family:inherit; font-size:.85rem; font-weight:700; text-transform:uppercase; letter-spacing:.5px; box-shadow:4px 4px 0 var(--accent2); transition:transform .05s, box-shadow .05s, background .1s; }
   button.tool:hover{ background:var(--accent); color:#fff; border-color:var(--ink); box-shadow:2px 2px 0 var(--ink); transform:translate(2px,2px); }
   #saveState{ color:var(--accent); font-size:.8rem; font-weight:700; text-transform:uppercase; min-width:120px; text-align:left; letter-spacing:.5px; }
+  /* Gestor de escenarios (mismo sistema que la calculadora de jubilación) */
+  .tool-label{ font-size:.8rem; font-weight:800; text-transform:uppercase; letter-spacing:.5px; color:var(--mut); }
+  .tool-sep{ width:3px; min-height:26px; align-self:stretch; background:var(--ink); }
+  select.tool{ width:auto; max-width:240px; background:var(--chip); color:var(--ink); border:2px solid var(--ink); border-radius:0;
+    padding:10px 12px; font-family:inherit; font-size:.85rem; font-weight:700; letter-spacing:.5px; cursor:pointer; box-shadow:4px 4px 0 var(--accent2); }
   .grid{display:grid; grid-template-columns:1fr; gap:22px; align-items:start}
   @media(min-width:820px){ .grid{grid-template-columns:1fr 1fr} }
   /* Each category cycles through a distinct colour, consumed below for its
@@ -68,12 +73,20 @@
   input[type=checkbox]{width:20px; height:20px; accent-color:var(--accent); cursor:pointer}
   .addline{ margin-top:10px; width:100%; background:#fff; border:2px dashed var(--accent2); color:var(--accent2); padding:9px; border-radius:0; cursor:pointer; font-family:inherit; font-size:.82rem; font-weight:700; text-transform:uppercase; letter-spacing:.5px; }
   .addline:hover{border:2px solid var(--accent2); background:var(--accent2); color:#fff}
+  /* Datos del hogar: contexto para leer el total. No multiplica ninguna línea. */
+  .hogar{ background:var(--card); border:3px solid var(--accent2); border-radius:0; padding:14px 16px; margin-bottom:22px;
+    box-shadow:6px 6px 0 var(--accent2); display:flex; flex-wrap:wrap; gap:12px 22px; align-items:center; }
+  .hogar h2{ margin:0; font-size:1rem; font-weight:800; text-transform:uppercase; letter-spacing:.5px; color:var(--accent2); flex:1 0 100%; }
+  .hogar label{ display:flex; align-items:center; gap:8px; font-size:.85rem; font-weight:700; }
+  .hogar input{width:96px; text-align:right}
+  .hogar .hint{ color:var(--mut); font-size:.78rem; font-weight:400; flex:1 1 240px; }
   /* Summary */
   .summary{ background:var(--card); border:3px solid var(--accent); border-radius:0; padding:20px; margin-bottom:22px; box-shadow:6px 6px 0 var(--accent); }
   .summary h2{ margin:0 0 16px; font-size:1.1rem; font-weight:800; text-transform:uppercase; letter-spacing:.5px; color:var(--accent); }
   .bar-row{ display:grid; grid-template-columns:150px 1fr 92px 54px; gap:10px; align-items:center; margin-bottom:9px; font-size:.86rem; font-weight:700; }
   .bar-track{background:#fff; border:2px solid var(--ink); border-radius:0; height:16px; overflow:hidden}
-  .bar-fill{height:100%; border-radius:0; background:var(--accent)}
+  /* display:block — es un <span>, y en inline no se aplicarían ni width ni height. */
+  .bar-fill{display:block; height:100%; border-radius:0; background:var(--accent)}
   .bar-row .amt{text-align:right; font-weight:800; color:var(--txt)}
   .bar-row .pct{text-align:right; color:var(--mut)}
   .bar-row .lbl{color:var(--txt); overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
@@ -94,28 +107,41 @@
 <body>
 <header>
   <h1>🧮 Calculadora de estilo de vida</h1>
-  <p>Marca lo que quieres en tu día a día, ajusta cantidad, precio y frecuencia, y descubre cuánto te costaría al mes.</p>
+  <p>Marca lo que quieres en tu día a día, ajusta cantidad, precio y frecuencia, y descubre cuánto te costaría al mes.
+  Los valores de partida están pensados para <b>una pareja sin hijos en un municipio del área metropolitana</b> de Barcelona o Madrid.</p>
 </header>
 
 <div class="toolbar">
-  <button class="tool" id="btnReset">♻️ Restablecer</button>
-  <button class="tool" id="btnExport">⬇️ Exportar datos</button>
-  <button class="tool" id="btnImport">⬆️ Importar datos</button>
-  <button class="tool" id="btnCollapse">🔽 Plegar todo</button>
-  <button class="tool" id="btnJubi" title="Abre la calculadora de jubilación con este gasto ya puesto">📤 Enviar a jubilación</button>
+  <button type="button" class="tool" id="btnBuena" title="Cargar el ejemplo de vida buena">✨ Vida buena</button>
+  <button type="button" class="tool" id="btnNormal" title="Cargar el ejemplo de vida normal">🙂 Vida normal</button>
+  <span class="tool-sep" aria-hidden="true"></span>
+  <label class="tool-label" for="scenarioSel">Escenario:</label>
+  <select id="scenarioSel" class="tool" title="Cargar un conjunto de datos guardado">
+    <option value="">— Sin guardar —</option>
+  </select>
+  <button type="button" class="tool" id="btnSave" title="Guardar datos actuales" aria-label="Guardar datos actuales">💾</button>
+  <button type="button" class="tool" id="btnDelete" title="Eliminar escenario guardado" aria-label="Eliminar escenario guardado">🗑️</button>
+  <button type="button" class="tool" id="btnJubi" title="Abre la calculadora de jubilación con este gasto ya puesto">📤 Enviar a jubilación</button>
   <span id="saveState"></span>
-  <input type="file" id="fileImport" accept="application/json" style="display:none">
 </div>
 
 <div class="wrap">
+  <div class="hogar">
+    <h2>👪 Tu hogar</h2>
+    <label for="hPersonas">Personas <input id="hPersonas" type="number" min="1" step="1" value="2"></label>
+    <label for="hIngresos">Ingresos netos <input id="hIngresos" type="number" min="0" step="any" value="0"> €/mes</label>
+    <span class="hint">Solo se usan para el coste por persona y el sobrante: no multiplican ninguna línea.
+    Si sois más de uno, ajusta a mano la compra, los viajes y la ropa.</span>
+  </div>
   <div class="summary" id="summary">
     <h2>📊 Resumen por categoría</h2>
     <div id="summaryBody"></div>
   </div>
   <div class="grid" id="grid"></div>
   <p class="note">
-    Los datos se guardan automáticamente en <b>este navegador</b> (no se envían a ningún sitio). Si borras el historial/caché
-    o cambias de dispositivo, usa <b>Exportar</b> para tener una copia. Las conversiones a mensual usan promedios
+    Los datos se guardan automáticamente en <b>este navegador</b> (no se envían a ningún sitio). Con 💾 puedes guardar
+    varios conjuntos de datos con nombre y volver a ellos desde la lista <b>Escenario</b>. Si borras el historial/caché
+    o cambias de dispositivo, se pierden. Las conversiones a mensual usan promedios
     (30,44 días/mes · 4,35 semanas/mes). Los precios iniciales son solo orientativos: ajústalos a tu realidad.
   </p>
 </div>
@@ -125,6 +151,8 @@
     <div class="box"><div class="k">Total mensual</div><div class="v m" id="totMes">0 €</div></div>
     <div class="box"><div class="k">Total anual</div><div class="v a" id="totAnio">0 €</div></div>
     <div class="box"><div class="k">Al día</div><div class="v d" id="totDia">0 €</div></div>
+    <div class="box"><div class="k">Por persona</div><div class="v" id="totPers" style="color:#fff">0 €</div></div>
+    <div class="box" id="boxSobra" style="display:none"><div class="k">Sobrante</div><div class="v" id="totSobra">0 €</div></div>
     <div class="box"><div class="k">Líneas activas</div><div class="v" id="totLineas" style="color:var(--txt)">0</div></div>
   </div>
 </div>
@@ -156,13 +184,14 @@ const CATS = [
   {id:'v_alquiler', name:'Alquiler / hipoteca',        q:1, p:1100, per:'mes', on:true},
   {id:'v_comunidad',name:'Comunidad de propietarios',  q:1, p:75,  per:'mes', on:true},
   {id:'v_ibi',      name:'IBI',                         q:1, p:400, per:'anual', on:true},
+  {id:'v_basuras',  name:'Tasa de residuos / basuras', q:1, p:90,  per:'anual', on:true},
   {id:'v_seghogar', name:'Seguro de hogar',            q:1, p:250, per:'anual', on:true},
   {id:'v_luz',      name:'Electricidad',               q:1, p:70,  per:'mes', on:true},
-  {id:'v_agua',     name:'Agua',                        q:1, p:35,  per:'mes', on:true},
+  {id:'v_agua',     name:'Agua',                        q:1, p:30,  per:'mes', on:true},
   {id:'v_gas',      name:'Gas / calefacción',          q:1, p:50,  per:'mes', on:true},
   {id:'v_internet', name:'Internet fibra',             q:1, p:40,  per:'mes', on:true},
   {id:'v_movil',    name:'Móvil / tarifa datos',       q:1, p:20,  per:'mes', on:true},
-  {id:'v_manten',   name:'Mantenimiento / reparaciones',q:1,p:400, per:'anual', on:false},
+  {id:'v_manten',   name:'Mantenimiento / reparaciones',q:1,p:600, per:'anual', on:false},
   {id:'v_muebles',  name:'Muebles y decoración',       q:1, p:600, per:'anual', on:false},
 ]},
 {id:'domestico', ico:'🧹', name:'Servicios domésticos', items:[
@@ -170,10 +199,10 @@ const CATS = [
   {id:'d_plancha',  name:'Plancha / lavandería',       q:1, p:15, per:'semana', on:false},
   {id:'d_jardin',   name:'Jardinería',                 q:1, p:60, per:'mes', on:false},
   {id:'d_tinto',    name:'Tintorería',                 q:2, p:8,  per:'mes', on:false},
-  {id:'d_asist',    name:'Asistencia / cuidados',      q:1, p:350, per:'mes', on:false},
+  {id:'d_asist',    name:'Asistencia / cuidados (por horas)',q:1, p:350, per:'mes', on:false},
 ]},
 {id:'comida', ico:'🍽️', name:'Alimentación', items:[
-  {id:'c_super',    name:'Compra supermercado',        q:1, p:100, per:'semana', on:true},
+  {id:'c_super',    name:'Compra supermercado',        q:1, p:120, per:'semana', on:true},
   {id:'c_restau',   name:'Restaurante (comida/cena)',  q:2, p:22, per:'semana', on:true},
   {id:'c_cafe',     name:'Café / desayuno fuera',      q:5, p:2.5,per:'semana', on:false},
   {id:'c_delivery', name:'Comida a domicilio',         q:1, p:20, per:'semana', on:false},
@@ -185,22 +214,24 @@ const CATS = [
   {id:'t_seguro',   name:'Seguro del coche',           q:1, p:520, per:'anual', on:false},
   {id:'t_combu',    name:'Combustible',                q:1, p:120, per:'mes', on:false},
   {id:'t_manten',   name:'Mantenimiento + ITV',        q:1, p:500, per:'anual', on:false},
-  {id:'t_parking',  name:'Parking / garaje',           q:1, p:130, per:'mes', on:false},
+  {id:'t_ivtm',     name:'Impuesto circulación (IVTM)',q:1, p:100, per:'anual', on:false},
+  {id:'t_parking',  name:'Parking / garaje',           q:1, p:90,  per:'mes', on:false},
   {id:'t_peajes',   name:'Peajes',                      q:1, p:15,  per:'mes', on:false},
-  {id:'t_publico',  name:'Transporte público / abono', q:1, p:40,  per:'mes', on:true},
+  {id:'t_publico',  name:'Transporte público / abono', q:1, p:50,  per:'mes', on:true},
   {id:'t_taxi',     name:'Taxi / VTC',                 q:2, p:12,  per:'mes', on:false},
   {id:'t_bici',     name:'Moto / bici / patinete',     q:1, p:300, per:'anual', on:false},
 ]},
 {id:'ocio', ico:'🎬', name:'Ocio y suscripciones', items:[
   {id:'o_gym',      name:'Gimnasio',                   q:1, p:40, per:'mes', on:false},
-  {id:'o_video',    name:'Streaming vídeo (Netflix…)', q:1, p:13, per:'mes', on:true},
-  {id:'o_musica',   name:'Música (Spotify…)',          q:1, p:11, per:'mes', on:true},
+  {id:'o_video',    name:'Streaming vídeo (Netflix…)', q:1, p:15, per:'mes', on:true},
+  {id:'o_musica',   name:'Música (Spotify…)',          q:1, p:12, per:'mes', on:true},
   {id:'o_soft',     name:'Software / cloud / apps',    q:1, p:10, per:'mes', on:false},
   {id:'o_eventos',  name:'Cine / teatro / conciertos', q:1, p:25, per:'mes', on:false},
   {id:'o_fiesta',   name:'Salir de fiesta / copas',    q:1, p:35, per:'semana', on:false},
   {id:'o_hobby',    name:'Hobbies',                    q:1, p:40, per:'mes', on:false},
   {id:'o_libros',   name:'Libros / prensa',            q:1, p:15, per:'mes', on:false},
   {id:'o_juegos',   name:'Videojuegos',               q:1, p:15, per:'mes', on:false},
+  {id:'o_tabaco',   name:'Tabaco (paquete)',           q:1, p:5.5,per:'dia', on:false},
 ]},
 {id:'viajes', ico:'✈️', name:'Vacaciones y viajes', items:[
   {id:'vj_dias',    name:'Vacaciones (días × €/día)',  q:20, p:100, per:'anual', on:true},
@@ -213,7 +244,7 @@ const CATS = [
   {id:'s_optica',   name:'Óptica / gafas / lentillas', q:1, p:200,per:'anual', on:false},
   {id:'s_farmacia', name:'Farmacia / medicación',      q:1, p:20, per:'mes', on:false},
   {id:'s_fisio',    name:'Fisioterapia / masajes',     q:1, p:45, per:'mes', on:false},
-  {id:'s_psico',    name:'Psicólogo / terapia',        q:1, p:60, per:'mes', on:false},
+  {id:'s_psico',    name:'Psicólogo / terapia (sesión)',q:2, p:60, per:'mes', on:false},
   {id:'s_suple',    name:'Suplementos / nutrición',    q:1, p:25, per:'mes', on:false},
 ]},
 {id:'personal', ico:'👕', name:'Cuidado personal y ropa', items:[
@@ -224,12 +255,12 @@ const CATS = [
   {id:'p_cosme',    name:'Cosmética / perfumería',     q:1, p:25, per:'mes', on:false},
 ]},
 {id:'tecno', ico:'📱', name:'Tecnología', items:[
-  {id:'te_movil',   name:'Móvil nuevo',                q:1, p:900, per:'a3', on:true},
-  {id:'te_orden',   name:'Ordenador / portátil',       q:1, p:1300,per:'a5', on:false},
+  {id:'te_movil',   name:'Móvil nuevo',                q:1, p:650, per:'a3', on:true},
+  {id:'te_orden',   name:'Ordenador / portátil',       q:1, p:1000,per:'a5', on:false},
   {id:'te_tablet',  name:'Tablet / e-reader',          q:1, p:400, per:'a5', on:false},
   {id:'te_wear',    name:'Auriculares / wearables',    q:1, p:250, per:'a3', on:false},
   {id:'te_gadgets', name:'Gadgets / accesorios',       q:1, p:150, per:'anual', on:false},
-  {id:'te_electro', name:'TV / electrodomésticos',     q:1, p:2000,per:'a10', on:false},
+  {id:'te_electro', name:'TV / electrodomésticos',     q:1, p:3000,per:'a10', on:false},
 ]},
 {id:'mascotas', ico:'🐾', name:'Mascotas', items:[
   {id:'m_comida',   name:'Comida',                     q:1, p:40, per:'mes', on:false},
@@ -239,10 +270,18 @@ const CATS = [
 ]},
 {id:'familia', ico:'👶', name:'Familia e hijos', items:[
   {id:'f_guarde',   name:'Guardería / colegio',        q:1, p:450,per:'mes', on:false},
+  {id:'f_comedor',  name:'Comedor escolar',            q:1, p:120,per:'mes', on:false},
   {id:'f_extra',    name:'Extraescolares',             q:1, p:80, per:'mes', on:false},
+  {id:'f_canguro',  name:'Canguro (horas)',            q:4, p:12, per:'mes', on:false},
   {id:'f_ropa',     name:'Ropa y material',            q:1, p:60, per:'mes', on:false},
   {id:'f_ocio',     name:'Ocio infantil',              q:1, p:50, per:'mes', on:false},
   {id:'f_ahorro',   name:'Ahorro estudios',            q:1, p:100,per:'mes', on:false},
+]},
+{id:'deudas', ico:'💳', name:'Deudas y préstamos', items:[
+  {id:'de_personal',name:'Préstamo personal',          q:1, p:250,per:'mes', on:false},
+  {id:'de_consumo', name:'Crédito al consumo / financiación',q:1, p:80, per:'mes', on:false},
+  {id:'de_tarjeta', name:'Tarjeta de crédito / revolving',q:1, p:60, per:'mes', on:false},
+  {id:'de_estudios',name:'Préstamo de estudios',       q:1, p:150,per:'mes', on:false},
 ]},
 {id:'otros', ico:'💡', name:'Otros e imprevistos', items:[
   {id:'x_regalos',  name:'Regalos (cumples, Navidad)', q:1, p:600,per:'anual', on:false},
@@ -250,23 +289,51 @@ const CATS = [
   {id:'x_seguros',  name:'Otros seguros (vida…)',      q:1, p:300,per:'anual', on:false},
   {id:'x_banco',    name:'Comisiones bancarias',       q:1, p:60, per:'anual', on:false},
   {id:'x_forma',    name:'Formación / cursos',         q:1, p:500,per:'anual', on:false},
+  {id:'x_reta',     name:'Cuota de autónomos (RETA)',  q:1, p:350,per:'mes', on:false},
+  {id:'x_gestoria', name:'Gestoría / asesoría',        q:1, p:60, per:'mes', on:false},
+  {id:'x_trastero', name:'Trastero / guardamuebles',   q:1, p:60, per:'mes', on:false},
+  {id:'x_ahorro',   name:'Ahorro / inversión (no es gasto)',q:1, p:200,per:'mes', on:false},
   {id:'x_imprev',   name:'Imprevistos / colchón',      q:1, p:100,per:'mes', on:true},
 ]},
 ];
 
 /* ---- Estado & persistencia ---- */
 const LS_KEY = 'estilo-vida-v1';
-let store = {values:{}, custom:{}, collapsed:{}};
+const HOGAR_DEF = {personas:2, ingresos:0};
+let store = {values:{}, custom:{}, collapsed:{}, hogar:Object.assign({},HOGAR_DEF)};
 let customSeq = 0;
+
+function storeDefaults(){ return {values:{}, custom:{}, collapsed:{}, hogar:Object.assign({},HOGAR_DEF)}; }
 
 function loadStore(){
   try{
     const raw = localStorage.getItem(LS_KEY);
-    if(raw){ const p = JSON.parse(raw); store = Object.assign({values:{},custom:{},collapsed:{}}, p); }
+    if(raw){
+      const p = JSON.parse(raw);
+      store = Object.assign(storeDefaults(), p);
+      store.hogar = Object.assign({}, HOGAR_DEF, p.hogar||{});
+    }
   }catch(e){ console.warn('No se pudo leer el guardado', e); }
 }
+
+/* Los datos del hogar no entran en el cálculo de ninguna línea: solo sirven
+   para dividir el total entre personas y compararlo con los ingresos. */
+const elPersonas = document.getElementById('hPersonas');
+const elIngresos = document.getElementById('hIngresos');
+function readHogar(){
+  return {
+    personas: Math.max(1, Math.round(parseFloat(elPersonas.value)||1)),
+    ingresos: Math.max(0, parseFloat(elIngresos.value)||0),
+  };
+}
+function paintHogar(){
+  elPersonas.value = store.hogar.personas;
+  elIngresos.value = store.hogar.ingresos;
+}
+
 let saveTimer=null;
 function save(){
+  store.hogar = readHogar();
   store.values = {};
   document.querySelectorAll('.row').forEach(r=>{
     store.values[r.dataset.id] = {
@@ -285,6 +352,7 @@ function save(){
 }
 
 /* ---- Render ---- */
+const escAttr = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 const fmt = n => Math.round(n).toLocaleString('es-ES') + ' €';
 const fmt2 = n => (Math.round(n*100)/100).toLocaleString('es-ES',{minimumFractionDigits:0,maximumFractionDigits:2}) + ' €';
 
@@ -299,18 +367,19 @@ function rowHTML(catId, it, custom){
   const p   = v.p  !== undefined ? v.p  : it.p;
   const per = v.per!== undefined ? v.per: it.per;
   const nm  = custom ? (v.nm !== undefined ? v.nm : it.name) : it.name;
+  const a = escAttr(nm);   // el nombre se usa como texto y como etiqueta accesible
   const nameCell = custom
-    ? `<input class="namein" type="text" value="${nm.replace(/"/g,'&quot;')}" placeholder="Concepto">`
-    : `<span class="name" title="${nm}">${nm}</span>`;
-  const del = custom ? `<button class="del" title="Eliminar línea">✕</button>` : `<span class="del ph"></span>`;
+    ? `<input class="namein" type="text" value="${a}" placeholder="Concepto" aria-label="Concepto personalizado">`
+    : `<span class="name" title="${a}">${a}</span>`;
+  const del = custom ? `<button class="del" title="Eliminar línea" aria-label="Eliminar línea">✕</button>` : `<span class="del ph"></span>`;
   return `<div class="row${custom?' custom':''}${en?'':' off'}" data-id="${it.id}" data-cat="${catId}">
-    <input class="en" type="checkbox"${en?' checked':''}>
+    <input class="en" type="checkbox"${en?' checked':''} aria-label="Incluir ${a}">
     <div class="rmain">${nameCell}</div>
     <div class="rctrl">
-      <input class="q" type="number" min="0" step="any" value="${q}">
-      <span class="op x">×</span>
-      <input class="p" type="number" min="0" step="any" value="${p}">
-      <select class="per">${periodOptions(per)}</select>
+      <input class="q" type="number" min="0" step="any" value="${q}" aria-label="Cantidad de ${a}">
+      <span class="op x" aria-hidden="true">×</span>
+      <input class="p" type="number" min="0" step="any" value="${p}" aria-label="Precio unitario de ${a}">
+      <select class="per" aria-label="Frecuencia de ${a}">${periodOptions(per)}</select>
     </div>
     <span class="m">0 €</span>
     ${del}
@@ -324,8 +393,8 @@ function render(){
     const rows = cat.items.map(it=>rowHTML(cat.id, it, false)).join('');
     const customRows = (store.custom[cat.id]||[]).map(it=>rowHTML(cat.id, it, true)).join('');
     return `<div class="cat" data-cat="${cat.id}">
-      <div class="cat-head">
-        <span class="ico">${cat.ico}</span>
+      <div class="cat-head" role="button" tabindex="0" aria-label="Plegar o desplegar ${escAttr(cat.name)}">
+        <span class="ico" aria-hidden="true">${cat.ico}</span>
         <h2>${cat.name}</h2>
         <span class="sub" data-sub="${cat.id}">0 €/mes</span>
       </div>
@@ -359,14 +428,18 @@ function attach(){
     b.addEventListener('click', ()=> addCustom(b.dataset.add));
   });
   document.querySelectorAll('.cat-head').forEach(h=>{
-    h.addEventListener('click', e=>{
-      if(e.target.closest('.sub')) return;
+    const toggle = ()=>{
       const cat = h.parentElement.dataset.cat;
       const body = h.nextElementSibling;
       const now = body.style.display==='none';
       body.style.display = now ? '' : 'none';
       store.collapsed[cat] = !now;
       save();
+    };
+    h.addEventListener('click', e=>{ if(e.target.closest('.sub')) return; toggle(); });
+    h.addEventListener('keydown', e=>{
+      if(e.key!=='Enter' && e.key!==' ') return;
+      e.preventDefault(); toggle();
     });
   });
 }
@@ -374,10 +447,9 @@ function attach(){
 function onRowInput(el){ compute(); save(); }
 
 function addCustom(catId){
-  customSeq++;
   const existing = Object.keys(store.values).concat((store.custom[catId]||[]).map(x=>x.id));
   let id;
-  do { id = `${catId}_c${customSeq++}`; } while (existing.includes(id));
+  do { id = `${catId}_c${++customSeq}`; } while (existing.includes(id));
   const item = {id, name:'', q:1, p:0, per:'mes', on:true};
   store.custom[catId] = store.custom[catId]||[];
   store.custom[catId].push(item);
@@ -425,6 +497,19 @@ function compute(){
   document.getElementById('totDia').textContent  = fmt2(total*12/365.25);
   document.getElementById('totLineas').textContent = activas;
 
+  const {personas, ingresos} = readHogar();
+  document.getElementById('totPers').textContent = fmt(total/personas);
+  const boxSobra = document.getElementById('boxSobra');
+  if(ingresos > 0){
+    const sobra = ingresos - total;
+    const el = document.getElementById('totSobra');
+    boxSobra.style.display = '';
+    el.textContent = fmt(sobra);
+    el.style.color = sobra >= 0 ? '#b9f6ca' : '#ffcdd2';   // verde/rojo claros, legibles sobre magenta
+  } else {
+    boxSobra.style.display = 'none';
+  }
+
   renderSummary(catTotals, total);
 }
 
@@ -445,57 +530,171 @@ function renderSummary(catTotals, total){
     </div>`).join('');
 }
 
+/* ---- Ejemplos predefinidos ----
+   Cada ejemplo lista solo las líneas activas como [cantidad, precio, frecuencia];
+   el resto del catálogo queda desactivado con sus valores por defecto. */
+const EJ_NORMAL = {
+  v_alquiler:[1,800,'mes'], v_seghogar:[1,180,'anual'], v_luz:[1,60,'mes'], v_agua:[1,25,'mes'],
+  v_gas:[1,35,'mes'], v_internet:[1,35,'mes'], v_movil:[1,15,'mes'], v_manten:[1,250,'anual'],
+  v_basuras:[1,70,'anual'],
+  c_super:[1,85,'semana'], c_restau:[1,15,'semana'], c_cafe:[2,1.8,'semana'], c_capricho:[1,20,'mes'],
+  t_seguro:[1,400,'anual'], t_combu:[1,90,'mes'], t_manten:[1,350,'anual'], t_ivtm:[1,90,'anual'],
+  t_publico:[1,50,'mes'],
+  o_video:[1,10,'mes'], o_eventos:[1,15,'mes'], o_fiesta:[1,15,'semana'], o_hobby:[1,20,'mes'],
+  vj_dias:[10,70,'anual'],
+  s_dentista:[1,120,'anual'], s_optica:[1,100,'anual'], s_farmacia:[1,15,'mes'],
+  p_ropa:[1,500,'anual'], p_calzado:[1,120,'anual'], p_pelu:[1,15,'mes'], p_cosme:[1,12,'mes'],
+  te_movil:[1,350,'a3'], te_orden:[1,700,'a5'], te_electro:[1,1200,'a10'],
+  x_regalos:[1,300,'anual'], x_banco:[1,40,'anual'], x_imprev:[1,60,'mes'],
+};
+const EJ_BUENA = {
+  v_alquiler:[1,1300,'mes'], v_comunidad:[1,120,'mes'], v_ibi:[1,700,'anual'], v_seghogar:[1,350,'anual'],
+  v_luz:[1,110,'mes'], v_agua:[1,45,'mes'], v_gas:[1,80,'mes'], v_internet:[1,50,'mes'], v_movil:[1,30,'mes'],
+  v_manten:[1,900,'anual'], v_muebles:[1,1200,'anual'], v_basuras:[1,110,'anual'],
+  d_limpieza:[1,60,'semana'], d_tinto:[3,10,'mes'],
+  c_super:[1,140,'semana'], c_restau:[3,28,'semana'], c_cafe:[5,3,'semana'], c_delivery:[1,25,'semana'],
+  c_special:[1,90,'mes'], c_capricho:[1,50,'mes'],
+  t_cuota:[1,400,'mes'], t_seguro:[1,700,'anual'], t_combu:[1,160,'mes'], t_manten:[1,700,'anual'],
+  t_ivtm:[1,120,'anual'], t_parking:[1,150,'mes'], t_peajes:[1,30,'mes'], t_publico:[1,50,'mes'], t_taxi:[3,12,'mes'],
+  o_gym:[1,60,'mes'], o_video:[1,25,'mes'], o_musica:[1,12,'mes'], o_soft:[1,15,'mes'],
+  o_eventos:[1,45,'mes'], o_fiesta:[1,40,'semana'], o_hobby:[1,70,'mes'], o_libros:[1,15,'mes'],
+  vj_dias:[21,150,'anual'], vj_escapada:[1,450,'trim'], vj_vuelos:[1,1200,'anual'],
+  s_seguro:[1,90,'mes'], s_dentista:[1,600,'anual'], s_optica:[1,350,'anual'], s_farmacia:[1,30,'mes'],
+  s_fisio:[1,45,'mes'], s_suple:[1,25,'mes'],
+  p_ropa:[1,1800,'anual'], p_calzado:[1,400,'anual'], p_pelu:[1,45,'mes'], p_estetica:[1,50,'mes'], p_cosme:[1,40,'mes'],
+  te_movil:[1,1000,'a3'], te_orden:[1,1500,'a5'], te_tablet:[1,600,'a5'], te_wear:[1,400,'a3'],
+  te_gadgets:[1,200,'anual'], te_electro:[1,2500,'a10'],
+  x_regalos:[1,900,'anual'], x_donac:[1,40,'mes'], x_seguros:[1,500,'anual'], x_banco:[1,100,'anual'],
+  x_forma:[1,800,'anual'], x_imprev:[1,200,'mes'],
+};
+
+// Convierte un ejemplo en el mapa de valores que consume el render.
+function presetValues(spec){
+  const values = {};
+  CATS.forEach(cat=> cat.items.forEach(it=>{
+    const s = spec[it.id];
+    values[it.id] = s
+      ? {en:true,  q:String(s[0]), p:String(s[1]), per:s[2]}
+      : {en:false, q:String(it.q), p:String(it.p), per:it.per};
+  }));
+  return values;
+}
+// Carga un ejemplo: sustituye los datos actuales (las líneas personalizadas se descartan).
+function loadPreset(spec, label){
+  if(!confirm(`¿Cargar el ejemplo "${label}"? Sustituirá los valores actuales.`)) return;
+  store = {values:presetValues(spec), custom:{}, collapsed:store.collapsed, hogar:readHogar()};
+  setCurrentName(''); refreshScenarioSel('');
+  render(); save();
+}
+
+/* ---- Escenarios con nombre: varios conjuntos de datos guardados en este navegador ---- */
+const LS_SCENARIOS = 'estilo-vida-escenarios-v1';   // { "nombre": {values, custom}, ... }
+const LS_CURRENT   = 'estilo-vida-actual-v1';       // nombre del escenario cargado ahora
+const scenarioSel  = document.getElementById('scenarioSel');
+
+function readScenarios(){
+  try{ return JSON.parse(localStorage.getItem(LS_SCENARIOS) || '{}') || {}; }
+  catch(e){ return {}; }
+}
+function writeScenarios(obj){
+  try{ localStorage.setItem(LS_SCENARIOS, JSON.stringify(obj)); }catch(e){}
+}
+function setCurrentName(name){
+  try{ name ? localStorage.setItem(LS_CURRENT, name) : localStorage.removeItem(LS_CURRENT); }catch(e){}
+}
+function getCurrentName(){
+  try{ return localStorage.getItem(LS_CURRENT) || ''; }catch(e){ return ''; }
+}
+function refreshScenarioSel(selected){
+  const st = readScenarios();
+  const names = Object.keys(st).sort((a,b)=>a.localeCompare(b,'es'));
+  const esc = s => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
+  scenarioSel.innerHTML = '<option value="">— Sin guardar —</option>'
+    + names.map(n=>`<option value="${esc(n)}">${esc(n)}</option>`).join('');
+  scenarioSel.value = (selected && st[selected]) ? selected : '';
+}
+
 /* ---- Toolbar ---- */
-document.getElementById('btnReset').addEventListener('click', ()=>{
-  if(!confirm('¿Borrar todos tus datos y volver a los valores iniciales?')) return;
-  localStorage.removeItem(LS_KEY);
-  store = {values:{}, custom:{}, collapsed:{}};
-  render();
+document.getElementById('btnBuena').addEventListener('click', ()=> loadPreset(EJ_BUENA, 'Vida buena'));
+document.getElementById('btnNormal').addEventListener('click', ()=> loadPreset(EJ_NORMAL, 'Vida normal'));
+
+// Guardar los datos actuales bajo un nombre (nuevo o sobrescribiendo uno existente).
+document.getElementById('btnSave').addEventListener('click', ()=>{
+  save();   // sincroniza store.values con lo que hay en pantalla
+  const st = readScenarios();
+  const name = (prompt('Nombre para este conjunto de datos:', scenarioSel.value || '') || '').trim();
+  if(!name) return;
+  if(st[name] && !confirm(`Ya existe un escenario llamado "${name}". ¿Sobrescribirlo con los datos actuales?`)) return;
+  st[name] = JSON.parse(JSON.stringify({values:store.values, custom:store.custom, hogar:store.hogar}));
+  writeScenarios(st);
+  setCurrentName(name);
+  refreshScenarioSel(name);
+  save();   // muestra el indicador "✓ Guardado"
 });
+
+// Eliminar el escenario seleccionado (no cambia los datos que hay ahora en pantalla).
+document.getElementById('btnDelete').addEventListener('click', ()=>{
+  const name = scenarioSel.value;
+  if(!name){ alert('Elige primero un escenario guardado en la lista.'); return; }
+  if(!confirm(`¿Eliminar el escenario guardado "${name}"?\nEsto no modifica los datos que tienes ahora en pantalla.`)) return;
+  const st = readScenarios();
+  delete st[name];
+  writeScenarios(st);
+  if(getCurrentName() === name) setCurrentName('');
+  refreshScenarioSel('');
+});
+
+// Cargar un escenario al elegirlo en la lista.
+scenarioSel.addEventListener('change', ()=>{
+  const name = scenarioSel.value;
+  if(!name){ setCurrentName(''); return; }
+  const st = readScenarios();
+  if(!st[name]) return;
+  const snap = JSON.parse(JSON.stringify(st[name]));
+  store = {values:snap.values||{}, custom:snap.custom||{}, collapsed:store.collapsed,
+           hogar:Object.assign({}, HOGAR_DEF, snap.hogar||{})};
+  setCurrentName(name);
+  paintHogar();
+  render(); save();
+});
+
+/* Conceptos que casi nadie sigue pagando ya jubilado: si están activos, el total
+   que se envía los incluye y sobrestima el gasto de la jubilación. */
+const NO_JUBI = ['f_guarde','f_comedor','f_extra','f_canguro','f_ropa','f_ocio','f_ahorro',
+                 'de_personal','de_consumo','de_tarjeta','de_estudios','x_reta','x_ahorro'];
+
 document.getElementById('btnJubi').addEventListener('click', ()=>{
   save();
+  // Avisa de las líneas temporales antes de mandar el total a la otra calculadora.
+  let temporal = 0; const nombres = [];
+  document.querySelectorAll('.row').forEach(row=>{
+    if(!NO_JUBI.includes(row.dataset.id)) return;
+    const {m, en} = rowMonthly(row);
+    if(!en || m<=0) return;
+    temporal += m;
+    nombres.push('· ' + row.querySelector('.name').textContent + ' (' + fmt(m) + '/mes)');
+  });
+  if(temporal > 0){
+    const msg = 'Vas a enviar ' + fmt(lastTotal) + '/mes, e incluye conceptos que suelen desaparecer '
+      + 'al jubilarte:\n\n' + nombres.join('\n') + '\n\nSuman ' + fmt(temporal) + '/mes ('
+      + fmt(temporal*12) + '/año). Sin ellos el gasto sería ' + fmt(lastTotal-temporal) + '/mes.\n\n'
+      + '¿Enviar el total completo de todas formas?\n(Cancela si prefieres desactivarlos antes.)';
+    if(!confirm(msg)) return;
+  }
   const anual = Math.round(lastTotal*12);
   try{ localStorage.setItem('gasto-jubilacion-anual', String(anual)); }catch(e){}
   window.open('calculadora-jubilacion.html?gasto='+anual, '_blank');
 });
-document.getElementById('btnExport').addEventListener('click', ()=>{
-  save();
-  const blob = new Blob([JSON.stringify(store,null,2)], {type:'application/json'});
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = 'estilo-de-vida.json';
-  a.click();
-  URL.revokeObjectURL(a.href);
-});
-document.getElementById('btnImport').addEventListener('click', ()=> document.getElementById('fileImport').click());
-document.getElementById('fileImport').addEventListener('change', e=>{
-  const file = e.target.files[0]; if(!file) return;
-  const reader = new FileReader();
-  reader.onload = ()=>{
-    try{
-      const p = JSON.parse(reader.result);
-      store = Object.assign({values:{},custom:{},collapsed:{}}, p);
-      render(); save();
-      alert('Datos importados correctamente.');
-    }catch(err){ alert('El archivo no es válido.'); }
-  };
-  reader.readAsText(file);
-  e.target.value='';
-});
-let allCollapsed=false;
-document.getElementById('btnCollapse').addEventListener('click', e=>{
-  allCollapsed = !allCollapsed;
-  document.querySelectorAll('.cat').forEach(c=>{
-    c.querySelector('.cat-body').style.display = allCollapsed?'none':'';
-    store.collapsed[c.dataset.cat] = allCollapsed;
-  });
-  e.target.textContent = allCollapsed ? '🔼 Desplegar todo' : '🔽 Plegar todo';
-  save();
-});
 
 /* ---- Init ---- */
 loadStore();
+paintHogar();
+[elPersonas, elIngresos].forEach(el=>{
+  el.addEventListener('input', ()=>{ compute(); save(); });
+  el.addEventListener('change', ()=>{ compute(); save(); });
+});
 render();
+refreshScenarioSel(getCurrentName());
 </script>
 </body>
 </html>

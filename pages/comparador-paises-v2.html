@@ -199,9 +199,21 @@
   .eyebrow{display:block; color:#ddec91; font:700 .74rem/1 "DM Sans",sans-serif; letter-spacing:.14em; text-transform:uppercase; margin-bottom:24px}
   section{margin-bottom:54px}
   .wrap > section:nth-of-type(n+4):not(:last-of-type){display:none}
-  .ctrls{position:relative; margin-top:-54px; z-index:3; box-shadow:0 16px 38px rgba(23,61,50,.12)}
+  .ctrls{position:relative; margin-top:-54px; margin-bottom:12px; z-index:3; box-shadow:0 16px 38px rgba(23,61,50,.12)}
   .ctrls .hint{margin-left:auto; max-width:360px}
   .money-input{display:flex; align-items:center; gap:6px; white-space:nowrap}
+  .bcn-reference{display:grid; grid-template-columns:1.25fr repeat(5,1fr); gap:0; margin-bottom:46px;
+    background:#dbe8e1; border-left:5px solid var(--accent); border-radius:6px; overflow:hidden}
+  .bcn-place,.bcn-metric{padding:16px 18px}
+  .bcn-place{display:flex; flex-direction:column; justify-content:center; background:var(--ink); color:#fff}
+  .bcn-place span,.bcn-metric span{font-size:.66rem; font-weight:700; letter-spacing:.08em; text-transform:uppercase}
+  .bcn-place span{color:#bed4ca}
+  .bcn-place strong{font:700 1.25rem/1.1 "Bricolage Grotesque",sans-serif; margin-top:6px}
+  .bcn-metric{border-right:1px solid rgba(23,61,50,.12)}
+  .bcn-metric:last-child{border:0}
+  .bcn-metric span{display:block; color:var(--mut); margin-bottom:5px}
+  .bcn-metric b{display:block; font:700 1.03rem/1.2 "Bricolage Grotesque",sans-serif}
+  .bcn-metric small{display:block; color:var(--mut); font-size:.68rem; margin-top:3px}
   .kpis{grid-template-columns:1.4fr repeat(2,1fr)}
   .kpi{border-top:4px solid var(--k,var(--accent)); min-height:170px; display:flex; flex-direction:column}
   .kpi:first-child{background:var(--ink); color:#fff; border-top-color:#ddec91}
@@ -245,6 +257,9 @@
   details.sup summary{font-family:"Bricolage Grotesque",sans-serif; font-size:1rem}
   footer{padding-bottom:20px}
   @media(max-width:820px){
+    .bcn-reference{grid-template-columns:repeat(5,1fr)}
+    .bcn-place{grid-column:1/-1; flex-direction:row; align-items:center; justify-content:space-between}
+    .bcn-place strong{margin:0}
     .kpis{grid-template-columns:1fr 1fr}
     .kpi:first-child{grid-column:1/-1}
     .destinations{grid-template-columns:1fr 1fr}
@@ -257,6 +272,10 @@
     .ctrls{margin-top:-24px; display:grid; gap:14px}
     .ctrls label{display:grid; grid-template-columns:1fr auto; width:100%}
     .ctrls .hint{margin:0}
+    .bcn-reference{grid-template-columns:1fr 1fr}
+    .bcn-place{grid-column:1/-1}
+    .bcn-metric{border-right:1px solid rgba(23,61,50,.12); border-bottom:1px solid rgba(23,61,50,.12)}
+    .bcn-metric:last-child{grid-column:1/-1; border-bottom:0}
     .kpis,.destinations{grid-template-columns:1fr}
     .kpi:first-child,.destination:first-child{grid-column:auto}
     .destination,.destination:first-child{min-height:210px}
@@ -294,6 +313,8 @@
     </label>
     <span class="hint">Ajustamos los salarios locales manteniendo tu posición profesional en cada mercado.</span>
   </div>
+
+  <aside class="bcn-reference" id="bcnReference" aria-label="Datos de referencia de Barcelona"></aside>
 
   <!-- ============ VEREDICTO ============ -->
   <section>
@@ -816,6 +837,14 @@ function render(){
   document.getElementById('hCaso').textContent   = nf.format(brutoBase) + ' € brutos';
   document.getElementById('hUmbral').textContent = nf2.format(umbral) + '×';
   document.getElementById('hTarget').textContent = eur(objetivoFIRE);
+
+  document.getElementById('bcnReference').innerHTML = `
+    <div class="bcn-place"><span>Referencia actual</span><strong>${base.bandera} Barcelona</strong></div>
+    <div class="bcn-metric"><span>Bruto anual</span><b>${eur(base.brutoEUR)}</b><small>salario de partida</small></div>
+    <div class="bcn-metric"><span>Impuestos</span><b>${eur(base.impuestos)}</b><small>${nf1.format(base.eff*100)} % del bruto</small></div>
+    <div class="bcn-metric"><span>Neto mensual</span><b>${eur(base.netoMesEUR)}</b><small>después de impuestos</small></div>
+    <div class="bcn-metric"><span>Coste mensual</span><b>${eur(base.colMesEUR)}</b><small>${eur(base.col.alquiler)} de alquiler</small></div>
+    <div class="bcn-metric"><span>Ahorro anual</span><b>${eur(base.ahorroEUR)}</b><small>${nf.format(base.tasa*100)} % del neto</small></div>`;
 
   /* ---- 1. Veredicto ---- */
   const mejorAhorro = filas[0];

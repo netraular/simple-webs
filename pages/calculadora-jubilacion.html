@@ -169,8 +169,9 @@
   .np-metric .np-v { font-size: 1.5rem; font-weight: 700; color: var(--green); margin: 2px 0; }
   .np-metric .np-s { font-size: .7rem; color: #64748b; line-height: 1.4; }
 
-  /* Bola de nieve: las tres cifras clave en una fila (la tarjeta ocupa todo el ancho) */
-  @media (min-width: 780px) { #coastKpis { grid-template-columns: repeat(3, 1fr); } }
+  /* Bola de nieve e interés compuesto: las tres cifras clave en una fila
+     (la tarjeta ocupa todo el ancho) */
+  @media (min-width: 780px) { #coastKpis, #ciKpis { grid-template-columns: repeat(3, 1fr); } }
 
   /* Monte Carlo */
   .mc-canvas { width: 100%; height: auto; display: block; cursor: crosshair; }
@@ -225,10 +226,10 @@
       <div class="group">
         <div class="group-title">Dinero</div>
         <label for="capital">Capital ya invertido (€)</label>
-        <input type="number" id="capital" value="190000" min="0" step="1000">
+        <input type="number" id="capital" value="200000" min="0" step="1000">
 
         <label for="neto">Ingreso neto anual (€)</label>
-        <input type="number" id="neto" value="30000" min="0" step="1000">
+        <input type="number" id="neto" value="42000" min="0" step="1000">
         <div class="hint">Se usa solo para calcular tu tasa de ahorro.</div>
 
         <label for="gasto">Gasto mensual que quieres en el retiro (€ de hoy)</label>
@@ -421,6 +422,71 @@
     </h2>
     <p class="subtitle" style="margin-bottom:0">Cuánto aportar cada mes, año a año. La columna <strong>€ de hoy</strong> es el esfuerzo real (constante, o decreciente si front-cargas el ahorro). La columna <strong>€ nominales</strong> es lo que de verdad transferirías ese año: <strong>sube con la inflación</strong>, así que hay que corregir el importe cada año para mantener el mismo poder de compra.</p>
     <div id="tablaAporteWrap" style="display:none; margin-top:16px; overflow-x:auto"></div>
+  </div>
+
+  <!-- INTERÉS COMPUESTO: cálculo rápido e independiente del plan de arriba -->
+  <div class="card" id="ciCard">
+    <h2 class="with-toggle">🧮 Interés compuesto — cálculo rápido
+      <button type="button" class="tool card-toggle" id="btnCi" title="Ocultar la calculadora" aria-label="Ocultar la calculadora">▾</button>
+    </h2>
+    <div id="ciBody">
+      <p class="subtitle" style="margin-bottom:20px">Calculadora suelta, al estilo de la de <em>investor.gov</em>: pones un capital inicial, una aportación mensual, un plazo y un tipo de interés, y ves en cuánto se convierte. <strong>No afecta al plan de arriba.</strong> Aquí el tipo lo eliges tú: si usas uno <strong>nominal</strong> (el del extracto del fondo), el saldo sale en euros del futuro y abajo tienes su equivalente en € de hoy.</p>
+
+      <div class="budget-grid">
+        <div>
+          <label for="ci_inicial">Capital inicial (€)</label>
+          <input type="number" id="ci_inicial" value="10000" min="0" step="1000">
+          <div class="hint">Lo que inviertes de una vez al empezar. Puede ser 0 si arrancas de cero.</div>
+        </div>
+        <div>
+          <label for="ci_aporte">Aportación mensual (€)</label>
+          <input type="number" id="ci_aporte" value="300" min="0" step="50">
+          <div class="hint">Lo que añades al final de cada mes, constante durante todo el plazo.</div>
+        </div>
+        <div>
+          <label for="ci_anios">Plazo (años)</label>
+          <input type="number" id="ci_anios" value="20" min="1" max="80" step="1">
+          <div class="hint">Cuánto tiempo dejas trabajar al dinero. Es la variable que más manda: el interés compuesto se nota sobre todo en los últimos años.</div>
+        </div>
+        <div>
+          <label for="ci_tasa">Tipo de interés anual (%)</label>
+          <input type="number" id="ci_tasa" value="7" min="0" max="30" step="0.1">
+          <div class="hint">Rentabilidad media anual que asumes. Un fondo indexado global ronda el <b>7% nominal</b> (≈ 4% real, ya descontada la inflación). Si pones la <b>real</b>, el saldo ya está en € de hoy y puedes ignorar la tarjeta de la inflación.</div>
+        </div>
+        <div>
+          <label for="ci_var">Variación del tipo (± %)</label>
+          <input type="number" id="ci_var" value="2" min="0" max="10" step="0.5">
+          <div class="hint">Margen arriba y abajo del tipo para ver también un escenario peor y uno mejor. Pon <b>0</b> si solo quieres una cifra.</div>
+        </div>
+        <div>
+          <label for="ci_freq">Frecuencia de capitalización</label>
+          <select id="ci_freq">
+            <option value="diaria">Diaria</option>
+            <option value="mensual" selected>Mensual</option>
+            <option value="trimestral">Trimestral</option>
+            <option value="anual">Anual</option>
+          </select>
+          <div class="hint">Cada cuánto se suman los intereses al capital para que ellos mismos empiecen a generar intereses. Cuanto más a menudo, algo más de saldo final (la diferencia suele ser pequeña).</div>
+        </div>
+      </div>
+
+      <div class="muted" style="font-size:.82rem; margin-top:24px">Saldo final estimado</div>
+      <div class="result-total" id="ci-total">—</div>
+      <div class="result-sub" id="ci-sub"></div>
+
+      <div class="cards-mini" id="ciKpis">
+        <div class="mini"><div class="k">Total aportado (inicial + cuotas)</div><div class="v" id="ci-aportado">—</div></div>
+        <div class="mini"><div class="k">Intereses generados</div><div class="v" id="ci-intereses" style="color:var(--blue)">—</div></div>
+        <div class="mini"><div class="k">Ese saldo, en € de hoy</div><div class="v" id="ci-real" style="color:var(--amber)">—</div></div>
+      </div>
+
+      <div id="ci-rango" style="margin-top:20px"></div>
+
+      <h3 style="display:flex; align-items:center; gap:10px; flex-wrap:wrap; font-size:.95rem; margin:24px 0 0; color:var(--accent)">Detalle año a año
+        <button type="button" class="tool card-toggle" id="btnCiTabla" style="margin-left:auto" title="Mostrar el detalle año a año" aria-label="Mostrar el detalle año a año">▸</button>
+      </h3>
+      <div id="ciTablaWrap" style="display:none; margin-top:14px; overflow-x:auto"></div>
+    </div>
   </div>
 
   <p class="disclaimer">
@@ -658,6 +724,9 @@ function buildCurve(sc) {
 }
 
 function compute() {
+  // La calculadora de interés compuesto es independiente del plan: se refresca siempre,
+  // incluso si los datos del plan aún no son válidos y salimos antes de tiempo.
+  computeCompound();
   // Toda la sección de pensión (importe, edad, cotización y convenio) se pliega con el checkbox.
   const cobrare = document.getElementById('cobrare_pension').checked;
   const pw = document.getElementById('pensionWrap');
@@ -1283,6 +1352,92 @@ function setToggleArrow(btn, collapsed, name) {
   });
 })();
 
+/* ============ Interés compuesto: cálculo rápido, al estilo de investor.gov ============
+   Independiente del plan FIRE de arriba (no entra en ningún otro cálculo): capital
+   inicial + aportación mensual, un tipo con margen de variación y la frecuencia de
+   capitalización. Como aquí el tipo suele ser NOMINAL, se muestra también el saldo
+   equivalente en € de hoy usando la inflación de la sección "Mercados". */
+const CI_FREQ = { diaria: 365, mensual: 12, trimestral: 4, anual: 1 };
+const CI_FREQ_TXT = { diaria: 'diaria', mensual: 'mensual', trimestral: 'trimestral', anual: 'anual' };
+const ciPct = t => (t * 100).toLocaleString('es-ES', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+
+// Serie año a año con aportación al final de cada mes. La frecuencia de capitalización
+// se respeta usando su tipo efectivo mensual equivalente: (1 + tasa/n)^(n/12) − 1.
+function ciSerie(P, C, anios, tasa, n) {
+  const im = Math.pow(1 + tasa / n, n / 12) - 1;
+  const filas = [];
+  let saldo = P, aportado = P;
+  for (let y = 1; y <= anios; y++) {
+    for (let m = 0; m < 12; m++) { saldo = saldo * (1 + im) + C; aportado += C; }
+    filas.push({ anio: y, saldo, aportado, interes: saldo - aportado });
+  }
+  return filas;
+}
+
+function computeCompound() {
+  if (!document.getElementById('ci_inicial')) return;
+  const P = Math.max(0, val('ci_inicial'));
+  const C = Math.max(0, val('ci_aporte'));
+  const Y = Math.max(1, Math.min(80, Math.round(val('ci_anios')) || 1));
+  const tasa = Math.max(0, val('ci_tasa')) / 100;
+  const varia = Math.max(0, val('ci_var')) / 100;
+  const freqKey = document.getElementById('ci_freq').value;
+  const n = CI_FREQ[freqKey] || 12;
+  const infl = val('inflacion') / 100;
+
+  const filas = ciSerie(P, C, Y, tasa, n);
+  const fin = filas[filas.length - 1];
+
+  document.getElementById('ci-total').textContent = fmt.format(fin.saldo);
+  document.getElementById('ci-sub').innerHTML =
+    `Dentro de <b>${Y} años</b>, partiendo de <b>${fmt.format(P)}</b> y aportando <b>${fmt.format(C)}/mes</b> al <b>${ciPct(tasa)}%</b> anual (capitalización ${CI_FREQ_TXT[freqKey] || 'mensual'}).`;
+  document.getElementById('ci-aportado').textContent = fmtShort(fin.aportado);
+  document.getElementById('ci-intereses').textContent = fmtShort(fin.interes);
+  document.getElementById('ci-real').textContent = fmtShort(fin.saldo / Math.pow(1 + infl, Y));
+
+  // Rango de tipos (± variación): escenario peor / central / mejor, como en investor.gov.
+  const rango = document.getElementById('ci-rango');
+  if (varia > 0) {
+    const filasRango = [
+      ['Escenario peor', Math.max(0, tasa - varia)],
+      ['Tipo central', tasa],
+      ['Escenario mejor', tasa + varia],
+    ].map(([etq, t], k) => {
+      const f = ciSerie(P, C, Y, t, n).slice(-1)[0];
+      return `<tr class="${k === 1 ? 'active' : ''}"><td>${etq}</td><td>${ciPct(t)}%</td><td><b>${fmt.format(f.saldo)}</b></td><td class="muted">${fmt.format(f.interes)}</td></tr>`;
+    }).join('');
+    rango.innerHTML = `<table class="comp">
+      <thead><tr><th>Escenario</th><th>Tipo anual</th><th>Saldo final</th><th>Intereses</th></tr></thead>
+      <tbody>${filasRango}</tbody>
+    </table>
+    <div class="muted" style="font-size:.75rem; margin-top:10px; line-height:1.5">Mismo capital, mismas aportaciones y mismo plazo: lo único que cambia es el tipo (± ${ciPct(varia)} puntos). Sirve para ver cuánto depende el resultado de acertar con la rentabilidad.</div>`;
+  } else {
+    rango.innerHTML = '';
+  }
+
+  // Detalle año a año (plegable): cuánto has puesto tú y cuánto ha puesto el interés.
+  const wrap = document.getElementById('ciTablaWrap');
+  if (wrap) {
+    const baseYear = new Date().getFullYear();
+    wrap.innerHTML = `<table class="comp">
+      <thead><tr><th>Año</th><th>Aportado acumulado</th><th>Intereses acumulados</th><th>Saldo</th></tr></thead>
+      <tbody>${filas.map(f => `<tr><td>${baseYear + f.anio} <span class="muted">· año ${f.anio}</span></td><td class="muted">${fmt.format(f.aportado)}</td><td style="color:var(--blue)">${fmt.format(f.interes)}</td><td><b>${fmt.format(f.saldo)}</b></td></tr>`).join('')}</tbody>
+    </table>`;
+  }
+}
+
+// Botón (flecha) del detalle año a año del interés compuesto (arranca plegado).
+(function () {
+  const b = document.getElementById('btnCiTabla'), w = document.getElementById('ciTablaWrap');
+  if (!b || !w) return;
+  setToggleArrow(b, true, 'el detalle año a año');
+  b.addEventListener('click', () => {
+    const show = w.style.display === 'none';
+    w.style.display = show ? '' : 'none';
+    setToggleArrow(b, !show, 'el detalle año a año');
+  });
+})();
+
 // Plegar/desplegar bloques de tarjeta (las entradas y el detalle de "cuánto aportar"),
 // recordando el estado en este navegador para no tener que volver a encogerlos.
 const LS_UI = 'jubilacion-ui-v1';
@@ -1305,6 +1460,7 @@ function wireCardToggle(btnId, targetId, name) {
 }
 wireCardToggle('btnInputs', 'inputsBody', 'los datos');
 wireCardToggle('btnDetalle', 'detalleWrap', 'el detalle');
+wireCardToggle('btnCi', 'ciBody', 'la calculadora');
 
 // ---- Persistencia del formulario en este navegador (como la calculadora de estilo de vida) ----
 const LS_FORM = 'jubilacion-v1';

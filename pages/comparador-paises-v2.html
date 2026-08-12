@@ -1,0 +1,911 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Comparador de países v2 · ¿Compensa mudarse desde Barcelona?</title>
+<style>
+  /* Mismo brutalismo colorido que el resto del sitio: fondo crema, tipografía
+     monoespaciada, bordes gruesos y sombras desplazadas. Sin librerías: todos
+     los gráficos son <div> con anchos en %. */
+  :root{
+    --bg:#f6f2e7; --card:#fbf8f0; --line:#16203c; --txt:#16203c; --mut:#514b5e;
+    --ink:#16203c; --accent:#c0186f; --accent2:#1a3fb0; --ok:#0b7268; --ok2:#256a29;
+    --warn:#c2410c; --danger:#d61f4e; --purple:#6d28c9;
+  }
+  *{box-sizing:border-box}
+  body{ margin:0; font-family:"SFMono-Regular",Consolas,"Liberation Mono",Menlo,"DejaVu Sans Mono",monospace;
+    background:var(--bg); color:var(--txt); line-height:1.45; -webkit-font-smoothing:none; padding-bottom:60px; }
+  header{ padding:34px 20px 28px; text-align:center; background:var(--card); border-bottom:5px solid var(--accent); }
+  header h1{ margin:0 0 10px; font-size:1.75rem; font-weight:800; text-transform:uppercase; letter-spacing:1px; color:var(--accent2); }
+  header p{ margin:0 auto; max-width:820px; color:var(--mut); font-size:.9rem; }
+  header .caso{ margin:14px auto 0; max-width:820px; background:#fff; border:3px solid var(--ink);
+    box-shadow:6px 6px 0 var(--accent2); padding:12px 16px; font-size:.86rem; text-align:left; }
+  header .caso b{color:var(--accent)}
+  .wrap{max-width:1140px; margin:0 auto; padding:26px 20px}
+
+  /* ---- barra de supuestos (los dos únicos controles de la página) ---- */
+  .ctrls{ display:flex; flex-wrap:wrap; gap:14px 22px; align-items:center; justify-content:center;
+    background:var(--card); border:3px solid var(--ink); box-shadow:6px 6px 0 var(--accent); padding:14px 18px; margin-bottom:28px; }
+  .ctrls label{font-size:.82rem; font-weight:800; text-transform:uppercase; letter-spacing:.5px; display:flex; align-items:center; gap:8px}
+  .ctrls input,.ctrls select{ background:#fff; color:var(--txt); border:2px solid var(--ink); border-radius:0;
+    padding:7px 9px; font-size:.88rem; font-family:inherit; font-weight:800; }
+  .ctrls input{width:110px; text-align:right}
+  .ctrls input:focus,.ctrls select:focus{outline:none; border-color:var(--accent); box-shadow:3px 3px 0 var(--accent)}
+  .ctrls .hint{font-size:.75rem; color:var(--mut); font-weight:400; text-transform:none; letter-spacing:0; flex:1 1 220px}
+
+  section{margin-bottom:38px}
+  h2.sec{ font-size:1.05rem; font-weight:800; text-transform:uppercase; letter-spacing:.6px; color:var(--accent2);
+    border-bottom:4px solid var(--accent2); padding-bottom:6px; margin:0 0 6px; }
+  p.lead{font-size:.84rem; color:var(--mut); margin:0 0 18px}
+
+  /* ---- veredicto ---- */
+  .kpis{display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:18px}
+  .kpi{ background:#fff; border:3px solid var(--k,var(--accent2)); box-shadow:6px 6px 0 var(--k,var(--accent2)); padding:14px 16px; }
+  .kpi .k{font-size:.72rem; text-transform:uppercase; letter-spacing:1px; font-weight:800; color:var(--k)}
+  .kpi .v{font-size:1.5rem; font-weight:800; margin:6px 0 2px; line-height:1.1}
+  .kpi .s{font-size:.78rem; color:var(--mut)}
+
+  /* ---- tabla ranking ---- */
+  .tablewrap{overflow-x:auto; border:3px solid var(--ink); box-shadow:6px 6px 0 var(--accent2); background:#fff}
+  table{border-collapse:collapse; width:100%; min-width:1120px; font-size:.82rem}
+  thead th{ background:var(--accent2); color:#fff; text-transform:uppercase; letter-spacing:.5px; font-size:.7rem;
+    padding:9px 8px; text-align:right; border-bottom:3px solid var(--ink); white-space:nowrap; }
+  thead th:first-child,thead th:nth-child(2){text-align:left}
+  tbody td{padding:8px; border-bottom:2px dashed #c9c3b4; text-align:right; white-space:nowrap}
+  tbody td:first-child,tbody td:nth-child(2){text-align:left}
+  tbody tr:hover{background:#fdf6ea}
+  tbody tr.base{background:#eef1fb}
+  tbody tr.base td{font-weight:800}
+  .rk{font-weight:800; color:var(--mut)}
+  .city{font-weight:800}
+  .city small{display:block; font-weight:400; color:var(--mut); font-size:.72rem}
+  .pos{color:var(--ok2); font-weight:800}
+  .neg{color:var(--danger); font-weight:800}
+  .pass{background:var(--ok2); color:#fff; padding:1px 6px; font-weight:800; font-size:.72rem}
+  .fail{background:#e5e0d3; color:var(--mut); padding:1px 6px; font-weight:800; font-size:.72rem}
+
+  /* ---- gráficos de barras ---- */
+  .chart{background:var(--card); border:3px solid var(--ink); box-shadow:6px 6px 0 var(--ok); padding:18px 18px 14px}
+  .chart.b2{box-shadow:6px 6px 0 var(--purple)}
+  .chart.b3{box-shadow:6px 6px 0 var(--warn)}
+  .chart.b4{box-shadow:6px 6px 0 var(--danger)}
+  .seg.marg{background:var(--danger)}
+  .seg.marg.ok{background:var(--ok)}
+  .crow{display:grid; grid-template-columns:132px 1fr 168px; gap:10px; align-items:center; margin-bottom:7px; font-size:.78rem}
+  .crow .cl{font-weight:800; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+  .crow .cl.base{color:var(--accent2)}
+  .crow .cv{text-align:right; font-weight:800; white-space:nowrap}
+  .track{position:relative; background:#fff; border:2px solid var(--ink); height:20px; display:flex; overflow:hidden}
+  .seg{height:100%; display:block}
+  .seg.col{background:repeating-linear-gradient(45deg,#1a3fb0,#1a3fb0 5px,#3556c4 5px,#3556c4 10px)}
+  .seg.sav{background:var(--ok2)}
+  .seg.rat{background:var(--purple)}
+  .seg.rat.no{background:#b8b1a2}
+  .seg.fire{background:var(--warn)}
+  .seg.fire.base{background:var(--accent2)}
+  .marker{position:absolute; top:-4px; bottom:-4px; width:3px; background:var(--danger); z-index:2}
+  .marker span{ position:absolute; top:-17px; left:50%; transform:translateX(-50%); background:var(--danger); color:#fff;
+    font-size:.62rem; font-weight:800; padding:1px 5px; white-space:nowrap; }
+  .legend{display:flex; flex-wrap:wrap; gap:16px; margin-top:14px; font-size:.75rem; font-weight:700}
+  .legend i{display:inline-block; width:14px; height:14px; border:2px solid var(--ink); margin-right:6px; vertical-align:-3px}
+
+  /* ---- fiscalidad del ahorro ---- */
+  .fisc{display:grid; grid-template-columns:repeat(auto-fill,minmax(330px,1fr)); gap:16px}
+  .fi{background:#fff; border:3px solid var(--ink); border-left:11px solid var(--n);
+    box-shadow:5px 5px 0 var(--n); padding:11px 13px}
+  .fi h4{margin:0; font-size:.88rem; font-weight:800; display:flex; justify-content:space-between;
+    align-items:baseline; gap:8px}
+  .fi .nota{font-size:.66rem; font-weight:800; text-transform:uppercase; letter-spacing:.5px;
+    color:#fff; background:var(--n); padding:2px 7px; white-space:nowrap}
+  .fi p{margin:7px 0 0; font-size:.75rem; color:var(--mut)}
+  .fi p strong{color:var(--txt); text-transform:uppercase; font-size:.68rem; letter-spacing:.5px}
+
+  /* ---- fichas ---- */
+  .cards{display:grid; grid-template-columns:repeat(auto-fill,minmax(320px,1fr)); gap:20px}
+  .card{background:#fff; border:3px solid var(--c,var(--accent2)); box-shadow:6px 6px 0 var(--c,var(--accent2)); display:flex; flex-direction:column}
+  .card h3{ margin:0; padding:11px 14px; background:var(--c); color:#fff; font-size:.92rem; text-transform:uppercase;
+    letter-spacing:.5px; border-bottom:3px solid var(--ink); display:flex; justify-content:space-between; gap:10px; align-items:baseline; }
+  .card h3 em{font-style:normal; font-size:.74rem; opacity:.9; font-weight:400}
+  .card .body{padding:12px 14px; flex:1}
+  .ln{display:flex; justify-content:space-between; gap:10px; font-size:.79rem; padding:3px 0; border-bottom:1px dotted #ccc5b6}
+  .ln:last-of-type{border-bottom:none}
+  .ln b{white-space:nowrap}
+  .ln.tot{border-top:2px solid var(--ink); margin-top:5px; padding-top:6px; font-weight:800; border-bottom:none}
+  /* Aviso de caducidad del régimen fiscal: etiqueta larga, mejor en dos líneas. */
+  .ln.stack{display:block; border-bottom:none; margin-top:9px; background:#fff4ec;
+    border:2px solid var(--warn); padding:6px 8px; font-size:.76rem}
+  .ln.stack b{display:block; margin-top:2px; color:var(--warn)}
+  .ln .m{color:var(--mut)}
+  .badges{display:flex; flex-wrap:wrap; gap:6px; margin:11px 0 0}
+  .badge{font-size:.68rem; font-weight:800; text-transform:uppercase; letter-spacing:.3px; padding:2px 6px; border:2px solid var(--ink); background:#fff}
+  .badge.g{background:var(--ok2); color:#fff; border-color:var(--ok2)}
+  .badge.r{background:var(--danger); color:#fff; border-color:var(--danger)}
+  .badge.o{background:var(--warn); color:#fff; border-color:var(--warn)}
+  .badge.b{background:var(--accent2); color:#fff; border-color:var(--accent2)}
+  .notas{margin:11px 0 0; padding:0 0 0 16px; font-size:.74rem; color:var(--mut)}
+  .notas li{margin-bottom:4px}
+
+  /* ---- avisos y supuestos ---- */
+  .warns{display:grid; grid-template-columns:repeat(auto-fit,minmax(290px,1fr)); gap:18px}
+  .warn{background:#fff; border:3px solid var(--warn); box-shadow:6px 6px 0 var(--warn); padding:13px 15px}
+  .warn h4{margin:0 0 6px; font-size:.84rem; text-transform:uppercase; letter-spacing:.5px; color:var(--warn)}
+  .warn p{margin:0; font-size:.78rem; color:var(--mut)}
+  details.sup{background:var(--card); border:3px solid var(--ink); box-shadow:6px 6px 0 var(--ink); padding:0}
+  details.sup summary{ cursor:pointer; padding:13px 16px; font-weight:800; text-transform:uppercase; letter-spacing:.5px;
+    font-size:.86rem; background:var(--ink); color:#fff; }
+  details.sup .inner{padding:16px; font-size:.8rem; color:var(--mut)}
+  details.sup h4{color:var(--txt); font-size:.82rem; text-transform:uppercase; letter-spacing:.5px; margin:16px 0 6px}
+  details.sup h4:first-child{margin-top:0}
+  details.sup ul{margin:0 0 0 18px; padding:0}
+  details.sup li{margin-bottom:5px}
+  details.sup code{background:#fff; border:1px solid #ccc5b6; padding:0 4px}
+  a{color:var(--accent); font-weight:700}
+  footer{text-align:center; font-size:.76rem; color:var(--mut); max-width:820px; margin:34px auto 0; padding:0 20px}
+  @media(max-width:640px){
+    .crow{grid-template-columns:90px 1fr 118px; font-size:.7rem}
+    header h1{font-size:1.3rem}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🌍 ¿Compensa mudarse? · Comparador v2</h1>
+  <p>Coste de oportunidad de irse de Barcelona: cuánto <b>ahorras de verdad</b> en cada ciudad europea,
+  no cuánto pone en la nómina.</p>
+  <div class="caso">
+    <b>El caso:</b> informático con ~8–10 años de experiencia, <b id="hCaso">60.000 € brutos</b> en Barcelona.
+    Soltero, sin hijos, sin coche, piso de 1 dormitorio, gasto sobrio de persona normal.
+    Quiere <b>ahorrar mucho</b> y volver a <b>jubilarse en España</b> (o retirarse antes).
+    Para cada destino se estima el bruto de <b>un perfil equivalente en ese mercado</b>, no el mismo número.
+  </div>
+</header>
+
+<div class="wrap">
+
+  <div class="ctrls">
+    <label>Bruto en Barcelona
+      <input id="inBruto" type="number" min="20000" max="200000" step="1000" value="60000"> €/año
+    </label>
+    <label>Me compensa si ahorro
+      <select id="inUmbral">
+        <option value="1.2">1,20× lo de ahora</option>
+        <option value="1.3" selected>1,30× lo de ahora</option>
+        <option value="1.5">1,50× lo de ahora</option>
+        <option value="2">2,00× lo de ahora</option>
+      </select>
+    </label>
+    <span class="hint">Si cambias el bruto, los brutos del resto de ciudades escalan en la misma proporción
+    (se mantiene tu posición relativa en cada mercado).</span>
+  </div>
+
+  <!-- ============ VEREDICTO ============ -->
+  <section>
+    <h2 class="sec">1 · Veredicto</h2>
+    <p class="lead">Lo que importa para tu objetivo: euros ahorrados al año y años de vida laboral que te ahorras.</p>
+    <div class="kpis" id="kpis"></div>
+  </section>
+
+  <!-- ============ RANKING ============ -->
+  <section>
+    <h2 class="sec">2 · Ranking por ahorro real</h2>
+    <p class="lead">Ordenado por lo que te queda al año después de impuestos, cotizaciones y coste de vida.
+    Todo convertido a euros. La fila azul es tu situación actual.</p>
+    <div class="tablewrap">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th><th>Ciudad</th><th>Bruto local</th><th>Neto €/mes</th><th>× neto</th>
+            <th>Coste vida €/mes</th><th>Ahorro €/año</th><th>× ahorro</th><th>vs BCN</th>
+            <th>Tasa ahorro</th><th>Marginal +10k</th><th>Años a FIRE</th><th>Umbral</th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============ A DÓNDE VA EL NETO ============ -->
+  <section>
+    <h2 class="sec">3 · A dónde va tu neto</h2>
+    <p class="lead">La barra completa es tu neto disponible mensual en euros. Rayado = coste de vida, verde = ahorro.
+    Aquí se ve por qué Dublín o Londres pagan bien y aun así no ahorras: el alquiler se lo come.</p>
+    <div class="chart">
+      <div id="chartStack"></div>
+      <div class="legend">
+        <span><i class="seg col"></i>Coste de vida</span>
+        <span><i style="background:#256a29"></i>Ahorro</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ TEST DEL UMBRAL ============ -->
+  <section>
+    <h2 class="sec">4 · Tu regla del <span id="hUmbral">1,30×</span> en ahorro</h2>
+    <p class="lead">Múltiplo del <b>ahorro anual</b> respecto a Barcelona: cuánto más te queda al año una vez
+    pagado todo, manteniendo el mismo nivel de vida sobrio. A la derecha, el múltiplo del neto para que veas
+    la diferencia: <b>hay ciudades que pagan mucho más y ahorran casi lo mismo</b>.</p>
+    <div class="chart b2">
+      <div id="chartRatio"></div>
+    </div>
+  </section>
+
+  <!-- ============ PROGRESIÓN ============ -->
+  <section>
+    <h2 class="sec">5 · Progresión · si te suben 10.000 €</h2>
+    <p class="lead">Tipo <b>marginal</b>: de cada 10.000 € brutos de subida, cuánto se queda el Estado y cuánto
+    llega a tu bolsillo. Importa tanto como el sueldo de partida: dice si ascender ahí te renta o si trabajas
+    para la Agencia Tributaria. El orden no se parece al del ranking: <b>Austria, Bélgica o Dinamarca se comen
+    más de la mitad de cada subida</b>, mientras que en Polonia, Ámsterdam (mientras dure el <i>ruling</i>) o
+    Suiza te quedas con la mayor parte.</p>
+    <div class="chart b4">
+      <div id="chartMarg"></div>
+    </div>
+  </section>
+
+  <!-- ============ FISCALIDAD DEL AHORRO ============ -->
+  <section>
+    <h2 class="sec">6 · Fiscalidad del ahorro · ¿te dejan invertir tranquilo?</h2>
+    <p class="lead">Escenario de referencia: <b>500.000 € en un indexado al S&amp;P 500 al 7 % real</b>, comprado
+    y mantenido a largo plazo. Aquí no interesa la cifra exacta sino el trato: hay países donde <b>sólo pagas
+    cuando vendes</b> y otros donde <b>pagas todos los años por tener el dinero invertido</b>, hayas ganado o no.
+    Con horizontes de 15–20 años esto pesa tanto como el sueldo, y no aparece en ninguna oferta de trabajo.</p>
+    <div class="fisc" id="fisc"></div>
+  </section>
+
+  <!-- ============ RELOJ FIRE ============ -->
+  <section>
+    <h2 class="sec">7 · Reloj FIRE · años hasta poder retirarte</h2>
+    <p class="lead">Partiendo de cero, invirtiendo todo el ahorro al <b>4 % real</b> anual, hasta juntar
+    <b id="hTarget">—</b> (25× tu gasto anual en Barcelona, regla del 4 %).
+    Se asume que te jubilas en España, así que el objetivo es el mismo para todos: sólo cambia la velocidad a la que llegas.
+    <b>No cuenta el ahorro forzoso en planes de pensiones</b>, porque está bloqueado hasta la edad legal y no sirve para retirarse antes.</p>
+    <div class="chart b3">
+      <div id="chartFire"></div>
+    </div>
+  </section>
+
+  <!-- ============ FICHAS ============ -->
+  <section>
+    <h2 class="sec">8 · Ficha por ciudad</h2>
+    <p class="lead">Desglose anual en moneda local y avisos específicos. Fíjate sobre todo en la fiscalidad
+    del ahorro: si vas a invertir 20 años, pesa tanto como el sueldo.</p>
+    <div class="cards" id="cards"></div>
+  </section>
+
+  <!-- ============ AVISOS ============ -->
+  <section>
+    <h2 class="sec">9 · Lo que puede tirar abajo el cálculo</h2>
+    <div class="warns">
+      <div class="warn">
+        <h4>⚠️ La ciudad manda, no el país</h4>
+        <p>Múnich y Leipzig se parecen menos entre sí que Alemania y Francia. Todos los números son
+        <b>de una ciudad concreta</b>. Un pueblo bien conectado a 40 min puede cambiar el resultado más que
+        cambiar de país.</p>
+      </div>
+      <div class="warn">
+        <h4>⚠️ El bruto equivalente es la hipótesis más frágil</h4>
+        <p>Todo el ranking depende de qué sueldo te ofrezcan de verdad. Cuando tengas una oferta concreta,
+        sustituye ese número y recalcula: es el único dato que no puedes estimar desde fuera.</p>
+      </div>
+      <div class="warn">
+        <h4>⚠️ Regímenes de expatriado: se acaban</h4>
+        <p>El <i>30 %-ruling</i> holandés dura 5 años y ya se ha recortado. Ámsterdam sin él pasa de ser
+        de los mejores destinos a estar <b>por debajo de Barcelona</b>. Cualquier plan que dependa de un
+        régimen temporal necesita fecha de caducidad.</p>
+      </div>
+      <div class="warn">
+        <h4>⚠️ El ranking del ahorro y el de la inversión no coinciden</h4>
+        <p>Ámsterdam es quinto ahorrando y de los peores invirtiendo; Dublín lo mismo. Zúrich y Luxemburgo ganan
+        en las dos cosas. Si vas a acumular cartera 15 años, cruza la sección 2 con la 6 antes de decidir:
+        un buen sueldo en un país que grava el patrimonio cada año se lo come todo por detrás.</p>
+      </div>
+      <div class="warn">
+        <h4>⚠️ Riesgo de divisa</h4>
+        <p>Si vas a volver a España, cobrar en CHF, GBP, DKK, SEK, NOK o PLN es una apuesta de tipo de cambio
+        durante todos los años que ahorres. No es gratis aunque no aparezca en la nómina.</p>
+      </div>
+      <div class="warn">
+        <h4>✅ La pensión sí se suma entre países</h4>
+        <p>UE/EEE y Suiza agregan los periodos cotizados (Reglamento 883/2004), y con Reino Unido hay convenio.
+        Trabajar 8 años fuera no te deja sin pensión española: se prorratea. Lo que sí cambia es la cuantía.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ SUPUESTOS ============ -->
+  <section>
+    <details class="sup">
+      <summary>10 · Supuestos, fórmulas y fuentes (léelo antes de mudarte)</summary>
+      <div class="inner">
+        <h4>Perfil</h4>
+        <ul>
+          <li>Soltero, sin hijos, sin coche, alquiler de 1 dormitorio en zona normal (no céntrica y no periferia lejana).</li>
+          <li>Gasto sobrio: compra en supermercado, transporte público, ocio moderado. No incluye viajes largos,
+          coche, ni compra de vivienda.</li>
+          <li>Sin patrimonio inicial. No se modelan bonus, acciones (RSU) ni pluses de la empresa.</li>
+        </ul>
+
+        <h4>Cómo se calcula</h4>
+        <ul>
+          <li><code>neto disponible = bruto − (IRPF + cotizaciones) − ahorro forzoso en pensión</code></li>
+          <li><code>ahorro = neto disponible − coste de vida</code></li>
+          <li><b>Tipo marginal:</b> se calcula gravando 10.000 € brutos adicionales sobre el sueldo modelado
+          (convertidos a moneda local) con la misma curva. Al interpolar importes y no porcentajes, el marginal
+          dentro de cada tramo es constante, como en un sistema de tramos real. Refleja el efecto de topes de
+          cotización (España, Alemania, Suiza) y de trampas locales como la pérdida de la <i>personal allowance</i>
+          británica entre 100.000 y 125.140 £.</li>
+          <li>El <b>umbral</b> se aplica al ahorro anual en euros, no al sueldo: un destino aprueba si te deja
+          ahorrar al menos ese múltiplo de lo que ahorras hoy en Barcelona, viviendo igual de sobrio.</li>
+          <li>Los impuestos usan una <b>curva de tipo efectivo</b> por ciudad (varios puntos ancla interpolados),
+          no los tramos exactos. Error esperado ±2 puntos: irrelevante para decidir, insuficiente para tu declaración.</li>
+          <li>Incluye el impuesto <b>regional y municipal</b> donde existe (Cataluña/Madrid, cantón y municipio de
+          Zúrich, <i>kommunalskatt</i> de Estocolmo, adicional comunal belga).</li>
+          <li>El <b>ahorro forzoso</b> (2º pilar suizo, pensión holandesa, <i>auto-enrolment</i> británico, pensión
+          danesa) se resta del neto pero <b>no es un impuesto</b>: es patrimonio tuyo. Se muestra aparte y se excluye
+          del reloj FIRE por estar bloqueado.</li>
+          <li>Reloj FIRE: valor futuro de una renta anual constante al 4 % real hasta alcanzar 25× el gasto anual
+          en Barcelona. Ignora la pensión pública, que llegaría después y sólo mejoraría el resultado.</li>
+          <li>Punto de equilibrio de la mudanza: 6.000 € de coste único (mudanza, fianza, primeros meses, vuelos)
+          divididos entre el ahorro mensual extra frente a Barcelona.</li>
+        </ul>
+
+        <h4>Tipos de cambio usados</h4>
+        <ul><li id="fxList"></li></ul>
+
+        <h4>Fuentes</h4>
+        <ul>
+          <li><b>Sueldos:</b> medianas de mercado para perfil senior de desarrollo (Levels.fyi, Glassdoor, informes
+          salariales locales) cruzadas con la estructura salarial de <b>Eurostat</b> (<code>earn_ses</code>) para el
+          sector J (Información y comunicaciones). No se usa el salario medio nacional: para un informático senior
+          está muy por debajo de la realidad.</li>
+          <li><b>Impuestos:</b> escalas oficiales 2024–2025 y <b>OECD Taxing Wages</b> para contrastar la cuña fiscal.</li>
+          <li><b>Coste de vida:</b> Numbeo por ciudad, contrastado con los índices de nivel de precios de Eurostat
+          (<code>prc_ppp_ind</code>). Numbeo está sesgado al alza (lo rellenan expatriados), así que los alquileres
+          se han ajustado a la baja hacia zonas no céntricas.</li>
+          <li><a href="https://datosmacro.expansion.com/mercado-laboral/salario-medio" target="_blank" rel="noopener">Datosmacro</a>
+          es buena referencia para el <b>salario medio nacional</b>, pero no sirve para este cálculo: mezcla todos los
+          sectores y no te dice qué cobra un informático senior en Múnich.</li>
+        </ul>
+
+        <h4>Fiscalidad del ahorro</h4>
+        <ul>
+          <li>La nota (Excelente → Muy mala) es <b>cualitativa</b> y está pensada para el caso de una cartera
+          indexada grande mantenida a largo plazo: penaliza que se grave el patrimonio o la plusvalía no realizada,
+          y premia que sólo se pague al vender o que existan vehículos exentos (ISA británica, ISK sueca,
+          traspaso entre fondos español, PEA francés).</li>
+          <li>No se ha cuantificado el impacto en euros porque depende de cuándo vendas, de cuánto aportes cada
+          año y del vehículo concreto. Para ordenar destinos, la nota basta.</li>
+          <li>Ojo: si te mudas con la cartera ya construida, la fiscalidad de <b>salida</b> también cuenta.
+          España tiene <i>exit tax</i> para carteras grandes al trasladar la residencia fuera de la UE/EEE.</li>
+        </ul>
+
+        <h4>Qué NO está incluido</h4>
+        <ul>
+          <li>Idioma, permisos de trabajo, red social, clima, distancia a la familia. Nada de esto es monetario y
+          todo esto decide mudanzas.</li>
+          <li>Progresión salarial futura, que puede diferir mucho entre mercados (Londres y Zúrich escalan más que Viena).</li>
+          <li>Compra de vivienda, hipotecas y acceso al crédito siendo extranjero.</li>
+          <li>Bonus, RSU y beneficios extralegales (muy relevantes en Bélgica: coche de empresa, cheques comida, 13ª paga).</li>
+        </ul>
+
+        <p style="margin-top:16px"><b>Datos aproximados de 2024–2025, redondeados.</b> Sirven para ordenar
+        alternativas y descartar, no para firmar un contrato. Antes de decidir, recalcula con la oferta real.</p>
+      </div>
+    </details>
+  </section>
+
+</div>
+
+<footer>
+  Comparador v2 · cálculo estático, sin servidor ni seguimiento. Todo ocurre en tu navegador.
+</footer>
+
+<script>
+"use strict";
+
+/* =======================================================================
+   DATOS
+   Cada ciudad: bruto anual y coste de vida en MONEDA LOCAL; fx convierte a €.
+   effAnchors: puntos [bruto, % efectivo de IRPF + cotizaciones no recuperables],
+   interpolados linealmente. pension: ahorro forzoso anual (patrimonio tuyo).
+   ======================================================================= */
+const FX = { EUR:1, CHF:1.06, GBP:1.17, DKK:0.134, SEK:0.0875, NOK:0.0855, PLN:0.234 };
+
+const CIUDADES = [
+  {
+    id:'bcn', base:true, ciudad:'Barcelona', pais:'España', bandera:'🇪🇸', mon:'EUR', color:'#1a3fb0',
+    bruto:60000, eff:[[30000,21.5],[45000,27.5],[60000,31.8],[80000,35.6],[120000,40.8]], pension:0,
+    col:{alquiler:1100, sumin:130, comida:350, transporte:40, salud:100, otros:300},
+    cgt:'19–30 %', cgtTipo:'n',
+    inv:{n:2, mantener:'Nada mientras no vendas: la plusvalía latente no tributa. En Cataluña el impuesto sobre el patrimonio empieza a morder justo en el entorno de una cartera de este tamaño.', vender:'19–30 % sobre la ganancia y sólo al vender. Ventajón poco conocido: los fondos de inversión (no los ETF) se traspasan entre sí sin tributar, así que puedes reorganizar la cartera gratis y diferir el impuesto décadas.'},
+    notas:['Punto de partida. IRPF autonómico catalán, de los más altos de España.',
+           'Ventaja no monetaria: ya estás aquí. Cero coste de mudanza, cero riesgo.']
+  },
+  {
+    id:'mad', ciudad:'Madrid', pais:'España', bandera:'🇪🇸', mon:'EUR', color:'#3556c4',
+    bruto:60000, eff:[[30000,20.8],[45000,26.6],[60000,30.6],[80000,34.2],[120000,39.4]], pension:0,
+    col:{alquiler:1200, sumin:130, comida:340, transporte:40, salud:100, otros:300},
+    cgt:'19–30 %', cgtTipo:'n',
+    inv:{n:2, mantener:'Nada. Madrid tiene el impuesto sobre el patrimonio bonificado al 100 %, así que tener la cartera no cuesta nada al año.', vender:'19–30 % al vender, igual que en Barcelona, con el mismo diferimiento por traspaso entre fondos. Mejor que Cataluña sólo por el patrimonio.'},
+    notas:['El IRPF autonómico más bajo de España: ~1,2 puntos menos que Cataluña.',
+           'Pero el alquiler ya ha alcanzado (y superado) al de Barcelona. Se compensa casi exacto.',
+           'Referencia útil: mudarse dentro de España casi no mueve la aguja.']
+  },
+  {
+    id:'zur', ciudad:'Zúrich', pais:'Suiza', bandera:'🇨🇭', mon:'CHF', color:'#0b7268',
+    bruto:135000, eff:[[80000,20.5],[100000,22.5],[135000,26.0],[180000,29.5]], pension:3500,
+    col:{alquiler:2000, sumin:180, comida:600, transporte:85, salud:400, otros:400},
+    cgt:'0 %', cgtTipo:'g', divisa:true,
+    inv:{n:4, mantener:'Impuesto cantonal sobre el patrimonio, pequeño pero anual. Los dividendos tributan como renta, incluidos los que el fondo reinvierte por dentro.', vender:'0 %. Las plusvalías privadas están exentas vendas cuando vendas. Es el mejor sitio de la lista para dejar correr una cartera y luego vivir de ella.'},
+    notas:['El único destino que cambia la escala del problema, no el margen.',
+           'Sanidad NO incluida: ~400 CHF/mes de prima privada obligatoria, ya restados arriba.',
+           'Plusvalías privadas exentas de impuestos: enorme si vas a invertir 10+ años.',
+           'El 2º pilar (BVG) es ahorro tuyo, pero al salir a la UE la parte obligatoria queda en una cuenta de libre paso hasta los ~60.',
+           'Impuesto varía por municipio: en el cantón de Zug pagarías bastante menos.']
+  },
+  {
+    id:'lux', ciudad:'Luxemburgo', pais:'Luxemburgo', bandera:'🇱🇺', mon:'EUR', color:'#6d28c9',
+    bruto:90000, eff:[[60000,30.0],[90000,35.5],[120000,39.5]], pension:0,
+    col:{alquiler:1700, sumin:180, comida:450, transporte:0, salud:0, otros:380},
+    cgt:'0 % (>6 meses)', cgtTipo:'g',
+    inv:{n:4, mantener:'Nada. No existe impuesto sobre el patrimonio para particulares.', vender:'0 % si mantienes la inversión más de seis meses. Sencillo, sin trampas y sin papeleo especial.'},
+    notas:['Transporte público gratuito en todo el país.',
+           'Plusvalías exentas si mantienes la inversión más de 6 meses.',
+           'Alquiler carísimo: mucha gente vive en Francia, Bélgica o Alemania y cruza cada día. Eso mejoraría bastante el ahorro.',
+           'País pequeño y con poco mercado laboral: si te echan, hay pocas alternativas locales.']
+  },
+  {
+    id:'ams', ciudad:'Ámsterdam', pais:'Países Bajos', bandera:'🇳🇱', mon:'EUR', color:'#c2410c',
+    bruto:80000, eff:[[60000,14.8],[80000,20.1],[100000,23.1]], pension:4500,
+    effSin:[[60000,29.0],[80000,33.9],[100000,37.5]], regimen:'30 %-ruling', regimenAnios:5,
+    col:{alquiler:1700, sumin:190, comida:420, transporte:100, salud:160, otros:350},
+    cgt:'Box 3: ~1,3 %/año sobre patrimonio', cgtTipo:'r',
+    inv:{n:0, mantener:'Box 3 grava un rendimiento <b>presunto</b> sobre el valor de la cartera todos los años, ganes o pierdas. Con una cartera grande es el coste anual más alto de la lista, y lo pagas aunque el mercado caiga.', vender:'Al vender ya no pagas nada más: llevas años pagando por tenerlo. Hay una reforma hacia el rendimiento real, pero no antes de 2028.'},
+    notas:['Los números de arriba incluyen el 30 %-ruling. Es temporal: 5 años y se acabó.',
+           'Sin el ruling el neto cae en picado — mira la barra gris de la ficha.',
+           'Box 3 grava un rendimiento presunto del patrimonio, ganes o pierdas. Para alguien que acumula cartera es el peor sistema de la lista.',
+           'Sanidad privada obligatoria: ~160 €/mes, ya restados.',
+           'Mercado de alquiler durísimo. Los precios reales suelen superar la estimación.']
+  },
+  {
+    id:'osl', ciudad:'Oslo', pais:'Noruega', bandera:'🇳🇴', mon:'NOK', color:'#256a29',
+    bruto:900000, eff:[[700000,30.0],[900000,33.0],[1200000,36.5]], pension:0,
+    col:{alquiler:15000, sumin:1500, comida:5000, transporte:850, salud:0, otros:3500},
+    cgt:'37,8 % + impuesto al patrimonio', cgtTipo:'r', divisa:true,
+    inv:{n:0, mantener:'Impuesto sobre el patrimonio anual por encima de un umbral bajo: pagas cada año por tener el dinero invertido, y una cartera de este tamaño lo supera de sobra.', vender:'37,8 % sobre la ganancia, con una pequeña deducción por rentabilidad libre de riesgo. Patrimonio + plusvalías: la peor combinación posible para tu plan.'},
+    notas:['Impuestos menos brutales de lo que dice la leyenda; el coste de vida sí lo es.',
+           'Impuesto al patrimonio (~1 % anual por encima de ~1,7 M NOK): castiga justo el plan de acumular cartera.',
+           'La corona noruega lleva años débil frente al euro: riesgo real si piensas volver.']
+  },
+  {
+    id:'war', ciudad:'Varsovia', pais:'Polonia', bandera:'🇵🇱', mon:'PLN', color:'#b23a0a',
+    bruto:300000, eff:[[200000,25.1],[300000,20.7],[400000,20.3]], pension:0,
+    col:{alquiler:4200, sumin:700, comida:1500, transporte:110, salud:300, otros:1200},
+    cgt:'19 %', cgtTipo:'n', divisa:true, b2b:true,
+    inv:{n:3, mantener:'Nada. No hay impuesto sobre el patrimonio.', vender:'19 % plano sobre la ganancia, sin tramos ni sorpresas. Las cuentas con ventaja fiscal (IKE/IKZE) existen pero tienen topes de aportación bajos.'},
+    notas:['Modelado como B2B con ryczałt del 12 %, que es el estándar del sector IT polaco. Presión fiscal ~21 %.',
+           'La mejor tasa de ahorro de la lista después de Zúrich, con diferencia.',
+           'B2B = sin vacaciones pagadas, sin paro, sin baja decente y pensión testimonial. Ese descuento no está en los números.',
+           'Si te contratasen por nómina (umowa o pracę), el neto baja del orden de un 15–20 %.',
+           'Sueldos IT en Polonia han subido mucho; el coste de vida en Varsovia también.']
+  },
+  {
+    id:'vie', ciudad:'Viena', pais:'Austria', bandera:'🇦🇹', mon:'EUR', color:'#c0186f',
+    bruto:75000, eff:[[55000,34.0],[75000,39.0],[95000,42.5]], pension:0,
+    col:{alquiler:950, sumin:160, comida:380, transporte:30, salud:0, otros:330},
+    cgt:'27,5 %', cgtTipo:'n',
+    inv:{n:2, mantener:'Los fondos de acumulación tributan cada año por unas rentas presuntas, de forma moderada pero con papeleo.', vender:'27,5 % sin exenciones relevantes. Ni bueno ni malo: previsible.'},
+    notas:['Neto mediocre, pero el alquiler más barato de Europa occidental gracias a la vivienda social.',
+           'Transporte anual por 365 €. Calidad de vida altísima por poco dinero.',
+           'Sueldo en 14 pagas: la 13ª y 14ª tributan al 6 %, ya incorporado en el tipo efectivo.',
+           'No pasa tu filtro de 1,30× pero ahorra más que la mayoría de los que sí lo pasan.']
+  },
+  {
+    id:'lon', ciudad:'Londres', pais:'Reino Unido', bandera:'🇬🇧', mon:'GBP', color:'#16203c',
+    bruto:80000, eff:[[55000,26.0],[80000,28.8],[100000,31.4],[130000,37.9]], pension:4000,
+    col:{alquiler:1700, sumin:180, comida:400, transporte:200, salud:0, otros:480},
+    cgt:'24 % (ISA: 20.000 £/año exentos)', cgtTipo:'n', divisa:true,
+    inv:{n:3, mantener:'Nada por tener. Dentro de un ISA, absolutamente nada nunca.', vender:'24 % fuera del ISA. Dentro, crece y se retira <b>libre de impuestos para siempre</b>. Si construyes la cartera allí desde cero es de lo mejor de Europa; si llegas con ella ya hecha, meterla dentro lleva muchos años por el tope anual.'},
+    notas:['Presión fiscal baja para lo que se cobra, pero el alquiler y el transporte se comen la diferencia.',
+           'La cuenta ISA permite invertir 20.000 £/año totalmente libres de impuestos: es el mejor vehículo de ahorro de la lista.',
+           'Incluye ~130 £/mes de council tax en "otros".',
+           'Post-Brexit necesitas visado de trabajo patrocinado (Skilled Worker). Fricción y coste extra.',
+           'Es donde más rápido escala el sueldo si te va bien: el número de hoy subestima el de dentro de 5 años.']
+  },
+  {
+    id:'muc', ciudad:'Múnich', pais:'Alemania', bandera:'🇩🇪', mon:'EUR', color:'#514b5e',
+    bruto:85000, eff:[[55000,36.5],[75000,40.4],[85000,41.8],[100000,43.5]], pension:0,
+    col:{alquiler:1400, sumin:180, comida:400, transporte:60, salud:0, otros:350},
+    cgt:'26,4 %', cgtTipo:'n',
+    inv:{n:3, mantener:'Un anticipo anual pequeño (Vorabpauschale) sobre los fondos de acumulación. Molesto pero menor.', vender:'26,375 %, con una exención parcial del 30 % para fondos de renta variable que deja el tipo real bastante por debajo. Sistema simple y predecible.'},
+    notas:['Buen bruto, pero la cuña fiscal alemana (~42 %) y el alquiler de Múnich neutralizan casi todo.',
+           'Sin hijos pagas un recargo en el seguro de dependencia (Pflegeversicherung).',
+           'La cotización de pensiones (9,3 %) es reparto puro: no es patrimonio tuyo, aunque sí genera derechos que se suman a los españoles.',
+           'Deutschlandticket: 58 €/mes para todo el transporte regional del país.']
+  },
+  {
+    id:'sto', ciudad:'Estocolmo', pais:'Suecia', bandera:'🇸🇪', mon:'SEK', color:'#1a3fb0',
+    bruto:780000, eff:[[550000,27.5],[780000,32.0],[1000000,36.0]], pension:0,
+    col:{alquiler:15500, sumin:1000, comida:4000, transporte:1020, salud:0, otros:2800},
+    cgt:'30 % (o cuenta ISK: ~1,1 %/año)', cgtTipo:'g', divisa:true,
+    inv:{n:3, mantener:'La cuenta ISK tributa un porcentaje pequeño sobre el saldo cada año, con una parte exenta. Pagas por tener, no por ganar.', vender:'0 % al vender dentro de la ISK, y ni siquiera declaras las operaciones. Con rentabilidades altas sale claramente mejor que el 30 % ordinario, y es lo más cómodo de gestionar de toda la lista.'},
+    notas:['La cuenta ISK tributa ~1,1 % anual sobre el saldo en vez de un 30 % sobre la ganancia: excelente para invertir a largo plazo.',
+           'Compresión salarial fuerte: un senior cobra ~1,4× la mediana, no 2×. Aquí destacar paga poco.',
+           'La pensión de empresa (ITP1) la paga el empleador aparte, no sale de tu neto: es comp. extra no contabilizada.',
+           'Alquiler de primera mano casi inaccesible (colas de años); el número usado es de segunda mano.',
+           'La corona sueca lleva una década debilitándose frente al euro.']
+  },
+  {
+    id:'dub', ciudad:'Dublín', pais:'Irlanda', bandera:'🇮🇪', mon:'EUR', color:'#0b7268',
+    bruto:85000, eff:[[60000,27.5],[85000,32.4],[110000,36.9]], pension:0,
+    col:{alquiler:1900, sumin:200, comida:450, transporte:90, salud:130, otros:380},
+    cgt:'33 %', cgtTipo:'r',
+    inv:{n:0, mantener:'Régimen de <b>deemed disposal</b>: cada ocho años tributas por la revalorización aunque no hayas vendido nada, y las pérdidas de un fondo no compensan las ganancias de otro.', vender:'41 % en fondos y ETF. Para un inversor indexado a largo plazo es de los peores países de Europa, justo lo contrario de la fama fiscal de Irlanda.'},
+    notas:['El caso de libro: pasa tu filtro de 1,30× con holgura y aun así ahorras poco más que en Barcelona.',
+           'Crisis de vivienda severa: el alquiler es el mayor de la lista en euros y sigue subiendo.',
+           'Sanidad pública mala en la práctica; casi todo el mundo paga seguro privado (~130 €/mes, ya incluidos).',
+           'Plusvalías al 33 %, de las más altas de Europa. Mal sitio para acumular cartera.',
+           'A cambio: el mercado tech más grande de Europa por habitante, en inglés y en euros.']
+  },
+  {
+    id:'ber', ciudad:'Berlín', pais:'Alemania', bandera:'🇩🇪', mon:'EUR', color:'#514b5e',
+    bruto:75000, eff:[[55000,36.5],[75000,40.4],[85000,41.8],[100000,43.5]], pension:0,
+    col:{alquiler:1100, sumin:170, comida:380, transporte:58, salud:0, otros:330},
+    cgt:'26,4 %', cgtTipo:'n',
+    inv:{n:3, mantener:'Un anticipo anual pequeño (Vorabpauschale) sobre los fondos de acumulación. Molesto pero menor.', vender:'26,375 %, con una exención parcial del 30 % para fondos de renta variable que deja el tipo real bastante por debajo. Sistema simple y predecible.'},
+    notas:['Más barato que Múnich pero también se paga menos: el resultado es casi idéntico.',
+           'Escena tech grande y en inglés, aunque con sueldos por debajo del sur de Alemania.',
+           'No pasa el filtro de 1,30×: el neto apenas mejora un 9 % frente a Barcelona.']
+  },
+  {
+    id:'cph', ciudad:'Copenhague', pais:'Dinamarca', bandera:'🇩🇰', mon:'DKK', color:'#d61f4e',
+    bruto:680000, eff:[[500000,36.0],[680000,40.0],[900000,43.5]], pension:34000,
+    col:{alquiler:12000, sumin:1300, comida:3200, transporte:500, salud:0, otros:2500},
+    cgt:'27 % / 42 %', cgtTipo:'r', divisa:true,
+    inv:{n:0, mantener:'Tributación por devengo: cada año declaras la revalorización aunque no vendas, y puedes acabar pagando impuestos por dinero que todavía no has cobrado.', vender:'27 % / 42 % según el importe. Junto con Irlanda y Países Bajos, el peor trato al inversor a largo plazo.'},
+    notas:['Calidad de vida excelente, resultado financiero mediocre para tu objetivo.',
+           'Plusvalías al 42 % por encima de un umbral bajo: el peor tratamiento del ahorro de la lista junto al Box 3 holandés.',
+           'Régimen especial para expatriados (32,84 % durante 7 años) pero exige un sueldo mínimo de ~78.000 DKK/mes: fuera de tu alcance con este perfil.',
+           'La corona está anclada al euro: sin riesgo de divisa relevante.']
+  },
+  {
+    id:'par', ciudad:'París', pais:'Francia', bandera:'🇫🇷', mon:'EUR', color:'#1a3fb0',
+    bruto:70000, eff:[[50000,28.0],[70000,33.5],[90000,36.4]], pension:0,
+    col:{alquiler:1300, sumin:160, comida:400, transporte:88, salud:40, otros:350},
+    cgt:'30 % (PFU)', cgtTipo:'n',
+    inv:{n:2, mantener:'Nada por tener la cartera (el impuesto al patrimonio francés sólo grava inmuebles).', vender:'30 % plano en cuenta normal. Con un PEA, a partir de los cinco años sólo pagas las cotizaciones sociales, pero el S&P 500 sólo entra por réplica sintética y con tope de aportación.'},
+    notas:['Sueldos tech bajos para el tamaño del mercado; las cotizaciones sociales son altísimas.',
+           'La parte de jubilación complementaria (AGIRC-ARRCO) genera puntos, no es dinero perdido del todo.',
+           'Alquiler alto para pisos pequeños: 1 dormitorio en París es literalmente pequeño.',
+           'No pasa tu filtro: sólo un 14 % más de neto que Barcelona.']
+  },
+  {
+    id:'bru', ciudad:'Bruselas', pais:'Bélgica', bandera:'🇧🇪', mon:'EUR', color:'#c2410c',
+    bruto:75000, eff:[[55000,39.0],[75000,42.5],[95000,45.0]], pension:0,
+    col:{alquiler:1100, sumin:190, comida:380, transporte:50, salud:0, otros:330},
+    cgt:'0 % → 10 % desde 2026', cgtTipo:'n',
+    inv:{n:3, mantener:'Tasa anual sobre cuentas de valores sólo a partir de carteras grandes. Por debajo de ese umbral, nada.', vender:'Históricamente exento; desde 2026 entra un 10 % sobre plusvalías con una exención anual. Aun así de lo más benévolo de Europa, aunque cada compra y venta paga un pequeño impuesto de bolsa.'},
+    notas:['La mayor cuña fiscal de la OCDE sobre el salario: el neto es prácticamente el de Barcelona.',
+           'Históricamente 0 % de plusvalías, pero desde 2026 entra una tasa del 10 %. Aun así, de las más bajas.',
+           'Los paquetes belgas incluyen extras que no salen en el bruto: coche de empresa, cheques comida, 13ª y 14ª paga, seguro de grupo. Pueden valer varios miles al año.',
+           'Impuesto comunal añadido (~7 % sobre la cuota), ya incluido.']
+  }
+];
+
+/* ======================= HELPERS ======================= */
+const nf  = new Intl.NumberFormat('es-ES', {maximumFractionDigits:0});
+const nf1 = new Intl.NumberFormat('es-ES', {minimumFractionDigits:1, maximumFractionDigits:1});
+const nf2 = new Intl.NumberFormat('es-ES', {minimumFractionDigits:2, maximumFractionDigits:2});
+const eur = v => nf.format(Math.round(v)) + ' €';
+
+/** Impuesto total (IRPF + cotizaciones) en moneda local.
+    Se interpola el IMPORTE entre puntos ancla, no el porcentaje: así el tipo
+    marginal dentro de cada tramo es constante, igual que en un sistema real de
+    tramos, y la subida de sueldo se grava de forma coherente. */
+function impuestoSobre(anchors, x){
+  const pts = anchors.map(([g,p]) => [g, g*p/100]);
+  if (x <= pts[0][0]) return x * anchors[0][1] / 100;
+  const n = pts.length, last = pts[n-1];
+  if (x >= last[0]){                                   // extrapola con el marginal del último tramo
+    const prev = pts[n-2] || [0,0];
+    const m = (last[1]-prev[1]) / (last[0]-prev[0]);
+    return last[1] + (x-last[0]) * m;
+  }
+  for (let i=0; i<n-1; i++){
+    const [x0,t0] = pts[i], [x1,t1] = pts[i+1];
+    if (x >= x0 && x <= x1) return t0 + (t1-t0) * (x-x0) / (x1-x0);
+  }
+  return last[1];
+}
+
+/** Años hasta alcanzar `objetivo` aportando `anual` a un retorno real `r`. */
+function aniosHasta(objetivo, anual, r){
+  if (anual <= 0) return Infinity;
+  const factor = 1 + (objetivo * r) / anual;
+  return Math.log(factor) / Math.log(1 + r);
+}
+
+/** Nota cualitativa del trato fiscal al ahorro invertido a largo plazo. */
+const NOTA = [
+  {t:'Muy mala',  c:'#d61f4e'},
+  {t:'Mala',      c:'#c2410c'},
+  {t:'Aceptable', c:'#514b5e'},
+  {t:'Buena',     c:'#256a29'},
+  {t:'Excelente', c:'#0b7268'}
+];
+
+const RETORNO_REAL = 0.04;   // rentabilidad real anual asumida de la cartera
+const MULTIPLO_FIRE = 25;    // regla del 4 %
+const COSTE_MUDANZA = 6000;  // € one-off: mudanza, fianza, colchón, vuelos
+const SUBIDA = 10000;        // € brutos de subida hipotética, para el tipo marginal
+
+/* ======================= CÁLCULO ======================= */
+function calcular(brutoBase, umbral){
+  const escala = brutoBase / 60000;   // se mantiene la posición relativa en cada mercado
+
+  const filas = CIUDADES.map(c => {
+    const fx    = FX[c.mon];
+    const bruto = Math.round(c.bruto * escala);
+
+    const impuestos = impuestoSobre(c.eff, bruto);
+    const eff       = impuestos / bruto;
+    const pension   = c.pension * escala;
+
+    // Progresión: qué se lleva Hacienda de una subida de 10.000 € brutos.
+    const dLocal   = SUBIDA / FX[c.mon];
+    const marginal = (impuestoSobre(c.eff, bruto + dLocal) - impuestos) / dLocal;
+    const netoDisp  = bruto - impuestos - pension;
+
+    const colMes = Object.values(c.col).reduce((a,b) => a+b, 0);
+    const colAnio = colMes * 12;
+    const ahorro = netoDisp - colAnio;
+
+    const f = {
+      ...c, fx, bruto, eff, impuestos, pension, netoDisp, colMes, colAnio, ahorro,
+      marginal, quedaDe10k: SUBIDA * (1 - marginal),
+      brutoEUR:      bruto * fx,
+      netoMesEUR:    netoDisp * fx / 12,
+      colMesEUR:     colMes * fx,
+      ahorroEUR:     ahorro * fx,
+      ahorroMesEUR:  ahorro * fx / 12,
+      pensionEUR:    pension * fx,
+      tasa:          netoDisp > 0 ? ahorro / netoDisp : 0
+    };
+
+    // Escenario sin régimen temporal (hoy sólo Países Bajos)
+    if (c.effSin){
+      const netoS = bruto - impuestoSobre(c.effSin, bruto) - pension;
+      f.sinRegimen = {
+        netoMesEUR: netoS * fx / 12,
+        ahorroEUR:  (netoS - colAnio) * fx
+      };
+    }
+    return f;
+  });
+
+  const base = filas.find(f => f.base);
+  const objetivoFIRE = base.colMesEUR * 12 * MULTIPLO_FIRE;
+
+  filas.forEach(f => {
+    f.ratio       = f.netoMesEUR / base.netoMesEUR;   // informativo: el múltiplo del neto
+    f.ratioAhorro = f.ahorroEUR / base.ahorroEUR;     // el que decide: múltiplo del ahorro
+    f.pasa        = f.ratioAhorro >= umbral;
+    f.deltaAhorro = f.ahorroEUR - base.ahorroEUR;
+    f.anios      = aniosHasta(objetivoFIRE, f.ahorroEUR, RETORNO_REAL);
+    f.breakeven  = f.deltaAhorro > 0 ? COSTE_MUDANZA / (f.deltaAhorro/12) : Infinity;
+    // Lo que te llevas de más si aguantas 5 años fuera y lo inviertes al 4 % real
+    f.extra5     = f.deltaAhorro > 0
+      ? f.deltaAhorro * ((Math.pow(1+RETORNO_REAL,5)-1) / RETORNO_REAL) : 0;
+  });
+
+  filas.sort((a,b) => b.ahorroEUR - a.ahorroEUR);
+  return { filas, base, objetivoFIRE };
+}
+
+/* ======================= RENDER ======================= */
+function render(){
+  const brutoBase = Math.max(20000, Math.min(200000, +document.getElementById('inBruto').value || 60000));
+  const umbral    = +document.getElementById('inUmbral').value;
+  const { filas, base, objetivoFIRE } = calcular(brutoBase, umbral);
+
+  document.getElementById('hCaso').textContent   = nf.format(brutoBase) + ' € brutos';
+  document.getElementById('hUmbral').textContent = nf2.format(umbral) + '×';
+  document.getElementById('hTarget').textContent = eur(objetivoFIRE);
+
+  /* ---- 1. Veredicto ---- */
+  const mejorAhorro = filas[0];
+  const mejorTasa   = [...filas].sort((a,b) => b.tasa - a.tasa)[0];
+  const pasan       = filas.filter(f => f.pasa && !f.base);
+  const aniosGanados = base.anios - mejorAhorro.anios;
+  // Espejismo del sueldo: pagan >= umbral en neto pero no llegan al umbral en ahorro.
+  const espejismo = filas.filter(f => !f.base && f.ratio >= umbral && !f.pasa);
+
+  document.getElementById('kpis').innerHTML = `
+    <div class="kpi" style="--k:var(--ok2)">
+      <div class="k">Más ahorro al año</div>
+      <div class="v">${mejorAhorro.bandera} ${mejorAhorro.ciudad}</div>
+      <div class="s"><b>${eur(mejorAhorro.ahorroEUR)}/año</b> · ${nf1.format(mejorAhorro.ahorroEUR/base.ahorroEUR)}× lo que ahorras en Barcelona
+      (${eur(base.ahorroEUR)}).</div>
+    </div>
+    <div class="kpi" style="--k:var(--warn)">
+      <div class="k">Te retiras antes</div>
+      <div class="v">${nf1.format(aniosGanados)} años</div>
+      <div class="s">${mejorAhorro.ciudad}: <b>${nf1.format(mejorAhorro.anios)} años</b> hasta el objetivo,
+      frente a ${nf1.format(base.anios)} quedándote.</div>
+    </div>
+    <div class="kpi" style="--k:var(--accent)">
+      <div class="k">Ahorran ${nf2.format(umbral)}× o más</div>
+      <div class="v">${pasan.length} de ${filas.length-1}</div>
+      <div class="s">${espejismo.length
+        ? `Ojo: <b>${espejismo.map(f => f.ciudad).join(', ')}</b> ${espejismo.length>1?'pagan':'paga'}
+           ${nf2.format(umbral)}× de neto y aun así no ${espejismo.length>1?'llegan':'llega'} al ${nf2.format(umbral)}× de ahorro.`
+        : `Necesitas ahorrar <b>${eur(base.ahorroEUR*umbral)}/año</b> para que te compense.`}</div>
+    </div>
+    <div class="kpi" style="--k:var(--purple)">
+      <div class="k">Mejor tasa de ahorro</div>
+      <div class="v">${mejorTasa.bandera} ${mejorTasa.ciudad}</div>
+      <div class="s">Guarda el <b>${nf.format(mejorTasa.tasa*100)} %</b> de su neto
+      (en Barcelona, el ${nf.format(base.tasa*100)} %).</div>
+    </div>`;
+
+  /* ---- 2. Tabla ---- */
+  let puesto = 0;   // la fila base no consume número de ranking
+  document.getElementById('tbody').innerHTML = filas.map(f => {
+    const d = f.base ? '—'
+      : `<span class="${f.deltaAhorro>=0?'pos':'neg'}">${f.deltaAhorro>=0?'+':'−'}${eur(Math.abs(f.deltaAhorro))}</span>`;
+    if (!f.base) puesto++;
+    return `<tr class="${f.base?'base':''}">
+      <td class="rk">${f.base ? '·' : puesto}</td>
+      <td class="city">${f.bandera} ${f.ciudad}<small>${f.pais}${f.regimen ? ' · '+f.regimen : ''}${f.b2b ? ' · B2B' : ''}</small></td>
+      <td>${nf.format(f.bruto)} ${f.mon}</td>
+      <td><b>${eur(f.netoMesEUR)}</b></td>
+      <td>${f.base ? '—' : nf2.format(f.ratio)+'×'}</td>
+      <td>${eur(f.colMesEUR)}</td>
+      <td><b>${eur(f.ahorroEUR)}</b></td>
+      <td>${f.base ? '—' : `<b class="${f.pasa?'pos':''}">${nf2.format(f.ratioAhorro)}×</b>`}</td>
+      <td>${d}</td>
+      <td>${nf.format(f.tasa*100)} %</td>
+      <td class="${f.marginal < base.marginal ? 'pos' : (f.marginal > base.marginal ? 'neg' : '')}">${nf1.format(f.marginal*100)} %</td>
+      <td>${isFinite(f.anios) ? nf1.format(f.anios) : '∞'}</td>
+      <td>${f.base ? '—' : `<span class="${f.pasa?'pass':'fail'}">${f.pasa?'sí':'no'}</span>`}</td>
+    </tr>`;
+  }).join('');
+
+  /* ---- 3. Barras apiladas neto = coste + ahorro ---- */
+  const maxNeto = Math.max(...filas.map(f => f.netoMesEUR));
+  document.getElementById('chartStack').innerHTML = filas.map(f => {
+    const wTot = (f.netoMesEUR / maxNeto) * 100;
+    const pCol = f.netoMesEUR > 0 ? Math.min(100, (f.colMesEUR / f.netoMesEUR) * 100) : 100;
+    return `<div class="crow">
+      <div class="cl ${f.base?'base':''}">${f.bandera} ${f.ciudad}</div>
+      <div class="track">
+        <span class="seg col" style="width:${wTot*pCol/100}%"></span>
+        <span class="seg sav" style="width:${wTot*(100-pCol)/100}%"></span>
+      </div>
+      <div class="cv">${eur(f.ahorroMesEUR)}/mes</div>
+    </div>`;
+  }).join('');
+
+  /* ---- 4. Test del umbral ---- */
+  const porRatio = [...filas].filter(f => !f.base).sort((a,b) => b.ratioAhorro - a.ratioAhorro);
+  const maxRatio = Math.max(umbral*1.15, ...porRatio.map(f => f.ratioAhorro));
+  document.getElementById('chartRatio').innerHTML = porRatio.map(f =>
+    `<div class="crow">
+      <div class="cl">${f.bandera} ${f.ciudad}</div>
+      <div class="track">
+        <span class="seg rat ${f.pasa?'':'no'}" style="width:${(f.ratioAhorro/maxRatio)*100}%"></span>
+        <span class="marker" style="left:${(umbral/maxRatio)*100}%"></span>
+      </div>
+      <div class="cv">${nf2.format(f.ratioAhorro)}× · ${nf2.format(f.ratio)}× neto</div>
+    </div>`
+  ).join('') + `<div class="legend">
+      <span><i style="background:#6d28c9"></i>Ahorra ${nf2.format(umbral)}× o más</span>
+      <span><i style="background:#b8b1a2"></i>No llega</span>
+      <span><i style="background:#d61f4e"></i>Línea roja = ${nf2.format(umbral)}× = ${eur(base.ahorroEUR*umbral)}/año</span>
+    </div>`;
+
+  /* ---- 5. Progresión: tipo marginal sobre +10.000 € ---- */
+  const porMarg = [...filas].sort((a,b) => a.marginal - b.marginal);
+  document.getElementById('chartMarg').innerHTML = porMarg.map(f =>
+    `<div class="crow">
+      <div class="cl ${f.base?'base':''}">${f.bandera} ${f.ciudad}</div>
+      <div class="track">
+        <span class="seg marg ${f.marginal < base.marginal ? 'ok' : ''}" style="width:${f.marginal*100}%"></span>
+        <span class="marker" style="left:${base.marginal*100}%"></span>
+      </div>
+      <div class="cv">${nf1.format(f.marginal*100)} % → ${eur(f.quedaDe10k)}</div>
+    </div>`
+  ).join('') + `<div class="legend">
+      <span><i style="background:#0b7268"></i>Menos voraz que Barcelona</span>
+      <span><i style="background:#d61f4e"></i>Igual o peor</span>
+      <span><i style="background:#d61f4e;width:4px"></i>Línea = Barcelona (${nf1.format(base.marginal*100)} %)</span>
+    </div>`;
+
+  /* ---- 6. Fiscalidad del ahorro ---- */
+  const porNota = [...filas].sort((a,b) => b.inv.n - a.inv.n || b.ahorroEUR - a.ahorroEUR);
+  document.getElementById('fisc').innerHTML = porNota.map(f => {
+    const g = NOTA[f.inv.n];
+    return `<div class="fi" style="--n:${g.c}">
+      <h4><span>${f.bandera} ${f.ciudad}</span><span class="nota">${g.t}</span></h4>
+      <p><strong>Mientras la tienes:</strong> ${f.inv.mantener}</p>
+      <p><strong>Al vender:</strong> ${f.inv.vender}</p>
+    </div>`;
+  }).join('');
+
+  /* ---- 7. Reloj FIRE ---- */
+  const porAnios = [...filas].filter(f => isFinite(f.anios)).sort((a,b) => a.anios - b.anios);
+  const maxAnios = Math.max(...porAnios.map(f => f.anios));
+  document.getElementById('chartFire').innerHTML = porAnios.map(f =>
+    `<div class="crow">
+      <div class="cl ${f.base?'base':''}">${f.bandera} ${f.ciudad}</div>
+      <div class="track">
+        <span class="seg fire ${f.base?'base':''}" style="width:${(f.anios/maxAnios)*100}%"></span>
+      </div>
+      <div class="cv">${nf1.format(f.anios)} años</div>
+    </div>`
+  ).join('') + `<div class="legend"><span>Más corto es mejor. Tu situación actual en azul.</span></div>`;
+
+  /* ---- 6. Fichas ---- */
+  document.getElementById('cards').innerHTML = filas.map(f => {
+    const badges = [];
+    if (f.base)     badges.push('<span class="badge b">Tu situación actual</span>');
+    if (f.pasa && !f.base) badges.push(`<span class="badge g">Ahorra ${nf2.format(f.ratioAhorro)}×</span>`);
+    if (!f.pasa && !f.base) badges.push(`<span class="badge">Solo ahorra ${nf2.format(f.ratioAhorro)}×</span>`);
+    badges.push(`<span class="badge" style="background:${NOTA[f.inv.n].c};color:#fff;border-color:${NOTA[f.inv.n].c}">Fiscalidad del ahorro: ${NOTA[f.inv.n].t}</span>`);
+    badges.push(`<span class="badge">Plusvalías: ${f.cgt}</span>`);
+    if (f.marginal <= 0.42) badges.push(`<span class="badge g">Buena progresión: marginal ${nf1.format(f.marginal*100)} %</span>`);
+    if (f.marginal >= 0.53) badges.push(`<span class="badge r">Mala progresión: marginal ${nf1.format(f.marginal*100)} %</span>`);
+    if (f.divisa)   badges.push('<span class="badge o">Riesgo divisa</span>');
+    if (f.regimen)  badges.push(`<span class="badge o">${f.regimen}: ${f.regimenAnios} años</span>`);
+    if (f.b2b)      badges.push('<span class="badge o">Autónomo B2B</span>');
+    if (f.pension>0) badges.push(`<span class="badge">+${eur(f.pensionEUR)}/año en pensión bloqueada</span>`);
+
+    const extra = f.base ? '' : `
+      <div class="ln"><span class="m">Diferencia de ahorro vs Barcelona</span>
+        <b class="${f.deltaAhorro>=0?'pos':'neg'}">${f.deltaAhorro>=0?'+':'−'}${eur(Math.abs(f.deltaAhorro))}/año</b></div>
+      <div class="ln"><span class="m">Recuperas la mudanza en</span>
+        <b>${isFinite(f.breakeven) ? nf1.format(f.breakeven)+' meses' : 'nunca'}</b></div>
+      <div class="ln"><span class="m">Patrimonio extra tras 5 años allí</span>
+        <b>${f.extra5>0 ? eur(f.extra5) : '—'}</b></div>`;
+
+    const sinReg = f.sinRegimen ? `
+      <div class="ln stack"><span class="m">⚠️ Cuando caduque el régimen (${f.regimenAnios} años)</span>
+        <b>${eur(f.sinRegimen.netoMesEUR)}/mes · ahorro ${eur(f.sinRegimen.ahorroEUR)}/año</b></div>` : '';
+
+    return `<div class="card" style="--c:${f.color}">
+      <h3><span>${f.bandera} ${f.ciudad}</span><em>${f.pais}</em></h3>
+      <div class="body">
+        <div class="ln"><span class="m">Bruto anual</span><b>${nf.format(f.bruto)} ${f.mon}</b></div>
+        <div class="ln"><span class="m">Impuestos + cotizaciones (${nf1.format(f.eff*100)} %)</span>
+          <b>− ${nf.format(f.impuestos)} ${f.mon}</b></div>
+        ${f.pension>0 ? `<div class="ln"><span class="m">Pensión obligatoria (ahorro tuyo)</span>
+          <b>− ${nf.format(f.pension)} ${f.mon}</b></div>` : ''}
+        <div class="ln"><span class="m">Neto disponible</span><b>${nf.format(f.netoDisp)} ${f.mon}/año</b></div>
+        <div class="ln"><span class="m">Alquiler</span><b>${nf.format(f.col.alquiler)} ${f.mon}/mes</b></div>
+        <div class="ln"><span class="m">Resto de gastos</span>
+          <b>${nf.format(f.colMes - f.col.alquiler)} ${f.mon}/mes</b></div>
+        <div class="ln tot"><span>Ahorro</span><b>${eur(f.ahorroEUR)}/año · ${nf.format(f.tasa*100)} %</b></div>
+        <div class="ln"><span class="m">Si te suben 10.000 € (marginal ${nf1.format(f.marginal*100)} %)</span>
+          <b>te quedan ${eur(f.quedaDe10k)}</b></div>
+        ${extra}
+        ${sinReg}
+        <div class="badges">${badges.join('')}</div>
+        <ul class="notas">${f.notas.map(n => `<li>${n}</li>`).join('')}</ul>
+      </div>
+    </div>`;
+  }).join('');
+
+  /* ---- Tipos de cambio en los supuestos ---- */
+  document.getElementById('fxList').textContent = Object.entries(FX)
+    .filter(([k]) => k !== 'EUR')
+    .map(([k,v]) => `1 ${k} = ${nf2.format(v)} €`).join(' · ');
+}
+
+document.getElementById('inBruto').addEventListener('input', render);
+document.getElementById('inUmbral').addEventListener('change', render);
+render();
+</script>
+</body>
+</html>

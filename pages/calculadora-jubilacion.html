@@ -325,9 +325,9 @@
         <label for="capital">Capital ya invertido (€)</label>
         <input type="number" id="capital" value="200000" min="0" step="1000">
 
-        <label for="neto">Ingreso neto anual (€)</label>
-        <input type="number" id="neto" value="42000" min="0" step="1000">
-        <div class="hint">Se usa solo para calcular tu tasa de ahorro.</div>
+        <label for="neto">Ingreso neto mensual (€)</label>
+        <input type="number" id="neto" value="3500" min="0" step="100">
+        <div class="hint">Lo que te queda cada mes después de impuestos y cotizaciones, repartido en 12 pagas. <span id="neto-anual"></span> Se usa solo para calcular tu tasa de ahorro.</div>
 
         <label for="gasto">Gasto mensual que quieres en el retiro (€ de hoy)</label>
         <input type="number" id="gasto" value="3500" min="0" step="100">
@@ -687,7 +687,7 @@ function pensionAt(F, startWork, fullPension) {
 // Calcula un escenario completo para una edad de retiro F. Todo en € de hoy.
 function scenario(F, estrategiaOverride) {
   const a0 = val('edad'), PA = val('pension_edad'), E = val('fin');
-  const cap0 = val('capital'), neto = val('neto'), S = val('gasto') * 12;   // input mensual → gasto anual
+  const cap0 = val('capital'), neto = val('neto') * 12, S = val('gasto') * 12;   // inputs mensuales → anuales
   const fullPension = val('pension'), startWork = val('trabajo');
   const rA = val('r_acum')/100, rR = val('r_retiro')/100, infl = val('inflacion')/100;
   const estrategia = estrategiaOverride || estrategiaSel();
@@ -872,9 +872,12 @@ function compute() {
   document.getElementById('nom-hint').textContent =
     `≈ ${nomA.toFixed(1)}% nominal (lo que verías en el extracto del fondo, con inflación incluida).`;
 
-  // Equivalente anual del gasto mensual introducido
+  // Equivalente anual de los importes mensuales introducidos
   const ga = document.getElementById('gasto-anual');
   if (ga) ga.textContent = `Equivale a ≈ ${fmt.format(S)}/año.`;
+  const neto = val('neto') * 12;   // input mensual → neto anual
+  const na = document.getElementById('neto-anual');
+  if (na) na.textContent = neto > 0 ? `Equivale a ≈ ${fmt.format(neto)}/año.` : '';
 
   // Panel principal
   document.getElementById('mensual').textContent = fmt.format(mensual);
@@ -886,7 +889,6 @@ function compute() {
       : `el <b>primer año</b> (en € de hoy) · baja de forma lineal hasta <b>${fmt.format(mensualFin)}/mes</b> el último año`;
 
   // Tasa de ahorro sobre neto: primer y último año (con perfil de aportación decreciente)
-  const neto = val('neto');
   const tCol = t => t > 0.6 ? 'var(--red)' : t > 0.4 ? 'var(--amber)' : 'var(--green)';
   const tPct = t => (t * 100).toFixed(0) + '%';
   const tIni = neto > 0 ? mensualIni * 12 / neto : 0;
@@ -1590,9 +1592,18 @@ const LS_FORM = 'jubilacion-v1';
 // El selector de escenarios (data-nosave) es un control, no un dato del formulario: se excluye.
 const formInputs = Array.from(document.querySelectorAll('input, select')).filter(el => !el.hasAttribute('data-nosave'));
 
+// Versión del formato guardado. v1 → v2: el campo "neto" pasó de ingreso ANUAL a MENSUAL,
+// así que los datos sin marca de versión hay que convertirlos al leerlos.
+const FORM_VERSION = 2;
+function migrateData(data) {
+  if (!data || data._v >= FORM_VERSION) return data;
+  if (data.neto != null) data.neto = String(Math.round((parseFloat(data.neto) || 0) / 12));
+  data._v = FORM_VERSION;
+  return data;
+}
+
 function saveForm() {
-  const data = {};
-  formInputs.forEach(el => { if (el.id) data[el.id] = (el.type === 'checkbox') ? el.checked : el.value; });
+  const data = currentFormData();
   try { localStorage.setItem(LS_FORM, JSON.stringify(data)); } catch (e) {}
   const ind = document.getElementById('saveState');
   if (ind) { ind.classList.add('show'); clearTimeout(saveForm._t); saveForm._t = setTimeout(() => ind.classList.remove('show'), 1200); }
@@ -1601,6 +1612,7 @@ function loadForm() {
   let data = null;
   try { data = JSON.parse(localStorage.getItem(LS_FORM) || 'null'); } catch (e) {}
   if (!data) return;
+  migrateData(data);
   formInputs.forEach(el => {
     if (!el.id || !(el.id in data)) return;
     if (el.type === 'checkbox') el.checked = !!data[el.id];
@@ -1620,12 +1632,13 @@ function writeScenarios(obj) {
   try { localStorage.setItem(LS_SCENARIOS, JSON.stringify(obj)); } catch (e) {}
 }
 function currentFormData() {
-  const data = {};
+  const data = { _v: FORM_VERSION };
   formInputs.forEach(el => { if (el.id) data[el.id] = (el.type === 'checkbox') ? el.checked : el.value; });
   return data;
 }
 function applyData(data) {
   if (!data) return;
+  migrateData(data);
   formInputs.forEach(el => {
     if (!el.id || !(el.id in data)) return;
     if (el.type === 'checkbox') el.checked = !!data[el.id];
@@ -1696,11 +1709,11 @@ const PRESET_BASE = {
 };
 const PRESETS_SUELDO = {
   s30: { label: 'Sueldo de 30.000 €', datos: { ...PRESET_BASE,
-    capital: '100000', neto: '24000', gasto: '2000', pension: '19000', sprint_ahorro: '500',  tope_aporte: '800' } },
+    capital: '100000', neto: '2000', gasto: '2000', pension: '19000', sprint_ahorro: '500',  tope_aporte: '800' } },
   s40: { label: 'Sueldo de 40.000 €', datos: { ...PRESET_BASE,
-    capital: '125000', neto: '30000', gasto: '2500', pension: '23000', sprint_ahorro: '700',  tope_aporte: '1100' } },
+    capital: '125000', neto: '2500', gasto: '2500', pension: '23000', sprint_ahorro: '700',  tope_aporte: '1100' } },
   s60: { label: 'Sueldo de 60.000 €', datos: { ...PRESET_BASE,
-    capital: '200000', neto: '42000', gasto: '3500', pension: '30000', sprint_ahorro: '1000', tope_aporte: '1500' } },
+    capital: '200000', neto: '3500', gasto: '3500', pension: '30000', sprint_ahorro: '1000', tope_aporte: '1500' } },
 };
 // Carga un ejemplo: sustituye los datos actuales (incluidos los ajustes avanzados).
 function loadPresetSueldo(key) {

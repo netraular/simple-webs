@@ -50,6 +50,8 @@
   .tool-label { font-size: .82rem; color: var(--muted); }
   select.tool { width: auto; max-width: 260px; }
   .tool-sep { width: 1px; align-self: stretch; background: var(--border); margin: 2px 4px; }
+  /* Ejemplos de sueldo: etiqueta + los tres botones se mantienen juntos en la barra */
+  .presets { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
   .card {
     background: var(--card);
     border: 1px solid var(--border);
@@ -261,7 +263,9 @@
     body{padding-left:14px;padding-right:14px;background:var(--bg)}
     .hero{margin-top:14px;padding:26px 20px 22px}.hero::after{display:none}
     .toolbar{display:grid;grid-template-columns:auto 1fr auto auto;gap:8px}
-    #btnReset{grid-column:1/3}#btnBcn{grid-column:3/5}.tool-sep{display:none}.tool-label{grid-column:1}#scenarioSel{grid-column:2;min-width:0;width:100%}#btnSave{grid-column:3}#btnDelete{grid-column:4}.save-state{position:absolute;right:14px;bottom:-22px}
+    .presets{grid-column:1/5; display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px}
+    .presets .tool-label{grid-column:1/4}
+    .tool-sep{display:none}.tool-label{grid-column:1}#scenarioSel{grid-column:2;min-width:0;width:100%}#btnSave{grid-column:3}#btnDelete{grid-column:4}.save-state{position:absolute;right:14px;bottom:-22px}
     .primary-inputs{grid-template-columns:1fr}.card{padding:18px}.inputs-body{padding:18px}.cards-mini{grid-template-columns:1fr}.result-ring{width:220px}#mcStratSel,#mcChartSel{width:100%;max-width:100%}
   }
 </style>
@@ -274,8 +278,12 @@
     <p class="subtitle">Traza una ruta realista desde tu capital actual hasta la vida que quieres, siempre en euros de hoy.</p>
   </header>
   <div class="toolbar">
-    <button type="button" class="tool" id="btnReset">Ejemplo FIRE</button>
-    <button type="button" class="tool" id="btnBcn">Ejemplo Barcelona</button>
+    <div class="presets">
+      <span class="tool-label">Ejemplos de sueldo:</span>
+      <button type="button" class="tool" id="btnS30" title="Adulto de 30 años: 30.000 € brutos, 2.000 € netos al mes (12 pagas) y 100.000 € ya invertidos">30.000 €</button>
+      <button type="button" class="tool" id="btnS40" title="Adulto de 30 años: 40.000 € brutos, 2.500 € netos al mes (12 pagas) y 125.000 € ya invertidos">40.000 €</button>
+      <button type="button" class="tool" id="btnS60" title="Adulto de 30 años: 60.000 € brutos, 3.500 € netos al mes (12 pagas) y 200.000 € ya invertidos">60.000 €</button>
+    </div>
     <span class="tool-sep" aria-hidden="true"></span>
     <label class="tool-label" for="scenarioSel">Escenario:</label>
     <select id="scenarioSel" class="tool" data-nosave title="Cargar un conjunto de datos guardado">
@@ -1581,9 +1589,6 @@ wireCardToggle('btnCi', 'ciBody', 'la calculadora', true);
 const LS_FORM = 'jubilacion-v1';
 // El selector de escenarios (data-nosave) es un control, no un dato del formulario: se excluye.
 const formInputs = Array.from(document.querySelectorAll('input, select')).filter(el => !el.hasAttribute('data-nosave'));
-// Capturar los valores por defecto del HTML ANTES de restaurar nada guardado
-const DEFAULTS = {};
-formInputs.forEach(el => { if (el.id) DEFAULTS[el.id] = (el.type === 'checkbox') ? el.checked : el.value; });
 
 function saveForm() {
   const data = {};
@@ -1679,38 +1684,41 @@ scenarioSel.addEventListener('change', () => {
   saveForm();
 });
 
-document.getElementById('btnReset').addEventListener('click', () => {
-  if (!confirm('¿Volver a "Mi escenario (FIRE)"? Se descartarán tus cambios y valores guardados.')) return;
-  try { localStorage.removeItem(LS_FORM); } catch (e) {}
-  formInputs.forEach(el => {
-    if (!(el.id in DEFAULTS)) return;
-    if (el.type === 'checkbox') el.checked = DEFAULTS[el.id];
-    else el.value = DEFAULTS[el.id];
-  });
-  setCurrentName(''); refreshScenarioSel('');
-  compute();
-});
-
-// Perfil alternativo: datos aproximados promedio para la provincia de Barcelona
-// (salario y gasto medios, jubilación a la edad ordinaria sin puente ni convenio).
-const PRESET_BCN = {
-  edad: '25', fire: '65', pension_edad: '65', fin: '100',
-  capital: '0', neto: '24000', gasto: '3000', pension: '19000',
-  impuestos: '12', r_acum: '6.5', r_retiro: '5.5', inflacion: '3',
-  sprint_ahorro: '400', perfil_modo: 'ratio', frontload: '2', tope_aporte: '1500',
-  convenio_coste: '0', cobrare_pension: true
+/* ---- Ejemplos de sueldo ----
+   Tres perfiles de un adulto de 30 años que se diferencian SOLO en lo que depende del
+   sueldo: el neto disponible, el gasto que quiere mantener ya jubilado (= su neto
+   mensual actual), el capital ya invertido y la pensión de carrera completa. El resto
+   de hipótesis son idénticas, así comparar los tres botones aísla el efecto del sueldo. */
+const PRESET_BASE = {
+  edad: '30', fire: '55', fin: '105', trabajo: '25', pension_edad: '65',
+  impuestos: '15', r_acum: '6.5', r_retiro: '5.5', inflacion: '3',
+  perfil_modo: 'ratio', frontload: '2', convenio_coste: '400', cobrare_pension: false
 };
-document.getElementById('btnBcn').addEventListener('click', () => {
-  if (!confirm('¿Cargar valores promedio para la provincia de Barcelona? Sustituirá los valores actuales.')) return;
-  for (const id in PRESET_BCN) {
+const PRESETS_SUELDO = {
+  s30: { label: 'Sueldo de 30.000 €', datos: { ...PRESET_BASE,
+    capital: '100000', neto: '24000', gasto: '2000', pension: '19000', sprint_ahorro: '500',  tope_aporte: '800' } },
+  s40: { label: 'Sueldo de 40.000 €', datos: { ...PRESET_BASE,
+    capital: '125000', neto: '30000', gasto: '2500', pension: '23000', sprint_ahorro: '700',  tope_aporte: '1100' } },
+  s60: { label: 'Sueldo de 60.000 €', datos: { ...PRESET_BASE,
+    capital: '200000', neto: '42000', gasto: '3500', pension: '30000', sprint_ahorro: '1000', tope_aporte: '1500' } },
+};
+// Carga un ejemplo: sustituye los datos actuales (incluidos los ajustes avanzados).
+function loadPresetSueldo(key) {
+  const p = PRESETS_SUELDO[key];
+  if (!p) return;
+  if (!confirm(`¿Cargar el ejemplo "${p.label}"? Sustituirá los valores actuales.`)) return;
+  for (const id in p.datos) {
     const el = document.getElementById(id);
     if (!el) continue;
-    if (el.type === 'checkbox') el.checked = PRESET_BCN[id];
-    else el.value = PRESET_BCN[id];
+    if (el.type === 'checkbox') el.checked = p.datos[id];
+    else el.value = p.datos[id];
   }
   setCurrentName(''); refreshScenarioSel('');
   compute(); saveForm();
-});
+}
+document.getElementById('btnS30').addEventListener('click', () => loadPresetSueldo('s30'));
+document.getElementById('btnS40').addEventListener('click', () => loadPresetSueldo('s40'));
+document.getElementById('btnS60').addEventListener('click', () => loadPresetSueldo('s60'));
 
 // Restaurar los datos guardados ANTES de calcular, y reflejar el escenario cargado en la lista
 loadForm();

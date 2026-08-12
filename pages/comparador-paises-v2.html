@@ -3,7 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Comparador de países v2 · ¿Compensa mudarse desde Barcelona?</title>
+<title>Brújula · Compara tu próxima ciudad</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,400..800&amp;family=DM+Sans:opsz,wght@9..40,400..700&amp;display=swap" rel="stylesheet">
 <style>
   /* Mismo brutalismo colorido que el resto del sitio: fondo crema, tipografía
      monoespaciada, bordes gruesos y sombras desplazadas. Sin librerías: todos
@@ -146,76 +149,160 @@
     .crow{grid-template-columns:90px 1fr 118px; font-size:.7rem}
     header h1{font-size:1.3rem}
   }
+
+  /* Brújula: una identidad editorial inspirada en mapas y billetes de viaje. */
+  :root{
+    --bg:#f2f0e8; --card:#fffdf7; --line:#173d32; --txt:#173d32; --mut:#607068;
+    --ink:#173d32; --accent:#ef6f4e; --accent2:#173d32; --ok:#18866b; --ok2:#18866b;
+    --warn:#c45a3f; --danger:#c9453d; --purple:#4c6b5f;
+  }
+  body{
+    font-family:"DM Sans",sans-serif; line-height:1.5; -webkit-font-smoothing:antialiased;
+    background:
+      linear-gradient(rgba(23,61,50,.045) 1px,transparent 1px),
+      linear-gradient(90deg,rgba(23,61,50,.045) 1px,transparent 1px),var(--bg);
+    background-size:32px 32px;
+  }
+  header{background:var(--ink); color:#f9f7ef; border:0; text-align:left; padding:58px max(24px,calc((100vw - 1140px)/2 + 20px)) 52px}
+  header h1{font-family:"Bricolage Grotesque",sans-serif; color:#f9f7ef; text-transform:none; letter-spacing:0; font-size:clamp(2.7rem,6vw,5.8rem); line-height:.93; max-width:850px}
+  header p{margin:20px 0 0; color:#bed4ca; max-width:620px; font-size:1.05rem}
+  header .caso{margin:32px 0 0; max-width:760px; border:0; box-shadow:none; background:#ddec91; color:var(--ink); border-radius:6px; padding:16px 20px}
+  header .caso b{color:var(--ink)}
+  .wrap{padding-top:32px}
+  .ctrls{justify-content:flex-start; border:0; box-shadow:none; border-radius:6px; padding:18px 20px; background:var(--card)}
+  .ctrls label{text-transform:none; letter-spacing:0}
+  .ctrls input,.ctrls select{border:1px solid #a8b6ae; border-radius:4px; font-family:inherit}
+  h2.sec{font-family:"Bricolage Grotesque",sans-serif; text-transform:none; letter-spacing:0; font-size:1.55rem; border:0; color:var(--ink)}
+  p.lead{font-size:.92rem; max-width:760px}
+  .kpis{gap:12px}
+  .kpi,.chart,.fisc .fi,.card,.warn,.tablewrap,details.sup{border:0; box-shadow:none; border-radius:6px}
+  .kpi{background:var(--card); padding:20px}
+  .kpi .k{letter-spacing:.08em}
+  .kpi .v{font-family:"Bricolage Grotesque",sans-serif; font-size:1.8rem}
+  .chart{background:var(--card); padding:22px}
+  .track{border:0; background:#e4e7df; border-radius:3px}
+  .seg.col{background:#8fc9bd}
+  .seg.sav{background:var(--accent)}
+  .tablewrap{box-shadow:0 0 0 1px #d6ddd8}
+  thead th{background:var(--ink); border:0}
+  tbody td{border-bottom:1px solid #e1e4dd}
+  .card h3{border:0; text-transform:none; letter-spacing:0}
+  details.sup summary{background:var(--ink); text-transform:none; letter-spacing:0; border-radius:6px}
+  @media(max-width:640px){
+    header{padding:38px 20px}
+    header h1{font-size:3rem}
+  }
+  header{position:relative; overflow:hidden}
+  header::before{content:""; position:absolute; inset:0; opacity:.18; pointer-events:none;
+    background:repeating-radial-gradient(circle at 86% 22%,transparent 0 42px,#b9d0c6 43px 44px)}
+  header > *{position:relative; z-index:1}
+  .eyebrow{display:block; color:#ddec91; font:700 .74rem/1 "DM Sans",sans-serif; letter-spacing:.14em; text-transform:uppercase; margin-bottom:24px}
+  section{margin-bottom:54px}
+  .wrap > section:nth-of-type(n+4):not(:last-of-type){display:none}
+  .ctrls{position:relative; margin-top:-54px; z-index:3; box-shadow:0 16px 38px rgba(23,61,50,.12)}
+  .ctrls .hint{margin-left:auto; max-width:360px}
+  .money-input{display:flex; align-items:center; gap:6px; white-space:nowrap}
+  .kpis{grid-template-columns:1.4fr repeat(2,1fr)}
+  .kpi{border-top:4px solid var(--k,var(--accent)); min-height:170px; display:flex; flex-direction:column}
+  .kpi:first-child{background:var(--ink); color:#fff; border-top-color:#ddec91}
+  .kpi:first-child .k,.kpi:first-child .s{color:#bed4ca}
+  .kpi .s{margin-top:auto}
+  .destinations{display:grid; grid-template-columns:repeat(3,1fr); gap:12px}
+  .destination{background:var(--card); border-radius:6px; padding:20px; min-height:196px; display:flex; flex-direction:column; position:relative; overflow:hidden}
+  .destination:first-child{grid-row:span 2; background:#ddec91; min-height:404px}
+  .destination .rank{font:700 .7rem/1 "DM Sans",sans-serif; color:var(--mut); letter-spacing:.12em; text-transform:uppercase}
+  .destination h3{font:700 1.35rem/1.05 "Bricolage Grotesque",sans-serif; margin:20px 0 4px}
+  .destination:first-child h3{font-size:2.5rem; margin-top:60px}
+  .destination .country{font-size:.8rem; color:var(--mut)}
+  .destination .saving{font:750 1.65rem/1 "Bricolage Grotesque",sans-serif; margin-top:auto}
+  .destination:first-child .saving{font-size:2.5rem}
+  .destination .saving small{display:block; font:500 .74rem/1.3 "DM Sans",sans-serif; color:var(--mut); margin-top:6px}
+  .destination .meta{display:flex; gap:12px; margin-top:16px; padding-top:12px; border-top:1px solid rgba(23,61,50,.16); font-size:.75rem; color:var(--mut)}
+  .destination .meta b{color:var(--ink)}
+  .destination .status{position:absolute; top:16px; right:16px; border-radius:99px; padding:5px 8px; background:#e4e7df; font-size:.66rem; font-weight:700}
+  .destination .status.yes{background:var(--ink); color:#fff}
+  .chart{padding:26px 22px}
+  .crow{grid-template-columns:150px 1fr 150px; margin-bottom:12px; font-size:.82rem}
+  .track{height:26px}
+  .legend{color:var(--mut); font-weight:500}
+  details.sup{overflow:hidden; box-shadow:0 0 0 1px #d6ddd8}
+  details.sup summary{font-family:"Bricolage Grotesque",sans-serif; font-size:1rem}
+  footer{padding-bottom:20px}
+  @media(max-width:820px){
+    .kpis{grid-template-columns:1fr 1fr}
+    .kpi:first-child{grid-column:1/-1}
+    .destinations{grid-template-columns:1fr 1fr}
+    .destination:first-child{grid-row:auto; grid-column:1/-1; min-height:260px}
+    .destination:first-child h3{margin-top:28px}
+  }
+  @media(max-width:600px){
+    header::before{background:repeating-radial-gradient(circle at 100% 15%,transparent 0 34px,#b9d0c6 35px 36px)}
+    .wrap{padding-left:14px; padding-right:14px}
+    .ctrls{margin-top:-24px; display:grid; gap:14px}
+    .ctrls label{display:grid; grid-template-columns:1fr auto; width:100%}
+    .ctrls .hint{margin:0}
+    .kpis,.destinations{grid-template-columns:1fr}
+    .kpi:first-child,.destination:first-child{grid-column:auto}
+    .destination,.destination:first-child{min-height:210px}
+    .destination:first-child h3{font-size:2rem; margin-top:22px}
+    .crow{grid-template-columns:92px 1fr; gap:8px; margin-bottom:18px}
+    .crow .cv{grid-column:2; font-size:.72rem; margin-top:-6px}
+  }
 </style>
 </head>
 <body>
 
 <header>
-  <h1>🌍 ¿Compensa mudarse? · Comparador v2</h1>
-  <p>Coste de oportunidad de irse de Barcelona: cuánto <b>ahorras de verdad</b> en cada ciudad europea,
-  no cuánto pone en la nómina.</p>
+  <span class="eyebrow">Brújula / Europa</span>
+  <h1>Tu próxima ciudad, en números.</h1>
+  <p>Compara cuánto podrías ahorrar de verdad en Europa después de impuestos, alquiler y vida diaria.</p>
   <div class="caso">
-    <b>El caso:</b> informático con ~8–10 años de experiencia, <b id="hCaso">60.000 € brutos</b> en Barcelona.
-    Soltero, sin hijos, sin coche, piso de 1 dormitorio, gasto sobrio de persona normal.
-    Quiere <b>ahorrar mucho</b> y volver a <b>jubilarse en España</b> (o retirarse antes).
-    Para cada destino se estima el bruto de <b>un perfil equivalente en ese mercado</b>, no el mismo número.
+    <b>Tu punto de partida</b><br>
+    Perfil tech senior, <b id="hCaso">60.000 € brutos</b> en Barcelona, una persona y piso de un dormitorio.
   </div>
 </header>
 
 <div class="wrap">
 
   <div class="ctrls">
-    <label>Bruto en Barcelona
-      <input id="inBruto" type="number" min="20000" max="200000" step="1000" value="60000"> €/año
+    <label><span>Tu bruto en Barcelona</span>
+      <span class="money-input"><input id="inBruto" type="number" min="20000" max="200000" step="1000" value="60000"> €/año</span>
     </label>
-    <label>Me compensa si ahorro
+    <label>Objetivo mínimo
       <select id="inUmbral">
-        <option value="1.2">1,20× lo de ahora</option>
-        <option value="1.3" selected>1,30× lo de ahora</option>
-        <option value="1.5">1,50× lo de ahora</option>
-        <option value="2">2,00× lo de ahora</option>
+        <option value="1.2">Ahorrar un 20 % más</option>
+        <option value="1.3" selected>Ahorrar un 30 % más</option>
+        <option value="1.5">Ahorrar un 50 % más</option>
+        <option value="2">Duplicar mi ahorro</option>
       </select>
     </label>
-    <span class="hint">Si cambias el bruto, los brutos del resto de ciudades escalan en la misma proporción
-    (se mantiene tu posición relativa en cada mercado).</span>
+    <span class="hint">Ajustamos los salarios locales manteniendo tu posición profesional en cada mercado.</span>
   </div>
 
   <!-- ============ VEREDICTO ============ -->
   <section>
-    <h2 class="sec">1 · Veredicto</h2>
-    <p class="lead">Lo que importa para tu objetivo: euros ahorrados al año y años de vida laboral que te ahorras.</p>
+    <h2 class="sec">La respuesta corta</h2>
+    <p class="lead">Qué cambia de verdad frente a quedarte en Barcelona.</p>
     <div class="kpis" id="kpis"></div>
   </section>
 
   <!-- ============ RANKING ============ -->
   <section>
-    <h2 class="sec">2 · Ranking por ahorro real</h2>
-    <p class="lead">Ordenado por lo que te queda al año después de impuestos, cotizaciones y coste de vida.
-    Todo convertido a euros. La fila azul es tu situación actual.</p>
-    <div class="tablewrap">
-      <table>
-        <thead>
-          <tr>
-            <th>#</th><th>Ciudad</th><th>Bruto local</th><th>Neto €/mes</th><th>× neto</th>
-            <th>Coste vida €/mes</th><th>Ahorro €/año</th><th>× ahorro</th><th>vs BCN</th>
-            <th>Tasa ahorro</th><th>Marginal +10k</th><th>Años a FIRE</th><th>Umbral</th>
-          </tr>
-        </thead>
-        <tbody id="tbody"></tbody>
-      </table>
-    </div>
+    <h2 class="sec">Dónde cunde más tu trabajo</h2>
+    <p class="lead">Los destinos con mayor ahorro anual estimado. El bruto local ya está adaptado a tu perfil.</p>
+    <div class="destinations" id="destinations"></div>
+    <div hidden><table><tbody id="tbody"></tbody></table></div>
   </section>
 
   <!-- ============ A DÓNDE VA EL NETO ============ -->
   <section>
-    <h2 class="sec">3 · A dónde va tu neto</h2>
-    <p class="lead">La barra completa es tu neto disponible mensual en euros. Rayado = coste de vida, verde = ahorro.
-    Aquí se ve por qué Dublín o Londres pagan bien y aun así no ahorras: el alquiler se lo come.</p>
+    <h2 class="sec">El sueldo no cuenta toda la historia</h2>
+    <p class="lead">Cada barra es el neto mensual: verde agua para vivir, coral para ahorrar. Mostramos los siete mejores destinos y tu referencia actual.</p>
     <div class="chart">
       <div id="chartStack"></div>
       <div class="legend">
         <span><i class="seg col"></i>Coste de vida</span>
-        <span><i style="background:#256a29"></i>Ahorro</span>
+        <span><i style="background:var(--accent)"></i>Ahorro</span>
       </div>
     </div>
   </section>
@@ -317,7 +404,7 @@
   <!-- ============ SUPUESTOS ============ -->
   <section>
     <details class="sup">
-      <summary>10 · Supuestos, fórmulas y fuentes (léelo antes de mudarte)</summary>
+      <summary>Cómo hemos hecho las cuentas</summary>
       <div class="inner">
         <h4>Perfil</h4>
         <ul>
@@ -399,7 +486,7 @@
 </div>
 
 <footer>
-  Comparador v2 · cálculo estático, sin servidor ni seguimiento. Todo ocurre en tu navegador.
+  Brújula · estimaciones orientativas con datos 2024–2025. Todo se calcula en tu navegador.
 </footer>
 
 <script>
@@ -724,31 +811,35 @@ function render(){
 
   document.getElementById('kpis').innerHTML = `
     <div class="kpi" style="--k:var(--ok2)">
-      <div class="k">Más ahorro al año</div>
+      <div class="k">Tu mejor destino</div>
       <div class="v">${mejorAhorro.bandera} ${mejorAhorro.ciudad}</div>
-      <div class="s"><b>${eur(mejorAhorro.ahorroEUR)}/año</b> · ${nf1.format(mejorAhorro.ahorroEUR/base.ahorroEUR)}× lo que ahorras en Barcelona
-      (${eur(base.ahorroEUR)}).</div>
+      <div class="s"><b>${eur(mejorAhorro.ahorroEUR)} al año</b>, ${nf1.format(mejorAhorro.ahorroEUR/base.ahorroEUR)} veces tu ahorro actual.</div>
     </div>
     <div class="kpi" style="--k:var(--warn)">
-      <div class="k">Te retiras antes</div>
-      <div class="v">${nf1.format(aniosGanados)} años</div>
-      <div class="s">${mejorAhorro.ciudad}: <b>${nf1.format(mejorAhorro.anios)} años</b> hasta el objetivo,
-      frente a ${nf1.format(base.anios)} quedándote.</div>
+      <div class="k">Tiempo recuperado</div>
+      <div class="v">${nf1.format(aniosGanados)} años antes</div>
+      <div class="s">Hasta tu objetivo FIRE frente a Barcelona.</div>
     </div>
     <div class="kpi" style="--k:var(--accent)">
-      <div class="k">Ahorran ${nf2.format(umbral)}× o más</div>
-      <div class="v">${pasan.length} de ${filas.length-1}</div>
-      <div class="s">${espejismo.length
-        ? `Ojo: <b>${espejismo.map(f => f.ciudad).join(', ')}</b> ${espejismo.length>1?'pagan':'paga'}
-           ${nf2.format(umbral)}× de neto y aun así no ${espejismo.length>1?'llegan':'llega'} al ${nf2.format(umbral)}× de ahorro.`
-        : `Necesitas ahorrar <b>${eur(base.ahorroEUR*umbral)}/año</b> para que te compense.`}</div>
-    </div>
-    <div class="kpi" style="--k:var(--purple)">
-      <div class="k">Mejor tasa de ahorro</div>
-      <div class="v">${mejorTasa.bandera} ${mejorTasa.ciudad}</div>
-      <div class="s">Guarda el <b>${nf.format(mejorTasa.tasa*100)} %</b> de su neto
-      (en Barcelona, el ${nf.format(base.tasa*100)} %).</div>
+      <div class="k">Superan tu objetivo</div>
+      <div class="v">${pasan.length} ${pasan.length === 1 ? 'ciudad' : 'ciudades'}</div>
+      <div class="s">Ahorran al menos <b>${nf.format((umbral-1)*100)} % más</b> que ahora.</div>
     </div>`;
+
+  /* ---- Shortlist visual ---- */
+  const shortlist = filas.filter((f, index) => index < 7 && !f.base);
+  document.getElementById('destinations').innerHTML = shortlist.map((f, index) => `
+    <article class="destination">
+      <span class="rank">${index === 0 ? 'Mejor opción' : `Destino ${index + 1}`}</span>
+      <span class="status ${f.pasa ? 'yes' : ''}">${f.pasa ? 'Supera tu objetivo' : 'Por debajo del objetivo'}</span>
+      <h3>${f.bandera} ${f.ciudad}</h3>
+      <span class="country">${f.pais}${f.regimen ? ` · ${f.regimen}` : ''}</span>
+      <div class="saving">${eur(f.ahorroEUR)}<small>ahorro estimado / año</small></div>
+      <div class="meta">
+        <span>Neto <b>${eur(f.netoMesEUR)}/mes</b></span>
+        <span>Vivir <b>${eur(f.colMesEUR)}/mes</b></span>
+      </div>
+    </article>`).join('');
 
   /* ---- 2. Tabla ---- */
   let puesto = 0;   // la fila base no consume número de ranking
@@ -774,8 +865,9 @@ function render(){
   }).join('');
 
   /* ---- 3. Barras apiladas neto = coste + ahorro ---- */
-  const maxNeto = Math.max(...filas.map(f => f.netoMesEUR));
-  document.getElementById('chartStack').innerHTML = filas.map(f => {
+  const visibles = filas.filter((f, index) => index < 7 || f.base);
+  const maxNeto = Math.max(...visibles.map(f => f.netoMesEUR));
+  document.getElementById('chartStack').innerHTML = visibles.map(f => {
     const wTot = (f.netoMesEUR / maxNeto) * 100;
     const pCol = f.netoMesEUR > 0 ? Math.min(100, (f.colMesEUR / f.netoMesEUR) * 100) : 100;
     return `<div class="crow">

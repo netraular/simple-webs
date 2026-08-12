@@ -224,6 +224,22 @@
   .chart{padding:26px 22px}
   .crow{grid-template-columns:150px 1fr 150px; margin-bottom:12px; font-size:.82rem}
   .track{height:26px}
+  .stack-track{overflow:visible}
+  .stack-seg{position:relative; cursor:help; outline:none}
+  .stack-seg:first-child{border-radius:3px 0 0 3px}
+  .stack-seg:last-child{border-radius:0 3px 3px 0}
+  .seg-tip{
+    position:absolute; left:50%; bottom:calc(100% + 8px); z-index:5;
+    transform:translate(-50%,4px); padding:7px 9px; border-radius:4px; background:var(--ink); color:#fff;
+    font:600 .72rem/1.2 "DM Sans",sans-serif; white-space:nowrap; pointer-events:none; opacity:0;
+    transition:opacity .15s ease,transform .15s ease; box-shadow:0 5px 14px rgba(23,61,50,.2);
+  }
+  .seg-tip::after{
+    content:""; position:absolute; left:50%; top:100%; transform:translateX(-50%);
+    border:5px solid transparent; border-top-color:var(--ink);
+  }
+  .stack-seg:hover .seg-tip,.stack-seg:focus .seg-tip{opacity:1; transform:translate(-50%,0)}
+  .stack-seg:focus-visible{box-shadow:inset 0 0 0 2px #fff,0 0 0 2px var(--ink)}
   .legend{color:var(--mut); font-weight:500}
   details.sup{overflow:hidden; box-shadow:0 0 0 1px #d6ddd8}
   details.sup summary{font-family:"Bricolage Grotesque",sans-serif; font-size:1rem}
@@ -872,9 +888,9 @@ function render(){
     const pCol = f.netoMesEUR > 0 ? Math.min(100, (f.colMesEUR / f.netoMesEUR) * 100) : 100;
     return `<div class="crow">
       <div class="cl ${f.base?'base':''}">${f.bandera} ${f.ciudad}</div>
-      <div class="track">
-        <span class="seg col" style="width:${wTot*pCol/100}%"></span>
-        <span class="seg sav" style="width:${wTot*(100-pCol)/100}%"></span>
+      <div class="track stack-track">
+        <span class="seg col stack-seg" tabindex="0" aria-label="Coste de vida: ${eur(f.colMesEUR)} al mes" style="width:${wTot*pCol/100}%"><span class="seg-tip" aria-hidden="true">Coste de vida · ${eur(f.colMesEUR)}/mes</span></span>
+        <span class="seg sav stack-seg" tabindex="0" aria-label="Ahorro: ${eur(f.ahorroMesEUR)} al mes" style="width:${wTot*(100-pCol)/100}%"><span class="seg-tip" aria-hidden="true">Ahorro · ${eur(f.ahorroMesEUR)}/mes</span></span>
       </div>
       <div class="cv">${eur(f.ahorroMesEUR)}/mes</div>
     </div>`;

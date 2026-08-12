@@ -831,7 +831,7 @@ function render(){
   document.getElementById('destinations').innerHTML = shortlist.map((f, index) => `
     <article class="destination">
       <span class="rank">${index === 0 ? 'Mejor opción' : `Destino ${index + 1}`}</span>
-      <span class="status ${f.pasa ? 'yes' : ''}">${f.pasa ? 'Supera tu objetivo' : 'Por debajo del objetivo'}</span>
+      <span class="status ${f.pasa ? 'yes' : ''}">${nf2.format(f.ratioAhorro)}× vs Barcelona</span>
       <h3>${f.bandera} ${f.ciudad}</h3>
       <span class="country">${f.pais}${f.regimen ? ` · ${f.regimen}` : ''}</span>
       <div class="saving">${eur(f.ahorroEUR)}<small>ahorro estimado / año</small></div>

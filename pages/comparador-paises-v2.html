@@ -202,6 +202,19 @@
   .ctrls{position:relative; margin-top:-54px; margin-bottom:12px; z-index:3; box-shadow:0 16px 38px rgba(23,61,50,.12)}
   .ctrls .hint{margin-left:auto; max-width:360px}
   .money-input{display:flex; align-items:center; gap:6px; white-space:nowrap}
+  .scenario-control{flex:1 0 100%}
+  .scenario-label{display:block; margin-bottom:10px; font-size:.72rem; font-weight:700; color:var(--mut); letter-spacing:.08em; text-transform:uppercase}
+  .salary-presets{display:grid; grid-template-columns:repeat(3,1fr); gap:8px}
+  .salary-preset{border:1px solid #a8b6ae; border-radius:4px; background:#fff; color:var(--ink); padding:10px 14px;
+    font-family:inherit; text-align:left; cursor:pointer; transition:background .15s ease,border-color .15s ease,color .15s ease}
+  .salary-preset strong{display:block; font:700 1.08rem/1.1 "Bricolage Grotesque",sans-serif}
+  .salary-preset span{display:block; margin-top:4px; color:var(--mut); font-size:.72rem}
+  .salary-preset:hover{border-color:var(--ink)}
+  .salary-preset.active{background:var(--ink); border-color:var(--ink); color:#fff}
+  .salary-preset.active span{color:#bed4ca}
+  .custom-salary{font-size:.78rem}
+  .custom-salary summary{color:var(--mut); cursor:pointer; font-weight:700}
+  .custom-salary .money-input{margin-top:8px}
   .bcn-reference{display:grid; grid-template-columns:1.25fr repeat(5,1fr); gap:0; margin-bottom:46px;
     background:#dbe8e1; border-left:5px solid var(--accent); border-radius:6px; overflow:hidden}
   .bcn-place,.bcn-metric{padding:16px 18px}
@@ -272,6 +285,9 @@
     .ctrls{margin-top:-24px; display:grid; gap:14px}
     .ctrls label{display:grid; grid-template-columns:1fr auto; width:100%}
     .ctrls .hint{margin:0}
+    .salary-preset{padding:9px 8px}
+    .salary-preset strong{font-size:.95rem}
+    .salary-preset span{font-size:.65rem}
     .bcn-reference{grid-template-columns:1fr 1fr}
     .bcn-place{grid-column:1/-1}
     .bcn-metric{border-right:1px solid rgba(23,61,50,.12); border-bottom:1px solid rgba(23,61,50,.12)}
@@ -292,17 +308,22 @@
   <h1>Tu próxima ciudad, en números.</h1>
   <p>Compara cuánto podrías ahorrar de verdad en Europa después de impuestos, alquiler y vida diaria.</p>
   <div class="caso">
-    <b>Tu punto de partida</b><br>
-    Perfil tech senior, <b id="hCaso">60.000 € brutos</b> en Barcelona, una persona y piso de un dormitorio.
+    <b>Escenarios comparables</b><br>
+    Tres niveles salariales en Barcelona para un perfil tech, una persona y piso de un dormitorio.
   </div>
 </header>
 
 <div class="wrap">
 
   <div class="ctrls">
-    <label><span>Tu bruto en Barcelona</span>
-      <span class="money-input"><input id="inBruto" type="number" min="20000" max="200000" step="1000" value="60000"> €/año</span>
-    </label>
+    <div class="scenario-control">
+      <span class="scenario-label">Escenario salarial en Barcelona</span>
+      <div class="salary-presets" role="group" aria-label="Escenario salarial en Barcelona">
+        <button class="salary-preset" type="button" data-salary="40000"><strong>40.000 €</strong><span>Escenario 1</span></button>
+        <button class="salary-preset active" type="button" data-salary="60000"><strong>60.000 €</strong><span>Escenario 2</span></button>
+        <button class="salary-preset" type="button" data-salary="75000"><strong>75.000 €</strong><span>Escenario 3</span></button>
+      </div>
+    </div>
     <label>Objetivo mínimo
       <select id="inUmbral">
         <option value="1.2">Ahorrar un 20 % más</option>
@@ -311,6 +332,10 @@
         <option value="2">Duplicar mi ahorro</option>
       </select>
     </label>
+    <details class="custom-salary">
+      <summary>Usar otro importe</summary>
+      <span class="money-input"><input id="inBruto" type="number" min="20000" max="200000" step="1000" value="60000" aria-label="Otro salario bruto en Barcelona"> €/año</span>
+    </details>
     <span class="hint">Ajustamos los salarios locales manteniendo tu posición profesional en cada mercado.</span>
   </div>
 
@@ -834,7 +859,6 @@ function render(){
   const umbral    = +document.getElementById('inUmbral').value;
   const { filas, base, objetivoFIRE } = calcular(brutoBase, umbral);
 
-  document.getElementById('hCaso').textContent   = nf.format(brutoBase) + ' € brutos';
   document.getElementById('hUmbral').textContent = nf2.format(umbral) + '×';
   document.getElementById('hTarget').textContent = eur(objetivoFIRE);
 
@@ -1040,8 +1064,28 @@ function render(){
     .map(([k,v]) => `1 ${k} = ${nf2.format(v)} €`).join(' · ');
 }
 
-document.getElementById('inBruto').addEventListener('input', render);
+const salaryInput = document.getElementById('inBruto');
+const salaryPresets = [...document.querySelectorAll('.salary-preset')];
+
+function syncSalaryPreset(){
+  salaryPresets.forEach(button => {
+    const active = +button.dataset.salary === +salaryInput.value;
+    button.classList.toggle('active', active);
+    button.setAttribute('aria-pressed', String(active));
+  });
+}
+
+salaryPresets.forEach(button => button.addEventListener('click', () => {
+  salaryInput.value = button.dataset.salary;
+  syncSalaryPreset();
+  render();
+}));
+salaryInput.addEventListener('input', () => {
+  syncSalaryPreset();
+  render();
+});
 document.getElementById('inUmbral').addEventListener('change', render);
+syncSalaryPreset();
 render();
 </script>
 </body>

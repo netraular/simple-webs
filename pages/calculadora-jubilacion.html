@@ -233,12 +233,12 @@
   #aportarCard{position:sticky; top:18px; background:#fff; border:1px solid var(--border); border-top:4px solid var(--accent); padding:24px}
   #aportarCard h2{font-size:.78rem; font-family:"IBM Plex Mono",monospace; text-transform:uppercase; letter-spacing:.06em; color:var(--text)}
   .result-visual{display:grid; place-items:center; padding:10px 0 20px}
-  .result-ring{--rate:35%; width:min(265px,80vw); aspect-ratio:1; border-radius:50%; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;
-    background:radial-gradient(circle closest-side,#fff 79%,transparent 80% 100%),conic-gradient(var(--accent) var(--rate),#dce5ef 0)}
+  .result-ring{--capital-split:conic-gradient(#dce5ef 0 100%); width:min(265px,80vw); aspect-ratio:1; border-radius:50%; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;
+    background:radial-gradient(circle closest-side,#fff 72%,transparent 73% 100%),var(--capital-split)}
   .result-ring .result-total{color:var(--text); font:600 clamp(2rem,5vw,3rem)/1 "IBM Plex Mono",monospace; margin:8px 0 5px}
   .ring-label{font:600 .64rem "IBM Plex Mono",monospace; color:var(--muted); text-transform:uppercase; letter-spacing:.06em}
   .ring-rate{font-size:.76rem; color:var(--accent); font-weight:700}
-  /* Máquina del tiempo de la tarjeta: slider de edad + barra de composición. */
+  /* Máquina del tiempo de la tarjeta: slider de edad + círculo de composición. */
   .view-chip[hidden]{display:none}
   .view-chip{display:inline-flex; align-items:center; gap:7px; padding:3px 4px 3px 9px; background:#fff5e0; border:1px solid #e6c882;
     font:600 .64rem "IBM Plex Mono",monospace; color:#8a6410; text-transform:none; letter-spacing:0}
@@ -246,7 +246,6 @@
   .view-chip button{background:#fff; border:1px solid #e0c68e; color:#8a6410; cursor:pointer; padding:1px 6px; font-size:.8rem; line-height:1.2; border-radius:3px}
   .view-chip button:hover{border-color:var(--accent); color:var(--accent)}
   .timeline{margin:16px 0 22px}
-  .tl-hint{font-size:.7rem; color:var(--muted); margin-bottom:6px}
   .tl-range{-webkit-appearance:none; appearance:none; display:block; width:100%; height:19px; margin:0; padding:0; background:transparent; border:0; box-shadow:none; cursor:grab}
   .tl-range:active{cursor:grabbing}
   .tl-range:focus{outline:none}
@@ -256,13 +255,8 @@
     background:var(--amber); border:3px solid #fff; box-shadow:0 0 0 1px #bd850c}
   .tl-range::-moz-range-track{height:5px; background:var(--tl-track,#dce5ef); border:0}
   .tl-range::-moz-range-thumb{width:17px; height:17px; border-radius:2px; background:var(--amber); border:3px solid #fff; box-shadow:0 0 0 1px #bd850c}
-  .split-wrap{margin-top:4px}
   .split-head{display:flex; align-items:baseline; gap:10px; margin-bottom:8px; font-size:.78rem; color:var(--muted)}
   .split-head b{margin-left:auto; color:var(--text); font:600 .95rem "IBM Plex Mono",monospace}
-  .split-bar{display:flex; height:22px; overflow:hidden; background:#dce5ef; position:relative}
-  .split-bar span{display:block; min-width:0}
-  .split-tick{position:absolute; top:-3px; bottom:-3px; width:2px; background:#17212b; transform:translateX(-1px); pointer-events:none}
-  .split-tick::after{content:""; position:absolute; left:-3px; top:-3px; border:4px solid transparent; border-top-color:#17212b}
   .split-legend{margin-top:11px; font-size:.73rem; color:var(--muted)}
   .split-legend .row{display:flex; align-items:center; gap:8px; padding:3px 0; border:0; font-size:.73rem}
   .split-legend i{width:10px; height:10px; flex:none}
@@ -466,37 +460,30 @@
       </span>
       <button type="button" class="tool card-toggle" id="btnDetalle" title="Ocultar el detalle" aria-label="Ocultar el detalle">▾</button>
     </h2>
+    <div class="split-head"><span id="splitTitle">Tu patrimonio</span><b id="splitTotal">—</b></div>
     <div class="result-visual">
       <div class="result-ring" id="resultRing">
-        <span class="ring-label" id="ringLabel">Aportación necesaria</span>
-        <div class="result-total" id="mensual">—</div>
-        <span class="ring-rate" id="ringRate">— del ingreso neto</span>
+        <span class="ring-label" id="kpi3k">Nº Coast FIRE</span>
+        <div class="result-total" id="coast-num">—</div>
+        <span class="ring-rate" id="kpi3s"></span>
       </div>
     </div>
+    <div class="split-legend" id="originLegend"></div>
     <div class="result-sub" id="mensual-sub"></div>
 
     <!-- Máquina del tiempo: recorre la fase de acumulación (hoy → retiro) y toda la
          tarjeta pasa a describir ese año. El raíl del slider es la propia línea de
          fases (aportas / bola de nieve). -->
     <div class="timeline" id="timeline">
-      <div class="tl-hint">🕹️ Arrastra para ver tu plan a cualquier edad, de hoy al retiro</div>
       <input type="range" class="tl-range" id="viewAge" min="0" max="1" step="1" value="0" data-nosave aria-label="Edad que quieres ver">
       <div class="route-flags" id="lifeFlags"></div>
-    </div>
-
-    <!-- Una sola barra: de qué está hecho tu patrimonio a esa edad y cuánto falta
-         para el objetivo, con el Nº Coast FIRE de ese año como marca. -->
-    <div class="split-wrap">
-      <div class="split-head"><span id="splitTitle">Tu patrimonio</span><b id="splitTotal">—</b></div>
-      <div class="split-bar" id="originBar"></div>
-      <div class="split-legend" id="originLegend"></div>
     </div>
 
     <!-- Cifras clave siempre visibles, todas referidas a la edad que estás viendo -->
     <div class="cards-mini" id="keyKpis" style="margin-top:16px">
       <div class="mini"><div class="k" id="kpi1k">Tu capital hoy (€ hoy)</div><div class="v" id="cap-hoy">—</div><div class="s" id="kpi1s"></div></div>
       <div class="mini"><div class="k" id="kpi2k">Te falta para el objetivo</div><div class="v" id="cap-nominal">—</div><div class="s" id="kpi2s"></div></div>
-      <div class="mini" title="Cuánto necesitarías tener invertido a esa edad para dejar de aportar y aun así llegar al objetivo (Coast FIRE)"><div class="k" id="kpi3k">Nº Coast FIRE (invertido hoy)</div><div class="v" id="coast-num">—</div><div class="s" id="kpi3s"></div></div>
+      <div class="mini"><div class="k" id="ringLabel">Aportación del mes</div><div class="v" id="mensual">—</div><div class="s" id="ringRate">— del ingreso neto</div></div>
     </div>
 
     <div id="detalleWrap">
@@ -926,14 +913,7 @@ function compute() {
     ratio: () => `el <b>primer año</b> (en € de hoy) · baja de forma lineal hasta <b>${fmt.format(mensualFin)}/mes</b> el último año, aportando los <b>${M} años</b> (ratio ${perfil.frontload.toLocaleString('es-ES')}×)`,
     cero: () => `el <b>primer año</b> (en € de hoy) · baja en línea recta hasta <b>0 €</b>: repartes el esfuerzo a lo largo de <b>${aniosAportando} de los ${M} años</b>, cada vez menos`,
     tope: () => `tu <b>tope</b>, que pagas el <b>primer año</b> (en € de hoy) · baja en línea recta hasta <b>0 €</b> a lo largo de <b>${aniosAportando} de los ${M} años</b>${aniosAportando < M ? `; ${M - aniosAportando === 1 ? 'el <b>año</b> restante' : `los <b>${M - aniosAportando}</b> restantes`} no aportas nada (la cartera solo compone)` : ''}`,
-    // El sprint puede acabar en un año a medias (la ventana es fraccionaria para clavar
-    // el objetivo): se dice aparte en vez de fingir que son N años al importe completo.
-    sprint: () => {
-      const plenos = Math.floor(ventana + 1e-9), resto = base * (ventana - plenos);
-      return `tu <b>sprint</b> (en € de hoy), igual todos los meses durante <b>${plenos} años</b>`
-        + (resto >= 1 ? `, más un último año a <b>${fmt.format(resto)}/mes</b>` : '')
-        + ` · a los <b>${a0 + aniosAportando}</b> dejas de ahorrar del todo y la bola rueda sola hasta el objetivo`;
-    },
+    sprint: () => `Alcanzas tu <b>Nº Coast FIRE</b> a los <b>${a0 + aniosAportando}</b>: desde entonces puedes dejar de aportar y la bola rueda sola hasta el retiro.`,
   };
   planSub = (decreciente && SUB_PERFIL[perfil.modo] || SUB_PERFIL.constante)();
 
@@ -1031,12 +1011,11 @@ function renderEsfuerzo() {
   chip.hidden = esHoy;
   document.getElementById('viewChipAge').textContent = `${X} años`;
 
-  /* --- Anillo: la cuota del año que empieza a esa edad --- */
+  /* --- Tarjeta: la cuota del año que empieza a esa edad --- */
   const cuota = X < F ? base * weight(X) : 0;
   const tasa = neto > 0 ? cuota * 12 / neto : 0;
-  document.getElementById('ringLabel').textContent = esHoy ? 'Aportación necesaria' : `Aportación a los ${X}`;
+  document.getElementById('ringLabel').textContent = esHoy ? 'Aportación del mes' : `Aportación a los ${X}`;
   document.getElementById('mensual').textContent = fmt.format(cuota);
-  document.getElementById('resultRing').style.setProperty('--rate', `${Math.max(0, Math.min(100, tasa * 100))}%`);
   document.getElementById('ringRate').textContent =
       cuota <= 0 ? (X >= F ? 'te retiras: dejas de aportar' : 'este año ya no aportas')
     : neto > 0 ? `${(tasa * 100).toFixed(0)} % del ingreso neto`
@@ -1074,7 +1053,7 @@ function renderEsfuerzo() {
     return `<span${on} style="left:${p}%; top:${filaTop[fila]}px">${h.txt} · <b>${h.age}</b></span>`;
   }).join('');
 
-  /* --- Barra: de qué está hecho el patrimonio a los X y cuánto falta al objetivo --- */
+  /* --- Círculo: de qué está hecho el patrimonio a los X y cuánto falta al objetivo --- */
   const patr = Math.max(0, curve.bal[t] ?? cap0);    // patrimonio a esa edad, € de hoy
   let aportado = 0;
   for (let age = a0; age < X; age++) aportado += base * weight(age) * 12;   // cuotas pagadas hasta X
@@ -1095,9 +1074,14 @@ function renderEsfuerzo() {
   document.getElementById('splitTitle').innerHTML = esHoy
     ? 'De qué está hecho tu capital, hoy' : `De qué estará hecho tu patrimonio a los <b>${X}</b>`;
   document.getElementById('splitTotal').textContent = fmtShort(patr);
-  document.getElementById('originBar').innerHTML = partes
-      .map(p => `<span style="flex:0 0 ${(p.v / escala) * 100}%; background:${p.c}"></span>`).join('')
-    + `<i class="split-tick" style="left:${Math.min(100, (coastX / escala) * 100)}%" title="Nº Coast FIRE a los ${X}: ${fmtShort(coastX)}"></i>`;
+  let tramo = 0;
+  const segmentos = partes.map(p => {
+    const inicio = tramo;
+    tramo += (p.v / escala) * 100;
+    return `${p.c} ${inicio}% ${tramo}%`;
+  });
+  segmentos.push(`#dce5ef ${tramo}% 100%`);
+  document.getElementById('resultRing').style.setProperty('--capital-split', `conic-gradient(${segmentos.join(',')})`);
   document.getElementById('originLegend').innerHTML = partes
       .map(p => `<div class="row"><i style="background:${p.c}"></i>${p.k}<em>${patr > 0 ? ((p.v / patr) * 100).toFixed(0) : 0}%</em><b>${fmtShort(p.v)}</b></div>`).join('')
     + `<div class="row" style="margin-top:4px; border-top:1px solid var(--border); padding-top:7px">`
@@ -1112,7 +1096,7 @@ function renderEsfuerzo() {
   document.getElementById('cap-nominal').textContent = fmtShort(falta);
   document.getElementById('kpi2s').innerHTML = `Llevas el <b>${pObj.toFixed(0)}%</b> de ${fmtShort(capNeeded)}`;
 
-  document.getElementById('kpi3k').textContent = esHoy ? 'Nº Coast FIRE (invertido hoy)' : `Nº Coast FIRE a los ${X}`;
+  document.getElementById('kpi3k').textContent = esHoy ? 'Nº Coast FIRE hoy' : `Nº Coast FIRE a los ${X}`;
   document.getElementById('coast-num').textContent = fmtShort(coastX);
   // El patrimonio clava el objetivo justo en el retiro, así que al final la comparación
   // se decide por decimales: un euro de margen evita el "te faltan 0 €".

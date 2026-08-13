@@ -335,6 +335,25 @@
         <label for="impuestos">Impuesto efectivo sobre lo retirado (%)</label>
         <input type="number" id="impuestos" value="15" min="0" max="45" step="1">
         <div class="hint"><b>Fondo indexado:</b> solo tributa la <b>ganancia</b>, no el capital aportado. Pero tras muchos años el fondo es ~70–80% plusvalía y por FIFO vendes antes las participaciones más antiguas (las más revalorizadas), así que el efectivo sobre lo retirado ronda el <b>14–16%</b> (la ganancia tributa al 19–21%, y un ~25% que es devolución de capital no tributa). <b>Plan de pensiones:</b> tributa el <b>100%</b> de lo retirado como rendimiento del trabajo → sube esto a <b>~20–30%</b> si vives del plan. Ajústalo a tu mezcla fondo/plan. No se aplica a la pensión pública. Este mismo porcentaje se usa también para el <b>Nº Coast FIRE</b>.</div>
+
+        <label for="pais_fiscal">¿Y si te jubilas fuera? · fiscalidad del ahorro</label>
+        <select id="pais_fiscal">
+          <option value="es" selected>🇪🇸 España — 19–30% al vender</option>
+          <option value="ch">🇨🇭 Suiza — 0% al vender</option>
+          <option value="lu">🇱🇺 Luxemburgo — 0% pasados 6 meses</option>
+          <option value="se">🇸🇪 Suecia — 0% dentro de la cuenta ISK</option>
+          <option value="be">🇧🇪 Bélgica — 10% desde 2026</option>
+          <option value="pl">🇵🇱 Polonia — 19% plano</option>
+          <option value="de">🇩🇪 Alemania — 26,4% con exención del 30%</option>
+          <option value="gb">🇬🇧 Reino Unido — 24% fuera del ISA</option>
+          <option value="at">🇦🇹 Austria — 27,5%</option>
+          <option value="fr">🇫🇷 Francia — 30% (PFU)</option>
+          <option value="nl">🇳🇱 Países Bajos — pagas cada año</option>
+          <option value="no">🇳🇴 Noruega — pagas cada año</option>
+          <option value="ie">🇮🇪 Irlanda — pagas cada 8 años</option>
+          <option value="dk">🇩🇰 Dinamarca — pagas cada año</option>
+        </select>
+        <div class="hint" id="pais_fiscal_hint"></div>
       </div>
       </div><!-- /col 1 -->
 
@@ -633,6 +652,30 @@ function rate0For(key, rR, n) {
   if (key === 'vpw') return n <= 0 ? 1 : (rR > 0 ? rR / (1 - Math.pow(1 + rR, -n)) : 1 / n);
   return 0.04;   // fija y pct
 }
+// Fiscalidad del ahorro por país, tomada del comparador de países (pages/comparador-paises-v2.html,
+// campos `cgt` / `cgtTipo` / `inv`). `tr` es el impuesto EFECTIVO sobre lo retirado que prealimenta
+// el campo de arriba: se obtiene aplicando al tipo nominal la misma regla que ya usa esta página
+// para España (~25% de lo que retiras es devolución de capital y no tributa → efectivo ≈ nominal
+// × 0,75). Es orientativo: el campo sigue siendo editable a mano.
+// tr: null = el país cobra por TENER la cartera (patrimonio, rendimiento presunto o devengo), algo
+// que este modelo no sabe representar, así que no se toca el porcentaje y se avisa.
+const FISCALIDAD = {
+  es: { tr: 15, nota: 'Lo que ya asume la calculadora: 19–30% sobre la ganancia y solo al vender. Los fondos de inversión (no los ETF) se traspasan entre sí sin tributar, así que puedes reorganizar la cartera y diferir el impuesto décadas.' },
+  ch: { tr: 0,  nota: 'Las plusvalías privadas están <b>exentas</b>, vendas cuando vendas. A cambio hay un impuesto cantonal sobre el patrimonio, pequeño pero anual, que esto no descuenta.' },
+  lu: { tr: 0,  nota: 'Exento si mantienes la inversión más de seis meses, y sin impuesto sobre el patrimonio para particulares. Sencillo y sin papeleo especial.' },
+  se: { tr: 0,  nota: 'Dentro de una cuenta <b>ISK</b> no pagas nada al vender ni declaras operaciones. A cambio la ISK grava ~1,1% del <b>saldo</b> cada año, que esto no descuenta: réstalo de tu rentabilidad.' },
+  be: { tr: 8,  nota: 'Históricamente exento; desde 2026 hay un 10% sobre plusvalías con una exención anual. Además cada compra y venta paga un pequeño impuesto de bolsa.' },
+  pl: { tr: 14, nota: '19% plano sobre la ganancia, sin tramos ni sorpresas. Las cuentas con ventaja fiscal (IKE/IKZE) existen, pero con topes de aportación bajos.' },
+  de: { tr: 14, nota: '26,4% con una exención parcial del 30% para fondos de renta variable, que deja el tipo real bastante por debajo. Hay un anticipo anual pequeño (Vorabpauschale), molesto pero menor.' },
+  gb: { tr: 18, nota: '24% <b>fuera</b> del ISA. Dentro de un ISA crece y se retira libre de impuestos para siempre: si construyes la cartera allí desde cero, pon <b>0</b>. Meter una cartera ya hecha lleva años por el tope anual.' },
+  at: { tr: 21, nota: '27,5% sin exenciones relevantes. Los fondos de acumulación tributan además cada año por unas rentas presuntas, de forma moderada pero con papeleo.' },
+  fr: { tr: 23, nota: '30% plano (PFU) en cuenta normal. Con un PEA, pasados cinco años solo pagas las cotizaciones sociales, pero el S&P 500 solo entra por réplica sintética y con tope.' },
+  nl: { tr: null, nota: 'El <b>Box 3</b> grava un rendimiento <b>presunto</b> sobre el valor de la cartera todos los años, ganes o pierdas, y con una cartera grande es un coste anual alto. Esta calculadora solo sabe descontar un impuesto al retirar, así que <b>aquí se queda corta</b>.' },
+  no: { tr: null, nota: 'Impuesto sobre el patrimonio anual por encima de un umbral bajo <b>más</b> un 37,8% sobre la ganancia al vender. Es la peor combinación de la lista y este modelo <b>no la representa</b>.' },
+  ie: { tr: null, nota: 'Régimen de <b>deemed disposal</b>: cada ocho años tributas por la revalorización aunque no vendas, al 41% en fondos y ETF, y las pérdidas de un fondo no compensan las de otro. Este modelo <b>no lo representa</b>.' },
+  dk: { tr: null, nota: 'Tributación <b>por devengo</b>: cada año declaras la revalorización aunque no vendas, al 27% / 42% según importe. Puedes acabar pagando por dinero que no has cobrado, y este modelo <b>no lo representa</b>.' },
+};
+
 const PERFIL_NOMBRE = {
   constante: 'Constante',
   ratio: 'Decreciente (ratio primer/último año)',
@@ -1861,9 +1904,27 @@ document.getElementById('btnS30').addEventListener('click', () => loadPresetSuel
 document.getElementById('btnS40').addEventListener('click', () => loadPresetSueldo('s40'));
 document.getElementById('btnS60').addEventListener('click', () => loadPresetSueldo('s60'));
 
+// Selector de país: prealimenta el impuesto efectivo sobre lo retirado con la fiscalidad del
+// ahorro de ese país y explica la letra pequeña. Los países que cobran por TENER la cartera no
+// tienen equivalente en este modelo: se avisa y se deja el porcentaje como esté.
+function aplicarFiscalidadPais(cambiarTipo) {
+  const sel = document.getElementById('pais_fiscal');
+  const f = FISCALIDAD[sel.value] || FISCALIDAD.es;
+  if (cambiarTipo && f.tr !== null) document.getElementById('impuestos').value = f.tr;
+  const aviso = f.tr === null
+    ? '<b>⚠️ Aquí pagas cada año por tener la cartera, no solo al vender.</b> '
+    : `Pone el impuesto de arriba en <b>${f.tr}%</b>. `;
+  document.getElementById('pais_fiscal_hint').innerHTML = aviso + f.nota
+    + ' Es orientativo y el campo sigue siendo editable: el tipo efectivo sale de aplicar al nominal la regla de que ~25% de lo que retiras es devolución de capital.'
+    + ' El resto del plan (pensión pública, convenio especial) sigue siendo <b>español</b>.'
+    + ' Compara sueldos, coste de vida y fiscalidad en el <a href="comparador-paises-v2.html">comparador de países</a>.';
+}
+document.getElementById('pais_fiscal').addEventListener('change', () => { aplicarFiscalidadPais(true); compute(); saveForm(); });
+
 // Restaurar los datos guardados ANTES de calcular, y reflejar el escenario cargado en la lista
 loadForm();
 refreshScenarioSel(getCurrentName());
+aplicarFiscalidadPais(false);   // pinta la explicación sin pisar el % que tuviera guardado
 
 // Recibir el gasto anual desde la calculadora de estilo de vida (por URL). Sobrescribe lo guardado.
 // El input es mensual, así que convertimos el anual entrante a mensual.

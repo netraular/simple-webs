@@ -241,9 +241,29 @@
   .retire-route{position:relative; margin:2px 0 24px; padding-top:22px}
   .route-line{height:5px; background:#dce5ef; border-radius:0; position:relative}
   .route-line::before{content:""; position:absolute; left:0; top:0; bottom:0; width:var(--route,50%); background:var(--accent); border-radius:0}
+  .route-line.seg::before{display:none}
   .route-marker{position:absolute; left:var(--route,50%); top:-6px; width:17px; height:17px; transform:translateX(-50%); border-radius:2px; background:var(--amber); border:3px solid #fff; box-shadow:0 0 0 1px #bd850c}
+  .route-marker.dim{background:var(--blue); box-shadow:0 0 0 1px #007a95}
+  .route-marker.good{background:var(--green); box-shadow:0 0 0 1px #067357}
+  .route-marker.bad{background:var(--red); box-shadow:0 0 0 1px #b23745}
   .route-ages{display:flex; justify-content:space-between; margin-top:9px; font:500 .66rem "IBM Plex Mono",monospace; color:var(--muted)}
   .route-ages b{color:var(--text)}
+  /* Banco de pruebas: tres variantes de la barra bajo el anillo; se quedará solo una. */
+  .route-lab{display:grid; gap:26px; margin:2px 0 24px}
+  .route-opt{margin:0}
+  .route-opt figcaption{font:600 .62rem "IBM Plex Mono",monospace; text-transform:uppercase; letter-spacing:.06em; color:var(--accent); margin-bottom:12px}
+  .split-bar{display:flex; height:22px; overflow:hidden; background:#dce5ef}
+  .split-bar span{display:block; min-width:0}
+  .split-legend{margin-top:11px; font-size:.73rem; color:var(--muted)}
+  .split-legend .row{display:flex; align-items:center; gap:8px; padding:3px 0; border:0; font-size:.73rem}
+  .split-legend i{width:10px; height:10px; flex:none}
+  .split-legend em{font-style:normal; font:600 .68rem "IBM Plex Mono",monospace; margin-left:auto}
+  .split-legend b{color:var(--text); font:600 .73rem "IBM Plex Mono",monospace; width:74px; text-align:right}
+  .route-flags{position:relative; height:31px; margin-top:9px; font:500 .66rem "IBM Plex Mono",monospace; color:var(--muted)}
+  #progressFlags{height:15px}
+  .route-flags span{position:absolute; top:0; white-space:nowrap; transform:translateX(-50%)}
+  .route-flags b{color:var(--text)}
+  .route-note{margin-top:9px; font-size:.73rem; color:var(--muted)}
   .mini{background:#f2f6fa; border-color:#d2dce5; border-radius:4px}
   .mini .v{font-family:"IBM Plex Mono",monospace}
   .result-sub{color:var(--muted)}
@@ -440,9 +460,34 @@
         <span class="ring-rate" id="ringRate">— del ingreso neto</span>
       </div>
     </div>
-    <div class="retire-route" id="retireRoute">
-      <div class="route-line"><i class="route-marker"></i></div>
-      <div class="route-ages"><span>Hoy · <b id="routeNow">—</b></span><span>Retiro · <b id="routeFire">—</b></span><span>Horizonte · <b id="routeEnd">—</b></span></div>
+    <!-- Tres variantes de la barra bajo el anillo, en pruebas para elegir una. -->
+    <div class="route-lab">
+      <!-- A · Composición del capital objetivo: cuánto pones tú y cuánto el mercado -->
+      <figure class="route-opt">
+        <figcaption>A · De dónde sale tu capital objetivo</figcaption>
+        <div class="split-bar" id="originBar"></div>
+        <div class="split-legend" id="originLegend"></div>
+      </figure>
+
+      <!-- B · Progreso hacia el objetivo, con el Nº Coast FIRE como hito intermedio -->
+      <figure class="route-opt">
+        <figcaption>B · Lo que llevas del objetivo</figcaption>
+        <div class="retire-route" id="progressRoute" style="padding-top:0">
+          <div class="route-line"><i class="route-marker" id="progressMarker"></i></div>
+          <div class="route-flags" id="progressFlags"></div>
+        </div>
+        <div class="route-note" id="progressNote"></div>
+      </figure>
+
+      <!-- C · Línea de vida por fases, con los hitos que salen del cálculo -->
+      <figure class="route-opt">
+        <figcaption>C · Tu recorrido, fase a fase</figcaption>
+        <div class="retire-route" id="lifeRoute" style="padding-top:0">
+          <div class="route-line seg" id="lifeLine"></div>
+          <div class="route-flags" id="lifeFlags"></div>
+        </div>
+        <div class="route-note" id="lifeLegend"></div>
+      </figure>
     </div>
     <div class="result-sub" id="mensual-sub"></div>
 
@@ -849,11 +894,6 @@ function compute() {
   const estrNombre = (STRAT[estrategia] || {}).nombre || estrategia;
 
   document.getElementById('fireValue').textContent = `${F} años`;
-  document.getElementById('routeNow').textContent = `${a0}`;
-  document.getElementById('routeFire').textContent = `${F}`;
-  document.getElementById('routeEnd').textContent = `${E}`;
-  const routePct = Math.max(0, Math.min(100, ((F - a0) / Math.max(1, E - a0)) * 100));
-  document.getElementById('retireRoute').style.setProperty('--route', `${routePct}%`);
   document.getElementById('resultRing').style.setProperty('--rate', `${Math.max(0, Math.min(100, tasa * 100))}%`);
   document.getElementById('ringRate').textContent = val('neto') > 0
     ? `${(tasa * 100).toFixed(0)} % del ingreso neto`
@@ -958,10 +998,88 @@ function compute() {
     const box = document.getElementById('alerts');
     box.innerHTML += `<div class="alert bad">📉 Se agota a los ${ranOutAge}: retiras más de lo que rinde. Baja el gasto o retrasa el retiro. (Con la regla del 4% y una rentabilidad real ≥ 4% esto no debería ocurrir.)</div>`;
   }
+  renderRoutes(sc, curve);
   chartData = curve;
   drawChart();
   renderTablaAporte(sc);
   renderMonteCarlo(sc);
+}
+
+// Barra bajo el anillo de la aportación. Hay tres variantes en pruebas sobre los
+// mismos datos del plan; al elegir una se borran las otras dos (y su marcado).
+function renderRoutes(sc, curve) {
+  const { a0, F, E, PA, cap0, capNeeded, coastNum, base, weight, aniosAportando, cobrarePension } = sc;
+
+  /* --- A · de dónde sale el capital objetivo: los tres tramos suman capNeeded --- */
+  let aportado = 0;
+  for (let age = a0; age < F; age++) aportado += base * weight(age) * 12;   // suma de cuotas, € de hoy
+  const yaTengo = Math.min(cap0, capNeeded);
+  aportado = Math.min(aportado, Math.max(0, capNeeded - yaTengo));
+  const mercado = Math.max(0, capNeeded - yaTengo - aportado);              // el resto lo pone el interés compuesto
+  const partes = [
+    { k: 'Lo que ya tienes invertido',          v: yaTengo,  c: 'var(--blue)' },
+    { k: 'Lo que aportarás (suma de cuotas)',   v: aportado, c: 'var(--accent)' },
+    { k: 'Lo que pone el mercado (rentabilidad)', v: mercado, c: 'var(--green)' },
+  ];
+  const totCap = yaTengo + aportado + mercado || 1;
+  document.getElementById('originBar').innerHTML = partes
+    .map(p => `<span style="flex:0 0 ${(p.v / totCap) * 100}%; background:${p.c}"></span>`).join('');
+  document.getElementById('originLegend').innerHTML = partes
+    .map(p => `<div class="row"><i style="background:${p.c}"></i>${p.k}<em>${((p.v / totCap) * 100).toFixed(0)}%</em><b>${fmtShort(p.v)}</b></div>`)
+    .join('') + `<div class="row" style="margin-top:4px; border-top:1px solid var(--border); padding-top:7px"><b style="width:auto">Capital al retirarte</b><b style="margin-left:auto">${fmtShort(capNeeded)}</b></div>`;
+
+  /* --- B · cuánto llevas del objetivo, con el Nº Coast FIRE como hito intermedio --- */
+  const objetivo = capNeeded > 0 ? capNeeded : 1;
+  const pHoy = Math.max(0, Math.min(100, (cap0 / objetivo) * 100));
+  const pCoast = Math.max(0, Math.min(100, (coastNum / objetivo) * 100));
+  const pr = document.getElementById('progressRoute');
+  pr.style.setProperty('--route', `${pHoy}%`);
+  document.getElementById('progressMarker').className = 'route-marker' + (cap0 >= coastNum ? ' good' : '');
+  document.getElementById('progressMarker').style.left = `${pCoast}%`;
+  document.getElementById('progressFlags').innerHTML =
+      `<span style="left:0; transform:none">Hoy · <b>${fmtShort(cap0)}</b></span>`
+    + `<span style="left:${Math.min(78, Math.max(22, pCoast))}%">Coast FIRE · <b>${fmtShort(coastNum)}</b></span>`
+    + `<span style="left:100%; transform:translateX(-100%)">Objetivo · <b>${fmtShort(capNeeded)}</b></span>`;
+  document.getElementById('progressNote').innerHTML = cap0 >= coastNum
+    ? `✅ Ya superas el <b>Nº Coast FIRE</b>: con lo invertido basta para llegar al objetivo sin aportar nada más.`
+    : `Llevas el <b>${pHoy.toFixed(0)}%</b> del objetivo. Al llegar a <b>${fmtShort(coastNum)}</b> (Coast FIRE) podrías dejar de aportar y llegar igual.`;
+
+  /* --- C · el recorrido por fases, con los hitos que salen del cálculo --- */
+  const span = Math.max(1, E - a0);
+  const at = age => Math.max(0, Math.min(100, ((age - a0) / span) * 100));
+  const stopAge = a0 + aniosAportando;                       // dejas de aportar (tope / sprint / hasta 0)
+  const pensionAge = cobrarePension && PA > F && PA < E ? PA : null;
+  const segs = [];                                           // [hasta%, color, etiqueta]
+  segs.push([at(stopAge), 'var(--blue)', 'Aportas']);
+  if (stopAge < F) segs.push([at(F), 'rgba(0,163,199,.32)', 'Bola de nieve (sin aportar)']);
+  if (pensionAge) segs.push([at(pensionAge), 'var(--amber)', 'Puente sin pensión']);
+  segs.push([100, 'var(--accent)', pensionAge ? 'Retiro con pensión' : 'Retiro']);
+  let prev = 0, stops = [];
+  for (const [end, c] of segs) { stops.push(`${c} ${prev}% ${end}%`); prev = end; }
+  document.getElementById('lifeLine').style.background = `linear-gradient(90deg, ${stops.join(', ')})`;
+
+  const hitos = [{ age: a0, txt: 'Hoy', cls: '' }];
+  if (stopAge < F) hitos.push({ age: stopAge, txt: 'Dejas de aportar', cls: 'dim' });
+  hitos.push({ age: F, txt: 'Retiro', cls: '' });
+  if (pensionAge) hitos.push({ age: pensionAge, txt: 'Pensión', cls: 'good' });
+  if (curve.ranOutAge !== null && curve.ranOutAge < E) hitos.push({ age: curve.ranOutAge, txt: 'Se agota', cls: 'bad' });
+  hitos.push({ age: E, txt: 'Horizonte', cls: '' });
+
+  // Marcas en su posición real. Las etiquetas se reparten en dos filas alternas y
+  // se separan un mínimo dentro de cada fila: así no se pisan aunque haya 4 hitos.
+  document.getElementById('lifeLine').innerHTML = hitos.slice(1, -1)
+    .map(h => `<i class="route-marker ${h.cls}" style="left:${at(h.age)}%"></i>`).join('');
+  const filaTop = [0, 16], usado = [12, -99];   // px de cada fila y último % ocupado
+  document.getElementById('lifeFlags').innerHTML = hitos.map((h, n) => {
+    if (n === 0) return `<span style="left:0; top:0; transform:none">${h.txt} · <b>${h.age}</b></span>`;
+    if (n === hitos.length - 1) return `<span style="left:100%; top:0; transform:translateX(-100%)">${h.txt} · <b>${h.age}</b></span>`;
+    const fila = (n - 1) % 2;
+    const p = Math.min(86, Math.max(at(h.age), usado[fila] + 26));
+    usado[fila] = p;
+    return `<span style="left:${p}%; top:${filaTop[fila]}px">${h.txt} · <b>${h.age}</b></span>`;
+  }).join('');
+  document.getElementById('lifeLegend').innerHTML = segs
+    .map(([, c, k]) => `<span style="margin-right:14px; white-space:nowrap"><i style="display:inline-block; width:9px; height:9px; background:${c}; margin-right:5px"></i>${k}</span>`).join('');
 }
 
 // Tabla de aportación año a año (€ de hoy y € nominales corregidos por inflación).

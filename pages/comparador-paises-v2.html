@@ -247,6 +247,11 @@
   .destination .saving small{display:block; font:500 .74rem/1.3 "DM Sans",sans-serif; color:var(--mut); margin-top:6px}
   .destination .meta{display:flex; gap:12px; margin-top:16px; padding-top:12px; border-top:1px solid rgba(23,61,50,.16); font-size:.75rem; color:var(--mut)}
   .destination .meta b{color:var(--ink)}
+  /* Fiscalidad del ahorro en la tarjeta: el ranking ordena por ahorro anual, que no dice
+     nada de lo que el país le hace luego a la cartera invertida. */
+  .destination .fiscal{display:flex; gap:7px; align-items:baseline; margin-top:9px; font-size:.73rem; color:var(--mut); line-height:1.35}
+  .destination .fiscal b{color:var(--ink)}
+  .destination .fiscal .fdot{flex:none; font-size:1.05em}
   .destination .status{position:absolute; top:16px; right:16px; border-radius:99px; padding:5px 8px; background:#e4e7df; font-size:.66rem; font-weight:700}
   .destination .status.yes{background:var(--ink); color:#fff}
   .chart{padding:26px 22px}
@@ -354,7 +359,11 @@
   <!-- ============ RANKING ============ -->
   <section>
     <h2 class="sec">Dónde cunde más tu trabajo</h2>
-    <p class="lead">Los destinos con mayor ahorro anual estimado. El bruto local ya está adaptado a tu perfil.</p>
+    <p class="lead">Los destinos con mayor ahorro anual estimado. El bruto local ya está adaptado a tu perfil.
+    Ojo: el orden es por <b>cuánto ahorras</b>, que no dice nada de lo que el país le hace después a ese dinero
+    <b>ya invertido</b>. El punto de color de cada tarjeta avisa de eso: en rojo, países donde la cartera
+    <b>tributa aunque no vendas</b> (patrimonio, rendimiento presunto o devengo) y el interés
+    compuesto rinde menos de lo que parece. <b>Los dos rankings no coinciden.</b></p>
     <div class="destinations" id="destinations"></div>
     <div hidden><table><tbody id="tbody"></tbody></table></div>
   </section>
@@ -798,8 +807,9 @@ const NOTA = [
 // compuesto año a año, y es justo el que el reloj FIRE de abajo no puede ver.
 const CGT_TIPO = {
   g: { c:'var(--ok)',     t:'Exento al vender: la cartera crece sin fugas' },
-  n: { c:'var(--mut)',    t:'Tributa sólo al vender: mientras la tienes, no paga nada' },
-  r: { c:'var(--danger)', t:'Paga impuestos cada año por tenerla: el 4 % real efectivo es menor' },
+  n: { c:'var(--mut)',    t:'Tributa sólo al vender: mientras la tienes no paga nada, y tú eliges cuándo' },
+  r: { c:'var(--danger)', t:'Tributa aunque no vendas: cada año por el patrimonio o por devengo, o cada pocos años por revalorización. El interés compuesto rinde menos de lo que parece.',
+       aviso:'tributa aunque no vendas' },
 };
 
 const RETORNO_REAL = 0.04;   // rentabilidad real anual asumida de la cartera
@@ -925,6 +935,10 @@ function render(){
         <span>Neto <b>${eur(f.netoMesEUR)}/mes</b></span>
         <span>Vivir <b>${eur(f.colMesEUR)}/mes</b></span>
       </div>
+      <div class="fiscal" title="${CGT_TIPO[f.cgtTipo].t}">
+        <span class="fdot" style="color:${CGT_TIPO[f.cgtTipo].c}">●</span>
+        <span>Lo que inviertas: ${f.cgt}${CGT_TIPO[f.cgtTipo].aviso ? ` · <b>${CGT_TIPO[f.cgtTipo].aviso}</b>` : ''}</span>
+      </div>
     </article>`).join('');
 
   /* ---- 2. Tabla ---- */
@@ -1027,7 +1041,7 @@ function render(){
       <span>Más corto es mejor. Tu situación actual en azul.</span>
       <span style="color:${CGT_TIPO.g.c}">● Exento al vender</span>
       <span style="color:${CGT_TIPO.n.c}">● Tributa al vender</span>
-      <span style="color:${CGT_TIPO.r.c}">● Paga cada año por tenerla → esta barra es optimista</span>
+      <span style="color:${CGT_TIPO.r.c}">● Tributa aunque no vendas → esta barra es optimista</span>
     </div>`;
 
   /* ---- 6. Fichas ---- */

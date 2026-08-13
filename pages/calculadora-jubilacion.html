@@ -527,15 +527,13 @@
     </div>
 
     <div style="margin-top:14px; font-size:.75rem; color:#64748b; line-height:1.6">Toca la <b>ⓘ</b> de cada tarjeta de arriba para ver qué es esa estrategia. <b>Cifras brutas por retirada</b> (el impuesto efectivo de arriba no se aplica aquí). La <b>tasa de éxito</b> es el % de escenarios en los que no te quedas sin dinero antes de tu edad final.</div>
-  </div>
 
-  <!-- TABLA DE APORTACIÓN AÑO A AÑO -->
-  <div class="card chart-card">
-    <h2 style="display:flex; align-items:center; gap:10px; flex-wrap:wrap">Plan año a año
+    <!-- Plan año a año: subsección plegable, no una tarjeta al mismo nivel que el resto -->
+    <h3 class="sub-toggle">Plan año a año
       <button type="button" class="tool card-toggle" id="btnTablaAporte" style="margin-left:auto" title="Mostrar tabla" aria-label="Mostrar tabla">▸</button>
-    </h2>
-    <p class="subtitle" style="margin-bottom:0">Consulta la aportación mensual prevista en euros de hoy y en euros nominales.</p>
-    <div id="tablaAporteWrap" style="display:none; margin-top:16px; overflow-x:auto"></div>
+    </h3>
+    <p class="hint" style="margin:4px 0 0">La aportación mensual prevista, año a año, en euros de hoy y en euros nominales.</p>
+    <div id="tablaAporteWrap" style="display:none; margin-top:14px; overflow-x:auto"></div>
   </div>
 
   <!-- INTERÉS COMPUESTO: cálculo rápido e independiente del plan de arriba -->

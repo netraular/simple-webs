@@ -1014,9 +1014,17 @@ function renderEsfuerzo() {
   /* --- Tarjeta: la cuota del año que empieza a esa edad --- */
   const cuota = X < F ? base * weight(X) : 0;
   const tasa = neto > 0 ? cuota * 12 / neto : 0;
+  const colorTasa = neto <= 0 ? 'var(--muted)'
+    : tasa > 0.6 ? 'var(--red)'
+    : tasa > 0.4 ? 'var(--amber)'
+    : 'var(--green)';
   document.getElementById('ringLabel').textContent = esHoy ? 'Aportación del mes' : `Aportación a los ${X}`;
-  document.getElementById('mensual').textContent = fmt.format(cuota);
-  document.getElementById('ringRate').textContent =
+  const mensualEl = document.getElementById('mensual');
+  mensualEl.textContent = fmt.format(cuota);
+  mensualEl.style.color = colorTasa;
+  const ringRateEl = document.getElementById('ringRate');
+  ringRateEl.style.color = colorTasa;
+  ringRateEl.textContent =
       cuota <= 0 ? (X >= F ? 'te retiras: dejas de aportar' : 'este año ya no aportas')
     : neto > 0 ? `${(tasa * 100).toFixed(0)} % del ingreso neto`
     : 'Añade tus ingresos para comparar';

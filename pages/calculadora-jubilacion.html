@@ -184,9 +184,16 @@
   .mc-canvas { width: 100%; height: auto; display: block; cursor: crosshair; }
   #mcKpis { grid-template-columns: repeat(4, 1fr); }
   @media (max-width: 820px){ #mcKpis { grid-template-columns: 1fr 1fr; } }
-  #mcStratSel, #mcChartSel { width: auto; display: inline-block; padding: 5px 10px; font-size: .9rem; font-weight: 600; }
+  #mcChartSel { width: auto; display: inline-block; padding: 5px 10px; font-size: .9rem; font-weight: 600; }
   .mc-sub { font-size: .95rem; margin: 0 0 6px; color: var(--accent); }
   .mini.mc-sel { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent) inset; background: rgba(56,189,248,.06); }
+  #mcKpis .mini{position:relative}
+  #mcKpis .mini > :not(.mc-pick){position:relative; z-index:2; pointer-events:none}
+  .mc-pick{position:absolute; inset:0; z-index:1; width:100%; padding:0; border:0; border-radius:inherit; background:transparent; cursor:pointer}
+  .mc-pick:hover{box-shadow:inset 0 0 0 1px var(--accent)}
+  .mc-pick:focus-visible{outline:3px solid rgba(20,99,255,.3); outline-offset:2px}
+  #mcKpis .mc-info{pointer-events:auto}
+  .mc-compare.active{border-color:var(--accent); color:var(--accent); background:#e8f0ff}
 
   /* Horizonte: panel técnico de planificación. */
   :root{
@@ -294,7 +301,7 @@
     .presets{grid-column:1/5; display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px}
     .presets .tool-label{grid-column:1/4}
     .tool-sep{display:none}.tool-label{grid-column:1}#scenarioSel{grid-column:2;min-width:0;width:100%}#btnSave{grid-column:3}#btnDelete{grid-column:4}.save-state{position:absolute;right:14px;bottom:-22px}
-    .primary-inputs{grid-template-columns:1fr}.card{padding:18px}.inputs-body{padding:18px}.cards-mini{grid-template-columns:1fr}.result-ring{width:220px}#mcStratSel,#mcChartSel{width:100%;max-width:100%}
+    .primary-inputs{grid-template-columns:1fr}.card{padding:18px}.inputs-body{padding:18px}.cards-mini{grid-template-columns:1fr}.result-ring{width:220px}#mcChartSel{width:100%;max-width:100%}
   }
 </style>
 </head>
@@ -505,18 +512,11 @@
     <p class="subtitle" style="margin-bottom:16px"><strong id="mcN">2.000</strong> futuros posibles con una rentabilidad real media del <span id="mcMedia">—</span> y volatilidad del <span id="mcVol">12%</span>. Compara estrategias y explora el riesgo de tu cartera.</p>
     <div class="hint" style="margin-bottom:16px">💡 <b>Las cifras son en € de hoy (poder adquisitivo constante).</b> La renta que ves es el valor <b>fijo en poder de compra</b>; en euros <b>nominales</b> (los que cobrarías en el banco) sacarías cada año <b>~la inflación más</b> (por defecto +3%/año) para que ese importe siga valiendo lo mismo. Por eso la línea «Fija real (4%)», que se ve plana, en nominal iría subiendo con la inflación.</div>
 
-    <div class="cards-mini" id="mcKpis"></div>
+    <div class="cards-mini" id="mcKpis" role="group" aria-label="Estrategias de retirada"></div>
 
     <div style="margin-top:24px">
       <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:12px">
-        <label for="mcStratSel" style="margin:0; color:var(--text); font-size:.9rem">Estrategia:</label>
-        <select id="mcStratSel">
-          <option value="todas">Todas — comparar</option>
-          <option value="fija">Fija real (4%) — tu plan</option>
-          <option value="vpw">VPW / amortización</option>
-          <option value="pct">% fijo del saldo</option>
-          <option value="gk">Guyton-Klinger</option>
-        </select>
+        <button type="button" class="tool mc-compare active" id="mcCompareAll" aria-pressed="true">Comparar todas</button>
         <label for="mcChartSel" style="margin:0; color:var(--text); font-size:.9rem">Gráfica:</label>
         <select id="mcChartSel">
           <option value="det">Proyección determinista (patrimonio año a año)</option>
@@ -1344,7 +1344,7 @@ function mcSim(tipo, rets, cap0, rate, gkIni, vpwG, n) {
 }
 
 const MC_VOL = 0.12;                              // volatilidad real fija (12%)
-let mcData = null, mcSig = null, mcHover = null;
+let mcData = null, mcSig = null, mcHover = null, mcStrategy = 'todas';
 function renderMonteCarlo(sc) {
   const { F, E, rR, capNeeded, cap0, rA, M, estrategia } = sc;
   const vol = MC_VOL;
@@ -1356,7 +1356,12 @@ function renderMonteCarlo(sc) {
   // Solo recalculamos si cambió algo relevante para la simulación (evita relanzar
   // 2000 sims al editar campos que no afectan al Monte Carlo).
   const sig = [Math.round(capAtF), F, E, rR.toFixed(4), n, estrategia].join('|');
-  if (sig === mcSig && mcData) { mcData.selectedNombre = selectedNombre; drawSelectedChart(); return; }
+  if (sig === mcSig && mcData) {
+    mcData.selectedNombre = selectedNombre;
+    renderMcKpis();
+    drawSelectedChart();
+    return;
+  }
   mcSig = sig;
 
   // Cabecera informativa
@@ -1410,7 +1415,7 @@ function renderMonteCarlo(sc) {
     series.push({ nombre: st.nombre, color: st.color, mean, rmean });
     fans[st.nombre] = { nombre: st.nombre, color: st.color, p10, p50, p90 };
     kpis.push({
-      nombre: st.nombre, color: st.color, desc: st.desc, exito: a.exito / MC_N,
+      key: st.key, nombre: st.nombre, color: st.color, desc: st.desc, exito: a.exito / MC_N,
       finP10: mcPct(fin, 0.10), finP50: mcPct(fin, 0.50), finP90: mcPct(fin, 0.90),
       rentaMed: mcPct(rms, 0.50),
     });
@@ -1442,8 +1447,8 @@ function mcAxes(ctx, W, H, P, ymax, unit, xs) {
     }
   }
 }
-// Estrategia elegida en el selector de la simulación ('todas' | clave de STRAT).
-const currentMcStrat = () => (document.getElementById('mcStratSel') || {}).value || 'todas';
+// Estrategia elegida desde las tarjetas de la simulación ('todas' | clave de STRAT).
+const currentMcStrat = () => mcStrategy;
 // Nombre de la estrategia enfocada (null si se comparan todas).
 function mcFocusNombre() {
   const f = currentMcStrat();
@@ -1538,14 +1543,17 @@ function drawMc() {
 }
 function renderMcKpis() {
   const kp = document.getElementById('mcKpis'); if (!kp || !mcData) return;
-  const focus = mcFocusNombre();                    // estrategia elegida en el selector (null = «todas»)
-  const marcada = focus || mcData.selectedNombre;   // con «todas» se resalta el plan como referencia
+  const focus = mcFocusNombre();                    // estrategia elegida en una tarjeta (null = «todas»)
+  const compareAll = document.getElementById('mcCompareAll');
+  compareAll.classList.toggle('active', !focus);
+  compareAll.setAttribute('aria-pressed', focus ? 'false' : 'true');
   kp.innerHTML = mcData.kpis.map(k => {
     const col = k.exito >= 0.9 ? 'var(--green)' : k.exito >= 0.75 ? 'var(--amber)' : 'var(--red)';
     const esPlan = k.nombre === mcData.selectedNombre;   // Fija real (4%): etiqueta permanente «tu plan»
-    const esFoco = k.nombre === marcada;                 // la que se está visualizando: ★ + recuadro
+    const esFoco = k.nombre === focus;                   // la que se está visualizando: ★ + recuadro
     const planTag = esPlan ? ' <span style="color:var(--muted);font-weight:400">(tu plan)</span>' : '';
     return `<div class="mini${esFoco ? ' mc-sel' : ''}">
+      <button type="button" class="mc-pick" data-strategy="${k.key}" aria-pressed="${esFoco}" aria-label="Ver ${k.nombre} en la gráfica" title="Ver ${k.nombre} en la gráfica"></button>
       <div class="k" style="color:${k.color}; font-weight:600">${esFoco ? '★ ' : ''}${k.nombre}${planTag}<button type="button" class="hint-toggle mc-info" aria-expanded="false" aria-label="Mostrar u ocultar qué es esta estrategia" title="Qué es esta estrategia">ⓘ</button></div>
       <div class="v" style="color:${col}">${(k.exito * 100).toFixed(0)}%</div>
       <div class="k" style="margin-top:6px; line-height:1.55">tasa de éxito<br>Saldo final (mediana): ${fmtShort(k.finP50)}<br>rango: ${fmtShort(k.finP10)} – ${fmtShort(k.finP90)}<br>Renta media: ${fmt.format(k.rentaMed)}/año</div>
@@ -1553,13 +1561,23 @@ function renderMcKpis() {
     </div>`;
   }).join('');
 }
-// La ⓘ de cada tarjeta de estrategia despliega su explicación (delegación: las tarjetas se recrean).
+function selectMcStrategy(strategy) {
+  mcStrategy = strategy;
+  renderMcKpis();
+  drawSelectedChart();
+}
+// Las tarjetas eligen la estrategia; su ⓘ despliega la explicación sin cambiarla.
 document.getElementById('mcKpis').addEventListener('click', e => {
-  const btn = e.target.closest('.mc-info'); if (!btn) return;
-  const desc = btn.closest('.mini') && btn.closest('.mini').querySelector('.mc-desc'); if (!desc) return;
-  const open = desc.classList.toggle('open');
-  btn.classList.toggle('active', open);
-  btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+  const info = e.target.closest('.mc-info');
+  if (info) {
+    const desc = info.closest('.mini') && info.closest('.mini').querySelector('.mc-desc'); if (!desc) return;
+    const open = desc.classList.toggle('open');
+    info.classList.toggle('active', open);
+    info.setAttribute('aria-expanded', open ? 'true' : 'false');
+    return;
+  }
+  const pick = e.target.closest('.mc-pick');
+  if (pick) selectMcStrategy(pick.dataset.strategy);
 });
 // Selector unificado: gráfica (determinista / Monte Carlo) × estrategia a visualizar.
 function drawSelectedChart() {
@@ -1586,8 +1604,7 @@ function drawSelectedChart() {
   }
 }
 document.getElementById('mcChartSel').addEventListener('change', drawSelectedChart);
-// Al cambiar de estrategia se mueve la marca ★ de las tarjetas y se redibuja la gráfica.
-document.getElementById('mcStratSel').addEventListener('change', () => { renderMcKpis(); drawSelectedChart(); });
+document.getElementById('mcCompareAll').addEventListener('click', () => selectMcStrategy('todas'));
 
 // Interactividad de la gráfica Monte Carlo: crosshair + puntos + tooltip.
 (function () {

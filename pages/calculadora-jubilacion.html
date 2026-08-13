@@ -176,9 +176,9 @@
   .np-metric .np-v { font-size: 1.5rem; font-weight: 700; color: var(--green); margin: 2px 0; }
   .np-metric .np-s { font-size: .7rem; color: #64748b; line-height: 1.4; }
 
-  /* Bola de nieve e interés compuesto: las tres cifras clave en una fila
+  /* Cifras clave del plan e interés compuesto: las tres en una fila
      (la tarjeta ocupa todo el ancho) */
-  @media (min-width: 780px) { #coastKpis, #ciKpis { grid-template-columns: repeat(3, 1fr); } }
+  @media (min-width: 780px) { #keyKpis, #ciKpis { grid-template-columns: repeat(3, 1fr); } }
 
   /* Monte Carlo */
   .mc-canvas { width: 100%; height: auto; display: block; cursor: crosshair; }
@@ -248,9 +248,6 @@
   .mini .v{font-family:"IBM Plex Mono",monospace}
   .result-sub{color:var(--muted)}
   .alert.ok{background:#e2f4ee;border-color:#9dd3c2;color:#17634f}.alert.warn{background:#fff3d6;border-color:#e1c36f;color:#72510e}.alert.bad{background:#fae3e5;border-color:#dda3aa;color:#7e3038}
-  /* Bola de nieve: sección secundaria. Misma tarjeta blanca que el resto, sin bloque de
-     color, para que no compita con el panel principal de aportación. */
-  .coast-card{margin-top:24px}
   .chart-card{background:#fff}
   .mc-canvas,#chart,#ciChart{background:#f8fafc; border:1px solid var(--border); border-radius:4px}
   #ciChart{width:100%; height:320px; display:block; cursor:crosshair}
@@ -337,7 +334,7 @@
 
         <label for="impuestos">Impuesto efectivo sobre lo retirado (%)</label>
         <input type="number" id="impuestos" value="15" min="0" max="45" step="1">
-        <div class="hint"><b>Fondo indexado:</b> solo tributa la <b>ganancia</b>, no el capital aportado. Pero tras muchos años el fondo es ~70–80% plusvalía y por FIFO vendes antes las participaciones más antiguas (las más revalorizadas), así que el efectivo sobre lo retirado ronda el <b>14–16%</b> (la ganancia tributa al 19–21%, y un ~25% que es devolución de capital no tributa). <b>Plan de pensiones:</b> tributa el <b>100%</b> de lo retirado como rendimiento del trabajo → sube esto a <b>~20–30%</b> si vives del plan. Ajústalo a tu mezcla fondo/plan. No se aplica a la pensión pública. Este mismo porcentaje se usa también en el apartado <b>bola de nieve</b>.</div>
+        <div class="hint"><b>Fondo indexado:</b> solo tributa la <b>ganancia</b>, no el capital aportado. Pero tras muchos años el fondo es ~70–80% plusvalía y por FIFO vendes antes las participaciones más antiguas (las más revalorizadas), así que el efectivo sobre lo retirado ronda el <b>14–16%</b> (la ganancia tributa al 19–21%, y un ~25% que es devolución de capital no tributa). <b>Plan de pensiones:</b> tributa el <b>100%</b> de lo retirado como rendimiento del trabajo → sube esto a <b>~20–30%</b> si vives del plan. Ajústalo a tu mezcla fondo/plan. No se aplica a la pensión pública. Este mismo porcentaje se usa también para el <b>Nº Coast FIRE</b>.</div>
       </div>
       </div><!-- /col 1 -->
 
@@ -396,6 +393,7 @@
           <option value="ratio" selected>Ahorrar más al principio (ratio primer/último año)</option>
           <option value="cero">Decreciente hasta 0 € el último año</option>
           <option value="tope">Tope de aportación → repartido hasta acabar en 0 €</option>
+          <option value="sprint">Bola de nieve → sprint plano y luego parar del todo</option>
         </select>
         <div class="hint">Como el dinero aportado pronto crece más años, <b>front-cargar</b> el ahorro hace que el <b>total aportado sea menor</b> para el mismo objetivo, a cambio de más esfuerzo los primeros años.
           <ul style="margin:6px 0 0; padding-left:18px">
@@ -403,6 +401,7 @@
             <li><b>Ratio:</b> el primer año aportas N veces lo del último, bajando en línea recta.</li>
             <li><b>Hasta 0 €:</b> la cuota baja linealmente desde el primer año hasta <b>0 € el último año</b>. Es el reparto más front-cargado con esfuerzo repartido.</li>
             <li><b>Tope:</b> fijas cuánto es lo máximo que puedes aportar al mes y la calculadora busca <b>durante cuántos años</b> hay que pagar (bajando hasta 0 €) para llegar justo al objetivo. Si con ese tope no llegas, te avisa.</li>
+            <li><b>Bola de nieve (<i>Coast FIRE</i>):</b> ahorras una cifra fija y agresiva, la misma cada mes, y la calculadora busca <b>en qué año puedes parar del todo</b>. A partir de ahí no aportas ni un euro más y el interés compuesto hace el resto: la cartera "rueda sola" hasta el objetivo justo a la edad de retiro, y tú solo necesitas ganar para tus gastos del día a día. Es el que <b>menos dinero total</b> requiere, a cambio de los años de esfuerzo más duros.</li>
           </ul>
         </div>
         <div id="perfilRatioWrap">
@@ -414,6 +413,11 @@
           <label for="tope_aporte">Aportación máxima (€/mes de hoy)</label>
           <input type="number" id="tope_aporte" value="1500" min="0" step="50">
           <div class="hint">Lo máximo que estás dispuesto a aportar al mes, que se pagará el <b>primer año</b>. A partir de ahí la cuota baja en línea recta hasta <b>0 €</b>, y la calculadora ajusta la duración de ese periodo de pago para llegar exactamente al capital objetivo. Los años que queden hasta el retiro no aportas nada (la cartera solo compone).</div>
+        </div>
+        <div id="perfilSprintWrap" style="display:none">
+          <label for="sprint_ahorro">Ahorro sprint mensual (€ de hoy)</label>
+          <input type="number" id="sprint_ahorro" value="2500" min="0" step="50">
+          <div class="hint">Cuánto ahorras de forma agresiva, <b>igual todos los meses</b>, hasta el año en que puedes parar. Súbelo para adelantar esa fecha; bájalo para retrasarla. <b>Es en € de hoy:</b> el modelo asume que lo mantienes en <b>términos reales</b>, es decir, <b>subiendo el importe nominal cada año con la inflación</b>. Si aportaras siempre la misma cifra nominal, su valor real se erosionaría y tendrías que ahorrar <b>más años</b> de los que se muestran.</div>
         </div>
       </div>
 
@@ -442,10 +446,11 @@
     </div>
     <div class="result-sub" id="mensual-sub"></div>
 
-    <!-- Cifras clave siempre visibles: aportación (arriba) + los dos capitales -->
-    <div class="cards-mini" style="margin-top:16px">
+    <!-- Cifras clave siempre visibles: aportación (arriba), los dos capitales y el Nº Coast FIRE -->
+    <div class="cards-mini" id="keyKpis" style="margin-top:16px">
       <div class="mini"><div class="k">Capital al retirarte (€ hoy)</div><div class="v" id="cap-hoy">—</div></div>
       <div class="mini"><div class="k">Ese capital, en € del año del retiro</div><div class="v" id="cap-nominal">—</div></div>
+      <div class="mini" title="Cuánto necesitarías tener invertido hoy mismo para dejar de ahorrar ya y aun así llegar al objetivo (Coast FIRE)"><div class="k">Nº Coast FIRE (invertido hoy)</div><div class="v" id="coast-num">—</div></div>
     </div>
 
     <div id="detalleWrap">
@@ -454,30 +459,6 @@
       <div class="muted" style="font-size:.74rem; margin-top:12px; line-height:1.5">El "capital al retirarte" se dimensiona con la <b>regla del 4%</b> (Fija real): necesitas 25× el gasto anual (dejando herencia), y ya cuenta con impuestos y pensión. Puedes comparar cómo se comportarían otras estrategias de retirada (VPW, % del saldo, Guyton-Klinger) en la <b>simulación de mercado</b> de abajo.</div>
     </div>
   </div>
-  </div>
-
-  <!-- Bola de nieve (Coast FIRE), encima de la simulación -->
-  <div class="card coast-card">
-    <h2>Bola de nieve · cuándo puedes dejar de ahorrar</h2>
-    <div class="hint" style="margin-bottom:14px; line-height:1.5">
-      <b>Coast FIRE</b> es el punto en el que ya tienes invertido lo suficiente para que, <b>sin aportar ni un euro más</b>, tu dinero crezca solo (por el interés compuesto) hasta cubrir tu objetivo justo a la edad de retiro. A partir de ahí solo necesitas ganar para tus gastos del día a día: la cartera "rueda sola".
-      <ul style="margin:8px 0 0; padding-left:18px">
-        <li><b>Nº Coast FIRE (invertido hoy):</b> cuánto necesitarías tener invertido <b>hoy mismo</b> para poder dejar de ahorrar ya y aun así llegar al objetivo. Si tu capital actual lo supera, ¡ya has llegado!</li>
-        <li><b>Edad en que llegas al punto Coast:</b> si sigues ahorrando el importe del "sprint" (campo de aquí abajo), a qué edad alcanzarás ese punto y podrás soltar el ahorro.</li>
-      </ul>
-      <div style="margin-top:8px">Se calcula con tu <b>rentabilidad de acumulación</b> y el capital necesario del retiro, usando <b>los mismos datos de arriba</b>: el <b>impuesto efectivo sobre lo retirado</b> y, si la activas, la <b>pensión pública</b> (su valor actual reduce también el objetivo Coast). Bajar el ahorro del sprint retrasa la edad Coast; subirlo la adelanta.</div>
-    </div>
-    <div style="max-width:520px; margin-bottom:16px">
-      <label for="sprint_ahorro">Ahorro sprint mensual (€ de hoy)</label>
-      <input type="number" id="sprint_ahorro" value="2500" min="0" step="50">
-      <div class="hint">Cuánto ahorras de forma agresiva estos primeros años. Súbelo para adelantar la edad Coast; bájalo para retrasarla. <b>Es en € de hoy:</b> el modelo asume que mantienes este ahorro en <b>términos reales</b>, es decir, <b>subiendo el importe nominal cada año con la inflación</b>. Si aportaras siempre la misma cifra nominal, su valor real se erosionaría y llegarías al punto Coast <b>más tarde</b> de lo que se muestra.</div>
-    </div>
-    <div class="cards-mini" id="coastKpis">
-      <div class="mini"><div class="k">Nº Coast FIRE (invertido hoy)</div><div class="v" id="coast-num">—</div></div>
-      <div class="mini"><div class="k">Edad en que llegas al punto Coast</div><div class="v" id="coast-edad">—</div></div>
-      <div class="mini"><div class="k">Capital al retirarte con este ahorro (€ hoy)</div><div class="v" id="coast-cap">—</div></div>
-    </div>
-    <div id="coast-msg" class="alert ok" style="margin-top:14px"></div>
   </div>
 
   <!-- SIMULACIÓN DE MERCADO (MONTE CARLO) -->
@@ -657,6 +638,7 @@ const PERFIL_NOMBRE = {
   ratio: 'Decreciente (ratio primer/último año)',
   cero: 'Decreciente hasta 0 € el último año',
   tope: 'Tope de aportación, hasta acabar en 0 €',
+  sprint: 'Bola de nieve (sprint plano y parar)',
 };
 // El plan siempre se dimensiona con la regla del 4% (Fija real). La comparación
 // con otras estrategias solo se visualiza en la simulación de mercado.
@@ -680,6 +662,17 @@ function rampWeight(t, T) {
   return Math.max(0, (T - 1 - t) / (T - 1));
 }
 
+// Sprint plano ("bola de nieve"): se aporta el importe completo durante T años y
+// después nada. T puede ser fraccionario: el último año se paga a medias.
+function flatWeight(t, T) {
+  return Math.min(1, Math.max(0, T - t));
+}
+
+// Perfiles en los que el usuario fija el IMPORTE y la incógnita es la VENTANA de años
+// que hay que aportar. La ventana se resuelve por búsqueda binaria (el capital final
+// crece con T, así que es monótona) y aterriza exactamente en el objetivo.
+const PERFIL_VENTANA = { tope: rampWeight, sprint: flatWeight };
+
 // Perfil de aportación elegido en el formulario.
 function perfilAportacion() {
   const sel = document.getElementById('perfil_modo');
@@ -687,6 +680,7 @@ function perfilAportacion() {
     modo: sel ? sel.value : 'ratio',
     frontload: val('frontload') || 1,
     tope: val('tope_aporte'),
+    sprint: val('sprint_ahorro'),
   };
 }
 
@@ -706,7 +700,6 @@ function scenario(F, estrategiaOverride) {
   const rA = val('r_acum')/100, rR = val('r_retiro')/100, infl = val('inflacion')/100;
   const estrategia = estrategiaOverride || estrategiaSel();
   const rate0 = rate0For(estrategia, rR, E - F);      // tasa inicial de retirada según estrategia
-  const agg = val('sprint_ahorro');
   const tr = Math.min(0.95, val('impuestos')/100);   // impuesto efectivo sobre retiradas
 
   // ¿El usuario cuenta con cobrar la pensión pública? Si NO, se ignora por completo
@@ -764,12 +757,14 @@ function scenario(F, estrategiaOverride) {
 
   // El perfil define el peso de cada año; `base` es la cuota del primer año (el pico).
   // En los modos "constante", "ratio" y "cero" el peso es fijo y se escala `base` para
-  // llegar al objetivo. En el modo "tope" `base` es el máximo que fija el usuario y lo
-  // que se ajusta es la VENTANA de años que hay que pagar (bajando hasta 0 €).
-  let weight, base, ventana = M, topeCorto = false;
-  if (perfil.modo === 'tope') {
-    base = perfil.tope;
-    const fvVentana = T => fvOf(age => rampWeight(age - a0, T)) * base;
+  // llegar al objetivo. En "tope" y "sprint" `base` es el importe que fija el usuario y
+  // lo que se ajusta es la VENTANA de años que hay que aportar: el tope la recorre
+  // bajando en línea recta hasta 0 €, el sprint la paga plana y luego para en seco.
+  const forma = PERFIL_VENTANA[perfil.modo];
+  let weight, base, ventana = M, ventanaCorta = false;
+  if (forma) {
+    base = perfil.modo === 'tope' ? perfil.tope : perfil.sprint;
+    const fvVentana = T => fvOf(age => forma(age - a0, T)) * base;
     if (base > 0 && fvVentana(M) >= need) {
       let lo = 0, hi = M;                       // fvVentana crece con T → búsqueda binaria
       for (let it = 0; it < 50; it++) {
@@ -778,10 +773,10 @@ function scenario(F, estrategiaOverride) {
       }
       ventana = hi;
     } else {
-      ventana = M;                              // con ese tope no se llega al objetivo
-      topeCorto = need > 0;
+      ventana = M;                              // con ese importe no se llega al objetivo
+      ventanaCorta = need > 0;
     }
-    weight = age => rampWeight(age - a0, ventana);
+    weight = age => forma(age - a0, ventana);
   } else {
     if (perfil.modo === 'constante')  weight = () => 1;
     else if (perfil.modo === 'cero')  weight = age => rampWeight(age - a0, M);
@@ -794,28 +789,16 @@ function scenario(F, estrategiaOverride) {
   const mensual = mensualIni;                 // el primer año es el más exigente
   const anual = mensual * 12;
   const tasa = neto > 0 ? anual / neto : 0;
-  // Años en los que de verdad aportas algo (con "tope" y "cero" la cola es 0 €).
+  // Años en los que de verdad aportas algo (en "cero", "tope" y "sprint" la cola es 0 €).
   let aniosAportando = 0;
   for (let age = a0; age < F; age++) if (base * weight(age) > 0.5) aniosAportando++;
 
-  // Coast FIRE: usa el MISMO capital objetivo que el plan (mismo impuesto efectivo sobre
-  // lo retirado y, si la cuentas, con la pensión pública ya descontada).
-  let coastAge = null, cb = cap0;
-  for (let age = a0; age <= F; age++) {
-    if (cb * Math.pow(1 + rA, F - age) >= capNeeded) { coastAge = age; break; }
-    for (let k = 0; k < 12; k++) cb = cb * (1 + i) + agg;
-  }
+  // Nº Coast FIRE: cuánto habría que tener invertido HOY para no aportar nada más y aun
+  // así llegar al objetivo. Usa el MISMO capital objetivo que el plan (mismo impuesto
+  // efectivo sobre lo retirado y, si la cuentas, con la pensión pública ya descontada).
   const coastNum = capNeeded / Math.pow(1 + rA, M);
 
-  // Capital al retirarte (€ de hoy) siguiendo la bola de nieve: aportas el sprint hasta el punto
-  // Coast y luego solo compone; si no llegas al Coast, sigues aportando el sprint hasta el retiro.
-  let coastCapAtRetire = cap0;
-  for (let age = a0; age < F; age++) {
-    const aportando = (coastAge === null) || (age < coastAge);
-    for (let k = 0; k < 12; k++) coastCapAtRetire = coastCapAtRetire * (1 + i) + (aportando ? agg : 0);
-  }
-
-  return { F, a0, PA, E, cap0, S, P, rA, rR, estrategia, rate0, infl, i, M, capNeeded, capBase, pensionPV, cobrarePension, mensual, anual, tasa, coastAge, coastNum, coastCapAtRetire, agg, tr, convenioActivo, convenioMes, convenioAnual, base, frontload, mensualIni, mensualFin, perfil, weight, ventana, topeCorto, aniosAportando };
+  return { F, a0, PA, E, cap0, S, P, rA, rR, estrategia, rate0, infl, i, M, capNeeded, capBase, pensionPV, cobrarePension, mensual, anual, tasa, coastNum, tr, convenioActivo, convenioMes, convenioAnual, base, frontload, mensualIni, mensualFin, perfil, weight, ventana, ventanaCorta, aniosAportando };
 }
 
 // Construye la curva determinista de patrimonio (€ de hoy) año a año a partir de
@@ -861,7 +844,7 @@ function compute() {
   if (F <= a0 || E <= F) return;
 
   const sc = scenario(F);
-  const { PA, S, P, infl, i, M, capNeeded, capBase, pensionPV, cobrarePension, mensual, anual, tasa, coastAge, coastNum, coastCapAtRetire, agg, cap0, rA, rR, estrategia, rate0, tr, convenioActivo, convenioMes, convenioAnual, base, mensualIni, mensualFin, perfil, ventana, topeCorto, aniosAportando } = sc;
+  const { PA, S, P, infl, i, M, capNeeded, capBase, pensionPV, cobrarePension, mensual, anual, tasa, coastNum, cap0, rA, rR, estrategia, rate0, tr, convenioActivo, convenioMes, convenioAnual, base, mensualIni, mensualFin, perfil, ventana, ventanaCorta, aniosAportando } = sc;
   const decreciente = mensualIni > mensualFin + 1;
   const estrNombre = (STRAT[estrategia] || {}).nombre || estrategia;
 
@@ -876,10 +859,12 @@ function compute() {
     ? `${(tasa * 100).toFixed(0)} % del ingreso neto`
     : 'Añade tus ingresos para comparar';
 
-  // Solo se muestra el campo del perfil elegido (ratio / tope).
-  const rw = document.getElementById('perfilRatioWrap'), tw = document.getElementById('perfilTopeWrap');
-  if (rw) rw.style.display = perfil.modo === 'ratio' ? '' : 'none';
-  if (tw) tw.style.display = perfil.modo === 'tope'  ? '' : 'none';
+  // Solo se muestra el campo del perfil elegido (ratio / tope / sprint).
+  const wraps = { ratio: 'perfilRatioWrap', tope: 'perfilTopeWrap', sprint: 'perfilSprintWrap' };
+  for (const [modo, id] of Object.entries(wraps)) {
+    const el = document.getElementById(id);
+    if (el) el.style.display = perfil.modo === modo ? '' : 'none';
+  }
 
   // Ayuda nominal
   const nomA = ((1 + rA) * (1 + infl) - 1) * 100;
@@ -903,6 +888,14 @@ function compute() {
     ratio: () => `el <b>primer año</b> (en € de hoy) · baja de forma lineal hasta <b>${fmt.format(mensualFin)}/mes</b> el último año, aportando los <b>${M} años</b> (ratio ${perfil.frontload.toLocaleString('es-ES')}×)`,
     cero: () => `el <b>primer año</b> (en € de hoy) · baja en línea recta hasta <b>0 €</b>: repartes el esfuerzo a lo largo de <b>${aniosAportando} de los ${M} años</b>, cada vez menos`,
     tope: () => `tu <b>tope</b>, que pagas el <b>primer año</b> (en € de hoy) · baja en línea recta hasta <b>0 €</b> a lo largo de <b>${aniosAportando} de los ${M} años</b>${aniosAportando < M ? `; ${M - aniosAportando === 1 ? 'el <b>año</b> restante' : `los <b>${M - aniosAportando}</b> restantes`} no aportas nada (la cartera solo compone)` : ''}`,
+    // El sprint puede acabar en un año a medias (la ventana es fraccionaria para clavar
+    // el objetivo): se dice aparte en vez de fingir que son N años al importe completo.
+    sprint: () => {
+      const plenos = Math.floor(ventana + 1e-9), resto = base * (ventana - plenos);
+      return `tu <b>sprint</b> (en € de hoy), igual todos los meses durante <b>${plenos} años</b>`
+        + (resto >= 1 ? `, más un último año a <b>${fmt.format(resto)}/mes</b>` : '')
+        + ` · a los <b>${a0 + aniosAportando}</b> dejas de ahorrar del todo y la bola rueda sola hasta el objetivo`;
+    },
   };
   document.getElementById('mensual-sub').innerHTML =
     (decreciente && SUB_PERFIL[perfil.modo] || SUB_PERFIL.constante)();
@@ -928,7 +921,7 @@ function compute() {
     ${convenioActivo ? `<div class="row"><span class="muted">Coste convenio especial (solo hasta la edad de pensión)</span><span>${fmt.format(convenioMes)}/mes · ${fmt.format(convenioAnual)}/año</span></div>` : ''}
     <div class="row"><span class="muted">Aportación anual necesaria${decreciente?' (primer→último año)':''}</span><span>${decreciente?`${fmt.format(anual)} → ${fmt.format(mensualFin*12)}`:fmt.format(anual)}</span></div>
     <div class="row"><span class="muted">Perfil de aportación</span><span>${PERFIL_NOMBRE[perfil.modo] || perfil.modo}</span></div>
-    ${perfil.modo === 'tope' && !topeCorto ? `<div class="row"><span class="muted">Años pagando con ese tope (hasta llegar a 0 €)</span><span>${aniosAportando} de ${M} (${a0}→${a0 + aniosAportando})</span></div>` : ''}
+    ${PERFIL_VENTANA[perfil.modo] && !ventanaCorta ? `<div class="row"><span class="muted">${perfil.modo === 'tope' ? 'Años pagando con ese tope (hasta llegar a 0 €)' : 'Años de sprint (luego dejas de ahorrar)'}</span><span>${aniosAportando} de ${M} (${a0}→${a0 + aniosAportando})</span></div>` : ''}
     <div class="row"><span class="muted">${tasaRowLabel}</span><span>${tasaRowVal}</span></div>
     <div class="row"><span class="muted">Estrategia de retirada</span><span>${estrNombre}</span></div>
     <div class="row"><span class="muted">Capital necesario sin pensión (gasto ÷ ${(rate0*100).toFixed(1)}%)</span><span>${fmt.format(capBase)}</span></div>
@@ -938,7 +931,9 @@ function compute() {
   `;
 
   let alerts = '';
-  if (topeCorto) alerts += `<div class="alert bad">🚫 Con un tope de ${fmt.format(perfil.tope)}/mes no llegas al objetivo ni estirando la rampa a los ${M} años completos: aun bajando de ${fmt.format(perfil.tope)} a 0 € en todo el periodo, falta capital. Sube el tope, retrasa el retiro o baja el gasto.</div>`;
+  if (ventanaCorta) alerts += perfil.modo === 'tope'
+    ? `<div class="alert bad">🚫 Con un tope de ${fmt.format(base)}/mes no llegas al objetivo ni estirando la rampa a los ${M} años completos: aun bajando de ${fmt.format(base)} a 0 € en todo el periodo, falta capital. Sube el tope, retrasa el retiro o baja el gasto.</div>`
+    : `<div class="alert bad">🚫 Con un sprint de ${fmt.format(base)}/mes nunca llegas a poder parar: harían falta los ${M} años completos y aun así falta capital. Sube el sprint, retrasa el retiro o baja el gasto.</div>`;
   if (mensual <= 0) alerts += `<div class="alert ok">✅ Ya llegas sin aportar más: podrías adelantar el retiro o gastar más.</div>`;
   if (tasa > 1) alerts += `<div class="alert bad">🚫 Necesitarías más del 100% de tu neto: inviable. Retrasa el retiro o baja el gasto.</div>`;
   else if (tasa > 0.6) alerts += `<div class="alert warn">⚠️ Tasa de ahorro muy exigente (${(tasa*100).toFixed(0)}%).</div>`;
@@ -950,26 +945,10 @@ function compute() {
   }
   document.getElementById('alerts').innerHTML = alerts;
 
-  // Coast
-  document.getElementById('coast-num').textContent = fmtShort(coastNum);
-  document.getElementById('coast-cap').textContent = fmtShort(coastCapAtRetire);
-  const coastMsg = document.getElementById('coast-msg');
-  if (coastAge !== null) {
-    const sprint = coastAge - a0;
-    document.getElementById('coast-edad').textContent = coastAge + ' años';
-    coastMsg.className = 'alert ok';
-    coastMsg.innerHTML = sprint <= 0
-      ? `Ya estás en el punto Coast: con tus ${fmt.format(cap0)} invertidos, sin aportar más, llegas al objetivo a los ${F}. Todo lo que ahorres es adelantar el retiro o subir el nivel de vida.`
-      : `Ahorrando <strong>${fmt.format(agg)}/mes</strong>, alcanzas el punto Coast a los <strong>${coastAge}</strong> (sprint de <strong>${sprint} años</strong>). Luego puedes <strong>dejar de ahorrar</strong> y solo cubrir gastos: la bola rueda sola hasta el objetivo a los ${F}.`;
-  } else {
-    document.getElementById('coast-edad').textContent = 'No llegas';
-    coastMsg.className = 'alert warn';
-    coastMsg.innerHTML = `Con ${fmt.format(agg)}/mes no alcanzas el objetivo antes de los ${F}. Sube el ahorro, retrasa el retiro o baja el gasto.`;
-  }
-
   // Minis
   document.getElementById('cap-hoy').textContent = fmtShort(capNeeded);
   document.getElementById('cap-nominal').textContent = fmtShort(capNeeded * Math.pow(1 + infl, M));
+  document.getElementById('coast-num').textContent = fmtShort(coastNum);
 
   // Curva determinista del plan (regla del 4%). `flow` guarda el flujo de cada año
   // (aporte o gasto y de dónde sale) para el tooltip.

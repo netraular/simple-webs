@@ -271,6 +271,11 @@
   .mini{background:#f2f6fa; border-color:#d2dce5; border-radius:4px}
   .mini .v{font-family:"IBM Plex Mono",monospace}
   .result-sub{color:var(--muted)}
+  .monthly-context{display:grid; grid-template-columns:1fr 1fr; border-block:1px solid var(--border); padding:10px 0}
+  .monthly-context span{min-width:0}
+  .monthly-context span+span{border-left:1px solid var(--border); padding-left:14px}
+  .monthly-context small{display:block; margin-bottom:3px; color:var(--muted); font-size:.65rem; text-transform:uppercase}
+  .monthly-context b{display:block; color:var(--text); font:600 .78rem "IBM Plex Mono",monospace; overflow-wrap:anywhere}
   .alert.ok{background:#e2f4ee;border-color:#9dd3c2;color:#17634f}.alert.warn{background:#fff3d6;border-color:#e1c36f;color:#72510e}.alert.bad{background:#fae3e5;border-color:#dda3aa;color:#7e3038}
   .chart-card{background:#fff}
   .mc-canvas,#chart,#ciChart{background:#f8fafc; border:1px solid var(--border); border-radius:4px}
@@ -1032,7 +1037,7 @@ function renderEsfuerzo() {
   // Subtítulo: con el slider en hoy, la frase del plan; si no, la de ese año.
   document.getElementById('mensual-sub').innerHTML = esHoy ? planSub
     : cuota > 0
-      ? `cuota del año <b>${X}→${X + 1}</b> · en € de ese año serían <b>${fmt.format(nominal(cuota))}/mes</b>`
+      ? `<div class="monthly-context"><span><small>Periodo</small><b>${X} → ${X + 1}</b></span><span><small>Cuota nominal</small><b>${fmt.format(nominal(cuota))} / mes</b></span></div>`
       : X >= F
         ? `a los <b>${F}</b> te retiras: dejas de aportar y la cartera empieza a pagarte a ti`
         : `a esta edad <b>ya no aportas nada</b>: la cartera compone sola hasta el retiro`;

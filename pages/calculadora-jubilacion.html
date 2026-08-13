@@ -895,12 +895,17 @@ function compute() {
 
   // Panel principal
   document.getElementById('mensual').textContent = fmt.format(mensual);
-  const acabaEnCero = perfil.modo === 'cero' || perfil.modo === 'tope';
-  document.getElementById('mensual-sub').innerHTML = !decreciente
-    ? `en euros de hoy · sube con la inflación (≈ ${fmt.format(mensual*Math.pow(1+infl,10))}/mes en € nominales dentro de 10 años)`
-    : acabaEnCero
-      ? `el <b>primer año</b> (en € de hoy) · baja en línea recta hasta <b>0 €</b>: aportas <b>${aniosAportando} de los ${M} años</b> ${perfil.modo === 'tope' && aniosAportando < M ? `y los <b>${M - aniosAportando}</b> restantes no aportas nada (la cartera solo compone)` : 'de la acumulación'}`
-      : `el <b>primer año</b> (en € de hoy) · baja de forma lineal hasta <b>${fmt.format(mensualFin)}/mes</b> el último año`;
+  // Subtítulo de la cifra principal: una frase por perfil, para poder afinar cada una
+  // por separado. Si el perfil no llega a decrecer (ratio 1, o cuota 0) se usa la de
+  // "constante", que es lo que de hecho está pasando.
+  const SUB_PERFIL = {
+    constante: () => `en euros de hoy · sube con la inflación (≈ ${fmt.format(mensual*Math.pow(1+infl,10))}/mes en € nominales dentro de 10 años)`,
+    ratio: () => `el <b>primer año</b> (en € de hoy) · baja de forma lineal hasta <b>${fmt.format(mensualFin)}/mes</b> el último año, aportando los <b>${M} años</b> (ratio ${perfil.frontload.toLocaleString('es-ES')}×)`,
+    cero: () => `el <b>primer año</b> (en € de hoy) · baja en línea recta hasta <b>0 €</b>: repartes el esfuerzo a lo largo de <b>${aniosAportando} de los ${M} años</b>, cada vez menos`,
+    tope: () => `tu <b>tope</b>, que pagas el <b>primer año</b> (en € de hoy) · baja en línea recta hasta <b>0 €</b> a lo largo de <b>${aniosAportando} de los ${M} años</b>${aniosAportando < M ? `; ${M - aniosAportando === 1 ? 'el <b>año</b> restante' : `los <b>${M - aniosAportando}</b> restantes`} no aportas nada (la cartera solo compone)` : ''}`,
+  };
+  document.getElementById('mensual-sub').innerHTML =
+    (decreciente && SUB_PERFIL[perfil.modo] || SUB_PERFIL.constante)();
 
   // Tasa de ahorro sobre neto: primer y último año (con perfil de aportación decreciente)
   const tCol = t => t > 0.6 ? 'var(--red)' : t > 0.4 ? 'var(--amber)' : 'var(--green)';
@@ -933,7 +938,7 @@ function compute() {
   `;
 
   let alerts = '';
-  if (topeCorto) alerts += `<div class="alert bad">🚫 Con un tope de ${fmt.format(perfil.tope)}/mes no llegas al objetivo ni aportando los ${M} años completos: la cuota se queda en el tope todo el periodo y aun así falta capital. Sube el tope, retrasa el retiro o baja el gasto.</div>`;
+  if (topeCorto) alerts += `<div class="alert bad">🚫 Con un tope de ${fmt.format(perfil.tope)}/mes no llegas al objetivo ni estirando la rampa a los ${M} años completos: aun bajando de ${fmt.format(perfil.tope)} a 0 € en todo el periodo, falta capital. Sube el tope, retrasa el retiro o baja el gasto.</div>`;
   if (mensual <= 0) alerts += `<div class="alert ok">✅ Ya llegas sin aportar más: podrías adelantar el retiro o gastar más.</div>`;
   if (tasa > 1) alerts += `<div class="alert bad">🚫 Necesitarías más del 100% de tu neto: inviable. Retrasa el retiro o baja el gasto.</div>`;
   else if (tasa > 0.6) alerts += `<div class="alert warn">⚠️ Tasa de ahorro muy exigente (${(tasa*100).toFixed(0)}%).</div>`;

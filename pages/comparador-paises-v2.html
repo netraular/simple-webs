@@ -79,6 +79,9 @@
   .crow .cl{font-weight:800; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
   .crow .cl.base{color:var(--accent2)}
   .crow .cv{text-align:right; font-weight:800; white-space:nowrap}
+  /* Marca de fiscalidad del ahorro en el reloj FIRE: el mismo 4 % real para todos
+     esconde que en algunos países la cartera paga impuestos cada año. */
+  .crow .cv .fdot{margin-right:5px; font-size:1.05em; vertical-align:-1px}
   .track{position:relative; background:#fff; border:2px solid var(--ink); height:20px; display:flex; overflow:hidden}
   .seg{height:100%; display:block}
   .seg.col{background:repeating-linear-gradient(45deg,#1a3fb0,#1a3fb0 5px,#3556c4 5px,#3556c4 10px)}
@@ -410,6 +413,10 @@
     <b id="hTarget">—</b> (25× tu gasto anual en Barcelona, regla del 4 %).
     Se asume que te jubilas en España, así que el objetivo es el mismo para todos: sólo cambia la velocidad a la que llegas.
     <b>No cuenta el ahorro forzoso en planes de pensiones</b>, porque está bloqueado hasta la edad legal y no sirve para retirarse antes.</p>
+    <p class="lead"><b>Ojo al punto de color:</b> ese 4 % real es el mismo para todos, pero hay países donde la cartera
+    <b>paga impuestos cada año por existir</b> (patrimonio, rendimiento presunto o devengo). Ahí la rentabilidad que de
+    verdad se acumula es menor y la barra se queda <b>corta de años</b>: llegarías más tarde de lo que pinta.
+    El detalle de cada uno está en <b>Fiscalidad del ahorro</b>, justo arriba.</p>
     <div class="chart b3">
       <div id="chartFire"></div>
     </div>
@@ -785,6 +792,16 @@ const NOTA = [
   {t:'Excelente', c:'#0b7268'}
 ];
 
+// Qué le hace cada país a una cartera a largo plazo, a partir del campo `cgtTipo`:
+// g = no tributa al vender · n = tributa sólo al vender · r = tributa cada año por tenerla
+// (patrimonio, rendimiento presunto o devengo). Sólo el caso `r` erosiona el interés
+// compuesto año a año, y es justo el que el reloj FIRE de abajo no puede ver.
+const CGT_TIPO = {
+  g: { c:'var(--ok)',     t:'Exento al vender: la cartera crece sin fugas' },
+  n: { c:'var(--mut)',    t:'Tributa sólo al vender: mientras la tienes, no paga nada' },
+  r: { c:'var(--danger)', t:'Paga impuestos cada año por tenerla: el 4 % real efectivo es menor' },
+};
+
 const RETORNO_REAL = 0.04;   // rentabilidad real anual asumida de la cartera
 const MULTIPLO_FIRE = 25;    // regla del 4 %
 const COSTE_MUDANZA = 6000;  // € one-off: mudanza, fianza, colchón, vuelos
@@ -1004,9 +1021,14 @@ function render(){
       <div class="track">
         <span class="seg fire ${f.base?'base':''}" style="width:${(f.anios/maxAnios)*100}%"></span>
       </div>
-      <div class="cv">${nf1.format(f.anios)} años</div>
+      <div class="cv"><span class="fdot" style="color:${CGT_TIPO[f.cgtTipo].c}" title="${CGT_TIPO[f.cgtTipo].t}">●</span>${nf1.format(f.anios)} años</div>
     </div>`
-  ).join('') + `<div class="legend"><span>Más corto es mejor. Tu situación actual en azul.</span></div>`;
+  ).join('') + `<div class="legend">
+      <span>Más corto es mejor. Tu situación actual en azul.</span>
+      <span style="color:${CGT_TIPO.g.c}">● Exento al vender</span>
+      <span style="color:${CGT_TIPO.n.c}">● Tributa al vender</span>
+      <span style="color:${CGT_TIPO.r.c}">● Paga cada año por tenerla → esta barra es optimista</span>
+    </div>`;
 
   /* ---- 6. Fichas ---- */
   document.getElementById('cards').innerHTML = filas.map(f => {

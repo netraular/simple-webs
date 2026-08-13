@@ -117,11 +117,13 @@
   .dot { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
   #chart { width: 100%; height: 360px; display: block; }
   #tooltip {
-    position: fixed; pointer-events: none; background: #0b1220; border: 1px solid var(--border);
+    position: fixed; pointer-events: none; background: #0b1220; border: 1px solid #0b1220;
+    color: #f1f5f9;
     border-radius: 8px; padding: 8px 10px; font-size: .8rem; opacity: 0; transition: opacity .1s;
     white-space: nowrap; z-index: 10;
   }
-  #tooltip .t-year { color: var(--muted); margin-bottom: 4px; }
+  #tooltip .t-year { color: #94a3b8; margin-bottom: 4px; }
+  #tooltip .muted { color: #94a3b8; }
   #tooltip .t-row { display: flex; justify-content: space-between; gap: 16px; }
 
   .toggle { display: flex; gap: 8px; margin-bottom: 6px; }
@@ -250,7 +252,11 @@
      color, para que no compita con el panel principal de aportación. */
   .coast-card{margin-top:24px}
   .chart-card{background:#fff}
-  .mc-canvas,#chart{background:#f8fafc; border:1px solid var(--border); border-radius:4px}
+  .mc-canvas,#chart,#ciChart{background:#f8fafc; border:1px solid var(--border); border-radius:4px}
+  #ciChart{width:100%; height:320px; display:block; cursor:crosshair}
+  /* Subsección dentro de una tarjeta: se lee como apartado menor, no como sección propia. */
+  .sub-toggle{display:flex; align-items:center; gap:10px; flex-wrap:wrap; font-size:.95rem;
+    margin:28px 0 0; padding-top:18px; border-top:1px solid var(--border); color:var(--accent)}
   .comp tr.active td{background:#e8f0ff}.comp tr.active td:first-child{border-left-color:var(--accent)}
   .np-col{background:#f2f6fa;border-color:var(--border)}
   .disclaimer{color:var(--muted)}
@@ -624,10 +630,10 @@ const val = id => parseFloat(document.getElementById(id).value) || 0;
 // visible es el capital (VPW pide menos porque agota el principal). Las
 // diferencias reales entre estrategias emergen con volatilidad (simulación de mercado).
 const STRAT = {
-  vpw:  { nombre: 'VPW / amortización', color: '#34d399' },
-  fija: { nombre: 'Fija real (4%)',     color: '#f87171' },
-  pct:  { nombre: '% fijo del saldo',   color: '#fbbf24' },
-  gk:   { nombre: 'Guyton-Klinger',     color: '#38bdf8' },
+  vpw:  { nombre: 'VPW / amortización', color: '#0c9b76' },
+  fija: { nombre: 'Fija real (4%)',     color: '#df4d5b' },
+  pct:  { nombre: '% fijo del saldo',   color: '#e08c00' },
+  gk:   { nombre: 'Guyton-Klinger',     color: '#1463ff' },
 };
 function rate0For(key, rR, n) {
   if (key === 'gk') return 0.05;
@@ -989,6 +995,16 @@ function renderTablaAporte(sc) {
 }
 
 /* ---------- Gráfica ---------- */
+// Paleta de los canvas. El rediseño a tema claro solo tocó el CSS: aquí se seguía
+// pintando con los grises oscuros del tema original, así que la rejilla salía como
+// una caja oscura sobre un fondo casi blanco. Solo se dibujan líneas horizontales
+// (las verticales eran las que formaban los recuadros).
+const CHART = {
+  grid:  '#e8edf3',   // rejilla horizontal, apenas visible
+  axis:  '#cbd5df',   // línea base del eje X
+  label: '#667382',   // rótulos de los ejes (= var(--muted))
+  ref:   '#a6b3c2',   // líneas de referencia discontinuas
+};
 const canvas = document.getElementById('chart');
 const ctx = canvas.getContext('2d');
 const pad = { top: 20, right: 20, bottom: 34, left: 66 };
@@ -1014,26 +1030,28 @@ function drawChart() {
 
   // rejilla Y
   ctx.font = '11px system-ui, sans-serif';
+  ctx.lineWidth = 1;
   const yTicks = 5;
   for (let k = 0; k <= yTicks; k++) {
     const v = (maxY / yTicks) * k, y = sy(v);
-    ctx.strokeStyle = 'rgba(51,65,85,0.6)';
+    ctx.strokeStyle = k === 0 ? CHART.axis : CHART.grid;
     ctx.beginPath(); ctx.moveTo(x0, y); ctx.lineTo(x1, y); ctx.stroke();
-    ctx.fillStyle = '#94a3b8'; ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+    ctx.fillStyle = CHART.label; ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
     ctx.fillText(fmtShort(v), x0 - 8, y);
   }
-  // eje X (edades)
+  // eje X (edades): solo rótulos, sin líneas verticales
   ctx.textAlign = 'center'; ctx.textBaseline = 'top';
   const span = maxAge - minAge;
   const step = span > 40 ? 10 : 5;
   for (let a = Math.ceil(minAge/step)*step; a <= maxAge; a += step) {
-    ctx.fillStyle = '#94a3b8';
+    ctx.fillStyle = CHART.label;
     ctx.fillText(a + 'a', sx(a), y0 + 8);
   }
 
-  // área por fases (color según fase del punto derecho de cada segmento)
-  const colFill = ['rgba(96,165,250,0.20)','rgba(251,191,36,0.20)','rgba(56,189,248,0.20)'];
-  const colLine = ['#60a5fa','#fbbf24','#38bdf8'];
+  // Área por fases (color según fase del punto derecho de cada segmento). Mismos
+  // colores que la leyenda de arriba: --blue / --amber / --accent.
+  const colFill = ['rgba(0,163,199,0.18)','rgba(242,170,23,0.18)','rgba(20,99,255,0.15)'];
+  const colLine = ['#00a3c7','#f2aa17','#1463ff'];
   for (let seg = 0; seg < ages.length - 1; seg++) {
     const ph = phase[seg + 1];
     ctx.beginPath();
@@ -1050,7 +1068,7 @@ function drawChart() {
   }
 
   // marcadores verticales FIRE y pensión
-  for (const [age, label, col] of [[F,'Retiro','#34d399'],[PA,'Pensión','#38bdf8']]) {
+  for (const [age, label, col] of [[F,'Retiro','#0c9b76'],[PA,'Pensión','#1463ff']]) {
     if (age <= maxAge && age >= minAge) {
       const X = sx(age);
       ctx.strokeStyle = col; ctx.setLineDash([4,4]); ctx.lineWidth = 1;
@@ -1107,10 +1125,10 @@ window.addEventListener('resize', () => { if (mcData) drawSelectedChart(); else 
    sortea de Normal(rent. real, volatilidad) y no hay ajuste por inflación
    (ya trabajamos en poder de compra constante). */
 const MC_STRATS = [
-  { key: 'fija', nombre: 'Fija real (4%)',     color: '#f87171', desc: '<b>Fija real (regla del 4%):</b> retiras un % fijo del capital inicial y lo mantienes constante en poder de compra. Sencilla, pero rígida: si vienen años malos al principio, puede agotarse (riesgo de secuencia).' },
-  { key: 'pct',  nombre: '% fijo del saldo',   color: '#fbbf24', desc: '<b>% fijo del saldo:</b> retiras ese % del saldo actual cada año. Nunca te arruinas (siempre queda algo), pero la renta baja en años malos.' },
-  { key: 'gk',   nombre: 'Guyton-Klinger',     color: '#38bdf8', desc: '<b>Guyton-Klinger:</b> parte de una tasa algo mayor con «guardarraíles» que recortan o suben el gasto según cómo vaya la cartera. Equilibrio entre renta y seguridad.' },
-  { key: 'vpw',  nombre: 'VPW / amortización', color: '#34d399', desc: '<b>VPW / amortización:</b> % que crece con la edad, diseñada para gastarte el capital hacia el final. Da la renta más alta, pero deja poca o ninguna herencia.' },
+  { key: 'fija', nombre: 'Fija real (4%)',     color: '#df4d5b', desc: '<b>Fija real (regla del 4%):</b> retiras un % fijo del capital inicial y lo mantienes constante en poder de compra. Sencilla, pero rígida: si vienen años malos al principio, puede agotarse (riesgo de secuencia).' },
+  { key: 'pct',  nombre: '% fijo del saldo',   color: '#e08c00', desc: '<b>% fijo del saldo:</b> retiras ese % del saldo actual cada año. Nunca te arruinas (siempre queda algo), pero la renta baja en años malos.' },
+  { key: 'gk',   nombre: 'Guyton-Klinger',     color: '#1463ff', desc: '<b>Guyton-Klinger:</b> parte de una tasa algo mayor con «guardarraíles» que recortan o suben el gasto según cómo vaya la cartera. Equilibrio entre renta y seguridad.' },
+  { key: 'vpw',  nombre: 'VPW / amortización', color: '#0c9b76', desc: '<b>VPW / amortización:</b> % que crece con la edad, diseñada para gastarte el capital hacia el final. Da la renta más alta, pero deja poca o ninguna herencia.' },
 ];
 const MC_N = 2000;              // nº de escenarios
 const MC_SEED = 7;             // semilla fija → resultados estables/reproducibles
@@ -1254,17 +1272,20 @@ function renderMonteCarlo(sc) {
 function mcAxes(ctx, W, H, P, ymax, unit, xs) {
   const x0 = xs[0], x1 = xs[xs.length - 1] === xs[0] ? xs[0] + 1 : xs[xs.length - 1];
   ctx.font = '12px system-ui, sans-serif'; ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+  ctx.lineWidth = 1;
   for (let i = 0; i <= 6; i++) {
     const v = ymax * i / 6, y = H - P.b - (v / ymax) * (H - P.t - P.b);
-    ctx.strokeStyle = '#334155'; ctx.beginPath(); ctx.moveTo(P.l, y); ctx.lineTo(W - P.r, y); ctx.stroke();
-    ctx.fillStyle = '#94a3b8'; ctx.fillText(unit === 'M' ? (v / 1e6).toFixed(1) + 'M' : (v / 1e3).toFixed(0) + 'k', P.l - 8, y);
+    ctx.strokeStyle = i === 0 ? CHART.axis : CHART.grid;
+    ctx.beginPath(); ctx.moveTo(P.l, y); ctx.lineTo(W - P.r, y); ctx.stroke();
+    ctx.fillStyle = CHART.label; ctx.fillText(unit === 'M' ? (v / 1e6).toFixed(1) + 'M' : (v / 1e3).toFixed(0) + 'k', P.l - 8, y);
   }
+  // Eje X: solo los rótulos de edad. Antes había además una línea vertical cada 5 años
+  // y la malla resultante se comía la gráfica.
   ctx.textAlign = 'center'; ctx.textBaseline = 'top';
   for (const a of xs) {
     if (a % 5 === 0) {
       const x = P.l + (a - x0) / (x1 - x0) * (W - P.l - P.r);
-      ctx.strokeStyle = '#26324a'; ctx.beginPath(); ctx.moveTo(x, P.t); ctx.lineTo(x, H - P.b); ctx.stroke();
-      ctx.fillStyle = '#94a3b8'; ctx.fillText(a, x, H - P.b + 8);
+      ctx.fillStyle = CHART.label; ctx.fillText(a, x, H - P.b + 8);
     }
   }
 }
@@ -1290,7 +1311,7 @@ function mcDrawLine(key, unit, refLine) {
   c.clearRect(0, 0, W, H);
   mcAxes(c, W, H, P, ymax, unit, xs);
   if (refLine) {
-    c.setLineDash([4, 4]); c.strokeStyle = '#475569'; c.beginPath();
+    c.setLineDash([4, 4]); c.strokeStyle = CHART.ref; c.beginPath();
     c.moveTo(P.l, Y(refLine)); c.lineTo(W - P.r, Y(refLine)); c.stroke(); c.setLineDash([]);
   }
   series.forEach(s => {

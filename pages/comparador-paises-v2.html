@@ -248,10 +248,20 @@
   .destination .meta{display:flex; gap:12px; margin-top:16px; padding-top:12px; border-top:1px solid rgba(23,61,50,.16); font-size:.75rem; color:var(--mut)}
   .destination .meta b{color:var(--ink)}
   /* Fiscalidad del ahorro en la tarjeta: el ranking ordena por ahorro anual, que no dice
-     nada de lo que el país le hace luego a la cartera invertida. */
-  .destination .fiscal{display:flex; gap:7px; align-items:baseline; margin-top:9px; font-size:.73rem; color:var(--mut); line-height:1.35}
-  .destination .fiscal b{color:var(--ink)}
-  .destination .fiscal .fdot{flex:none; font-size:1.05em}
+     nada de lo que el país le hace luego a la cartera invertida. Se resume en una etiqueta
+     de color y el detalle se despliega al pulsar, para no llenar la tarjeta de texto. */
+  .destination .fiscal{margin-top:12px; font-size:.72rem; color:var(--mut)}
+  .destination .fiscal summary{list-style:none; cursor:pointer; display:flex; align-items:center;
+    gap:8px; font-weight:600; user-select:none}
+  .destination .fiscal summary::-webkit-details-marker{display:none}
+  .destination .fiscal summary::after{content:'+'; margin-left:auto; font-weight:800; font-size:.95rem;
+    line-height:1; color:var(--mut)}
+  .destination .fiscal[open] summary::after{content:'−'}
+  .destination .fiscal summary:hover .ftag{filter:brightness(1.12)}
+  .destination .ftag{background:var(--n); color:#fff; font:800 .62rem/1 "DM Sans",sans-serif;
+    text-transform:uppercase; letter-spacing:.5px; padding:4px 8px; border-radius:99px; white-space:nowrap}
+  .destination .fiscal p{margin:9px 0 0; line-height:1.45}
+  .destination .fiscal p b{color:var(--ink); text-transform:uppercase; font-size:.66rem; letter-spacing:.4px}
   .destination .status{position:absolute; top:16px; right:16px; border-radius:99px; padding:5px 8px; background:#e4e7df; font-size:.66rem; font-weight:700}
   .destination .status.yes{background:var(--ink); color:#fff}
   .chart{padding:26px 22px}
@@ -360,10 +370,8 @@
   <section>
     <h2 class="sec">Dónde cunde más tu trabajo</h2>
     <p class="lead">Los destinos con mayor ahorro anual estimado. El bruto local ya está adaptado a tu perfil.
-    Ojo: el orden es por <b>cuánto ahorras</b>, que no dice nada de lo que el país le hace después a ese dinero
-    <b>ya invertido</b>. El punto de color de cada tarjeta avisa de eso: en rojo, países donde la cartera
-    <b>tributa aunque no vendas</b> (patrimonio, rendimiento presunto o devengo) y el interés
-    compuesto rinde menos de lo que parece. <b>Los dos rankings no coinciden.</b></p>
+    Ordena por <b>cuánto ahorras</b>, que no es lo mismo que <b>dónde conviene invertirlo</b>: pulsa la etiqueta
+    de color de cada tarjeta para ver qué le hace ese país a una cartera a largo plazo.</p>
     <div class="destinations" id="destinations"></div>
     <div hidden><table><tbody id="tbody"></tbody></table></div>
   </section>
@@ -793,12 +801,15 @@ function aniosHasta(objetivo, anual, r){
 }
 
 /** Nota cualitativa del trato fiscal al ahorro invertido a largo plazo. */
+// Escala de fiscalidad del ahorro. Los colores son los del tema claro vigente (el segundo
+// bloque :root): antes eran hex de la paleta anterior, que no se notaba porque esta escala
+// sólo salía en secciones hoy ocultas. Ahora encabeza cada tarjeta de destino.
 const NOTA = [
-  {t:'Muy mala',  c:'#d61f4e'},
-  {t:'Mala',      c:'#c2410c'},
-  {t:'Aceptable', c:'#514b5e'},
-  {t:'Buena',     c:'#256a29'},
-  {t:'Excelente', c:'#0b7268'}
+  {t:'Muy mala',  c:'#c9453d'},   // --danger
+  {t:'Mala',      c:'#c45a3f'},   // --warn
+  {t:'Aceptable', c:'#607068'},   // --mut
+  {t:'Buena',     c:'#18866b'},   // --ok
+  {t:'Excelente', c:'#0f5c4a'}    // --ok, un paso más oscuro
 ];
 
 // Qué le hace cada país a una cartera a largo plazo, a partir del campo `cgtTipo`:
@@ -935,10 +946,11 @@ function render(){
         <span>Neto <b>${eur(f.netoMesEUR)}/mes</b></span>
         <span>Vivir <b>${eur(f.colMesEUR)}/mes</b></span>
       </div>
-      <div class="fiscal" title="${CGT_TIPO[f.cgtTipo].t}">
-        <span class="fdot" style="color:${CGT_TIPO[f.cgtTipo].c}">●</span>
-        <span>Lo que inviertas: ${f.cgt}${CGT_TIPO[f.cgtTipo].aviso ? ` · <b>${CGT_TIPO[f.cgtTipo].aviso}</b>` : ''}</span>
-      </div>
+      <details class="fiscal" style="--n:${NOTA[f.inv.n].c}">
+        <summary><span class="ftag">${NOTA[f.inv.n].t}</span> para invertir</summary>
+        <p><b>Mientras la tienes:</b> ${f.inv.mantener}</p>
+        <p><b>Al vender:</b> ${f.inv.vender}</p>
+      </details>
     </article>`).join('');
 
   /* ---- 2. Tabla ---- */

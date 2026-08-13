@@ -590,6 +590,16 @@
           <div class="hint">Margen arriba y abajo del tipo. Con un valor mayor que <b>0</b>, la gráfica dibuja además la banda entre el escenario peor y el mejor.</div>
         </div>
         <div>
+          <label for="ci_freq">Frecuencia de capitalización</label>
+          <select id="ci_freq">
+            <option value="diaria">Diaria</option>
+            <option value="mensual" selected>Mensual</option>
+            <option value="trimestral">Trimestral</option>
+            <option value="anual">Anual</option>
+          </select>
+          <div class="hint">Cada cuánto se suman los intereses al capital para que ellos mismos empiecen a generar intereses. Cuanto más a menudo, algo más de saldo final (la diferencia suele ser pequeña).</div>
+        </div>
+        <div>
           <label for="ci_parar" style="display:flex; align-items:center; gap:8px; cursor:pointer">
             <input type="checkbox" id="ci_parar" style="width:auto; margin:0">
             Dejar de aportar antes de acabar
@@ -599,16 +609,6 @@
             <input type="number" id="ci_anios_aporte" value="10" min="0" max="80" step="1">
           </div>
           <div class="hint">Aportas solo durante los primeros años y luego dejas el dinero quieto componiendo hasta el final del plazo. Es la idea de la «bola de nieve»: el esfuerzo se concentra al principio.</div>
-        </div>
-        <div>
-          <label for="ci_freq">Frecuencia de capitalización</label>
-          <select id="ci_freq">
-            <option value="diaria">Diaria</option>
-            <option value="mensual" selected>Mensual</option>
-            <option value="trimestral">Trimestral</option>
-            <option value="anual">Anual</option>
-          </select>
-          <div class="hint">Cada cuánto se suman los intereses al capital para que ellos mismos empiecen a generar intereses. Cuanto más a menudo, algo más de saldo final (la diferencia suele ser pequeña).</div>
         </div>
       </div>
 

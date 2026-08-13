@@ -567,8 +567,19 @@
         </div>
         <div>
           <label for="ci_var">Variación del tipo (± %)</label>
-          <input type="number" id="ci_var" value="2" min="0" max="10" step="0.5">
-          <div class="hint">Margen arriba y abajo del tipo para ver también un escenario peor y uno mejor. Pon <b>0</b> si solo quieres una cifra.</div>
+          <input type="number" id="ci_var" value="0" min="0" max="10" step="0.5">
+          <div class="hint">Margen arriba y abajo del tipo. Con un valor mayor que <b>0</b>, la gráfica dibuja además la banda entre el escenario peor y el mejor.</div>
+        </div>
+        <div>
+          <label for="ci_parar" style="display:flex; align-items:center; gap:8px; cursor:pointer">
+            <input type="checkbox" id="ci_parar" style="width:auto; margin:0">
+            Dejar de aportar antes de acabar
+          </label>
+          <div id="ciPararWrap" style="display:none; margin-top:10px">
+            <label for="ci_anios_aporte">Años aportando</label>
+            <input type="number" id="ci_anios_aporte" value="10" min="0" max="80" step="1">
+          </div>
+          <div class="hint">Aportas solo durante los primeros años y luego dejas el dinero quieto componiendo hasta el final del plazo. Es la idea de la «bola de nieve»: el esfuerzo se concentra al principio.</div>
         </div>
         <div>
           <label for="ci_freq">Frecuencia de capitalización</label>
@@ -592,12 +603,15 @@
         <div class="mini"><div class="k">Ese saldo, en € de hoy</div><div class="v" id="ci-real" style="color:var(--amber)">—</div></div>
       </div>
 
-      <div id="ci-rango" style="margin-top:20px"></div>
-
-      <h3 style="display:flex; align-items:center; gap:10px; flex-wrap:wrap; font-size:.95rem; margin:24px 0 0; color:var(--accent)">Detalle año a año
-        <button type="button" class="tool card-toggle" id="btnCiTabla" style="margin-left:auto" title="Mostrar el detalle año a año" aria-label="Mostrar el detalle año a año">▸</button>
-      </h3>
-      <div id="ciTablaWrap" style="display:none; margin-top:14px; overflow-x:auto"></div>
+      <!-- Evolución año a año: sustituye a la tabla de escenarios y al detalle año a año.
+           Pasa el ratón (o toca) por la gráfica para ver las cifras de cada año. -->
+      <div class="legend" style="margin-top:24px">
+        <span><i class="dot" style="background:#8fa3b8"></i> Lo que has puesto tú</span>
+        <span><i class="dot" style="background:var(--accent)"></i> Lo que ha puesto el interés</span>
+        <span id="ciLegendBanda" style="display:none"><i class="dot" style="background:var(--accent);opacity:.25"></i> Rango peor–mejor</span>
+      </div>
+      <canvas id="ciChart"></canvas>
+      <div class="hint" id="ci-graf-hint" style="margin-top:10px"></div>
     </div>
   </div>
 
@@ -1115,7 +1129,10 @@ canvas.addEventListener('mousemove', e => {
   ctx.fillStyle = '#34d399'; ctx.fill();
 });
 canvas.addEventListener('mouseleave', () => { tooltip.style.opacity = 0; drawChart(); });
-window.addEventListener('resize', () => { if (mcData) drawSelectedChart(); else drawChart(); });
+window.addEventListener('resize', () => {
+  if (mcData) drawSelectedChart(); else drawChart();
+  drawCiChart();
+});
 
 /* ================= Monte Carlo (4 estrategias de retirada) =================
    Portado a JS desde simulacion_regla4.py, pero corriendo EN VIVO con tus
@@ -1503,12 +1520,15 @@ const ciPct = t => (t * 100).toLocaleString('es-ES', { minimumFractionDigits: 1,
 
 // Serie año a año con aportación al final de cada mes. La frecuencia de capitalización
 // se respeta usando su tipo efectivo mensual equivalente: (1 + tasa/n)^(n/12) − 1.
-function ciSerie(P, C, anios, tasa, n) {
+// `aporteAnios` limita los años en los que se aporta: pasado ese punto la cartera
+// solo compone. Por defecto se aporta durante todo el plazo.
+function ciSerie(P, C, anios, tasa, n, aporteAnios = Infinity) {
   const im = Math.pow(1 + tasa / n, n / 12) - 1;
-  const filas = [];
+  const filas = [{ anio: 0, saldo: P, aportado: P, interes: 0 }];
   let saldo = P, aportado = P;
   for (let y = 1; y <= anios; y++) {
-    for (let m = 0; m < 12; m++) { saldo = saldo * (1 + im) + C; aportado += C; }
+    const c = y <= aporteAnios ? C : 0;
+    for (let m = 0; m < 12; m++) { saldo = saldo * (1 + im) + c; aportado += c; }
     filas.push({ anio: y, saldo, aportado, interes: saldo - aportado });
   }
   return filas;
@@ -1525,57 +1545,156 @@ function computeCompound() {
   const n = CI_FREQ[freqKey] || 12;
   const infl = val('inflacion') / 100;
 
-  const filas = ciSerie(P, C, Y, tasa, n);
+  // Aportar solo durante los primeros años (el resto del plazo la cartera solo compone).
+  const parar = document.getElementById('ci_parar').checked;
+  const pw = document.getElementById('ciPararWrap');
+  if (pw) pw.style.display = parar ? '' : 'none';
+  const aporteAnios = parar ? Math.max(0, Math.min(Y, Math.round(val('ci_anios_aporte')) || 0)) : Y;
+
+  const filas = ciSerie(P, C, Y, tasa, n, aporteAnios);
   const fin = filas[filas.length - 1];
 
   document.getElementById('ci-total').textContent = fmt.format(fin.saldo);
+  const txtAporte = aporteAnios >= Y
+    ? `aportando <b>${fmt.format(C)}/mes</b>`
+    : `aportando <b>${fmt.format(C)}/mes</b> solo los <b>${aporteAnios} primeros años</b> (y dejándolo componer los ${Y - aporteAnios} restantes)`;
   document.getElementById('ci-sub').innerHTML =
-    `Dentro de <b>${Y} años</b>, partiendo de <b>${fmt.format(P)}</b> y aportando <b>${fmt.format(C)}/mes</b> al <b>${ciPct(tasa)}%</b> anual (capitalización ${CI_FREQ_TXT[freqKey] || 'mensual'}).`;
+    `Dentro de <b>${Y} años</b>, partiendo de <b>${fmt.format(P)}</b> y ${txtAporte} al <b>${ciPct(tasa)}%</b> anual (capitalización ${CI_FREQ_TXT[freqKey] || 'mensual'}).`;
   document.getElementById('ci-aportado').textContent = fmtShort(fin.aportado);
   document.getElementById('ci-intereses').textContent = fmtShort(fin.interes);
   document.getElementById('ci-real').textContent = fmtShort(fin.saldo / Math.pow(1 + infl, Y));
 
-  // Rango de tipos (± variación): escenario peor / central / mejor, como en investor.gov.
-  const rango = document.getElementById('ci-rango');
-  if (varia > 0) {
-    const filasRango = [
-      ['Escenario peor', Math.max(0, tasa - varia)],
-      ['Tipo central', tasa],
-      ['Escenario mejor', tasa + varia],
-    ].map(([etq, t], k) => {
-      const f = ciSerie(P, C, Y, t, n).slice(-1)[0];
-      return `<tr class="${k === 1 ? 'active' : ''}"><td>${etq}</td><td>${ciPct(t)}%</td><td><b>${fmt.format(f.saldo)}</b></td><td class="muted">${fmt.format(f.interes)}</td></tr>`;
-    }).join('');
-    rango.innerHTML = `<table class="comp">
-      <thead><tr><th>Escenario</th><th>Tipo anual</th><th>Saldo final</th><th>Intereses</th></tr></thead>
-      <tbody>${filasRango}</tbody>
-    </table>
-    <div class="muted" style="font-size:.75rem; margin-top:10px; line-height:1.5">Mismo capital, mismas aportaciones y mismo plazo: lo único que cambia es el tipo (± ${ciPct(varia)} puntos). Sirve para ver cuánto depende el resultado de acertar con la rentabilidad.</div>`;
-  } else {
-    rango.innerHTML = '';
+  // Banda peor–mejor (± variación). Con variación 0 no hay banda y solo se dibuja el plan.
+  const banda = varia > 0
+    ? { peor: ciSerie(P, C, Y, Math.max(0, tasa - varia), n, aporteAnios),
+        mejor: ciSerie(P, C, Y, tasa + varia, n, aporteAnios) }
+    : null;
+  const lb = document.getElementById('ciLegendBanda');
+  if (lb) lb.style.display = banda ? '' : 'none';
+
+  const hint = document.getElementById('ci-graf-hint');
+  if (hint) {
+    const base = aporteAnios >= Y
+      ? `De los <b>${fmt.format(fin.saldo)}</b> finales, <b>${fmt.format(fin.aportado)}</b> los pones tú y <b>${fmt.format(fin.interes)}</b> los pone el interés compuesto.`
+      : `Dejas de aportar en el año <b>${aporteAnios}</b>: a partir de ahí la franja gris deja de crecer y todo lo que sube es interés. De los <b>${fmt.format(fin.saldo)}</b> finales, <b>${fmt.format(fin.aportado)}</b> los pones tú.`;
+    const extra = banda
+      ? ` Con un tipo ± ${ciPct(varia)} puntos, el saldo final iría de <b>${fmt.format(banda.peor.slice(-1)[0].saldo)}</b> a <b>${fmt.format(banda.mejor.slice(-1)[0].saldo)}</b>.`
+      : '';
+    hint.innerHTML = base + extra + ' Pasa el ratón o toca la gráfica para ver el detalle de cada año.';
   }
 
-  // Detalle año a año (plegable): cuánto has puesto tú y cuánto ha puesto el interés.
-  const wrap = document.getElementById('ciTablaWrap');
-  if (wrap) {
-    const baseYear = new Date().getFullYear();
-    wrap.innerHTML = `<table class="comp">
-      <thead><tr><th>Año</th><th>Aportado acumulado</th><th>Intereses acumulados</th><th>Saldo</th></tr></thead>
-      <tbody>${filas.map(f => `<tr><td>${baseYear + f.anio} <span class="muted">· año ${f.anio}</span></td><td class="muted">${fmt.format(f.aportado)}</td><td style="color:var(--blue)">${fmt.format(f.interes)}</td><td><b>${fmt.format(f.saldo)}</b></td></tr>`).join('')}</tbody>
-    </table>`;
+  ciChartData = { filas, banda, aporteAnios, Y };
+  drawCiChart();
+}
+
+/* ---------- Gráfica del interés compuesto ---------- */
+// Área apilada: abajo lo aportado, encima los intereses; la suma es el saldo. Sustituye
+// a la tabla de escenarios y al detalle año a año (las cifras salen al pasar por encima).
+let ciChartData = null;
+const CI_COL = { aportado: '#8fa3b8', aportadoFill: 'rgba(143,163,184,0.30)', interes: '#1463ff', interesFill: 'rgba(20,99,255,0.18)' };
+let ciPlot = null;
+
+function drawCiChart(hoverIdx = null) {
+  const cv = document.getElementById('ciChart');
+  if (!cv || !ciChartData) return;
+  const { filas, banda } = ciChartData;
+  const dpr = window.devicePixelRatio || 1;
+  const cssW = cv.clientWidth, cssH = cv.clientHeight;
+  if (!cssW || !cssH) return;
+  cv.width = cssW * dpr; cv.height = cssH * dpr;
+  const c = cv.getContext('2d');
+  c.setTransform(dpr, 0, 0, dpr, 0, 0);
+  c.clearRect(0, 0, cssW, cssH);
+
+  const pd = { top: 16, right: 16, bottom: 30, left: 64 };
+  const x0 = pd.left, x1 = cssW - pd.right, yb = cssH - pd.bottom, yt = pd.top;
+  const maxAnio = filas[filas.length - 1].anio || 1;
+  const maxY = Math.max(banda ? banda.mejor.slice(-1)[0].saldo : 0, filas[filas.length - 1].saldo, 1) * 1.06;
+  const X = a => x0 + (a / maxAnio) * (x1 - x0);
+  const Y = v => yb - (Math.max(v, 0) / maxY) * (yb - yt);
+  ciPlot = { X, Y, x0, x1, yb, yt, maxAnio };
+
+  // Rejilla horizontal (sin verticales, como en el resto de gráficas)
+  c.font = '11px system-ui, sans-serif'; c.lineWidth = 1;
+  for (let k = 0; k <= 5; k++) {
+    const v = (maxY / 5) * k, y = Y(v);
+    c.strokeStyle = k === 0 ? CHART.axis : CHART.grid;
+    c.beginPath(); c.moveTo(x0, y); c.lineTo(x1, y); c.stroke();
+    c.fillStyle = CHART.label; c.textAlign = 'right'; c.textBaseline = 'middle';
+    c.fillText(fmtShort(v), x0 - 8, y);
+  }
+  const stepX = maxAnio > 40 ? 10 : maxAnio > 15 ? 5 : maxAnio > 8 ? 2 : 1;
+  c.textAlign = 'center'; c.textBaseline = 'top'; c.fillStyle = CHART.label;
+  for (let a = 0; a <= maxAnio; a += stepX) c.fillText(a + 'a', X(a), yb + 8);
+
+  // Banda peor–mejor por detrás de todo
+  if (banda) {
+    c.fillStyle = 'rgba(20,99,255,0.10)'; c.beginPath();
+    banda.mejor.forEach((f, k) => k ? c.lineTo(X(f.anio), Y(f.saldo)) : c.moveTo(X(f.anio), Y(f.saldo)));
+    for (let k = banda.peor.length - 1; k >= 0; k--) c.lineTo(X(banda.peor[k].anio), Y(banda.peor[k].saldo));
+    c.closePath(); c.fill();
+  }
+
+  // Área del saldo total (arriba) y del aportado (abajo): la franja entre ambas es el interés
+  const area = (key, fill, stroke) => {
+    c.beginPath(); c.moveTo(X(0), yb);
+    filas.forEach(f => c.lineTo(X(f.anio), Y(f[key])));
+    c.lineTo(X(maxAnio), yb); c.closePath();
+    c.fillStyle = fill; c.fill();
+    c.beginPath();
+    filas.forEach((f, k) => k ? c.lineTo(X(f.anio), Y(f[key])) : c.moveTo(X(f.anio), Y(f[key])));
+    c.strokeStyle = stroke; c.lineWidth = 2; c.stroke();
+  };
+  area('saldo', CI_COL.interesFill, CI_COL.interes);
+  area('aportado', CI_COL.aportadoFill, CI_COL.aportado);
+
+  // Marca del año en el que se deja de aportar
+  const { aporteAnios, Y: plazo } = ciChartData;
+  if (aporteAnios < plazo) {
+    const xm = X(aporteAnios);
+    c.strokeStyle = CHART.ref; c.setLineDash([4, 4]);
+    c.beginPath(); c.moveTo(xm, yt); c.lineTo(xm, yb); c.stroke(); c.setLineDash([]);
+    c.fillStyle = CHART.label; c.textAlign = 'center'; c.textBaseline = 'bottom';
+    c.fillText('dejas de aportar', xm, yt + 10);
+  }
+
+  if (hoverIdx != null && filas[hoverIdx]) {
+    const f = filas[hoverIdx], xh = X(f.anio);
+    c.strokeStyle = CHART.ref; c.beginPath(); c.moveTo(xh, yt); c.lineTo(xh, yb); c.stroke();
+    for (const [v, col] of [[f.saldo, CI_COL.interes], [f.aportado, CI_COL.aportado]]) {
+      c.beginPath(); c.arc(xh, Y(v), 4, 0, Math.PI * 2); c.fillStyle = col; c.fill();
+    }
   }
 }
 
-// Botón (flecha) del detalle año a año del interés compuesto (arranca plegado).
+// Tooltip de la gráfica: reutiliza el flotante #tooltip del resto de la página.
 (function () {
-  const b = document.getElementById('btnCiTabla'), w = document.getElementById('ciTablaWrap');
-  if (!b || !w) return;
-  setToggleArrow(b, true, 'el detalle año a año');
-  b.addEventListener('click', () => {
-    const show = w.style.display === 'none';
-    w.style.display = show ? '' : 'none';
-    setToggleArrow(b, !show, 'el detalle año a año');
-  });
+  const cv = document.getElementById('ciChart');
+  if (!cv) return;
+  const tip = document.getElementById('tooltip');
+  const baseYear = new Date().getFullYear();
+  const show = e => {
+    if (!ciChartData || !ciPlot) return;
+    const p = (e.touches ? e.touches[0] : e);
+    const mx = p.clientX - cv.getBoundingClientRect().left;
+    const { filas } = ciChartData;
+    let best = 0, bestD = Infinity;
+    filas.forEach((f, k) => { const d = Math.abs(ciPlot.X(f.anio) - mx); if (d < bestD) { bestD = d; best = k; } });
+    const f = filas[best];
+    tip.innerHTML = `<div class="t-year">Año ${f.anio} · ${baseYear + f.anio}</div>
+      <div class="t-row"><span style="color:#cbd5e1">Saldo</span><span>${fmt.format(f.saldo)}</span></div>
+      <div class="t-row"><span style="color:#8fa3b8">Has puesto tú</span><span>${fmt.format(f.aportado)}</span></div>
+      <div class="t-row"><span style="color:#60a5fa">Lo ha puesto el interés</span><span>${fmt.format(f.interes)}</span></div>`;
+    tip.style.opacity = 1;
+    tip.style.left = (p.clientX + 14) + 'px';
+    tip.style.top = (p.clientY + 14) + 'px';
+    drawCiChart(best);
+  };
+  cv.addEventListener('mousemove', show);
+  cv.addEventListener('click', show);
+  cv.addEventListener('touchstart', show, { passive: true });
+  cv.addEventListener('touchmove', show, { passive: true });
+  cv.addEventListener('mouseleave', () => { tip.style.opacity = 0; drawCiChart(); });
 })();
 
 // Plegar/desplegar bloques de tarjeta (las entradas y el detalle de "cuánto aportar"),
@@ -1598,9 +1717,19 @@ function wireCardToggle(btnId, targetId, name, defaultCollapsed = false) {
     const u = readUi(); u[targetId] = collapsed; writeUi(u);
   });
 }
+// El bloque de interés compuesto cambió de contenido (una gráfica en vez de dos tablas):
+// se olvida una sola vez el estado recordado para que vuelva a arrancar plegado.
+(function () {
+  const u = readUi();
+  if (!u._ciV2) { delete u.ciBody; u._ciV2 = 1; writeUi(u); }
+})();
+
 wireCardToggle('btnInputs', 'inputsBody', 'los datos');
 wireCardToggle('btnDetalle', 'detalleWrap', 'el detalle', true);
 wireCardToggle('btnCi', 'ciBody', 'la calculadora', true);
+// Mientras la tarjeta está plegada el canvas mide 0 y no se puede pintar: al desplegarla
+// hay que redibujar. Este listener corre después del que registra wireCardToggle.
+document.getElementById('btnCi').addEventListener('click', () => drawCiChart());
 
 // ---- Persistencia del formulario en este navegador (como la calculadora de estilo de vida) ----
 const LS_FORM = 'jubilacion-v1';

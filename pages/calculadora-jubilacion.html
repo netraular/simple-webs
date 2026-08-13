@@ -1032,7 +1032,7 @@ function renderEsfuerzo() {
   // Subtítulo: con el slider en hoy, la frase del plan; si no, la de ese año.
   document.getElementById('mensual-sub').innerHTML = esHoy ? planSub
     : cuota > 0
-      ? `cuota del año <b>${X}→${X + 1}</b> (el ${t + 1}º de los ${M} de acumulación) · en € de ese año serían <b>${fmt.format(nominal(cuota))}/mes</b>`
+      ? `cuota del año <b>${X}→${X + 1}</b> · en € de ese año serían <b>${fmt.format(nominal(cuota))}/mes</b>`
       : X >= F
         ? `a los <b>${F}</b> te retiras: dejas de aportar y la cartera empieza a pagarte a ti`
         : `a esta edad <b>ya no aportas nada</b>: la cartera compone sola hasta el retiro`;

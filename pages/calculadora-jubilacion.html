@@ -408,7 +408,7 @@
         <div class="two">
           <div>
             <label for="r_acum">Rent. real al acumular (%)</label>
-            <input type="number" id="r_acum" value="6.5" min="0" max="12" step="0.1">
+            <input type="number" id="r_acum" value="7" min="0" max="12" step="0.1">
           </div>
           <div>
             <label for="r_retiro">Rent. real ya jubilado (%)</label>
@@ -418,7 +418,7 @@
         <div class="hint" id="nom-hint"></div>
         <label for="inflacion">Inflación anual asumida (%)</label>
         <input type="number" id="inflacion" value="3" min="0" max="8" step="0.1">
-        <div class="hint">Trabajas en términos reales (€ de hoy) = rentabilidad nominal − inflación. Aquí asumes <strong>6,5% real</strong> (≈ 9,7% nominal − 3% inflación). Ojo: el S&P500 real histórico ronda el 4,5%; 6,5% es una hipótesis <em>optimista</em>, razonable si cuentas con la pensión como colchón.</div>
+        <div class="hint">Trabajas en términos reales (€ de hoy) = rentabilidad nominal − inflación. Aquí asumes <strong>7% real</strong> (≈ 10,2% nominal − 3% inflación). Ojo: el S&P500 real histórico ronda el 4,5%; 7% es una hipótesis <em>optimista</em>, razonable si cuentas con la pensión como colchón.</div>
       </div>
 
       <div class="group">
@@ -2058,7 +2058,7 @@ scenarioSel.addEventListener('change', () => {
    de hipótesis son idénticas, así comparar los tres botones aísla el efecto del sueldo. */
 const PRESET_BASE = {
   edad: '30', fire: '55', fin: '105', trabajo: '25', pension_edad: '65',
-  impuestos: '15', r_acum: '6.5', r_retiro: '5.5', inflacion: '3',
+  impuestos: '15', r_acum: '7', r_retiro: '5.5', inflacion: '3',
   perfil_modo: 'ratio', frontload: '2', convenio_coste: '400', cobrare_pension: false
 };
 const PRESETS_SUELDO = {

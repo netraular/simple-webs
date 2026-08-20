@@ -722,11 +722,14 @@ function flatWeight(t, T) {
 const PERFIL_VENTANA = { tope: rampWeight, sprint: flatWeight };
 
 // Perfil de aportación elegido en el formulario.
+// El ratio se acota a 1 (el input ya lo pide, pero se puede teclear por debajo): un
+// ratio < 1 sería aportar MÁS al final, que no es lo que este perfil modela. Con 1 el
+// reparto es de hecho constante, y así lo dice la etiqueta del desglose.
 function perfilAportacion() {
   const sel = document.getElementById('perfil_modo');
   return {
     modo: sel ? sel.value : 'ratio',
-    frontload: val('frontload') || 1,
+    frontload: Math.max(1, val('frontload') || 1),
     tope: val('tope_aporte'),
     sprint: val('sprint_ahorro'),
   };
@@ -864,13 +867,19 @@ function scenario(F, estrategiaOverride) {
   // Años en los que de verdad aportas algo (en "cero", "tope" y "sprint" la cola es 0 €).
   let aniosAportando = 0;
   for (let age = a0; age < F; age++) if (base * weight(age) > 0.5) aniosAportando++;
+  // Primera edad en la que ya no aportas nada: el fin del esfuerzo. `paraAntes` distingue
+  // el caso en que de verdad hay "bola de nieve" (sueltas el ahorro y la cartera compone
+  // sola un tramo) del caso en que la última cuota cae justo en el año del retiro, donde
+  // no hay nada que soltar. Fuente única para el subtítulo y para el hito de la línea.
+  const stopAge = a0 + aniosAportando;
+  const paraAntes = aniosAportando > 0 && stopAge < F;
 
   // Nº Coast FIRE: cuánto habría que tener invertido HOY para no aportar nada más y aun
   // así llegar al objetivo. Usa el MISMO capital objetivo que el plan (mismo impuesto
   // efectivo sobre lo retirado y, si la cuentas, con la pensión pública ya descontada).
   const coastNum = capNeeded / Math.pow(1 + rA, M);
 
-  return { F, a0, PA, E, cap0, S, P, rA, rR, estrategia, rate0, infl, i, M, capNeeded, capBase, pensionPV, cobrarePension, mensual, anual, tasa, coastNum, tr, convenioActivo, convenioMes, convenioAnual, base, frontload, mensualIni, mensualFin, perfil, weight, ventana, ventanaCorta, suelo, importeMinimo, falta, aniosAportando };
+  return { F, a0, PA, E, cap0, S, P, rA, rR, estrategia, rate0, infl, i, M, capNeeded, capBase, pensionPV, cobrarePension, mensual, anual, tasa, coastNum, tr, convenioActivo, convenioMes, convenioAnual, base, frontload, mensualIni, mensualFin, perfil, weight, ventana, ventanaCorta, suelo, importeMinimo, falta, aniosAportando, stopAge, paraAntes };
 }
 
 // Construye la curva determinista de patrimonio (€ de hoy) año a año a partir de
@@ -916,8 +925,11 @@ function compute() {
   if (F <= a0 || E <= F) return;
 
   const sc = scenario(F);
-  const { PA, S, P, infl, i, M, capNeeded, capBase, pensionPV, cobrarePension, mensual, anual, tasa, coastNum, cap0, rA, rR, estrategia, rate0, tr, convenioActivo, convenioMes, convenioAnual, base, mensualIni, mensualFin, perfil, ventana, ventanaCorta, importeMinimo, falta, aniosAportando } = sc;
+  const { PA, S, P, infl, i, M, capNeeded, capBase, pensionPV, cobrarePension, mensual, anual, tasa, coastNum, cap0, rA, rR, estrategia, rate0, tr, convenioActivo, convenioMes, convenioAnual, base, mensualIni, mensualFin, perfil, ventana, ventanaCorta, importeMinimo, falta, aniosAportando, stopAge, paraAntes } = sc;
   const decreciente = mensualIni > mensualFin + 1;
+  // Con ratio 1 el perfil "ratio" es constante de hecho: que la etiqueta no diga otra cosa.
+  const perfilNombre = perfil.modo === 'ratio' && perfil.frontload <= 1
+    ? 'Constante (ratio 1×)' : (PERFIL_NOMBRE[perfil.modo] || perfil.modo);
   // Modo "tope" resuelto por suelo: no se puede parar antes del retiro, así que la cuota
   // baja del tope a una cuota mínima (el suelo) en vez de morir en 0 €.
   // (un suelo de céntimos es, a efectos prácticos, la rampa que muere en 0 €).
@@ -958,7 +970,9 @@ function compute() {
     tope: () => conSuelo
       ? `tu <b>tope</b>, que pagas el <b>primer año</b> (en € de hoy) · con ese tope no puedes dejar de aportar antes de tiempo, así que la cuota baja en línea recta solo hasta <b>${fmt.format(mensualFin)}/mes</b> y aportas los <b>${M} años</b>`
       : `tu <b>tope</b>, que pagas el <b>primer año</b> (en € de hoy) · baja en línea recta hasta <b>0 €</b> a lo largo de <b>${aniosAportando} de los ${M} años</b>${aniosAportando < M ? `; ${M - aniosAportando === 1 ? 'el <b>año</b> restante' : `los <b>${M - aniosAportando}</b> restantes`} no aportas nada (la cartera solo compone)` : ''}`,
-    sprint: () => `Alcanzas tu <b>Nº Coast FIRE</b> a los <b>${a0 + aniosAportando}</b>: desde entonces puedes dejar de aportar y la bola rueda sola hasta el retiro.`,
+    sprint: () => paraAntes
+      ? `Alcanzas tu <b>Nº Coast FIRE</b> a los <b>${stopAge}</b>: desde entonces puedes dejar de aportar y la bola rueda sola hasta el retiro.`
+      : `tu <b>sprint</b> (en € de hoy) · con ese importe la bola no llega a rodar sola: aportas hasta el <b>último año</b>, ya sin margen para parar antes del retiro. Súbelo para adelantar tu <b>Nº Coast FIRE</b>.`,
   };
   planSub = (decreciente && SUB_PERFIL[perfil.modo] || SUB_PERFIL.constante)();
 
@@ -982,9 +996,9 @@ function compute() {
     <div class="row"><span class="muted">Retirada bruta anual de la cartera (con ${(tr*100).toFixed(0)}% impuestos)</span><span>${fmt.format(S/(1-tr))}/año</span></div>
     ${convenioActivo ? `<div class="row"><span class="muted">Coste convenio especial (solo hasta la edad de pensión)</span><span>${fmt.format(convenioMes)}/mes · ${fmt.format(convenioAnual)}/año</span></div>` : ''}
     <div class="row"><span class="muted">Aportación anual necesaria${decreciente?' (primer→último año)':''}</span><span>${decreciente?`${fmt.format(anual)} → ${fmt.format(mensualFin*12)}`:fmt.format(anual)}</span></div>
-    <div class="row"><span class="muted">Perfil de aportación</span><span>${PERFIL_NOMBRE[perfil.modo] || perfil.modo}</span></div>
+    <div class="row"><span class="muted">Perfil de aportación</span><span>${perfilNombre}</span></div>
     ${conSuelo ? `<div class="row"><span class="muted">Con ese tope aportas los ${M} años (no da para parar antes)</span><span>${fmt.format(base)} → ${fmt.format(mensualFin)}/mes</span></div>`
-      : PERFIL_VENTANA[perfil.modo] && !ventanaCorta ? `<div class="row"><span class="muted">${perfil.modo === 'tope' ? 'Años pagando con ese tope (hasta llegar a 0 €)' : 'Años de sprint (luego dejas de ahorrar)'}</span><span>${aniosAportando} de ${M} (${a0}→${a0 + aniosAportando})</span></div>` : ''}
+      : PERFIL_VENTANA[perfil.modo] && !ventanaCorta ? `<div class="row"><span class="muted">${perfil.modo === 'tope' ? 'Años pagando con ese tope (hasta llegar a 0 €)' : 'Años de sprint (luego dejas de ahorrar)'}</span><span>${aniosAportando} de ${M} (${a0}→${stopAge})</span></div>` : ''}
     <div class="row"><span class="muted">${tasaRowLabel}</span><span>${tasaRowVal}</span></div>
     <div class="row"><span class="muted">Estrategia de retirada</span><span>${estrNombre}</span></div>
     <div class="row"><span class="muted">Capital necesario sin pensión (gasto ÷ ${(rate0*100).toFixed(1)}%)</span><span>${fmt.format(capBase)}</span></div>
@@ -1046,7 +1060,7 @@ function syncViewSlider(sc) {
 function renderEsfuerzo() {
   const sc = lastSc, curve = lastCurve;
   if (!sc || !curve) return;
-  const { a0, F, cap0, capNeeded, rA, infl, base, weight, aniosAportando, M } = sc;
+  const { a0, F, cap0, capNeeded, rA, infl, base, weight, stopAge, paraAntes, M } = sc;
   const X = viewAge === null ? a0 : Math.max(a0, Math.min(F, viewAge));
   const esHoy = X === a0;
   const t = X - a0;                                  // años transcurridos desde hoy
@@ -1085,11 +1099,10 @@ function renderEsfuerzo() {
         : `a esta edad <b>ya no aportas nada</b>: la cartera compone sola hasta el retiro`;
 
   /* --- Slider: el raíl es la línea de fases de la acumulación --- */
-  const stopAge = a0 + aniosAportando;               // dejas de aportar (tope / sprint / hasta 0)
-  const span = Math.max(1, F - a0);
+  const span = Math.max(1, F - a0);                  // stopAge: dejas de aportar (tope / sprint / hasta 0)
   const at = age => Math.max(0, Math.min(100, ((age - a0) / span) * 100));
   const pStop = at(stopAge);
-  const paras = stopAge > a0 && stopAge < F;         // hay tramo de "bola de nieve" que marcar
+  const paras = paraAntes;                           // hay tramo de "bola de nieve" que marcar
   document.getElementById('viewAge').style.setProperty('--tl-track',
       paras ? `linear-gradient(90deg, var(--blue) 0 ${pStop}%, rgba(0,163,199,.28) ${pStop}% 100%)`
     : stopAge <= a0 ? 'rgba(0,163,199,.28)'          // no aportas nunca: ya llegas con lo que tienes

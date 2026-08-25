@@ -180,20 +180,19 @@
      (la tarjeta ocupa todo el ancho) */
   @media (min-width: 780px) { #keyKpis, #ciKpis { grid-template-columns: repeat(3, 1fr); } }
 
-  /* Monte Carlo */
+  /* Simulación de mercado */
   .mc-canvas { width: 100%; height: auto; display: block; cursor: crosshair; }
   #mcKpis { grid-template-columns: repeat(4, 1fr); }
   @media (max-width: 820px){ #mcKpis { grid-template-columns: 1fr 1fr; } }
   #mcChartSel { width: auto; display: inline-block; padding: 5px 10px; font-size: .9rem; font-weight: 600; }
   .mc-sub { font-size: .95rem; margin: 0 0 6px; color: var(--accent); }
-  .mini.mc-sel { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent) inset; background: rgba(56,189,248,.06); }
-  #mcKpis .mini{position:relative}
-  #mcKpis .mini > :not(.mc-pick){position:relative; z-index:2; pointer-events:none}
-  .mc-pick{position:absolute; inset:0; z-index:1; width:100%; padding:0; border:0; border-radius:inherit; background:transparent; cursor:pointer}
-  .mc-pick:hover{box-shadow:inset 0 0 0 1px var(--accent)}
-  .mc-pick:focus-visible{outline:3px solid rgba(20,99,255,.3); outline-offset:2px}
-  #mcKpis .mc-info{pointer-events:auto}
-  .mc-compare.active{border-color:var(--accent); color:var(--accent); background:#e8f0ff}
+  /* Capital de partida de la simulación: sale del plan, pero se puede escribir a mano. */
+  .mc-capital { margin: 0 0 18px; max-width: 560px; }
+  .mc-capital > label { margin-top: 0; }
+  .mc-cap-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .mc-cap-row input { max-width: 230px; }
+  .mc-cap-note { font-size: .72rem; color: var(--muted); margin-top: 7px; line-height: 1.5; }
+  .mc-cap-note.is-manual { color: #8a6410; }
 
   /* Horizonte: panel técnico de planificación. */
   :root{
@@ -501,7 +500,7 @@
     <div id="detalleWrap">
       <div class="breakdown" id="breakdown"></div>
       <div id="alerts"></div>
-      <div class="muted" style="font-size:.74rem; margin-top:12px; line-height:1.5">El "capital al retirarte" se dimensiona con la <b>regla del 4%</b> (Fija real): necesitas 25× el gasto anual (dejando herencia), y ya cuenta con impuestos y pensión. Puedes comparar cómo se comportarían otras estrategias de retirada (VPW, % del saldo, Guyton-Klinger) en la <b>simulación de mercado</b> de abajo.</div>
+      <div class="muted" style="font-size:.74rem; margin-top:12px; line-height:1.5">El "capital al retirarte" se dimensiona con la <b>regla del 4%</b>: necesitas 25× el gasto anual (dejando herencia), y ya cuenta con impuestos y pensión. En la <b>simulación de mercado</b> de abajo puedes ver qué renta daría ese capital si cada año retiras el <b>4% del saldo</b> que te quede.</div>
     </div>
   </div>
   </div>
@@ -509,20 +508,30 @@
   <!-- SIMULACIÓN DE MERCADO (MONTE CARLO) -->
   <div class="card chart-card">
     <h2>Simulación de mercado</h2>
-    <p class="subtitle" style="margin-bottom:16px"><strong id="mcN">2.000</strong> futuros posibles con una rentabilidad real media del <span id="mcMedia">—</span> y volatilidad del <span id="mcVol">12%</span>. Compara estrategias y explora el riesgo de tu cartera.</p>
-    <div class="hint" style="margin-bottom:16px">💡 <b>Las cifras son en € de hoy (poder adquisitivo constante).</b> La renta que ves es el valor <b>fijo en poder de compra</b>; en euros <b>nominales</b> (los que cobrarías en el banco) sacarías cada año <b>~la inflación más</b> (por defecto +3%/año) para que ese importe siga valiendo lo mismo. Por eso la línea «Fija real (4%)», que se ve plana, en nominal iría subiendo con la inflación.</div>
+    <p class="subtitle" style="margin-bottom:16px"><strong id="mcN">2.000</strong> futuros posibles con una rentabilidad real media del <span id="mcMedia">—</span> y volatilidad del <span id="mcVol">12%</span>. Cada año retiras el <b>4% del saldo que tengas</b> en ese momento.</p>
+    <div class="hint" style="margin-bottom:16px">💡 <b>La estrategia es una sola: 4% del total, revisado cada año.</b> No sacas una cifra fija: sacas el 4% de lo que haya en la cartera ese año, así que en un año malo retiras <b>menos</b> y en uno bueno, <b>más</b>. A cambio de esa flexibilidad la cartera <b>nunca llega a cero</b> (siempre retiras una parte de lo que queda): el riesgo aquí no es arruinarse, es que la renta baje. Las cifras son <b>brutas</b> (antes del impuesto sobre lo retirado) y en <b>€ de hoy</b>: en euros nominales irías sacando cada año ~la inflación más (por defecto +3%/año) para que valgan lo mismo.</div>
 
-    <div class="cards-mini" id="mcKpis" role="group" aria-label="Estrategias de retirada"></div>
+    <div class="mc-capital">
+      <label for="mc_capital">Capital al jubilarte (€ de hoy)</label>
+      <div class="mc-cap-row">
+        <input type="number" id="mc_capital" min="0" step="1000">
+        <button type="button" class="tool" id="btnMcCapReset" hidden>↺ Volver al calculado</button>
+        <input type="hidden" id="mc_capital_manual" value="">
+      </div>
+      <div class="hint">De aquí parte la simulación. Por defecto es el capital al que llegas con tu plan (<b>Diseña tu ruta</b>) y se actualiza solo cada vez que cambias esos datos. Si escribes otra cifra a mano, la simulación pasa a usarla y deja de seguir al plan hasta que pulses <b>↺ Volver al calculado</b>.</div>
+      <div class="mc-cap-note" id="mcCapNote"></div>
+    </div>
+
+    <div class="cards-mini" id="mcKpis" role="group" aria-label="Resultados de la simulación"></div>
+    <div id="mcRecorte"></div>
 
     <div style="margin-top:24px">
       <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:12px">
-        <button type="button" class="tool mc-compare active" id="mcCompareAll" aria-pressed="true">Comparar todas</button>
         <label for="mcChartSel" style="margin:0; color:var(--text); font-size:.9rem">Gráfica:</label>
         <select id="mcChartSel">
-          <option value="det">Proyección determinista (patrimonio año a año)</option>
-          <option value="saldo">Patrimonio medio (Monte Carlo)</option>
-          <option value="renta">Renta anual media (Monte Carlo)</option>
-          <option value="fan">Abanico de incertidumbre p10–p90 (Monte Carlo)</option>
+          <option value="renta">Renta anual: mediana y abanico p10–p90</option>
+          <option value="saldo">Patrimonio: mediana y abanico p10–p90</option>
+          <option value="det">Proyección determinista de tu plan (patrimonio año a año)</option>
         </select>
       </div>
       <h3 class="mc-sub" id="mcChartTitle"></h3>
@@ -541,11 +550,11 @@
           <span><i class="dot" style="background:var(--accent)"></i> Retiro con pensión</span>
         </div>
         <canvas id="chart"></canvas>
-        <div class="hint" style="margin-top:10px; text-align:center">📅 Todo el eje está en <b>€ de hoy (poder adquisitivo constante)</b>. Curva <b>determinista</b>: rentabilidad fija (sin volatilidad) y <b>gasto constante</b> (S cada año). Con <b>VPW</b> baja hasta ~0 en tu edad final; con la <b>regla del 4%</b> se mantiene plana o crece. Ojo: las estrategias adaptativas (<b>% del saldo</b>, <b>Guyton-Klinger</b>) recortan el gasto en años malos para durar más — eso no se ve aquí (gasto fijo), sino en las gráficas de Monte Carlo. <b>Pasa el ratón</b> para ver el gasto de cada año y de dónde sale (cartera / pensión).</div>
+        <div class="hint" style="margin-top:10px; text-align:center">📅 Todo el eje está en <b>€ de hoy (poder adquisitivo constante)</b>. Esta es la curva de <b>tu plan</b>, no la de la simulación: rentabilidad fija (sin volatilidad), <b>gasto constante</b> (S cada año) y el capital que sale de <b>Diseña tu ruta</b> (no usa el capital que hayas escrito a mano arriba). Retirar el <b>4% del saldo</b> ajusta el gasto arriba y abajo cada año, y eso solo se ve en las otras dos gráficas. <b>Pasa el ratón</b> para ver el gasto de cada año y de dónde sale (cartera / pensión).</div>
       </div>
     </div>
 
-    <div style="margin-top:14px; font-size:.75rem; color:#64748b; line-height:1.6">Toca la <b>ⓘ</b> de cada tarjeta de arriba para ver qué es esa estrategia. <b>Cifras brutas por retirada</b> (el impuesto efectivo de arriba no se aplica aquí). La <b>tasa de éxito</b> es el % de escenarios en los que no te quedas sin dinero antes de tu edad final.</div>
+    <div style="margin-top:14px; font-size:.75rem; color:#64748b; line-height:1.6"><b>Cifras brutas por retirada:</b> de lo que sacas cada año aún hay que pagar el impuesto efectivo sobre lo retirado que has puesto arriba. Cada escenario sortea la rentabilidad real de cada año de una normal con esa media y volatilidad; el orden en que llegan los años buenos y malos es lo que separa unos futuros de otros.</div>
 
     <!-- Plan año a año: subsección plegable, no una tarjeta al mismo nivel que el resto -->
     <h3 class="sub-toggle">Plan año a año
@@ -655,32 +664,11 @@ let chartData = null;
 
 const val = id => parseFloat(document.getElementById(id).value) || 0;
 
-// Estrategia de retirada (fuente única). rate0 = "tasa inicial de retirada" que
-// convierte la retirada bruta anual en capital necesario: capital = bruto / rate0.
-// Bajo rentabilidad determinista rR todas dan ~el mismo gasto; la diferencia
-// visible es el capital (VPW pide menos porque agota el principal). Las
-// diferencias reales entre estrategias emergen con volatilidad (simulación de mercado).
-const STRAT = {
-  vpw:  { nombre: 'VPW / amortización', color: '#0c9b76' },
-  fija: { nombre: 'Fija real (4%)',     color: '#df4d5b' },
-  pct:  { nombre: '% fijo del saldo',   color: '#e08c00' },
-  gk:   { nombre: 'Guyton-Klinger',     color: '#1463ff' },
-};
-function rate0For(key, rR, n) {
-  if (key === 'gk') return 0.05;
-  if (key === 'vpw') return n <= 0 ? 1 : (rR > 0 ? rR / (1 - Math.pow(1 + rR, -n)) : 1 / n);
-  return 0.04;   // fija y pct
-}
-const PERFIL_NOMBRE = {
-  constante: 'Constante',
-  ratio: 'Decreciente (ratio primer/último año)',
-  cero: 'Decreciente hasta 0 € el último año',
-  tope: 'Tope de aportación, con cuota decreciente',
-  sprint: 'Bola de nieve (sprint plano y parar)',
-};
-// El plan siempre se dimensiona con la regla del 4% (Fija real). La comparación
-// con otras estrategias solo se visualiza en la simulación de mercado.
-const estrategiaSel = () => 'fija';
+// Tasa inicial de retirada con la que se dimensiona el plan: convierte la retirada
+// bruta anual en capital necesario (capital = bruto / TASA_RETIRO → 25× el gasto).
+// La simulación de mercado usa esta misma tasa, pero aplicada cada año al saldo que
+// quede en ese momento en vez de al capital inicial.
+const TASA_RETIRO = 0.04;
 
 // Peso de la aportación en el año que empieza a la edad "age" (perfil decreciente lineal).
 // frontload=1 → constante; frontload=2 → primer año doble que el último, bajando en línea recta.
@@ -744,13 +732,12 @@ function pensionAt(F, startWork, fullPension) {
 }
 
 // Calcula un escenario completo para una edad de retiro F. Todo en € de hoy.
-function scenario(F, estrategiaOverride) {
+function scenario(F) {
   const a0 = val('edad'), PA = val('pension_edad'), E = val('fin');
   const cap0 = val('capital'), neto = val('neto') * 12, S = val('gasto') * 12;   // inputs mensuales → anuales
   const fullPension = val('pension'), startWork = val('trabajo');
   const rA = val('r_acum')/100, rR = val('r_retiro')/100, infl = val('inflacion')/100;
-  const estrategia = estrategiaOverride || estrategiaSel();
-  const rate0 = rate0For(estrategia, rR, E - F);      // tasa inicial de retirada según estrategia
+  const rate0 = TASA_RETIRO;                         // regla del 4%: capital = retirada bruta / 4%
   const tr = Math.min(0.95, val('impuestos')/100);   // impuesto efectivo sobre retiradas
 
   // ¿El usuario cuenta con cobrar la pensión pública? Si NO, se ignora por completo
@@ -766,9 +753,8 @@ function scenario(F, estrategiaOverride) {
   const convenioAnual = convenioActivo ? convenioMes * 12 : 0;
   const P = cobrarePension ? pensionAt(convenioActivo ? PA : F, startWork, fullPension) : 0;
 
-  // Capital necesario al retirarte según la ESTRATEGIA: capital = retirada bruta / rate0.
-  // Con VPW rate0 es la tasa de renta que agota el capital a la edad final (menos capital);
-  // con la regla del 4% es 0.04 (25×). Se dimensiona al pico (gasto completo) + convenio.
+  // Capital necesario al retirarte con la regla del 4%: capital = retirada bruta / 0,04
+  // (25× el gasto). Se dimensiona al pico (gasto completo) + convenio.
   const capBase = rate0 > 0 ? (S / (1 - tr) + convenioAnual) / rate0 : Infinity;
 
   // Si cuentas con la pensión, restamos su VALOR ACTUAL (a la edad de retiro F, descontado a rR):
@@ -879,7 +865,7 @@ function scenario(F, estrategiaOverride) {
   // efectivo sobre lo retirado y, si la cuentas, con la pensión pública ya descontada).
   const coastNum = capNeeded / Math.pow(1 + rA, M);
 
-  return { F, a0, PA, E, cap0, S, P, rA, rR, estrategia, rate0, infl, i, M, capNeeded, capBase, pensionPV, cobrarePension, mensual, anual, tasa, coastNum, tr, convenioActivo, convenioMes, convenioAnual, base, frontload, mensualIni, mensualFin, perfil, weight, ventana, ventanaCorta, suelo, importeMinimo, falta, aniosAportando, stopAge, paraAntes };
+  return { F, a0, PA, E, cap0, S, P, rA, rR, rate0, infl, i, M, capNeeded, capBase, pensionPV, cobrarePension, mensual, anual, tasa, coastNum, tr, convenioActivo, convenioMes, convenioAnual, base, frontload, mensualIni, mensualFin, perfil, weight, ventana, ventanaCorta, suelo, importeMinimo, falta, aniosAportando, stopAge, paraAntes };
 }
 
 // Construye la curva determinista de patrimonio (€ de hoy) año a año a partir de
@@ -925,16 +911,12 @@ function compute() {
   if (F <= a0 || E <= F) return;
 
   const sc = scenario(F);
-  const { PA, S, P, infl, i, M, capNeeded, capBase, pensionPV, cobrarePension, mensual, anual, tasa, coastNum, cap0, rA, rR, estrategia, rate0, tr, convenioActivo, convenioMes, convenioAnual, base, mensualIni, mensualFin, perfil, ventana, ventanaCorta, importeMinimo, falta, aniosAportando, stopAge, paraAntes } = sc;
+  const { PA, S, P, infl, i, M, capNeeded, pensionPV, cobrarePension, mensual, anual, tasa, coastNum, cap0, rA, tr, convenioActivo, convenioMes, convenioAnual, base, mensualIni, mensualFin, perfil, ventana, ventanaCorta, importeMinimo, falta, aniosAportando, stopAge, paraAntes } = sc;
   const decreciente = mensualIni > mensualFin + 1;
-  // Con ratio 1 el perfil "ratio" es constante de hecho: que la etiqueta no diga otra cosa.
-  const perfilNombre = perfil.modo === 'ratio' && perfil.frontload <= 1
-    ? 'Constante (ratio 1×)' : (PERFIL_NOMBRE[perfil.modo] || perfil.modo);
   // Modo "tope" resuelto por suelo: no se puede parar antes del retiro, así que la cuota
   // baja del tope a una cuota mínima (el suelo) en vez de morir en 0 €.
   // (un suelo de céntimos es, a efectos prácticos, la rampa que muere en 0 €).
   const conSuelo = perfil.modo === 'tope' && !ventanaCorta && mensualFin > 0.5;
-  const estrNombre = (STRAT[estrategia] || {}).nombre || estrategia;
 
   document.getElementById('fireValue').textContent = `${F} años`;
 
@@ -989,22 +971,17 @@ function compute() {
 
   document.getElementById('breakdown').innerHTML = `
     <div class="row"><span class="muted">Años acumulando</span><span>${M} años (${a0}→${F})</span></div>
-    <div class="row"><span class="muted">Años de retiro</span><span>${E-F} años (${F}→${E})</span></div>
     ${cobrarePension ? `
     <div class="row"><span class="muted">Años hasta la edad de pensión</span><span>${Math.max(0,Math.min(PA,E)-F)} años (${F}→${Math.min(PA,E)})</span></div>
     <div class="row"><span class="muted">Pensión estimada (desde ${PA})${convenioActivo?' · 100% vía convenio':''}</span><span>${fmt.format(P)}/año</span></div>` : ''}
     <div class="row"><span class="muted">Retirada bruta anual de la cartera (con ${(tr*100).toFixed(0)}% impuestos)</span><span>${fmt.format(S/(1-tr))}/año</span></div>
     ${convenioActivo ? `<div class="row"><span class="muted">Coste convenio especial (solo hasta la edad de pensión)</span><span>${fmt.format(convenioMes)}/mes · ${fmt.format(convenioAnual)}/año</span></div>` : ''}
     <div class="row"><span class="muted">Aportación anual necesaria${decreciente?' (primer→último año)':''}</span><span>${decreciente?`${fmt.format(anual)} → ${fmt.format(mensualFin*12)}`:fmt.format(anual)}</span></div>
-    <div class="row"><span class="muted">Perfil de aportación</span><span>${perfilNombre}</span></div>
     ${conSuelo ? `<div class="row"><span class="muted">Con ese tope aportas los ${M} años (no da para parar antes)</span><span>${fmt.format(base)} → ${fmt.format(mensualFin)}/mes</span></div>`
       : PERFIL_VENTANA[perfil.modo] && !ventanaCorta ? `<div class="row"><span class="muted">${perfil.modo === 'tope' ? 'Años pagando con ese tope (hasta llegar a 0 €)' : 'Años de sprint (luego dejas de ahorrar)'}</span><span>${aniosAportando} de ${M} (${a0}→${stopAge})</span></div>` : ''}
     <div class="row"><span class="muted">${tasaRowLabel}</span><span>${tasaRowVal}</span></div>
-    <div class="row"><span class="muted">Estrategia de retirada</span><span>${estrNombre}</span></div>
-    <div class="row"><span class="muted">Capital necesario sin pensión (gasto ÷ ${(rate0*100).toFixed(1)}%)</span><span>${fmt.format(capBase)}</span></div>
-    ${cobrarePension && pensionPV > 0 ? `<div class="row"><span class="muted">− Valor actual de la pensión (te lo ahorras)</span><span>− ${fmt.format(pensionPV)}</span></div>` : ''}
+    ${cobrarePension && pensionPV > 0 ? `<div class="row"><span class="muted">Valor actual de la pensión (te lo ahorras)</span><span>− ${fmt.format(pensionPV)}</span></div>` : ''}
     <div class="row"><span class="muted"><b>Capital necesario al retirarte</b></span><span><b>${fmt.format(capNeeded)}</b></span></div>
-    <div class="row"><span class="muted">Tasa inicial de retirada / Rentabilidad real</span><span>${(rate0*100).toFixed(1)}% / ${(rR*100).toFixed(1)}% ${rR>rate0?'📈':rR<rate0?'📉':'➡️'}</span></div>
   `;
 
   let alerts = '';
@@ -1327,19 +1304,16 @@ window.addEventListener('resize', () => {
   drawCiChart();
 });
 
-/* ================= Monte Carlo (4 estrategias de retirada) =================
-   Portado a JS desde simulacion_regla4.py, pero corriendo EN VIVO con tus
-   parámetros y en términos reales (€ de hoy): la rentabilidad de cada año se
-   sortea de Normal(rent. real, volatilidad) y no hay ajuste por inflación
-   (ya trabajamos en poder de compra constante). */
-const MC_STRATS = [
-  { key: 'fija', nombre: 'Fija real (4%)',     color: '#df4d5b', desc: '<b>Fija real (regla del 4%):</b> retiras un % fijo del capital inicial y lo mantienes constante en poder de compra. Sencilla, pero rígida: si vienen años malos al principio, puede agotarse (riesgo de secuencia).' },
-  { key: 'pct',  nombre: '% fijo del saldo',   color: '#e08c00', desc: '<b>% fijo del saldo:</b> retiras ese % del saldo actual cada año. Nunca te arruinas (siempre queda algo), pero la renta baja en años malos.' },
-  { key: 'gk',   nombre: 'Guyton-Klinger',     color: '#1463ff', desc: '<b>Guyton-Klinger:</b> parte de una tasa algo mayor con «guardarraíles» que recortan o suben el gasto según cómo vaya la cartera. Equilibrio entre renta y seguridad.' },
-  { key: 'vpw',  nombre: 'VPW / amortización', color: '#0c9b76', desc: '<b>VPW / amortización:</b> % que crece con la edad, diseñada para gastarte el capital hacia el final. Da la renta más alta, pero deja poca o ninguna herencia.' },
-];
+/* ================= Simulación de mercado (Monte Carlo) =================
+   Una sola estrategia de retirada: cada año sacas el 4% del saldo que quede en
+   ese momento (revisión anual). En un año malo el saldo baja y retiras menos; en
+   uno bueno, más. La cartera no puede agotarse, porque siempre sacas una fracción
+   de lo que hay: el riesgo que se mide aquí es cuánto puede bajar la renta.
+   Todo en términos reales (€ de hoy): la rentabilidad de cada año se sortea de
+   Normal(rent. real, volatilidad) y no hay ajuste por inflación. */
 const MC_N = 2000;              // nº de escenarios
 const MC_SEED = 7;             // semilla fija → resultados estables/reproducibles
+const MC_COLOR = '#1463ff';    // color único de la simulación
 
 // PRNG determinista (mulberry32) + normal (Box-Muller)
 function mcRng(seed) {
@@ -1363,56 +1337,63 @@ function mcPct(sorted, p) {
   return f === c ? sorted[f] : sorted[f] + (sorted[c] - sorted[f]) * (k - f);
 }
 
-// Simula una estrategia para una secuencia de rentabilidades `rets` (en real).
-function mcSim(tipo, rets, cap0, rate, gkIni, vpwG, n) {
+// Un escenario: para la secuencia de rentabilidades `rets` (reales), cada año se
+// retira `tasa` × el saldo de ese momento y el resto sigue invertido.
+function mcSim(rets, capIni, tasa, n) {
   const saldos = [], retiros = [];
-  let saldo = cap0, wPrev = null, rPrev = null;
-  const BANDA = 0.20, AJUSTE = 0.10;
+  let saldo = capIni;
   for (let i = 0; i < n; i++) {
     saldos.push(saldo);
-    const restantes = n - i;
-    let w;
-    if (tipo === 'fija') {
-      w = rate * cap0;                          // real: constante en poder de compra
-    } else if (tipo === 'pct') {
-      w = rate * saldo;                          // % del saldo actual
-    } else if (tipo === 'gk') {
-      if (i === 0) {
-        w = gkIni * cap0;
-      } else {
-        w = wPrev;                             // real: se mantiene (sin factor inflación)
-        let ta = saldo > 0 ? w / saldo : 99;
-        if (rPrev !== null && rPrev < 0 && ta > gkIni) w = wPrev;
-        ta = saldo > 0 ? w / saldo : 99;
-        if (restantes > 15 && ta > gkIni * (1 + BANDA)) w *= (1 - AJUSTE);
-        else if (ta < gkIni * (1 - BANDA)) w *= (1 + AJUSTE);
-      }
-    } else {                                    // vpw
-      const g = vpwG;
-      w = restantes <= 1 ? saldo : saldo * g / (1 - Math.pow(1 + g, -restantes));
-    }
-    w = Math.max(Math.min(w, saldo), 0);
-    retiros.push(w); wPrev = w; rPrev = rets[i];
+    const w = tasa * saldo;                     // revisión anual: % del total que quede
+    retiros.push(w);
     saldo = Math.max((saldo - w) * (1 + rets[i]), 0);
   }
   return { saldos, retiros };
 }
 
 const MC_VOL = 0.12;                              // volatilidad real fija (12%)
-let mcData = null, mcSig = null, mcHover = null, mcStrategy = 'todas';
+let mcData = null, mcSig = null, mcHover = null;
+
+/* ---- Capital de partida de la simulación ----
+   Por defecto es el que alcanzas con tu plan, y se refresca cada vez que cambian
+   los datos de "Diseña tu ruta". En cuanto lo escribes a mano queda "enganchado"
+   a lo que tú has puesto (el flag se guarda con el resto del formulario) y el plan
+   deja de pisarlo hasta que pulsas ↺. */
+const mcCapManual = () => document.getElementById('mc_capital_manual').value === '1';
+function setMcCapManual(on) {
+  document.getElementById('mc_capital_manual').value = on ? '1' : '';
+}
+// Nota bajo el campo: de dónde sale la cifra que se está simulando.
+function renderMcCapNote(capPlan, manual, F, usable) {
+  const note = document.getElementById('mcCapNote');
+  const btn = document.getElementById('btnMcCapReset');
+  if (btn) btn.hidden = !manual;
+  if (!note) return;
+  note.classList.toggle('is-manual', manual);
+  note.innerHTML = manual
+    ? (usable
+        ? `✏️ Cifra escrita a mano: ya no sigue a <b>Diseña tu ruta</b> (tu plan llega a <b>${fmt.format(capPlan)}</b> a los ${F}).`
+        : `✏️ Falta una cifra válida: mientras tanto se simula el capital del plan, <b>${fmt.format(capPlan)}</b> a los ${F}.`)
+    : `Calculado con tu plan: es el capital que tendrías a los <b>${F}</b> años. Cámbialo para simular otra cifra.`;
+}
+
 function renderMonteCarlo(sc) {
-  const { F, E, rR, capNeeded, cap0, rA, M, estrategia } = sc;
-  const vol = MC_VOL;
-  // Capital al retirarte siguiendo tu plan.
-  const capAtF = Math.max(capNeeded, cap0 * Math.pow(1 + rA, M));
+  const { F, E, rR, capNeeded, cap0, rA, M, S, tr, PA, cobrarePension } = sc;
+  // Capital al retirarte siguiendo tu plan (o el que hayas escrito a mano).
+  const capPlan = Math.max(capNeeded, cap0 * Math.pow(1 + rA, M));
+  const manual = mcCapManual();
+  const capManual = Math.max(0, val('mc_capital'));
+  const capAtF = manual && capManual > 0 ? capManual : capPlan;
+  if (!manual) document.getElementById('mc_capital').value = Math.round(capPlan);
+  renderMcCapNote(capPlan, manual, F, capManual > 0);
+
   const n = Math.max(2, Math.round(E - F) + 1);   // edades F..E inclusive
-  const selectedNombre = (STRAT[estrategia] || {}).nombre || null;
+  const objetivo = S / (1 - tr);                  // retirada bruta que cubriría todo tu gasto
 
   // Solo recalculamos si cambió algo relevante para la simulación (evita relanzar
   // 2000 sims al editar campos que no afectan al Monte Carlo).
-  const sig = [Math.round(capAtF), F, E, rR.toFixed(4), n, estrategia].join('|');
+  const sig = [Math.round(capAtF), F, E, rR.toFixed(4), n, Math.round(objetivo), tr.toFixed(3), cobrarePension ? PA : 0].join('|');
   if (sig === mcSig && mcData) {
-    mcData.selectedNombre = selectedNombre;
     renderMcKpis();
     drawSelectedChart();
     return;
@@ -1421,62 +1402,56 @@ function renderMonteCarlo(sc) {
 
   // Cabecera informativa
   document.getElementById('mcMedia').textContent = (rR * 100).toFixed(1) + '%';
-  document.getElementById('mcVol').textContent = (vol * 100).toFixed(0) + '%';
+  document.getElementById('mcVol').textContent = (MC_VOL * 100).toFixed(0) + '%';
   document.getElementById('mcN').textContent = MC_N.toLocaleString('es-ES');
 
-  // Tasas FIJAS por estrategia (para comparar las 4 en igualdad):
-  const rateFijaPct = 0.04;                        // fija y % del saldo → 4%
-  const gkIni = 0.05;                              // Guyton-Klinger arranca al 5%
-  const vpwG = Math.max(0.005, rR);               // VPW amortiza a tu rentabilidad real
-
   const edades = []; for (let a = F; a <= E; a++) edades.push(a);
-  const acc = {};
-  MC_STRATS.forEach(s => acc[s.key] = {
-    saldo: Array.from({ length: n }, () => []),
-    renta: Array.from({ length: n }, () => []),
-    fin: [], rentaMed: [], exito: 0,
-  });
+  const saldoY = Array.from({ length: n }, () => []);   // saldos de cada año, todos los escenarios
+  const rentaY = Array.from({ length: n }, () => []);   // retiradas de cada año
+  // Una cifra por escenario: renta media, peor año, saldo final y qué parte de los
+  // años se queda por debajo del gasto objetivo (la medida de "cuánto recortarías").
+  const rentaMedia = [], rentaMin = [], finales = [], bajoObjetivo = [];
 
   const rng = mcRng(MC_SEED);
   for (let s = 0; s < MC_N; s++) {
     const rets = [];
-    for (let i = 0; i < n; i++) rets.push(rR + vol * mcGauss(rng));
-    MC_STRATS.forEach(st => {
-      const { saldos, retiros } = mcSim(st.key, rets, capAtF, rateFijaPct, gkIni, vpwG, n);
-      const a = acc[st.key];
-      for (let i = 0; i < n; i++) { a.saldo[i].push(saldos[i]); a.renta[i].push(retiros[i]); }
-      a.fin.push(saldos[n - 1]);
-      let sum = 0; for (let i = 0; i < n; i++) sum += retiros[i];
-      a.rentaMed.push(sum / n);
-      let minS = Infinity; for (let i = 0; i < n; i++) if (saldos[i] < minS) minS = saldos[i];
-      if (minS > 0) a.exito++;
-    });
+    for (let i = 0; i < n; i++) rets.push(rR + MC_VOL * mcGauss(rng));
+    const { saldos, retiros } = mcSim(rets, capAtF, TASA_RETIRO, n);
+    let suma = 0, min = Infinity, bajo = 0;
+    for (let i = 0; i < n; i++) {
+      saldoY[i].push(saldos[i]); rentaY[i].push(retiros[i]);
+      suma += retiros[i];
+      if (retiros[i] < min) min = retiros[i];
+      if (retiros[i] < objetivo) bajo++;
+    }
+    rentaMedia.push(suma / n); rentaMin.push(min); finales.push(saldos[n - 1]);
+    bajoObjetivo.push(bajo / n);
   }
 
-  const series = [], fans = {}, kpis = [];
-  MC_STRATS.forEach(st => {
-    const a = acc[st.key];
-    const mean = [], p10 = [], p50 = [], p90 = [], rmean = [];
-    for (let i = 0; i < n; i++) {
-      const sv = a.saldo[i].slice().sort((x, y) => x - y);
-      let sm = 0; for (let j = 0; j < sv.length; j++) sm += sv[j];
-      mean.push(sm / sv.length);
+  // Percentiles año a año: la mediana y la banda p10–p90 que se dibujan.
+  const banda = porAnio => {
+    const p10 = [], p50 = [], p90 = [];
+    porAnio.forEach(v => {
+      const sv = v.slice().sort((x, y) => x - y);
       p10.push(mcPct(sv, 0.10)); p50.push(mcPct(sv, 0.50)); p90.push(mcPct(sv, 0.90));
-      let rm = 0; for (let j = 0; j < a.renta[i].length; j++) rm += a.renta[i][j];
-      rmean.push(rm / a.renta[i].length);
-    }
-    const fin = a.fin.slice().sort((x, y) => x - y);
-    const rms = a.rentaMed.slice().sort((x, y) => x - y);
-    series.push({ nombre: st.nombre, color: st.color, mean, rmean });
-    fans[st.nombre] = { nombre: st.nombre, color: st.color, p10, p50, p90 };
-    kpis.push({
-      key: st.key, nombre: st.nombre, color: st.color, desc: st.desc, exito: a.exito / MC_N,
-      finP10: mcPct(fin, 0.10), finP50: mcPct(fin, 0.50), finP90: mcPct(fin, 0.90),
-      rentaMed: mcPct(rms, 0.50),
     });
-  });
+    return { p10, p50, p90 };
+  };
+  const orden = a => a.slice().sort((x, y) => x - y);
+  const fin = orden(finales), rmed = orden(rentaMedia), rmin = orden(rentaMin), bajo = orden(bajoObjetivo);
 
-  mcData = { edades, series, fans, kpis, cap0: capAtF, selectedNombre };
+  mcData = {
+    edades, color: MC_COLOR, cap0: capAtF, objetivo, tr,
+    pensionDesde: cobrarePension ? PA : null,
+    saldo: banda(saldoY), renta: banda(rentaY),
+    kpi: {
+      renta1: TASA_RETIRO * capAtF,
+      mediaP50: mcPct(rmed, 0.50), mediaP10: mcPct(rmed, 0.10), mediaP90: mcPct(rmed, 0.90),
+      minP50: mcPct(rmin, 0.50), minP10: mcPct(rmin, 0.10),
+      finP50: mcPct(fin, 0.50), finP10: mcPct(fin, 0.10), finP90: mcPct(fin, 0.90),
+      bajoP50: mcPct(bajo, 0.50), bajoP90: mcPct(bajo, 0.90),
+    },
+  };
   drawSelectedChart();
   renderMcKpis();
 }
@@ -1502,155 +1477,99 @@ function mcAxes(ctx, W, H, P, ymax, unit, xs) {
     }
   }
 }
-// Estrategia elegida desde las tarjetas de la simulación ('todas' | clave de STRAT).
-const currentMcStrat = () => mcStrategy;
-// Nombre de la estrategia enfocada (null si se comparan todas).
-function mcFocusNombre() {
-  const f = currentMcStrat();
-  return f === 'todas' ? null : (STRAT[f] || {}).nombre || null;
-}
-// Dibuja una gráfica de líneas (patrimonio medio o renta media) en el canvas único.
-function mcDrawLine(key, unit, refLine) {
+// Dibuja la mediana y el abanico p10–p90 de una serie (saldo o renta) en el canvas
+// único, con una línea de referencia discontinua (capital de partida / gasto objetivo).
+function mcDrawFan(serie, unit, refLine) {
   const cv = document.getElementById('chartMc'); if (!cv || !mcData) return;
-  const focusNombre = mcFocusNombre();
-  const series = focusNombre ? mcData.series.filter(s => s.nombre === focusNombre) : mcData.series;
-  if (!series.length) return;
   const c = cv.getContext('2d');
   const W = cv.width, H = cv.height, P = { l: 78, r: 20, t: 16, b: 38 };
   const xs = mcData.edades, x0 = xs[0], x1 = xs[xs.length - 1] === xs[0] ? xs[0] + 1 : xs[xs.length - 1];
-  const ymax = (Math.max(...series.flatMap(s => s[key])) * 1.08) || 1;
+  const ymax = (Math.max(...serie.p90, refLine || 0) * 1.08) || 1;
   const X = a => P.l + (a - x0) / (x1 - x0) * (W - P.l - P.r);
   const Y = v => H - P.b - (v / ymax) * (H - P.t - P.b);
   c.clearRect(0, 0, W, H);
   mcAxes(c, W, H, P, ymax, unit, xs);
   if (refLine) {
-    c.setLineDash([4, 4]); c.strokeStyle = CHART.ref; c.beginPath();
+    c.setLineDash([4, 4]); c.strokeStyle = CHART.ref; c.lineWidth = 1; c.beginPath();
     c.moveTo(P.l, Y(refLine)); c.lineTo(W - P.r, Y(refLine)); c.stroke(); c.setLineDash([]);
   }
-  series.forEach(s => {
-    // Con una sola estrategia va a plena opacidad; comparando todas, se resalta el plan.
-    const isSel = focusNombre ? true : (s.nombre === mcData.selectedNombre);
-    c.save();
-    c.globalAlpha = focusNombre ? 1 : (mcData.selectedNombre ? (isSel ? 1 : 0.3) : 1);
-    c.strokeStyle = s.color; c.lineWidth = isSel ? 3.4 : 2;
-    c.beginPath();
-    s[key].forEach((v, i) => { const x = X(xs[i]), y = Y(v); i ? c.lineTo(x, y) : c.moveTo(x, y); });
-    c.stroke();
-    c.restore();
-  });
-  mcHover = { cv, W, H, P, xs, X, Y, kind: 'line', key, series };
-}
-// Dibuja el abanico p10–p90 de la estrategia elegida en el canvas único.
-function mcDrawFan() {
-  const cv = document.getElementById('chartMc'); if (!cv || !mcData) return;
-  const focusNombre = mcFocusNombre() || mcData.selectedNombre;   // 'todas' → el plan (fija)
-  const fan = (focusNombre && mcData.fans[focusNombre]) || Object.values(mcData.fans)[0];
-  const c = cv.getContext('2d');
-  const W = cv.width, H = cv.height, P = { l: 78, r: 20, t: 16, b: 38 };
-  const xs = mcData.edades, x0 = xs[0], x1 = xs[xs.length - 1] === xs[0] ? xs[0] + 1 : xs[xs.length - 1];
-  const ymax = (Math.max(...fan.p90) * 1.08) || 1;
-  const X = a => P.l + (a - x0) / (x1 - x0) * (W - P.l - P.r);
-  const Y = v => H - P.b - (v / ymax) * (H - P.t - P.b);
-  c.clearRect(0, 0, W, H);
-  mcAxes(c, W, H, P, ymax, 'M', xs);
-  c.fillStyle = fan.color + '2e'; c.beginPath();
-  fan.p90.forEach((v, i) => { const x = X(xs[i]), y = Y(v); i ? c.lineTo(x, y) : c.moveTo(x, y); });
-  for (let i = fan.p10.length - 1; i >= 0; i--) c.lineTo(X(xs[i]), Y(fan.p10[i]));
+  c.fillStyle = mcData.color + '2e'; c.beginPath();
+  serie.p90.forEach((v, i) => { const x = X(xs[i]), y = Y(v); i ? c.lineTo(x, y) : c.moveTo(x, y); });
+  for (let i = serie.p10.length - 1; i >= 0; i--) c.lineTo(X(xs[i]), Y(serie.p10[i]));
   c.closePath(); c.fill();
-  c.strokeStyle = fan.color; c.lineWidth = 2.6; c.beginPath();
-  fan.p50.forEach((v, i) => { const x = X(xs[i]), y = Y(v); i ? c.lineTo(x, y) : c.moveTo(x, y); });
+  c.strokeStyle = mcData.color; c.lineWidth = 2.6; c.beginPath();
+  serie.p50.forEach((v, i) => { const x = X(xs[i]), y = Y(v); i ? c.lineTo(x, y) : c.moveTo(x, y); });
   c.stroke();
-  mcHover = { cv, W, H, P, xs, X, Y, kind: 'fan', fan };
+  mcHover = { cv, W, H, P, xs, X, Y, serie };
 }
-// Dibuja la gráfica Monte Carlo seleccionada (patrimonio / renta / abanico),
-// filtrando por la estrategia elegida ('todas' compara las cuatro).
+// Dibuja la gráfica Monte Carlo seleccionada (renta o patrimonio).
 function drawMc() {
   if (!mcData) return;
   const which = document.getElementById('mcChartSel').value;
   const lg = document.getElementById('mcLegend');
   const title = document.getElementById('mcChartTitle');
   const hint = document.getElementById('mcChartHint');
-  const focusNombre = mcFocusNombre();
-  const sufTitulo = focusNombre ? ' — ' + focusNombre : ' (todas las estrategias)';
-  const legendLines = () => {
-    const list = focusNombre ? mcData.series.filter(s => s.nombre === focusNombre) : mcData.series;
-    return list.map(s => { const sel = s.nombre === mcData.selectedNombre; return `<span style="${sel ? 'color:var(--text);font-weight:700' : 'opacity:.75'}"><i class="dot" style="background:${s.color}"></i> ${s.nombre}${sel ? ' ★ (tu plan)' : ''}</span>`; }).join('');
-  };
+  const banda = `<span><i class="dot" style="background:${mcData.color};opacity:.35"></i> Rango p10–p90 (80% de los casos)</span>`;
   if (which === 'renta') {
-    mcDrawLine('rmean', 'k', null);
-    lg.innerHTML = legendLines();
-    title.textContent = 'Renta anual media (lo que sacas cada año, € de hoy)' + sufTitulo;
-    hint.textContent = 'Media de la retirada anual a lo largo de todos los escenarios.';
-  } else if (which === 'fan') {
-    mcDrawFan();
-    const fanKey = focusNombre || mcData.selectedNombre;
-    const f = (fanKey && mcData.fans[fanKey]) || Object.values(mcData.fans)[0];
-    lg.innerHTML = `<span><i class="dot" style="background:${f.color}"></i> Mediana</span>`
-      + `<span><i class="dot" style="background:${f.color};opacity:.35"></i> Rango p10–p90 (80% de los casos)</span>`;
-    title.textContent = 'Abanico de incertidumbre — ' + f.nombre;
-    hint.textContent = 'La banda cubre el 80% central de los escenarios: en el 10% peor caerías por debajo del borde inferior; en el 10% mejor, por encima del superior.';
+    mcDrawFan(mcData.renta, 'k', mcData.objetivo);
+    lg.innerHTML = `<span><i class="dot" style="background:${mcData.color}"></i> Renta mediana</span>${banda}`
+      + `<span><i class="dot" style="background:${CHART.ref}"></i> Tu gasto objetivo (${fmt.format(mcData.objetivo)}/año brutos)</span>`;
+    title.textContent = 'Renta anual: lo que sacas cada año (€ de hoy)';
+    hint.textContent = 'Cada año retiras el 4% del saldo, así que la renta sube y baja con la cartera. La banda cubre el 80% central de los escenarios: en el 10% peor sacarías menos que el borde inferior.';
   } else {
-    mcDrawLine('mean', 'M', mcData.cap0);
-    lg.innerHTML = legendLines();
-    title.textContent = 'Patrimonio medio (promedio de todos los escenarios, € de hoy)' + sufTitulo;
-    hint.textContent = 'La línea discontinua marca el capital de partida. Que la media suba no garantiza no arruinarse: mira la tasa de éxito y el abanico.';
+    mcDrawFan(mcData.saldo, 'M', mcData.cap0);
+    lg.innerHTML = `<span><i class="dot" style="background:${mcData.color}"></i> Patrimonio mediano</span>${banda}`
+      + `<span><i class="dot" style="background:${CHART.ref}"></i> Capital de partida</span>`;
+    title.textContent = 'Patrimonio: lo que queda en la cartera (€ de hoy)';
+    hint.textContent = 'La línea discontinua marca el capital con el que empiezas. Retirando un % del saldo la cartera se estira siempre, pero puede encoger mucho en los escenarios malos.';
   }
 }
 function renderMcKpis() {
   const kp = document.getElementById('mcKpis'); if (!kp || !mcData) return;
-  const focus = mcFocusNombre();                    // estrategia elegida en una tarjeta (null = «todas»)
-  const compareAll = document.getElementById('mcCompareAll');
-  compareAll.classList.toggle('active', !focus);
-  compareAll.setAttribute('aria-pressed', focus ? 'false' : 'true');
-  kp.innerHTML = mcData.kpis.map(k => {
-    const col = k.exito >= 0.9 ? 'var(--green)' : k.exito >= 0.75 ? 'var(--amber)' : 'var(--red)';
-    const esPlan = k.nombre === mcData.selectedNombre;   // Fija real (4%): etiqueta permanente «tu plan»
-    const esFoco = k.nombre === focus;                   // la que se está visualizando: ★ + recuadro
-    const planTag = esPlan ? ' <span style="color:var(--muted);font-weight:400">(tu plan)</span>' : '';
-    return `<div class="mini${esFoco ? ' mc-sel' : ''}">
-      <button type="button" class="mc-pick" data-strategy="${k.key}" aria-pressed="${esFoco}" aria-label="Ver ${k.nombre} en la gráfica" title="Ver ${k.nombre} en la gráfica"></button>
-      <div class="k" style="color:${k.color}; font-weight:600">${esFoco ? '★ ' : ''}${k.nombre}${planTag}<button type="button" class="hint-toggle mc-info" aria-expanded="false" aria-label="Mostrar u ocultar qué es esta estrategia" title="Qué es esta estrategia">ⓘ</button></div>
-      <div class="v" style="color:${col}">${(k.exito * 100).toFixed(0)}%</div>
-      <div class="k" style="margin-top:6px; line-height:1.55">tasa de éxito<br>Saldo final (mediana): ${fmtShort(k.finP50)}<br>rango: ${fmtShort(k.finP10)} – ${fmtShort(k.finP90)}<br>Renta media: ${fmt.format(k.rentaMed)}/año</div>
-      <div class="hint hint-collapsible mc-desc" style="margin-top:8px">${k.desc || ''}</div>
-    </div>`;
-  }).join('');
+  const k = mcData.kpi, edadFin = mcData.edades[mcData.edades.length - 1];
+  const neto = v => v * (1 - mcData.tr);
+  const cards = [
+    { t: 'Renta del primer año', c: 'var(--text)', v: fmt.format(k.renta1),
+      s: `4% de ${fmtShort(mcData.cap0)} · ≈ ${fmt.format(neto(k.renta1))} tras impuestos` },
+    { t: 'Renta anual media', c: 'var(--green)', v: fmt.format(k.mediaP50),
+      s: `mediana de los escenarios · del ${fmtShort(k.mediaP10)} al ${fmtShort(k.mediaP90)}` },
+    { t: 'El año más flojo', c: 'var(--amber)', v: fmt.format(k.minP50),
+      s: `mediana del peor año de cada escenario · en el 10% de futuros más malos, ${fmtShort(k.minP10)}` },
+    { t: `Saldo final (a los ${edadFin})`, c: 'var(--blue)', v: fmtShort(k.finP50),
+      s: `mediana · del ${fmtShort(k.finP10)} al ${fmtShort(k.finP90)}` },
+  ];
+  kp.innerHTML = cards.map(c => `<div class="mini">
+      <div class="k">${c.t}</div>
+      <div class="v" style="color:${c.c}">${c.v}</div>
+      <div class="s">${c.s}</div>
+    </div>`).join('');
+
+  // Con esta estrategia no puedes quedarte a cero, así que el aviso no es la ruina:
+  // es cuántos años tendrías que apretarte el cinturón por debajo del gasto que quieres.
+  const box = document.getElementById('mcRecorte');
+  if (!box) return;
+  const pct = k.bajoP50 * 100, peor = k.bajoP90 * 100;
+  const objetivo = fmt.format(mcData.objetivo);
+  const notaPension = mcData.pensionDesde
+    ? ` Desde los ${mcData.pensionDesde} la pensión pública cubre parte de ese gasto, así que la cartera necesita sacar menos.`
+    : '';
+  box.innerHTML = pct < 5
+    ? `<div class="alert ok">✅ En el escenario típico casi ningún año se queda por debajo de tu gasto objetivo (${objetivo}/año brutos).${notaPension}</div>`
+    : `<div class="alert ${pct > 50 ? 'bad' : 'warn'}">${pct > 50 ? '🚫' : '⚠️'} En el escenario típico retirarías menos de tu gasto objetivo (${objetivo}/año brutos) en el <b>${pct.toFixed(0)}% de los años</b>; en el 10% de futuros más malos, en el ${peor.toFixed(0)}%. Con esta estrategia el riesgo no es quedarte sin dinero, es tener que <b>recortar el gasto</b> en los años flojos.${notaPension}</div>`;
 }
-function selectMcStrategy(strategy) {
-  mcStrategy = strategy;
-  renderMcKpis();
-  drawSelectedChart();
-}
-// Las tarjetas eligen la estrategia; su ⓘ despliega la explicación sin cambiarla.
-document.getElementById('mcKpis').addEventListener('click', e => {
-  const info = e.target.closest('.mc-info');
-  if (info) {
-    const desc = info.closest('.mini') && info.closest('.mini').querySelector('.mc-desc'); if (!desc) return;
-    const open = desc.classList.toggle('open');
-    info.classList.toggle('active', open);
-    info.setAttribute('aria-expanded', open ? 'true' : 'false');
-    return;
-  }
-  const pick = e.target.closest('.mc-pick');
-  if (pick) selectMcStrategy(pick.dataset.strategy);
-});
-// Selector unificado: gráfica (determinista / Monte Carlo) × estrategia a visualizar.
+// Selector de gráfica: proyección determinista del plan o simulación de mercado.
 function drawSelectedChart() {
   const sel = document.getElementById('mcChartSel');
-  const which = sel ? sel.value : 'saldo';
+  const which = sel ? sel.value : 'renta';
   const mcWrap = document.getElementById('mcChartWrap');
   const detWrap = document.getElementById('detChartWrap');
   const title = document.getElementById('mcChartTitle');
   if (which === 'det') {
     if (mcWrap) mcWrap.style.display = 'none';
     if (detWrap) detWrap.style.display = '';
-    // La proyección determinista se recalcula para la estrategia elegida
-    // ('todas' → la del plan, Fija real 4%), reutilizando chartData/drawChart.
-    const focus = currentMcStrat();
-    const stratKey = focus === 'todas' ? 'fija' : focus;
-    const F = val('fire');
-    chartData = buildCurve(scenario(F, stratKey));
-    if (title) title.textContent = 'Proyección determinista — ' + ((STRAT[stratKey] || {}).nombre || stratKey) + ' (€ de hoy)';
+    // Curva del plan (gasto constante, sin volatilidad), reutilizando chartData/drawChart.
+    chartData = buildCurve(scenario(val('fire')));
+    if (title) title.textContent = 'Proyección determinista de tu plan (€ de hoy)';
     drawChart();
   } else {
     if (detWrap) detWrap.style.display = 'none';
@@ -1659,7 +1578,16 @@ function drawSelectedChart() {
   }
 }
 document.getElementById('mcChartSel').addEventListener('change', drawSelectedChart);
-document.getElementById('mcCompareAll').addEventListener('click', () => selectMcStrategy('todas'));
+
+// Editar el capital a mano lo desengancha del plan; ↺ lo vuelve a enganchar. Este
+// listener se registra antes que el genérico del formulario, así que cuando compute()
+// corre por el mismo evento el flag ya está puesto y no pisa lo que acabas de escribir.
+document.getElementById('mc_capital').addEventListener('input', () => setMcCapManual(true));
+document.getElementById('btnMcCapReset').addEventListener('click', () => {
+  setMcCapManual(false);
+  compute();
+  saveForm();
+});
 
 // Interactividad de la gráfica Monte Carlo: crosshair + puntos + tooltip.
 (function () {
@@ -1682,15 +1610,10 @@ document.getElementById('mcCompareAll').addEventListener('click', () => selectMc
       c.fillStyle = color; c.fill(); c.strokeStyle = '#0f172a'; c.lineWidth = 1.5; c.stroke();
     };
     let rows = '';
-    if (h.kind === 'line') {
-      h.series.forEach(s => { const v = s[h.key][best]; dot(s.color, v); rows += `<div class="t-row"><span style="color:${s.color}">${s.nombre}</span><span>${fmt.format(v)}</span></div>`; });
-    } else {
-      const f = h.fan;
-      [['p90', 'p90', .45], ['p50', 'Mediana', 1], ['p10', 'p10', .45]].forEach(([k, lbl, op]) => {
-        const v = f[k][best]; dot(f.color, v);
-        rows += `<div class="t-row"><span style="color:${f.color};opacity:${op}">${lbl}</span><span>${fmt.format(v)}</span></div>`;
-      });
-    }
+    [['p90', 'El 10% mejor', .45], ['p50', 'Mediana', 1], ['p10', 'El 10% peor', .45]].forEach(([k, lbl, op]) => {
+      const v = h.serie[k][best]; dot(mcData.color, v);
+      rows += `<div class="t-row"><span style="color:${mcData.color};opacity:${op}">${lbl}</span><span>${fmt.format(v)}</span></div>`;
+    });
     tip.innerHTML = `<div class="t-year">Edad ${h.xs[best]}</div>${rows}`;
     tip.style.opacity = 1;
     tip.style.left = (e.clientX + 14) + 'px';
@@ -1946,12 +1869,17 @@ const LS_FORM = 'jubilacion-v1';
 // El selector de escenarios (data-nosave) es un control, no un dato del formulario: se excluye.
 const formInputs = Array.from(document.querySelectorAll('input, select')).filter(el => !el.hasAttribute('data-nosave'));
 
-// Versión del formato guardado. v1 → v2: el campo "neto" pasó de ingreso ANUAL a MENSUAL,
-// así que los datos sin marca de versión hay que convertirlos al leerlos.
-const FORM_VERSION = 2;
+// Versión del formato guardado, para convertir al leerlos los datos antiguos:
+//   v1 → v2: el campo "neto" pasó de ingreso ANUAL a MENSUAL.
+//   v2 → v3: la simulación dejó de comparar estrategias, así que las gráficas que ya
+//            no existen se descartan (si no, el selector se quedaría en blanco).
+const FORM_VERSION = 3;
+const MC_CHARTS = ['renta', 'saldo', 'det'];
 function migrateData(data) {
   if (!data || data._v >= FORM_VERSION) return data;
-  if (data.neto != null) data.neto = String(Math.round((parseFloat(data.neto) || 0) / 12));
+  const v = data._v || 1;
+  if (v < 2 && data.neto != null) data.neto = String(Math.round((parseFloat(data.neto) || 0) / 12));
+  if (v < 3 && !MC_CHARTS.includes(data.mcChartSel)) delete data.mcChartSel;
   data._v = FORM_VERSION;
   return data;
 }
@@ -2059,7 +1987,8 @@ scenarioSel.addEventListener('change', () => {
 const PRESET_BASE = {
   edad: '30', fire: '55', fin: '105', trabajo: '25', pension_edad: '65',
   impuestos: '15', r_acum: '7', r_retiro: '5.5', inflacion: '3',
-  perfil_modo: 'ratio', frontload: '2', convenio_coste: '400', cobrare_pension: false
+  perfil_modo: 'ratio', frontload: '2', convenio_coste: '400', cobrare_pension: false,
+  mc_capital_manual: ''   // el capital de la simulación vuelve a seguir al plan
 };
 const PRESETS_SUELDO = {
   s30: { label: 'Sueldo de 30.000 €', datos: { ...PRESET_BASE,

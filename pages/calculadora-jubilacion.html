@@ -180,14 +180,6 @@
      (la tarjeta ocupa todo el ancho) */
   @media (min-width: 780px) { #keyKpis, #ciKpis { grid-template-columns: repeat(3, 1fr); } }
 
-  /* Detalle largo plegado: el mismo gesto que "Opciones avanzadas" de los inputs. */
-  .mc-more { margin: 0 0 18px; }
-  .mc-more > summary { cursor: pointer; list-style: none; color: var(--accent);
-    font-weight: 700; font-size: .8rem; padding: 4px 0; }
-  .mc-more > summary::-webkit-details-marker { display: none; }
-  .mc-more > summary::after { content: "+"; margin-left: 8px; font: 600 1rem "IBM Plex Mono", monospace; }
-  .mc-more[open] > summary::after { content: "−"; }
-  .mc-more .hint { margin-top: 10px; }
 
   /* Horizonte: panel técnico de planificación. */
   :root{
@@ -500,23 +492,17 @@
   </div>
   </div>
 
-  <!-- PROYECCIÓN DEL PLAN: una sola curva, rentabilidad media fija -->
+  <!-- LO QUE PONES TÚ vs LO QUE LLEGA A VALER (estilo investor.gov) -->
   <div class="card chart-card">
-    <h2>Proyección de tu plan</h2>
-    <p class="subtitle" style="margin-bottom:14px">Tu patrimonio año a año, en <b>€ de hoy</b>, suponiendo que el mercado rinde <b>exactamente</b> su media (<span id="projR">—</span> real) todos los años. Aportas hasta el retiro y a partir de ahí gastas <b>lo mismo cada año</b>, cubierto entre la cartera y la pensión.</p>
-
-    <details class="mc-more">
-      <summary>Qué NO dice esta gráfica</summary>
-      <div class="hint">⚠️ <b>El mercado no rinde su media todos los años.</b> Esta curva supone rentabilidad constante, así que enseña el caso <b>sin mala suerte</b>: sale más limpia y más segura de lo que sería en la realidad. Dos jubilaciones con la misma rentabilidad media acaban muy distintas según el <b>orden</b> en que lleguen los años buenos y malos — una mala racha justo al empezar hace mucho más daño que la misma racha veinte años después, porque estás vendiendo participaciones mientras cae. Tómala como el <b>escenario central</b>, no como el suelo.</div>
-      <div class="hint">🧾 Todo el eje está en <b>€ de hoy</b> (poder adquisitivo constante): en euros nominales las cifras irían subiendo ~la inflación cada año. El gasto de la fase de retiro es <b>bruto</b> en lo que sale de la cartera — ya lleva dentro el impuesto efectivo sobre lo retirado que has puesto arriba. <b>Pasa el ratón</b> por la curva para ver el flujo de cada año y de dónde sale.</div>
-    </details>
+    <h2>Tu dinero frente al interés compuesto</h2>
+    <p class="subtitle" style="margin-bottom:14px">Desde hoy hasta que te retiras, en <b>€ de hoy</b>: la línea de abajo es lo que has puesto tú (tu capital inicial más las aportaciones acumuladas) y la de arriba lo que llega a valer la cartera con un <span id="projR">—</span> real anual. <b>La franja entre las dos es el interés.</b></p>
 
     <div class="legend">
-      <span><i class="dot" style="background:var(--blue)"></i> Fase de acumulación (aportas)</span>
-      <span><i class="dot" style="background:var(--amber)"></i> Retiro sin pensión (puente)</span>
-      <span><i class="dot" style="background:var(--accent)"></i> Retiro con pensión</span>
+      <span><i class="dot" style="background:#1463ff"></i> Valor total</span>
+      <span><i class="dot" style="background:#8fa3b8"></i> Lo que has puesto tú</span>
     </div>
     <canvas id="chart"></canvas>
+    <p class="hint" id="projResumen" style="margin-top:10px"></p>
 
     <!-- Plan año a año: subsección plegable, no una tarjeta al mismo nivel que el resto -->
     <h3 class="sub-toggle">Plan año a año
@@ -977,10 +963,25 @@ function compute() {
   syncViewSlider(sc);
   renderEsfuerzo();
   renderTablaAporte(sc);
-  // Rentabilidad con la que se dibuja la proyección: la de la fase de retiro, fija.
-  document.getElementById('projR').textContent = (sc.rR * 100).toFixed(1) + '%';
-  chartData = curve;
+  // Gráfica del plan: lo que pones tú frente a lo que llega a valer, durante la
+  // acumulación. La rentabilidad que manda aquí es la de esa fase (r_acum).
+  document.getElementById('projR').textContent = (sc.rA * 100).toFixed(1) + '%';
+  chartData = planSerie(curve);
   drawChart();
+  renderPlanResumen();
+}
+
+// Frase de cierre de la gráfica: de todo lo que acumulas, cuánto has puesto tú y
+// cuánto lo ha puesto el interés compuesto. Es la lectura que la gráfica hace visible.
+function renderPlanResumen() {
+  const el = document.getElementById('projResumen');
+  if (!el || !chartData || !chartData.length) return;
+  const f = chartData[chartData.length - 1];
+  const interes = Math.max(0, f.total - f.aportado);
+  const pct = f.total > 0 ? (interes / f.total) * 100 : 0;
+  el.innerHTML = `Al llegar al retiro (<b>${f.edad} años</b>) tendrías <b>${fmt.format(f.total)}</b>: `
+    + `<b>${fmt.format(f.aportado)}</b> los has puesto tú y <b>${fmt.format(interes)}</b> los ha puesto `
+    + `el interés compuesto — el <b>${pct.toFixed(0)}%</b> del total.`;
 }
 
 // ---- Máquina del tiempo de la tarjeta "Tu esfuerzo mensual" ----
@@ -1153,119 +1154,108 @@ const CHART = {
   label: '#667382',   // rótulos de los ejes (= var(--muted))
   ref:   '#a6b3c2',   // líneas de referencia discontinuas
 };
+// Colores de las dos series 'aportado vs total', compartidos por la gráfica del plan
+// y por la de la calculadora de interés compuesto: las dos cuentan la misma historia.
+const CI_COL = { aportado: '#8fa3b8', aportadoFill: 'rgba(143,163,184,0.30)', interes: '#1463ff', interesFill: 'rgba(20,99,255,0.18)' };
+// Serie de la gráfica del plan: para cada año de la fase de acumulación, cuánto has
+// puesto tú (capital inicial + aportaciones acumuladas) y cuánto vale la cartera. La
+// franja entre las dos curvas es el interés compuesto. Solo la acumulación: una vez
+// jubilado dejas de aportar y "lo aportado" se queda plano, que no dice nada.
+function planSerie(curve) {
+  const filas = [];
+  let puesto = curve.bal[0];                 // el capital de partida también lo pusiste tú
+  for (let i = 0; i < curve.ages.length; i++) {
+    if (i > 0) {
+      const f = curve.flow[i];
+      if (!f || !f.acc) break;               // empieza el retiro: la serie termina aquí
+      puesto += f.aport;
+    }
+    filas.push({ anio: i, edad: curve.ages[i], aportado: puesto, total: curve.bal[i] });
+  }
+  return filas;
+}
+
 const canvas = document.getElementById('chart');
 const ctx = canvas.getContext('2d');
-const pad = { top: 20, right: 20, bottom: 34, left: 66 };
 let plot = null;
 
-function drawChart() {
-  if (!chartData) return;
+// Dos áreas apiladas, igual que la gráfica de interés compuesto: el valor total por
+// encima y lo aportado por debajo, con el interés como la franja que queda entre ambas.
+function drawChart(hoverIdx = null) {
+  if (!chartData || !chartData.length) return;
   const dpr = window.devicePixelRatio || 1;
   const cssW = canvas.clientWidth, cssH = canvas.clientHeight;
-  if (!cssW || !cssH) return;      // subsección plegada: el canvas aún no tiene tamaño
-  canvas.width = cssW * dpr; canvas.height = cssH * dpr;
+  if (!cssW || !cssH) return;
+  canvas.width = Math.round(cssW * dpr); canvas.height = Math.round(cssH * dpr);
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   ctx.clearRect(0, 0, cssW, cssH);
 
-  const { ages, bal, phase, F, PA } = chartData;
-  const maxY = Math.max(...bal, 1);
-  const minAge = ages[0], maxAge = ages[ages.length - 1];
+  const pd = { top: 16, right: 16, bottom: 30, left: 64 };
+  const x0 = pd.left, x1 = cssW - pd.right, yb = cssH - pd.bottom, yt = pd.top;
+  const maxAnio = chartData[chartData.length - 1].anio || 1;
+  const maxY = Math.max(chartData[chartData.length - 1].total, 1) * 1.06;
+  const X = a => x0 + (a / maxAnio) * (x1 - x0);
+  const Y = v => yb - (Math.max(v, 0) / maxY) * (yb - yt);
+  plot = { X, Y, x0, x1, yb, yt, maxAnio };
 
-  const x0 = pad.left, x1 = cssW - pad.right;
-  const y0 = cssH - pad.bottom, y1 = pad.top;
-  const sx = a => x0 + ((a - minAge) / (maxAge - minAge)) * (x1 - x0);
-  const sy = v => y0 + (Math.max(v,0) / maxY) * (y1 - y0);
-  plot = { x0, x1, y0, y1, sx, sy, maxY };
-
-  // rejilla Y
-  ctx.font = '11px system-ui, sans-serif';
-  ctx.lineWidth = 1;
-  const yTicks = 5;
-  for (let k = 0; k <= yTicks; k++) {
-    const v = (maxY / yTicks) * k, y = sy(v);
+  // Rejilla horizontal (sin verticales, como en el resto de gráficas)
+  ctx.font = '11px system-ui, sans-serif'; ctx.lineWidth = 1;
+  for (let k = 0; k <= 5; k++) {
+    const v = (maxY / 5) * k, y = Math.round(Y(v)) + 0.5;
     ctx.strokeStyle = k === 0 ? CHART.axis : CHART.grid;
     ctx.beginPath(); ctx.moveTo(x0, y); ctx.lineTo(x1, y); ctx.stroke();
     ctx.fillStyle = CHART.label; ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
-    ctx.fillText(fmtShort(v), x0 - 8, y);
+    ctx.fillText(fmtShort(v), x0 - 8, Y(v));
   }
-  // eje X (edades): solo rótulos, sin líneas verticales
-  ctx.textAlign = 'center'; ctx.textBaseline = 'top';
-  const span = maxAge - minAge;
-  const step = span > 40 ? 10 : 5;
-  for (let a = Math.ceil(minAge/step)*step; a <= maxAge; a += step) {
-    ctx.fillStyle = CHART.label;
-    ctx.fillText(a + 'a', sx(a), y0 + 8);
-  }
+  const stepX = maxAnio > 40 ? 10 : maxAnio > 15 ? 5 : maxAnio > 8 ? 2 : 1;
+  ctx.textAlign = 'center'; ctx.textBaseline = 'top'; ctx.fillStyle = CHART.label;
+  for (let a = 0; a <= maxAnio; a += stepX) ctx.fillText(a + 'a', X(a), yb + 8);
 
-  // Área por fases (color según fase del punto derecho de cada segmento). Mismos
-  // colores que la leyenda de arriba: --blue / --amber / --accent.
-  const colFill = ['rgba(0,163,199,0.18)','rgba(242,170,23,0.18)','rgba(20,99,255,0.15)'];
-  const colLine = ['#00a3c7','#f2aa17','#1463ff'];
-  for (let seg = 0; seg < ages.length - 1; seg++) {
-    const ph = phase[seg + 1];
+  const area = (key, fill, stroke) => {
+    ctx.beginPath(); ctx.moveTo(X(0), yb);
+    chartData.forEach(f => ctx.lineTo(X(f.anio), Y(f[key])));
+    ctx.lineTo(X(maxAnio), yb); ctx.closePath();
+    ctx.fillStyle = fill; ctx.fill();
     ctx.beginPath();
-    ctx.moveTo(sx(ages[seg]), y0);
-    ctx.lineTo(sx(ages[seg]), sy(bal[seg]));
-    ctx.lineTo(sx(ages[seg+1]), sy(bal[seg+1]));
-    ctx.lineTo(sx(ages[seg+1]), y0);
-    ctx.closePath();
-    ctx.fillStyle = colFill[ph]; ctx.fill();
-    ctx.beginPath();
-    ctx.moveTo(sx(ages[seg]), sy(bal[seg]));
-    ctx.lineTo(sx(ages[seg+1]), sy(bal[seg+1]));
-    ctx.strokeStyle = colLine[ph]; ctx.lineWidth = 2; ctx.stroke();
-  }
+    chartData.forEach((f, k) => k ? ctx.lineTo(X(f.anio), Y(f[key])) : ctx.moveTo(X(f.anio), Y(f[key])));
+    ctx.strokeStyle = stroke; ctx.lineWidth = 2; ctx.stroke();
+  };
+  area('total', CI_COL.interesFill, CI_COL.interes);
+  area('aportado', CI_COL.aportadoFill, CI_COL.aportado);
 
-  // marcadores verticales FIRE y pensión
-  for (const [age, label, col] of [[F,'Retiro','#0c9b76'],[PA,'Pensión','#1463ff']]) {
-    if (age <= maxAge && age >= minAge) {
-      const X = sx(age);
-      ctx.strokeStyle = col; ctx.setLineDash([4,4]); ctx.lineWidth = 1;
-      ctx.beginPath(); ctx.moveTo(X, y1); ctx.lineTo(X, y0); ctx.stroke();
-      ctx.setLineDash([]);
-      ctx.fillStyle = col; ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
-      ctx.fillText(label + ' ' + age, X, y1 + 10);
+  if (hoverIdx !== null && chartData[hoverIdx]) {
+    const f = chartData[hoverIdx], xh = Math.round(X(f.anio)) + 0.5;
+    ctx.setLineDash([3, 3]); ctx.strokeStyle = CHART.ref; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(xh, yt); ctx.lineTo(xh, yb); ctx.stroke(); ctx.setLineDash([]);
+    for (const [v, col] of [[f.total, CI_COL.interes], [f.aportado, CI_COL.aportado]]) {
+      ctx.beginPath(); ctx.arc(X(f.anio), Y(v), 4, 0, Math.PI * 2); ctx.fillStyle = col; ctx.fill();
     }
   }
 }
 
-/* ---------- Tooltip ---------- */
-const tooltip = document.getElementById('tooltip');
-canvas.addEventListener('mousemove', e => {
-  if (!chartData || !plot) return;
-  const rect = canvas.getBoundingClientRect();
-  const mx = e.clientX - rect.left;
-  const { ages, bal, phase, flow } = chartData;
-  let best = 0, bestD = Infinity;
-  for (let idx = 0; idx < ages.length; idx++) {
-    const d = Math.abs(plot.sx(ages[idx]) - mx);
-    if (d < bestD) { bestD = d; best = idx; }
-  }
-  if (bestD > 40) { tooltip.style.opacity = 0; return; }
-  const ph = ['Acumulando','Retiro (puente)','Retiro (con pensión)'][phase[best]];
-  const f = flow[best];
-  let flowRows = '';
-  if (f && f.acc) {
-    flowRows = `<div class="t-row"><span style="color:#60a5fa">Aportas</span><span>${fmt.format(f.aport)}/año</span></div>`;
-  } else if (f) {
-    flowRows = `<div class="t-row"><span style="color:#fbbf24">Gasto (€ de hoy)</span><span>${fmt.format(f.gasto)}/año</span></div>`;
-    flowRows += `<div class="t-row"><span class="muted">· de la cartera</span><span>${fmt.format(f.cartera)}/año</span></div>`;
-    if (f.pension > 0) flowRows += `<div class="t-row"><span class="muted">· de la pensión</span><span>${fmt.format(f.pension)}/año</span></div>`;
-    if (f.conv > 0) flowRows += `<div class="t-row"><span class="muted">· convenio (extra)</span><span>${fmt.format(f.conv)}/año</span></div>`;
-  }
-  tooltip.innerHTML = `
-    <div class="t-year">Edad ${ages[best]} · ${ph}</div>
-    <div class="t-row"><span style="color:#34d399">Patrimonio</span><span>${fmt.format(bal[best])}</span></div>
-    ${flowRows}`;
-  tooltip.style.opacity = 1;
-  tooltip.style.left = (e.clientX + 14) + 'px';
-  tooltip.style.top = (e.clientY + 14) + 'px';
-  drawChart();
-  const X = plot.sx(ages[best]);
-  ctx.beginPath(); ctx.arc(X, plot.sy(bal[best]), 4, 0, Math.PI*2);
-  ctx.fillStyle = '#34d399'; ctx.fill();
-});
-canvas.addEventListener('mouseleave', () => { tooltip.style.opacity = 0; drawChart(); });
+// Tooltip: reutiliza el flotante #tooltip del resto de la página.
+(function () {
+  const tip = document.getElementById('tooltip');
+  const show = e => {
+    if (!chartData || !chartData.length || !plot) return;
+    const p = (e.touches ? e.touches[0] : e);
+    const mx = p.clientX - canvas.getBoundingClientRect().left;
+    let best = 0, bestD = Infinity;
+    chartData.forEach((f, k) => { const d = Math.abs(plot.X(f.anio) - mx); if (d < bestD) { bestD = d; best = k; } });
+    const f = chartData[best], interes = f.total - f.aportado;
+    tip.innerHTML = `<div class="t-year">Año ${f.anio} · ${f.edad} años</div>
+      <div class="t-row"><span style="color:${CI_COL.interes}">Valor total</span><span>${fmt.format(f.total)}</span></div>
+      <div class="t-row"><span style="color:${CI_COL.aportado}">Lo que has puesto</span><span>${fmt.format(f.aportado)}</span></div>
+      <div class="t-row"><span class="muted">Interés generado</span><span>${fmt.format(interes)}</span></div>`;
+    tip.style.opacity = 1;
+    tip.style.left = (p.clientX + 14) + 'px';
+    tip.style.top = (p.clientY + 14) + 'px';
+    drawChart(best);
+  };
+  canvas.addEventListener('mousemove', show);
+  canvas.addEventListener('touchmove', show, { passive: true });
+  canvas.addEventListener('mouseleave', () => { tip.style.opacity = 0; drawChart(); });
+})();
 
 window.addEventListener('resize', () => {
   drawChart();
@@ -1374,7 +1364,6 @@ function computeCompound() {
 // Área apilada: abajo lo aportado, encima los intereses; la suma es el saldo. Sustituye
 // a la tabla de escenarios y al detalle año a año (las cifras salen al pasar por encima).
 let ciChartData = null;
-const CI_COL = { aportado: '#8fa3b8', aportadoFill: 'rgba(143,163,184,0.30)', interes: '#1463ff', interesFill: 'rgba(20,99,255,0.18)' };
 let ciPlot = null;
 
 function drawCiChart(hoverIdx = null) {

@@ -72,6 +72,11 @@
   .tool:hover { border-color: var(--accent); }
   .save-state { font-size: .78rem; color: var(--green); opacity: 0; transition: opacity .3s; }
   .save-state.show { opacity: 1; }
+  /* Cierre de la gráfica del plan: es la conclusión, no una ayuda. Siempre visible,
+     fuera del mecanismo de plegado del ⓘ y con cuerpo suficiente para leerse. */
+  .proj-resumen { margin: 14px 0 0; font-size: .95rem; line-height: 1.55; color: var(--muted);
+    border-top: 1px solid var(--border); padding-top: 14px; }
+  .proj-resumen b { color: var(--text); }
   .hint-collapsible { display: none; }
   .hint-collapsible.open { display: block; }
   input, select {
@@ -499,10 +504,10 @@
 
     <div class="legend">
       <span><i class="dot" style="background:#1463ff"></i> Valor total</span>
-      <span><i class="dot" style="background:#8fa3b8"></i> Lo que has puesto tú</span>
+      <span><i class="dot" style="background:#0c9b76"></i> Lo que has puesto tú</span>
     </div>
     <canvas id="chart"></canvas>
-    <p class="hint" id="projResumen" style="margin-top:10px"></p>
+    <p class="proj-resumen" id="projResumen"></p>
 
     <!-- Plan año a año: subsección plegable, no una tarjeta al mismo nivel que el resto -->
     <h3 class="sub-toggle">Plan año a año
@@ -582,7 +587,7 @@
       <!-- Evolución año a año: sustituye a la tabla de escenarios y al detalle año a año.
            Pasa el ratón (o toca) por la gráfica para ver las cifras de cada año. -->
       <div class="legend" style="margin-top:24px">
-        <span><i class="dot" style="background:#8fa3b8"></i> Lo que has puesto tú</span>
+        <span><i class="dot" style="background:#0c9b76"></i> Lo que has puesto tú</span>
         <span><i class="dot" style="background:var(--accent)"></i> Lo que ha puesto el interés</span>
         <span id="ciLegendBanda" style="display:none"><i class="dot" style="background:var(--accent);opacity:.25"></i> Rango peor–mejor</span>
       </div>
@@ -1156,7 +1161,7 @@ const CHART = {
 };
 // Colores de las dos series 'aportado vs total', compartidos por la gráfica del plan
 // y por la de la calculadora de interés compuesto: las dos cuentan la misma historia.
-const CI_COL = { aportado: '#8fa3b8', interes: '#1463ff', rango: 'rgba(20,99,255,0.45)' };
+const CI_COL = { aportado: '#0c9b76', interes: '#1463ff', rango: 'rgba(20,99,255,0.45)' };
 // Serie de la gráfica del plan: para cada año de la fase de acumulación, cuánto has
 // puesto tú (capital inicial + aportaciones acumuladas) y cuánto vale la cartera. La
 // franja entre las dos curvas es el interés compuesto. Solo la acumulación: una vez
@@ -1454,7 +1459,7 @@ function drawCiChart(hoverIdx = null) {
     const f = filas[best];
     tip.innerHTML = `<div class="t-year">Año ${f.anio} · ${baseYear + f.anio}</div>
       <div class="t-row"><span style="color:#cbd5e1">Saldo</span><span>${fmt.format(f.saldo)}</span></div>
-      <div class="t-row"><span style="color:#8fa3b8">Has puesto tú</span><span>${fmt.format(f.aportado)}</span></div>
+      <div class="t-row"><span style="color:#0c9b76">Has puesto tú</span><span>${fmt.format(f.aportado)}</span></div>
       <div class="t-row"><span style="color:#60a5fa">Lo ha puesto el interés</span><span>${fmt.format(f.interes)}</span></div>`;
     tip.style.opacity = 1;
     tip.style.left = (p.clientX + 14) + 'px';

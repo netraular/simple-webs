@@ -188,7 +188,6 @@
   @media (max-width: 640px){ .mc-canvas { height: 300px; } }
   #mcKpis { grid-template-columns: repeat(4, 1fr); }
   @media (max-width: 820px){ #mcKpis { grid-template-columns: 1fr 1fr; } }
-  #mcChartSel { width: auto; display: inline-block; padding: 5px 10px; font-size: .9rem; font-weight: 600; }
   .mc-sub { font-size: .95rem; margin: 0 0 6px; color: var(--accent); }
   /* Capital de partida de la simulación: sale del plan, pero se puede escribir a mano. */
   .mc-capital { margin: 0 0 18px; max-width: 560px; }
@@ -326,7 +325,7 @@
     .presets{grid-column:1/5; display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px}
     .presets .tool-label{grid-column:1/4}
     .tool-sep{display:none}.tool-label{grid-column:1}#scenarioSel{grid-column:2;min-width:0;width:100%}#btnSave{grid-column:3}#btnDelete{grid-column:4}.save-state{position:absolute;right:14px;bottom:-22px}
-    .primary-inputs{grid-template-columns:1fr}.card{padding:18px}.inputs-body{padding:18px}.cards-mini{grid-template-columns:1fr}.result-ring{width:220px}#mcChartSel{width:100%;max-width:100%}
+    .primary-inputs{grid-template-columns:1fr}.card{padding:18px}.inputs-body{padding:18px}.cards-mini{grid-template-columns:1fr}.result-ring{width:220px}
   }
 </style>
 </head>
@@ -526,7 +525,7 @@
     <div id="detalleWrap">
       <div class="breakdown" id="breakdown"></div>
       <div id="alerts"></div>
-      <div class="muted" style="font-size:.74rem; margin-top:12px; line-height:1.5">El "capital al retirarte" se dimensiona con la <b>regla del 3,5%</b>: necesitas ~28,6× el gasto anual (dejando herencia), y ya cuenta con impuestos y pensión. En la <b>simulación de mercado</b> de abajo puedes ver cuántos futuros aguantan si cada año sacas ese <b>3,5% inicial ajustado a la inflación</b>.</div>
+      <div class="muted" style="font-size:.74rem; margin-top:12px; line-height:1.5">El "capital al retirarte" se dimensiona con la <b>regla del 3,5%</b>: necesitas ~28,6× el gasto anual (dejando herencia), y ya cuenta con impuestos y pensión. Esa cifra es tu <b>renta base</b>. En la <b>simulación de mercado</b> de abajo la renta se mueve <b>±20%</b> alrededor de ella según cómo vaya el mercado, y puedes ver en cuántos futuros no llega a bajar del suelo.</div>
     </div>
   </div>
   </div>
@@ -534,12 +533,13 @@
   <!-- SIMULACIÓN DE MERCADO (MONTE CARLO) -->
   <div class="card chart-card">
     <h2>Simulación de mercado</h2>
-    <p class="subtitle" style="margin-bottom:14px"><strong id="mcN">2.000</strong> futuros posibles con una rentabilidad real media del <span id="mcMedia">—</span> y volatilidad del <span id="mcVol">12%</span>. Cada año retiras la <b>misma cifra</b>: el <b>3,5% del capital inicial</b>, ajustado a la inflación.</p>
+    <p class="subtitle" style="margin-bottom:14px"><strong id="mcN">2.000</strong> futuros posibles con una rentabilidad real media del <span id="mcMedia">—</span> y volatilidad del <span id="mcVol">12%</span>. Cada año retiras el <b>3,5% del saldo</b>, pero sin salirte nunca de una banda de <b>±20%</b> alrededor de tu renta base.</p>
 
     <!-- Una sola idea a la vista; el resto del detalle, plegado. -->
     <details class="mc-more">
       <summary>Cómo leer esta simulación</summary>
-      <div class="hint">💡 <b>La estrategia es una sola: 3,5% fijo, ajustado a inflación.</b> Calculas la retirada una vez —el 3,5% del capital con el que te jubilas— y a partir de ahí sacas esa misma cifra cada año, subida con el IPC. Vaya bien o mal el mercado, <b>tu renta no cambia</b>: en € de hoy cobras exactamente lo mismo los 30 o 40 años. El precio de esa estabilidad es que la cartera <b>sí puede agotarse</b> si te toca una mala racha temprana, y por eso lo que se mide aquí es la <b>tasa de éxito</b> (cuántos futuros llegan al final con dinero).</div>
+      <div class="hint">💡 <b>La estrategia es una sola: 3,5% del saldo, con suelo y techo.</b> Tu <b>renta base</b> es el 3,5% del capital con el que te jubilas. Cada año apuntas al 3,5% de lo que quede en la cartera, así que la renta acompaña al mercado —pero la recortas para que nunca baje del <b>suelo</b> (base −20%) ni suba del <b>techo</b> (base +20%). En un año malo cobras menos, aunque sabes cuánto menos como mucho; en uno bueno cobras más, y lo que pasa del techo se queda componiendo en la cartera.</div>
+      <div class="hint">⚖️ Es el punto medio entre las dos estrategias extremas. Con una <b>retirada fija</b> la renta no cambia nunca, pero la cartera puede agotarse. Sacando un <b>% del saldo sin más</b> la cartera nunca llega a cero, pero la renta puede desplomarse sin límite. Aquí el techo protege a la cartera de los años buenos y el suelo te protege a ti de los malos — y como el suelo hay que pagarlo pase lo que pase, sigue existiendo riesgo de quedarse corto: eso es exactamente lo que mide la <b>tasa de éxito</b>.</div>
       <div class="hint">🧾 Las cifras son <b>brutas</b> (antes del impuesto efectivo sobre lo retirado que has puesto arriba) y en <b>€ de hoy</b>: en euros nominales irías sacando cada año ~la inflación más (por defecto +3%/año) para que valgan lo mismo. Cada escenario sortea la rentabilidad real de cada año de una normal con esa media y volatilidad; el orden en que llegan los años buenos y malos es lo único que separa unos futuros de otros.</div>
     </details>
 
@@ -560,39 +560,13 @@
     <div class="cards-mini" id="mcKpis" role="group" aria-label="Resultados de la simulación"></div>
     <div id="mcRiesgo"></div>
 
+    <!-- Gráfica única de la tarjeta: la renta año a año dentro de su banda. -->
     <div style="margin-top:24px">
-      <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:12px">
-        <label for="mcChartSel" style="margin:0; color:var(--text); font-size:.9rem">Gráfica:</label>
-        <select id="mcChartSel">
-          <option value="saldo">Patrimonio: mediana y abanico p10–p90</option>
-          <option value="vivos">Supervivencia: qué % de futuros sigue con dinero</option>
-        </select>
-      </div>
       <h3 class="mc-sub" id="mcChartTitle"></h3>
-      <!-- Gráficas Monte Carlo -->
-      <div id="mcChartWrap">
-        <!-- Sin width/height fijos: el tamaño lo pone el CSS y el bitmap lo ajusta mcDrawFan. -->
-        <canvas id="chartMc" class="mc-canvas"></canvas>
-        <div class="legend" id="mcLegend" style="margin-top:8px"></div>
-        <div class="hint" id="mcChartHint" style="margin-top:6px"></div>
-      </div>
-    </div>
-
-    <!-- La curva determinista es OTRO modelo (mercado sin sorpresas), no una vista más de
-         la simulación: sacarla del selector deja arriba solo lo que sí es Monte Carlo. -->
-    <h3 class="sub-toggle">Tu plan sin volatilidad
-      <button type="button" class="tool card-toggle" id="btnDetChart" style="margin-left:auto" title="Mostrar gráfica" aria-label="Mostrar gráfica">▸</button>
-    </h3>
-    <p class="hint" style="margin:4px 0 0">La misma retirada fija, pero con el mercado rindiendo exactamente su media todos los años: el caso sin mala suerte.</p>
-    <div id="detChartWrap" style="display:none; margin-top:14px">
-      <div class="legend">
-        <span><i class="dot" style="background:var(--green)"></i> Patrimonio (€ de hoy)</span>
-        <span><i class="dot" style="background:var(--blue)"></i> Fase de acumulación (aportas)</span>
-        <span><i class="dot" style="background:var(--amber)"></i> Retiro sin pensión (puente)</span>
-        <span><i class="dot" style="background:var(--accent)"></i> Retiro con pensión</span>
-      </div>
-      <canvas id="chart"></canvas>
-      <div class="hint" style="margin-top:10px; text-align:center">📅 Todo el eje está en <b>€ de hoy</b>. Usa el capital que sale de <b>Diseña tu ruta</b>, no el que hayas escrito a mano arriba. <b>Pasa el ratón</b> para ver el gasto de cada año y de dónde sale (cartera / pensión).</div>
+      <!-- Sin width/height fijos: el tamaño lo pone el CSS y el bitmap lo ajusta mcSetup. -->
+      <canvas id="chartMc" class="mc-canvas"></canvas>
+      <div class="legend" id="mcLegend" style="margin-top:8px"></div>
+      <div class="hint" id="mcChartHint" style="margin-top:6px"></div>
     </div>
 
     <!-- Plan año a año: subsección plegable, no una tarjeta al mismo nivel que el resto -->
@@ -699,7 +673,6 @@ const fmtShort = v => {
 };
 
 const mode = 'perpetua';   // fijo: no tocar el principal (regla del 3,5%)
-let chartData = null;
 
 const val = id => parseFloat(document.getElementById(id).value) || 0;
 
@@ -1053,8 +1026,6 @@ function compute() {
   lastSc = sc; lastCurve = curve;
   syncViewSlider(sc);
   renderEsfuerzo();
-  chartData = curve;
-  drawChart();
   renderTablaAporte(sc);
   renderMonteCarlo(sc);
 }
@@ -1229,136 +1200,28 @@ const CHART = {
   label: '#667382',   // rótulos de los ejes (= var(--muted))
   ref:   '#a6b3c2',   // líneas de referencia discontinuas
 };
-const canvas = document.getElementById('chart');
-const ctx = canvas.getContext('2d');
-const pad = { top: 20, right: 20, bottom: 34, left: 66 };
-let plot = null;
+// La curva determinista salió de la tarjeta: la simulación con banda ya enseña la
+// renta año a año, y un segundo canvas con el mismo eje solo repetía la idea sin
+// volatilidad. buildCurve() se mantiene: compute() la sigue usando para el aviso de
+// "se agota a los N" y para la máquina del tiempo de la tarjeta de esfuerzo.
 
-function drawChart() {
-  if (!chartData) return;
-  const dpr = window.devicePixelRatio || 1;
-  const cssW = canvas.clientWidth, cssH = canvas.clientHeight;
-  if (!cssW || !cssH) return;      // subsección plegada: el canvas aún no tiene tamaño
-  canvas.width = cssW * dpr; canvas.height = cssH * dpr;
-  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  ctx.clearRect(0, 0, cssW, cssH);
-
-  const { ages, bal, phase, F, PA } = chartData;
-  const maxY = Math.max(...bal, 1);
-  const minAge = ages[0], maxAge = ages[ages.length - 1];
-
-  const x0 = pad.left, x1 = cssW - pad.right;
-  const y0 = cssH - pad.bottom, y1 = pad.top;
-  const sx = a => x0 + ((a - minAge) / (maxAge - minAge)) * (x1 - x0);
-  const sy = v => y0 + (Math.max(v,0) / maxY) * (y1 - y0);
-  plot = { x0, x1, y0, y1, sx, sy, maxY };
-
-  // rejilla Y
-  ctx.font = '11px system-ui, sans-serif';
-  ctx.lineWidth = 1;
-  const yTicks = 5;
-  for (let k = 0; k <= yTicks; k++) {
-    const v = (maxY / yTicks) * k, y = sy(v);
-    ctx.strokeStyle = k === 0 ? CHART.axis : CHART.grid;
-    ctx.beginPath(); ctx.moveTo(x0, y); ctx.lineTo(x1, y); ctx.stroke();
-    ctx.fillStyle = CHART.label; ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
-    ctx.fillText(fmtShort(v), x0 - 8, y);
-  }
-  // eje X (edades): solo rótulos, sin líneas verticales
-  ctx.textAlign = 'center'; ctx.textBaseline = 'top';
-  const span = maxAge - minAge;
-  const step = span > 40 ? 10 : 5;
-  for (let a = Math.ceil(minAge/step)*step; a <= maxAge; a += step) {
-    ctx.fillStyle = CHART.label;
-    ctx.fillText(a + 'a', sx(a), y0 + 8);
-  }
-
-  // Área por fases (color según fase del punto derecho de cada segmento). Mismos
-  // colores que la leyenda de arriba: --blue / --amber / --accent.
-  const colFill = ['rgba(0,163,199,0.18)','rgba(242,170,23,0.18)','rgba(20,99,255,0.15)'];
-  const colLine = ['#00a3c7','#f2aa17','#1463ff'];
-  for (let seg = 0; seg < ages.length - 1; seg++) {
-    const ph = phase[seg + 1];
-    ctx.beginPath();
-    ctx.moveTo(sx(ages[seg]), y0);
-    ctx.lineTo(sx(ages[seg]), sy(bal[seg]));
-    ctx.lineTo(sx(ages[seg+1]), sy(bal[seg+1]));
-    ctx.lineTo(sx(ages[seg+1]), y0);
-    ctx.closePath();
-    ctx.fillStyle = colFill[ph]; ctx.fill();
-    ctx.beginPath();
-    ctx.moveTo(sx(ages[seg]), sy(bal[seg]));
-    ctx.lineTo(sx(ages[seg+1]), sy(bal[seg+1]));
-    ctx.strokeStyle = colLine[ph]; ctx.lineWidth = 2; ctx.stroke();
-  }
-
-  // marcadores verticales FIRE y pensión
-  for (const [age, label, col] of [[F,'Retiro','#0c9b76'],[PA,'Pensión','#1463ff']]) {
-    if (age <= maxAge && age >= minAge) {
-      const X = sx(age);
-      ctx.strokeStyle = col; ctx.setLineDash([4,4]); ctx.lineWidth = 1;
-      ctx.beginPath(); ctx.moveTo(X, y1); ctx.lineTo(X, y0); ctx.stroke();
-      ctx.setLineDash([]);
-      ctx.fillStyle = col; ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
-      ctx.fillText(label + ' ' + age, X, y1 + 10);
-    }
-  }
-}
-
-/* ---------- Tooltip ---------- */
-const tooltip = document.getElementById('tooltip');
-canvas.addEventListener('mousemove', e => {
-  if (!chartData || !plot) return;
-  const rect = canvas.getBoundingClientRect();
-  const mx = e.clientX - rect.left;
-  const { ages, bal, phase, flow } = chartData;
-  let best = 0, bestD = Infinity;
-  for (let idx = 0; idx < ages.length; idx++) {
-    const d = Math.abs(plot.sx(ages[idx]) - mx);
-    if (d < bestD) { bestD = d; best = idx; }
-  }
-  if (bestD > 40) { tooltip.style.opacity = 0; return; }
-  const ph = ['Acumulando','Retiro (puente)','Retiro (con pensión)'][phase[best]];
-  const f = flow[best];
-  let flowRows = '';
-  if (f && f.acc) {
-    flowRows = `<div class="t-row"><span style="color:#60a5fa">Aportas</span><span>${fmt.format(f.aport)}/año</span></div>`;
-  } else if (f) {
-    flowRows = `<div class="t-row"><span style="color:#fbbf24">Gasto (€ de hoy)</span><span>${fmt.format(f.gasto)}/año</span></div>`;
-    flowRows += `<div class="t-row"><span class="muted">· de la cartera</span><span>${fmt.format(f.cartera)}/año</span></div>`;
-    if (f.pension > 0) flowRows += `<div class="t-row"><span class="muted">· de la pensión</span><span>${fmt.format(f.pension)}/año</span></div>`;
-    if (f.conv > 0) flowRows += `<div class="t-row"><span class="muted">· convenio (extra)</span><span>${fmt.format(f.conv)}/año</span></div>`;
-  }
-  tooltip.innerHTML = `
-    <div class="t-year">Edad ${ages[best]} · ${ph}</div>
-    <div class="t-row"><span style="color:#34d399">Patrimonio</span><span>${fmt.format(bal[best])}</span></div>
-    ${flowRows}`;
-  tooltip.style.opacity = 1;
-  tooltip.style.left = (e.clientX + 14) + 'px';
-  tooltip.style.top = (e.clientY + 14) + 'px';
-  drawChart();
-  const X = plot.sx(ages[best]);
-  ctx.beginPath(); ctx.arc(X, plot.sy(bal[best]), 4, 0, Math.PI*2);
-  ctx.fillStyle = '#34d399'; ctx.fill();
-});
-canvas.addEventListener('mouseleave', () => { tooltip.style.opacity = 0; drawChart(); });
 window.addEventListener('resize', () => {
-  drawSelectedChart();
+  drawMc();
   drawCiChart();
 });
 
 /* ================= Simulación de mercado (Monte Carlo) =================
-   Una sola estrategia de retirada: el primer año sacas el 3,5% del capital y a
-   partir de ahí esa misma cifra subida con la inflación, año tras año. Como todo
-   está en € de hoy, la retirada es CONSTANTE durante todo el retiro: cobras lo
-   mismo pase lo que pase en el mercado. A cambio de esa estabilidad la cartera sí
-   puede agotarse, así que lo que se mide aquí es el riesgo de quedarse sin dinero.
+   Una sola estrategia de retirada, con banda: cada año se apunta al 3,5% del saldo
+   que quede, pero la retirada se recorta para no salirse de [base−20%, base+20%],
+   donde la base es el 3,5% del capital inicial. La renta varía con el mercado sin
+   desbocarse ni desplomarse. El suelo hay que pagarlo pase lo que pase, así que la
+   cartera aún puede quedarse corta: eso es lo que mide la tasa de éxito.
    Todo en términos reales (€ de hoy): la rentabilidad de cada año se sortea de
    Normal(rent. real, volatilidad) y no hay ajuste por inflación. */
 const MC_N = 2000;              // nº de escenarios
 const MC_SEED = 7;             // semilla fija → resultados estables/reproducibles
 const MC_COLOR = '#1463ff';    // color único de la simulación
-const MC_VERDE = '#0c9b76';    // = var(--green), para el canvas (no entiende variables CSS)
+const MC_AMBAR = '#f2aa17';    // = var(--amber), para el canvas (no entiende variables CSS)
 
 // PRNG determinista (mulberry32) + normal (Box-Muller)
 function mcRng(seed) {
@@ -1382,20 +1245,33 @@ function mcPct(sorted, p) {
   return f === c ? sorted[f] : sorted[f] + (sorted[c] - sorted[f]) * (k - f);
 }
 
-// Un escenario: para la secuencia de rentabilidades `rets` (reales), cada año se
-// retira SIEMPRE la misma cifra (`tasa` × capital inicial, ya en € de hoy: subirla
-// con la inflación es justo lo que la mantiene constante en poder adquisitivo) y el
-// resto sigue invertido. Si un año no queda tanto, se saca lo que haya y la cartera
-// se queda a cero: `agotadoEn` guarda el índice de ese año (null si nunca pasa).
+// Margen de la banda: la renta puede moverse ±20% alrededor de la renta base. Ensanchar
+// la banda sube la tasa de éxito (recortas antes en los años malos) a cambio de una
+// renta mínima más baja; estrecharla la acerca a una retirada fija.
+const MC_BANDA = 0.20;
+
+// Un escenario: para la secuencia de rentabilidades `rets` (reales), cada año se apunta
+// al `tasa`% del saldo que quede, pero la retirada se recorta para no salirse de la
+// banda [suelo, techo] fijada sobre la renta base (`tasa` × capital inicial). Así la
+// renta acompaña al mercado sin desbocarse ni desplomarse: en un año bueno cobras más,
+// pero nunca más del techo; en uno malo cobras menos, pero nunca menos del suelo.
+// Todo en € de hoy, así que "subir la retirada con la inflación" ya está incorporado.
+//
+// El suelo es justamente lo que reintroduce el riesgo de ruina: si la cartera cae por
+// debajo de él, el plan ya no puede pagar la renta mínima prometida. `agotadoEn` guarda
+// el índice del primer año en que eso pasa (null si nunca pasa).
 function mcSim(rets, capIni, tasa, n) {
   const saldos = [], retiros = [];
-  const fija = tasa * capIni;
+  const base = tasa * capIni;
+  const suelo = base * (1 - MC_BANDA), techo = base * (1 + MC_BANDA);
   let saldo = capIni, agotadoEn = null;
   for (let i = 0; i < n; i++) {
     saldos.push(saldo);
-    const w = Math.min(fija, saldo);            // no se puede sacar más de lo que hay
+    const objetivo = Math.min(techo, Math.max(suelo, tasa * saldo));
+    const w = Math.min(objetivo, saldo);        // no se puede sacar más de lo que hay
     retiros.push(w);
-    if (agotadoEn === null && w < fija) agotadoEn = i;
+    // w < suelo ⟺ saldo < suelo: el año en que ni siquiera se llega a la renta mínima.
+    if (agotadoEn === null && w < suelo - 1e-6) agotadoEn = i;
     saldo = Math.max((saldo - w) * (1 + rets[i]), 0);
   }
   return { saldos, retiros, agotadoEn };
@@ -1445,7 +1321,7 @@ function renderMonteCarlo(sc) {
   const sig = [Math.round(capAtF), F, E, rR.toFixed(4), n, Math.round(objetivo), tr.toFixed(3), cobrarePension ? PA : 0].join('|');
   if (sig === mcSig && mcData) {
     renderMcKpis();
-    drawSelectedChart();
+    drawMc();
     return;
   }
   mcSig = sig;
@@ -1456,29 +1332,26 @@ function renderMonteCarlo(sc) {
   document.getElementById('mcN').textContent = MC_N.toLocaleString('es-ES');
 
   const edades = []; for (let a = F; a <= E; a++) edades.push(a);
-  const saldoY = Array.from({ length: n }, () => []);   // saldos de cada año, todos los escenarios
-  // Con la retirada fija el riesgo ya no es cobrar menos, es quedarse sin cartera:
-  // de cada escenario guardamos el saldo final y, si se agota, a qué edad pasa.
-  const finales = [], edadesAgot = [];
-  // Cuántos escenarios se agotan EN cada año, para la curva de supervivencia.
-  const agotanEn = new Array(n).fill(0);
+  const rentaY = Array.from({ length: n }, () => []);   // retiradas de cada año, todos los escenarios
+  // De cada escenario nos quedamos con la renta media que cobra y con su peor año; y
+  // aparte, cuántos escenarios llegan a no poder pagar ni el suelo de la banda.
+  const rentaMedia = [], rentaMin = [];
   let agotados = 0;
 
   const rng = mcRng(MC_SEED);
   for (let s = 0; s < MC_N; s++) {
     const rets = [];
     for (let i = 0; i < n; i++) rets.push(rR + MC_VOL * mcGauss(rng));
-    const { saldos, agotadoEn } = mcSim(rets, capAtF, TASA_RETIRO, n);
-    for (let i = 0; i < n; i++) saldoY[i].push(saldos[i]);
-    finales.push(saldos[n - 1]);
-    if (agotadoEn !== null) { agotados++; edadesAgot.push(F + agotadoEn); agotanEn[agotadoEn]++; }
+    const { retiros, agotadoEn } = mcSim(rets, capAtF, TASA_RETIRO, n);
+    let suma = 0, min = Infinity;
+    for (let i = 0; i < n; i++) {
+      rentaY[i].push(retiros[i]);
+      suma += retiros[i];
+      if (retiros[i] < min) min = retiros[i];
+    }
+    rentaMedia.push(suma / n); rentaMin.push(min);
+    if (agotadoEn !== null) agotados++;
   }
-
-  // Supervivencia año a año: % de escenarios que aún pueden pagar la retirada completa.
-  // El que se agota en el año i cuenta como caído EN ese año, y así el último punto de
-  // la curva es exactamente la tasa de éxito de los KPIs, no una décima más.
-  const vivos = []; let muertos = 0;
-  for (let i = 0; i < n; i++) { muertos += agotanEn[i]; vivos.push((MC_N - muertos) / MC_N); }
 
   // Percentiles año a año: la mediana y la banda p10–p90 que se dibujan.
   const banda = porAnio => {
@@ -1490,23 +1363,23 @@ function renderMonteCarlo(sc) {
     return { p10, p50, p90 };
   };
   const orden = a => a.slice().sort((x, y) => x - y);
-  const fin = orden(finales), agot = orden(edadesAgot);
+  const rmed = orden(rentaMedia), rmin = orden(rentaMin);
+  const base = TASA_RETIRO * capAtF;
 
   mcData = {
     edades, color: MC_COLOR, cap0: capAtF, objetivo, tr,
     pensionDesde: cobrarePension ? PA : null,
-    saldo: banda(saldoY), vivos,
+    renta: banda(rentaY),
     kpi: {
-      rentaFija: TASA_RETIRO * capAtF,
-      exito: 1 - agotados / MC_N,               // escenarios que llegan al final con saldo
-      // Edad a la que se agota, solo entre los escenarios que fallan: la mediana y
-      // la más temprana del 10% que peor va (los sustos más gordos).
-      agotaP50: agot.length ? mcPct(agot, 0.50) : null,
-      agotaP10: agot.length ? mcPct(agot, 0.10) : null,
-      finP50: mcPct(fin, 0.50), finP10: mcPct(fin, 0.10), finP90: mcPct(fin, 0.90),
+      base, suelo: base * (1 - MC_BANDA), techo: base * (1 + MC_BANDA),
+      exito: 1 - agotados / MC_N,               // escenarios que nunca bajan del suelo
+      // Renta media de cada escenario: la mediana es "lo que cobrarías en un futuro normal".
+      mediaP50: mcPct(rmed, 0.50), mediaP10: mcPct(rmed, 0.10), mediaP90: mcPct(rmed, 0.90),
+      // Peor año de cada escenario: cuánto llega a apretar la banda en la práctica.
+      minP50: mcPct(rmin, 0.50), minP10: mcPct(rmin, 0.10),
     },
   };
-  drawSelectedChart();
+  drawMc();
   renderMcKpis();
 }
 
@@ -1536,8 +1409,8 @@ function mcAxes(ctx, W, H, P, ymax, unit, xs, tramos = 6) {
   }
 }
 // Prepara el canvas Monte Carlo: bitmap a (tamaño CSS × ratio de píxel del dispositivo)
-// y contexto en píxeles CSS, igual que drawChart. Devuelve null si aún no tiene tamaño
-// (la tarjeta está plegada), en cuyo caso no hay nada que pintar.
+// y contexto en píxeles CSS, para que el trazo no salga interpolado. Devuelve null si
+// aún no tiene tamaño (tarjeta plegada), en cuyo caso no hay nada que pintar.
 function mcSetup(padLeft) {
   const cv = document.getElementById('chartMc'); if (!cv || !mcData) return null;
   const c = cv.getContext('2d');
@@ -1551,19 +1424,29 @@ function mcSetup(padLeft) {
   const xs = mcData.edades, x0 = xs[0], x1 = xs[xs.length - 1] === xs[0] ? xs[0] + 1 : xs[xs.length - 1];
   return { cv, c, W, H, P, xs, X: a => P.l + (a - x0) / (x1 - x0) * (W - P.l - P.r) };
 }
-// Dibuja la mediana y el abanico p10–p90 del patrimonio, con una línea de referencia
-// discontinua (el capital de partida).
-function mcDrawFan(serie, unit, refLine) {
+// Gráfica única: la renta anual. Mediana + abanico p10–p90 sobre la banda suelo–techo,
+// que es la promesa de la estrategia: cobras algo distinto cada año, pero siempre dentro
+// de esas dos rayas. Que el abanico toque el suelo marca los años de apretarse el cinturón.
+function mcDrawRenta() {
   const s = mcSetup(78); if (!s) return;
   const { c, W, H, P, xs, X } = s;
-  const ymax = (Math.max(...serie.p90, refLine || 0) * 1.08) || 1;
+  const k = mcData.kpi, serie = mcData.renta;
+  const ymax = (Math.max(...serie.p90, k.techo) * 1.12) || 1;
   const Y = v => H - P.b - (v / ymax) * (H - P.t - P.b);
-  mcAxes(c, W, H, P, ymax, unit, xs);
-  if (refLine) {
-    const yr = Math.round(Y(refLine)) + 0.5;
-    c.setLineDash([4, 4]); c.strokeStyle = CHART.ref; c.lineWidth = 1; c.beginPath();
-    c.moveTo(P.l, yr); c.lineTo(W - P.r, yr); c.stroke(); c.setLineDash([]);
+  mcAxes(c, W, H, P, ymax, 'k', xs);
+
+  // Franja de la banda: el terreno de juego dentro del que se mueve la renta.
+  const yT = Y(k.techo), yS = Y(k.suelo);
+  c.fillStyle = 'rgba(20,99,255,.06)';
+  c.fillRect(P.l, yT, W - P.l - P.r, yS - yT);
+  c.setLineDash([5, 4]); c.lineWidth = 1;
+  for (const [v, col] of [[k.techo, CHART.ref], [k.suelo, MC_AMBAR]]) {
+    const y = Math.round(Y(v)) + 0.5;
+    c.strokeStyle = col; c.beginPath(); c.moveTo(P.l, y); c.lineTo(W - P.r, y); c.stroke();
   }
+  c.setLineDash([]);
+
+  // Abanico p10–p90 y mediana de la renta.
   c.fillStyle = mcData.color + '2e'; c.beginPath();
   serie.p90.forEach((v, i) => { const x = X(xs[i]), y = Y(v); i ? c.lineTo(x, y) : c.moveTo(x, y); });
   for (let i = serie.p10.length - 1; i >= 0; i--) c.lineTo(X(xs[i]), Y(serie.p10[i]));
@@ -1571,6 +1454,7 @@ function mcDrawFan(serie, unit, refLine) {
   c.strokeStyle = mcData.color; c.lineWidth = 2.6; c.beginPath();
   serie.p50.forEach((v, i) => { const x = X(xs[i]), y = Y(v); i ? c.lineTo(x, y) : c.moveTo(x, y); });
   c.stroke();
+
   mcHover = {
     ...s, Y, fmtVal: v => fmt.format(v),
     series: [
@@ -1580,48 +1464,20 @@ function mcDrawFan(serie, unit, refLine) {
     ],
   };
 }
-// Curva de supervivencia: qué % de escenarios sigue pudiendo pagar la retirada completa
-// a cada edad. Con retirada fija esta es la gráfica que de verdad dice algo — la de la
-// renta sería una recta plana, porque cobras lo mismo todos los años por definición.
-function mcDrawSurvival() {
-  const s = mcSetup(52); if (!s) return;
-  const { c, W, H, P, xs, X } = s;
-  const pct = mcData.vivos.map(v => v * 100);
-  const Y = v => H - P.b - (v / 100) * (H - P.t - P.b);
-  mcAxes(c, W, H, P, 100, '%', xs, 5);   // 5 tramos → 0/20/40/60/80/100%, sin decimales feos
-  // Área bajo la curva: la masa de futuros que aguantan.
-  c.fillStyle = 'rgba(12,155,118,.16)'; c.beginPath();
-  c.moveTo(X(xs[0]), Y(0));
-  pct.forEach((v, i) => c.lineTo(X(xs[i]), Y(v)));
-  c.lineTo(X(xs[xs.length - 1]), Y(0)); c.closePath(); c.fill();
-  c.strokeStyle = MC_VERDE; c.lineWidth = 2.6; c.beginPath();
-  pct.forEach((v, i) => { const x = X(xs[i]), y = Y(v); i ? c.lineTo(x, y) : c.moveTo(x, y); });
-  c.stroke();
-  mcHover = {
-    ...s, Y, fmtVal: v => v.toFixed(1) + '%',
-    series: [{ lbl: 'Siguen con dinero', op: 1, color: MC_VERDE, vals: pct }],
-  };
-}
-// Dibuja la gráfica Monte Carlo seleccionada (patrimonio o supervivencia).
 function drawMc() {
   if (!mcData) return;
-  const which = document.getElementById('mcChartSel').value;
-  const lg = document.getElementById('mcLegend');
-  const title = document.getElementById('mcChartTitle');
-  const hint = document.getElementById('mcChartHint');
-  if (which === 'vivos') {
-    mcDrawSurvival();
-    lg.innerHTML = `<span><i class="dot" style="background:${MC_VERDE}"></i> Futuros que aún pueden pagar la retirada completa</span>`;
-    title.textContent = 'Supervivencia de la cartera: cuántos futuros aguantan a cada edad';
-    hint.textContent = `Empieza en el 100% y solo puede bajar: cada escalón es una tanda de escenarios que se quedan sin dinero a esa edad. El valor del extremo derecho es la tasa de éxito de arriba. Si la curva cae pronto y fuerte, el problema es la mala racha de los primeros años; si baja solo al final, es cuestión de que el plan dure algo menos.`;
-  } else {
-    mcDrawFan(mcData.saldo, 'M', mcData.cap0);
-    lg.innerHTML = `<span><i class="dot" style="background:${mcData.color}"></i> Patrimonio mediano</span>`
-      + `<span><i class="dot" style="background:${mcData.color};opacity:.35"></i> Rango p10–p90 (80% de los casos)</span>`
-      + `<span><i class="dot" style="background:${CHART.ref}"></i> Capital de partida</span>`;
-    title.textContent = 'Patrimonio: lo que queda en la cartera (€ de hoy)';
-    hint.textContent = 'La línea discontinua marca el capital con el que empiezas. Como sacas la misma cifra pase lo que pase, en los escenarios malos la cartera sí puede llegar a cero: es lo que mide la tasa de éxito de arriba.';
-  }
+  const k = mcData.kpi;
+  mcDrawRenta();
+  document.getElementById('mcLegend').innerHTML =
+      `<span><i class="dot" style="background:${mcData.color}"></i> Renta mediana</span>`
+    + `<span><i class="dot" style="background:${mcData.color};opacity:.35"></i> Rango p10–p90 (80% de los casos)</span>`
+    + `<span><i class="dot" style="background:${MC_AMBAR}"></i> Suelo ${fmt.format(k.suelo)}</span>`
+    + `<span><i class="dot" style="background:${CHART.ref}"></i> Techo ${fmt.format(k.techo)}</span>`;
+  document.getElementById('mcChartTitle').textContent = 'Tu renta año a año (€ de hoy, brutos)';
+  document.getElementById('mcChartHint').textContent =
+    `La banda gris es el terreno de juego: pase lo que pase cobras entre ${fmt.format(k.suelo)} y ${fmt.format(k.techo)}. `
+    + `La línea es la renta mediana y el abanico cubre el 80% central de los futuros. `
+    + `Donde el borde inferior se pega al suelo hay años de apretarse el cinturón; donde el superior toca el techo, años en los que sobra y la cartera se engorda.`;
 }
 function renderMcKpis() {
   const kp = document.getElementById('mcKpis'); if (!kp || !mcData) return;
@@ -1640,22 +1496,20 @@ function renderMcKpis() {
     hero.innerHTML = `
       <div class="mc-waffle" aria-hidden="true">${celdas}</div>
       <div>
-        <div class="mc-hero-k">Futuros en los que el plan aguanta</div>
+        <div class="mc-hero-k">Futuros en los que nunca bajas del suelo</div>
         <div class="mc-hero-v" style="color:${col}">${exito.toFixed(1)}%</div>
-        <div class="mc-hero-s">De los <b>${MC_N.toLocaleString('es-ES')}</b> mercados simulados, <b>${Math.round(k.exito * MC_N).toLocaleString('es-ES')}</b> llegan a los <b>${edadFin}</b> pagándote los <b>${fmt.format(k.rentaFija)}/año</b> completos. Cada cuadrado es un 1% de los escenarios.</div>
+        <div class="mc-hero-s">De los <b>${MC_N.toLocaleString('es-ES')}</b> mercados simulados, <b>${Math.round(k.exito * MC_N).toLocaleString('es-ES')}</b> te pagan al menos <b>${fmt.format(k.suelo)}/año</b> hasta los <b>${edadFin}</b>. Cada cuadrado es un 1% de los escenarios.</div>
       </div>`;
   }
 
   const cards = [
-    { t: 'Renta anual (siempre la misma)', c: 'var(--text)', v: fmt.format(k.rentaFija),
-      s: `${TASA_TXT} de ${fmtShort(mcData.cap0)} · ≈ ${fmt.format(neto(k.rentaFija))} tras impuestos` },
-    { t: 'Si se agota, ¿cuándo?', c: k.agotaP50 === null ? 'var(--muted)' : 'var(--amber)',
-      v: k.agotaP50 === null ? '—' : `${Math.round(k.agotaP50)} años`,
-      s: k.agotaP50 === null
-        ? 'ningún escenario se queda sin cartera'
-        : `mediana de los que fallan · en el 10% peor, a los ${Math.round(k.agotaP10)}` },
-    { t: `Saldo final (a los ${edadFin})`, c: 'var(--blue)', v: fmtShort(k.finP50),
-      s: `mediana · del ${fmtShort(k.finP10)} al ${fmtShort(k.finP90)}` },
+    { t: 'Tu renta se mueve entre', c: 'var(--text)',
+      v: `${fmtShort(k.suelo)} – ${fmtShort(k.techo)}`,
+      s: `banda de ±${(MC_BANDA * 100).toFixed(0)}% sobre los ${fmt.format(k.base)} de renta base (${TASA_TXT} de ${fmtShort(mcData.cap0)})` },
+    { t: 'Renta anual típica', c: 'var(--green)', v: fmt.format(k.mediaP50),
+      s: `mediana de los escenarios · del ${fmtShort(k.mediaP10)} al ${fmtShort(k.mediaP90)} · ≈ ${fmt.format(neto(k.mediaP50))} tras impuestos` },
+    { t: 'El año más flojo', c: 'var(--amber)', v: fmt.format(k.minP50),
+      s: `mediana del peor año de cada escenario · en el 10% de futuros más malos, ${fmtShort(k.minP10)}` },
   ];
   kp.innerHTML = cards.map(c => `<div class="mini">
       <div class="k">${c.t}</div>
@@ -1671,45 +1525,17 @@ function renderMcKpis() {
   const notaPension = mcData.pensionDesde
     ? ` Desde los ${mcData.pensionDesde} la pensión pública cubre parte del gasto, así que la cartera necesita sacar menos de lo que dice esta simulación.`
     : '';
-  // Si la retirada fija no llega al gasto que querías, el capital simulado se queda
-  // corto (pasa sobre todo al escribir el capital a mano por debajo del que pide el plan).
-  const corta = k.rentaFija < mcData.objetivo * 0.995 && !mcData.pensionDesde
-    ? ` Ojo: esos ${fmt.format(k.rentaFija)}/año brutos se quedan por debajo de tu gasto objetivo (${objetivo}/año), así que con este capital cobrarías menos de lo que querías gastar.`
+  // Si la renta base no llega al gasto que querías, el capital simulado se queda corto
+  // (pasa sobre todo al escribir el capital a mano por debajo del que pide el plan).
+  const corta = k.base < mcData.objetivo * 0.995 && !mcData.pensionDesde
+    ? ` Ojo: esos ${fmt.format(k.base)}/año brutos de renta base se quedan por debajo de tu gasto objetivo (${objetivo}/año), así que con este capital cobrarías menos de lo que querías gastar.`
     : '';
   const cuerpo = fallo < 5
     ? `Margen de sobra: en la práctica esto se considera un plan sólido.`
-    : `Para subirlo: <b>retrasa el retiro</b>, <b>baja el gasto</b> o cuenta con <b>recortar</b> en los años malos. Con retirada fija el riesgo no es cobrar menos, es quedarte sin dinero.`;
+    : `Para subirlo: <b>retrasa el retiro</b>, <b>baja el gasto</b> o acepta un <b>suelo más bajo</b>. Con esta estrategia el riesgo no es que la renta baile —eso ya está acotado—, es que la cartera no dé ni para el suelo.`;
   box.innerHTML = `<div class="alert ${fallo < 5 ? 'ok' : fallo > 15 ? 'bad' : 'warn'}">`
     + `${fallo < 5 ? '✅' : fallo > 15 ? '🚫' : '⚠️'} ${cuerpo}${notaPension}${corta}</div>`;
 }
-// Repinta lo que esté a la vista: la gráfica Monte Carlo elegida y, si la subsección
-// "Tu plan sin volatilidad" está desplegada, también la curva determinista (mientras
-// está plegada su canvas mide 0 y no se puede pintar).
-function drawSelectedChart() {
-  drawMc();
-  const detWrap = document.getElementById('detChartWrap');
-  if (detWrap && detWrap.style.display !== 'none') drawDetChart();
-}
-// Curva del plan (retirada fija, sin volatilidad), reutilizando chartData/drawChart.
-function drawDetChart() {
-  chartData = buildCurve(scenario(val('fire')));
-  drawChart();
-}
-document.getElementById('mcChartSel').addEventListener('change', drawMc);
-
-// Subsección plegable de la gráfica determinista: al desplegarla hay que dibujarla,
-// porque hasta ese momento el canvas no tenía tamaño.
-(function () {
-  const b = document.getElementById('btnDetChart'), w = document.getElementById('detChartWrap');
-  if (!b || !w) return;
-  setToggleArrow(b, true, 'gráfica');
-  b.addEventListener('click', () => {
-    const show = w.style.display === 'none';
-    w.style.display = show ? '' : 'none';
-    setToggleArrow(b, !show, 'gráfica');
-    if (show) drawDetChart();
-  });
-})();
 
 // Editar el capital a mano lo desengancha del plan; ↺ lo vuelve a enganchar. Este
 // listener se registra antes que el genérico del formulario, así que cuando compute()
@@ -2005,15 +1831,14 @@ const formInputs = Array.from(document.querySelectorAll('input, select')).filter
 //   v1 → v2: el campo "neto" pasó de ingreso ANUAL a MENSUAL.
 //   v2 → v3: la simulación dejó de comparar estrategias, así que las gráficas que ya
 //            no existen se descartan (si no, el selector se quedaría en blanco).
-//   v3 → v4: con la retirada fija la gráfica de renta sería una recta, así que se
-//            cambió por la de supervivencia, y la determinista salió del selector.
+//   v3 → v4: la tarjeta pasó a tener una sola gráfica, así que el selector desapareció
+//            y su valor guardado ya no significa nada.
 const FORM_VERSION = 4;
-const MC_CHARTS = ['saldo', 'vivos'];
 function migrateData(data) {
   if (!data || data._v >= FORM_VERSION) return data;
   const v = data._v || 1;
   if (v < 2 && data.neto != null) data.neto = String(Math.round((parseFloat(data.neto) || 0) / 12));
-  if (v < 4 && !MC_CHARTS.includes(data.mcChartSel)) delete data.mcChartSel;
+  if (v < 4) delete data.mcChartSel;
   data._v = FORM_VERSION;
   return data;
 }

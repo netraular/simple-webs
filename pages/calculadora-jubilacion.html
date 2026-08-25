@@ -208,7 +208,7 @@
   body::before{display:none}
   .wrap{position:relative; max-width:1240px}
   .hero{margin:20px 0 0; padding:36px 210px 32px 34px; background:#1457d9; color:#fff; position:relative; border:0; box-shadow:inset 7px 0 0 #21c3d6}
-  .hero::after{content:"FIRE / 04%"; position:absolute; right:30px; top:36px; padding:13px 16px; border:1px solid rgba(255,255,255,.65); color:#124bb9; background:#fff; font:600 .78rem/1 "IBM Plex Mono",monospace; letter-spacing:.06em}
+  .hero::after{content:"FIRE / 3,5%"; position:absolute; right:30px; top:36px; padding:13px 16px; border:1px solid rgba(255,255,255,.65); color:#124bb9; background:#fff; font:600 .78rem/1 "IBM Plex Mono",monospace; letter-spacing:.06em}
   .eyebrow{display:block; color:#a9f1f7; font:600 .7rem/1 "IBM Plex Mono",monospace; letter-spacing:.08em; text-transform:uppercase; margin-bottom:12px}
   h1{font:800 clamp(2.2rem,4.5vw,4.25rem)/.98 "Manrope",sans-serif; max-width:850px; letter-spacing:0; margin:0}
   .hero .subtitle{color:#dce8ff; font-size:.95rem; max-width:680px; margin:14px 0 0}
@@ -504,7 +504,7 @@
     <div id="detalleWrap">
       <div class="breakdown" id="breakdown"></div>
       <div id="alerts"></div>
-      <div class="muted" style="font-size:.74rem; margin-top:12px; line-height:1.5">El "capital al retirarte" se dimensiona con la <b>regla del 4%</b>: necesitas 25× el gasto anual (dejando herencia), y ya cuenta con impuestos y pensión. En la <b>simulación de mercado</b> de abajo puedes ver qué renta daría ese capital si cada año retiras el <b>4% del saldo</b> que te quede.</div>
+      <div class="muted" style="font-size:.74rem; margin-top:12px; line-height:1.5">El "capital al retirarte" se dimensiona con la <b>regla del 3,5%</b>: necesitas ~28,6× el gasto anual (dejando herencia), y ya cuenta con impuestos y pensión. En la <b>simulación de mercado</b> de abajo puedes ver cuántos futuros aguantan si cada año sacas ese <b>3,5% inicial ajustado a la inflación</b>.</div>
     </div>
   </div>
   </div>
@@ -512,8 +512,8 @@
   <!-- SIMULACIÓN DE MERCADO (MONTE CARLO) -->
   <div class="card chart-card">
     <h2>Simulación de mercado</h2>
-    <p class="subtitle" style="margin-bottom:16px"><strong id="mcN">2.000</strong> futuros posibles con una rentabilidad real media del <span id="mcMedia">—</span> y volatilidad del <span id="mcVol">12%</span>. Cada año retiras el <b>4% del saldo que tengas</b> en ese momento.</p>
-    <div class="hint" style="margin-bottom:16px">💡 <b>La estrategia es una sola: 4% del total, revisado cada año.</b> No sacas una cifra fija: sacas el 4% de lo que haya en la cartera ese año, así que en un año malo retiras <b>menos</b> y en uno bueno, <b>más</b>. A cambio de esa flexibilidad la cartera <b>nunca llega a cero</b> (siempre retiras una parte de lo que queda): el riesgo aquí no es arruinarse, es que la renta baje. Las cifras son <b>brutas</b> (antes del impuesto sobre lo retirado) y en <b>€ de hoy</b>: en euros nominales irías sacando cada año ~la inflación más (por defecto +3%/año) para que valgan lo mismo.</div>
+    <p class="subtitle" style="margin-bottom:16px"><strong id="mcN">2.000</strong> futuros posibles con una rentabilidad real media del <span id="mcMedia">—</span> y volatilidad del <span id="mcVol">12%</span>. Cada año retiras la <b>misma cifra</b>: el <b>3,5% del capital inicial</b>, ajustado a la inflación.</p>
+    <div class="hint" style="margin-bottom:16px">💡 <b>La estrategia es una sola: 3,5% fijo, ajustado a inflación.</b> Calculas la retirada una vez —el 3,5% del capital con el que te jubilas— y a partir de ahí sacas esa misma cifra cada año, subida con el IPC. Vaya bien o mal el mercado, <b>tu renta no cambia</b>: en € de hoy cobras exactamente lo mismo los 30 o 40 años. El precio de esa estabilidad es que la cartera <b>sí puede agotarse</b> si te toca una mala racha temprana, y por eso lo que se mide aquí es la <b>tasa de éxito</b> (cuántos futuros llegan al final con dinero). Las cifras son <b>brutas</b> (antes del impuesto sobre lo retirado) y en <b>€ de hoy</b>: en euros nominales irías sacando cada año ~la inflación más (por defecto +3%/año) para que valgan lo mismo.</div>
 
     <div class="mc-capital">
       <label for="mc_capital">Capital al jubilarte (€ de hoy)</label>
@@ -527,7 +527,7 @@
     </div>
 
     <div class="cards-mini" id="mcKpis" role="group" aria-label="Resultados de la simulación"></div>
-    <div id="mcRecorte"></div>
+    <div id="mcRiesgo"></div>
 
     <div style="margin-top:24px">
       <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:12px">
@@ -555,7 +555,7 @@
           <span><i class="dot" style="background:var(--accent)"></i> Retiro con pensión</span>
         </div>
         <canvas id="chart"></canvas>
-        <div class="hint" style="margin-top:10px; text-align:center">📅 Todo el eje está en <b>€ de hoy (poder adquisitivo constante)</b>. Esta es la curva de <b>tu plan</b>, no la de la simulación: rentabilidad fija (sin volatilidad), <b>gasto constante</b> (S cada año) y el capital que sale de <b>Diseña tu ruta</b> (no usa el capital que hayas escrito a mano arriba). Retirar el <b>4% del saldo</b> ajusta el gasto arriba y abajo cada año, y eso solo se ve en las otras dos gráficas. <b>Pasa el ratón</b> para ver el gasto de cada año y de dónde sale (cartera / pensión).</div>
+        <div class="hint" style="margin-top:10px; text-align:center">📅 Todo el eje está en <b>€ de hoy (poder adquisitivo constante)</b>. Esta es la curva de <b>tu plan</b>, no la de la simulación: rentabilidad fija (sin volatilidad), <b>gasto constante</b> (S cada año) y el capital que sale de <b>Diseña tu ruta</b> (no usa el capital que hayas escrito a mano arriba). La retirada es fija, igual que en la simulación, así que la única diferencia con las otras dos gráficas es que aquí <b>no hay mala suerte</b>: el mercado rinde lo mismo todos los años. <b>Pasa el ratón</b> para ver el gasto de cada año y de dónde sale (cartera / pensión).</div>
       </div>
     </div>
 
@@ -664,16 +664,19 @@ const fmtShort = v => {
   return Math.round(v) + '€';
 };
 
-const mode = 'perpetua';   // fijo: no tocar el principal (regla del 4%)
+const mode = 'perpetua';   // fijo: no tocar el principal (regla del 3,5%)
 let chartData = null;
 
 const val = id => parseFloat(document.getElementById(id).value) || 0;
 
-// Tasa inicial de retirada con la que se dimensiona el plan: convierte la retirada
-// bruta anual en capital necesario (capital = bruto / TASA_RETIRO → 25× el gasto).
-// La simulación de mercado usa esta misma tasa, pero aplicada cada año al saldo que
-// quede en ese momento en vez de al capital inicial.
-const TASA_RETIRO = 0.04;
+// Tasa de retirada segura con la que se dimensiona el plan: convierte la retirada
+// bruta anual en capital necesario (capital = bruto / TASA_RETIRO → ~28,6× el gasto).
+// Es una retirada FIJA: se calcula una sola vez sobre el capital inicial y a partir
+// de ahí se sube cada año con la inflación, así que en € de hoy es la misma cifra
+// todos los años. La simulación de mercado usa exactamente esa misma retirada.
+const TASA_RETIRO = 0.035;
+// Texto de la tasa para la interfaz ("3,5%"), para no repetir el número a mano.
+const TASA_TXT = (TASA_RETIRO * 100).toLocaleString('es-ES', { maximumFractionDigits: 1 }) + '%';
 
 // Peso de la aportación en el año que empieza a la edad "age" (perfil decreciente lineal).
 // frontload=1 → constante; frontload=2 → primer año doble que el último, bajando en línea recta.
@@ -742,7 +745,7 @@ function scenario(F) {
   const cap0 = val('capital'), neto = val('neto') * 12, S = val('gasto') * 12;   // inputs mensuales → anuales
   const fullPension = val('pension'), startWork = val('trabajo');
   const rA = val('r_acum')/100, rR = val('r_retiro')/100, infl = val('inflacion')/100;
-  const rate0 = TASA_RETIRO;                         // regla del 4%: capital = retirada bruta / 4%
+  const rate0 = TASA_RETIRO;                         // regla del 3,5%: capital = retirada bruta / 3,5%
   const tr = Math.min(0.95, val('impuestos')/100);   // impuesto efectivo sobre retiradas
 
   // ¿El usuario cuenta con cobrar la pensión pública? Si NO, se ignora por completo
@@ -758,8 +761,8 @@ function scenario(F) {
   const convenioAnual = convenioActivo ? convenioMes * 12 : 0;
   const P = cobrarePension ? pensionAt(convenioActivo ? PA : F, startWork, fullPension) : 0;
 
-  // Capital necesario al retirarte con la regla del 4%: capital = retirada bruta / 0,04
-  // (25× el gasto). Se dimensiona al pico (gasto completo) + convenio.
+  // Capital necesario al retirarte con la regla del 3,5%: capital = retirada bruta / 0,035
+  // (~28,6× el gasto). Se dimensiona al pico (gasto completo) + convenio.
   const capBase = rate0 > 0 ? (S / (1 - tr) + convenioAnual) / rate0 : Infinity;
 
   // Si cuentas con la pensión, restamos su VALOR ACTUAL (a la edad de retiro F, descontado a rR):
@@ -1005,13 +1008,13 @@ function compute() {
   }
   document.getElementById('alerts').innerHTML = alerts;
 
-  // Curva determinista del plan (regla del 4%). `flow` guarda el flujo de cada año
+  // Curva determinista del plan (regla del 3,5%). `flow` guarda el flujo de cada año
   // (aporte o gasto y de dónde sale) para el tooltip.
   const curve = buildCurve(sc);
   const ranOutAge = curve.ranOutAge;
   if (ranOutAge !== null) {
     const box = document.getElementById('alerts');
-    box.innerHTML += `<div class="alert bad">📉 Se agota a los ${ranOutAge}: retiras más de lo que rinde. Baja el gasto o retrasa el retiro. (Con la regla del 4% y una rentabilidad real ≥ 4% esto no debería ocurrir.)</div>`;
+    box.innerHTML += `<div class="alert bad">📉 Se agota a los ${ranOutAge}: retiras más de lo que rinde. Baja el gasto o retrasa el retiro. (Con la regla del 3,5% y una rentabilidad real ≥ 3,5% esto no debería ocurrir.)</div>`;
   }
   lastSc = sc; lastCurve = curve;
   syncViewSlider(sc);
@@ -1310,10 +1313,11 @@ window.addEventListener('resize', () => {
 });
 
 /* ================= Simulación de mercado (Monte Carlo) =================
-   Una sola estrategia de retirada: cada año sacas el 4% del saldo que quede en
-   ese momento (revisión anual). En un año malo el saldo baja y retiras menos; en
-   uno bueno, más. La cartera no puede agotarse, porque siempre sacas una fracción
-   de lo que hay: el riesgo que se mide aquí es cuánto puede bajar la renta.
+   Una sola estrategia de retirada: el primer año sacas el 3,5% del capital y a
+   partir de ahí esa misma cifra subida con la inflación, año tras año. Como todo
+   está en € de hoy, la retirada es CONSTANTE durante todo el retiro: cobras lo
+   mismo pase lo que pase en el mercado. A cambio de esa estabilidad la cartera sí
+   puede agotarse, así que lo que se mide aquí es el riesgo de quedarse sin dinero.
    Todo en términos reales (€ de hoy): la rentabilidad de cada año se sortea de
    Normal(rent. real, volatilidad) y no hay ajuste por inflación. */
 const MC_N = 2000;              // nº de escenarios
@@ -1343,17 +1347,22 @@ function mcPct(sorted, p) {
 }
 
 // Un escenario: para la secuencia de rentabilidades `rets` (reales), cada año se
-// retira `tasa` × el saldo de ese momento y el resto sigue invertido.
+// retira SIEMPRE la misma cifra (`tasa` × capital inicial, ya en € de hoy: subirla
+// con la inflación es justo lo que la mantiene constante en poder adquisitivo) y el
+// resto sigue invertido. Si un año no queda tanto, se saca lo que haya y la cartera
+// se queda a cero: `agotadoEn` guarda el índice de ese año (null si nunca pasa).
 function mcSim(rets, capIni, tasa, n) {
   const saldos = [], retiros = [];
-  let saldo = capIni;
+  const fija = tasa * capIni;
+  let saldo = capIni, agotadoEn = null;
   for (let i = 0; i < n; i++) {
     saldos.push(saldo);
-    const w = tasa * saldo;                     // revisión anual: % del total que quede
+    const w = Math.min(fija, saldo);            // no se puede sacar más de lo que hay
     retiros.push(w);
+    if (agotadoEn === null && w < fija) agotadoEn = i;
     saldo = Math.max((saldo - w) * (1 + rets[i]), 0);
   }
-  return { saldos, retiros };
+  return { saldos, retiros, agotadoEn };
 }
 
 const MC_VOL = 0.12;                              // volatilidad real fija (12%)
@@ -1413,24 +1422,19 @@ function renderMonteCarlo(sc) {
   const edades = []; for (let a = F; a <= E; a++) edades.push(a);
   const saldoY = Array.from({ length: n }, () => []);   // saldos de cada año, todos los escenarios
   const rentaY = Array.from({ length: n }, () => []);   // retiradas de cada año
-  // Una cifra por escenario: renta media, peor año, saldo final y qué parte de los
-  // años se queda por debajo del gasto objetivo (la medida de "cuánto recortarías").
-  const rentaMedia = [], rentaMin = [], finales = [], bajoObjetivo = [];
+  // Con la retirada fija el riesgo ya no es cobrar menos, es quedarse sin cartera:
+  // de cada escenario guardamos el saldo final y, si se agota, a qué edad pasa.
+  const finales = [], edadesAgot = [];
+  let agotados = 0;
 
   const rng = mcRng(MC_SEED);
   for (let s = 0; s < MC_N; s++) {
     const rets = [];
     for (let i = 0; i < n; i++) rets.push(rR + MC_VOL * mcGauss(rng));
-    const { saldos, retiros } = mcSim(rets, capAtF, TASA_RETIRO, n);
-    let suma = 0, min = Infinity, bajo = 0;
-    for (let i = 0; i < n; i++) {
-      saldoY[i].push(saldos[i]); rentaY[i].push(retiros[i]);
-      suma += retiros[i];
-      if (retiros[i] < min) min = retiros[i];
-      if (retiros[i] < objetivo) bajo++;
-    }
-    rentaMedia.push(suma / n); rentaMin.push(min); finales.push(saldos[n - 1]);
-    bajoObjetivo.push(bajo / n);
+    const { saldos, retiros, agotadoEn } = mcSim(rets, capAtF, TASA_RETIRO, n);
+    for (let i = 0; i < n; i++) { saldoY[i].push(saldos[i]); rentaY[i].push(retiros[i]); }
+    finales.push(saldos[n - 1]);
+    if (agotadoEn !== null) { agotados++; edadesAgot.push(F + agotadoEn); }
   }
 
   // Percentiles año a año: la mediana y la banda p10–p90 que se dibujan.
@@ -1443,18 +1447,20 @@ function renderMonteCarlo(sc) {
     return { p10, p50, p90 };
   };
   const orden = a => a.slice().sort((x, y) => x - y);
-  const fin = orden(finales), rmed = orden(rentaMedia), rmin = orden(rentaMin), bajo = orden(bajoObjetivo);
+  const fin = orden(finales), agot = orden(edadesAgot);
 
   mcData = {
     edades, color: MC_COLOR, cap0: capAtF, objetivo, tr,
     pensionDesde: cobrarePension ? PA : null,
     saldo: banda(saldoY), renta: banda(rentaY),
     kpi: {
-      renta1: TASA_RETIRO * capAtF,
-      mediaP50: mcPct(rmed, 0.50), mediaP10: mcPct(rmed, 0.10), mediaP90: mcPct(rmed, 0.90),
-      minP50: mcPct(rmin, 0.50), minP10: mcPct(rmin, 0.10),
+      rentaFija: TASA_RETIRO * capAtF,
+      exito: 1 - agotados / MC_N,               // escenarios que llegan al final con saldo
+      // Edad a la que se agota, solo entre los escenarios que fallan: la mediana y
+      // la más temprana del 10% que peor va (los sustos más gordos).
+      agotaP50: agot.length ? mcPct(agot, 0.50) : null,
+      agotaP10: agot.length ? mcPct(agot, 0.10) : null,
       finP50: mcPct(fin, 0.50), finP10: mcPct(fin, 0.10), finP90: mcPct(fin, 0.90),
-      bajoP50: mcPct(bajo, 0.50), bajoP90: mcPct(bajo, 0.90),
     },
   };
   drawSelectedChart();
@@ -1531,26 +1537,31 @@ function drawMc() {
     lg.innerHTML = `<span><i class="dot" style="background:${mcData.color}"></i> Renta mediana</span>${banda}`
       + `<span><i class="dot" style="background:${CHART.ref}"></i> Tu gasto objetivo (${fmt.format(mcData.objetivo)}/año brutos)</span>`;
     title.textContent = 'Renta anual: lo que sacas cada año (€ de hoy)';
-    hint.textContent = 'Cada año retiras el 4% del saldo, así que la renta sube y baja con la cartera. La banda cubre el 80% central de los escenarios: en el 10% peor sacarías menos que el borde inferior.';
+    hint.textContent = `La retirada es fija (${TASA_TXT} del capital inicial, subida cada año con la inflación), así que la línea es plana mientras quede cartera. Donde el borde inferior cae a cero es que en el 10% de futuros peores ya te habrías quedado sin dinero a esa edad.`;
   } else {
     mcDrawFan(mcData.saldo, 'M', mcData.cap0);
     lg.innerHTML = `<span><i class="dot" style="background:${mcData.color}"></i> Patrimonio mediano</span>${banda}`
       + `<span><i class="dot" style="background:${CHART.ref}"></i> Capital de partida</span>`;
     title.textContent = 'Patrimonio: lo que queda en la cartera (€ de hoy)';
-    hint.textContent = 'La línea discontinua marca el capital con el que empiezas. Retirando un % del saldo la cartera se estira siempre, pero puede encoger mucho en los escenarios malos.';
+    hint.textContent = 'La línea discontinua marca el capital con el que empiezas. Como sacas la misma cifra pase lo que pase, en los escenarios malos la cartera sí puede llegar a cero: es lo que mide la tasa de éxito de arriba.';
   }
 }
 function renderMcKpis() {
   const kp = document.getElementById('mcKpis'); if (!kp || !mcData) return;
   const k = mcData.kpi, edadFin = mcData.edades[mcData.edades.length - 1];
   const neto = v => v * (1 - mcData.tr);
+  const exito = k.exito * 100;
   const cards = [
-    { t: 'Renta del primer año', c: 'var(--text)', v: fmt.format(k.renta1),
-      s: `4% de ${fmtShort(mcData.cap0)} · ≈ ${fmt.format(neto(k.renta1))} tras impuestos` },
-    { t: 'Renta anual media', c: 'var(--green)', v: fmt.format(k.mediaP50),
-      s: `mediana de los escenarios · del ${fmtShort(k.mediaP10)} al ${fmtShort(k.mediaP90)}` },
-    { t: 'El año más flojo', c: 'var(--amber)', v: fmt.format(k.minP50),
-      s: `mediana del peor año de cada escenario · en el 10% de futuros más malos, ${fmtShort(k.minP10)}` },
+    { t: 'Renta anual (siempre la misma)', c: 'var(--text)', v: fmt.format(k.rentaFija),
+      s: `${TASA_TXT} de ${fmtShort(mcData.cap0)} · ≈ ${fmt.format(neto(k.rentaFija))} tras impuestos` },
+    { t: 'Futuros que aguantan', c: exito >= 95 ? 'var(--green)' : exito >= 85 ? 'var(--amber)' : 'var(--red)',
+      v: exito.toFixed(1) + '%',
+      s: `de los ${MC_N.toLocaleString('es-ES')} escenarios llegan a los ${edadFin} con dinero` },
+    { t: 'Si se agota, ¿cuándo?', c: 'var(--amber)',
+      v: k.agotaP50 === null ? '—' : `${Math.round(k.agotaP50)} años`,
+      s: k.agotaP50 === null
+        ? 'ningún escenario se queda sin cartera'
+        : `mediana de los que fallan · en el 10% peor, a los ${Math.round(k.agotaP10)}` },
     { t: `Saldo final (a los ${edadFin})`, c: 'var(--blue)', v: fmtShort(k.finP50),
       s: `mediana · del ${fmtShort(k.finP10)} al ${fmtShort(k.finP90)}` },
   ];
@@ -1560,18 +1571,23 @@ function renderMcKpis() {
       <div class="s">${c.s}</div>
     </div>`).join('');
 
-  // Con esta estrategia no puedes quedarte a cero, así que el aviso no es la ruina:
-  // es cuántos años tendrías que apretarte el cinturón por debajo del gasto que quieres.
-  const box = document.getElementById('mcRecorte');
+  // Con la retirada fija la renta nunca baja, así que el aviso es el otro riesgo:
+  // que la cartera se quede a cero antes de tiempo.
+  const box = document.getElementById('mcRiesgo');
   if (!box) return;
-  const pct = k.bajoP50 * 100, peor = k.bajoP90 * 100;
+  const fallo = (1 - k.exito) * 100;
   const objetivo = fmt.format(mcData.objetivo);
   const notaPension = mcData.pensionDesde
     ? ` Desde los ${mcData.pensionDesde} la pensión pública cubre parte de ese gasto, así que la cartera necesita sacar menos.`
     : '';
-  box.innerHTML = pct < 5
-    ? `<div class="alert ok">✅ En el escenario típico casi ningún año se queda por debajo de tu gasto objetivo (${objetivo}/año brutos).${notaPension}</div>`
-    : `<div class="alert ${pct > 50 ? 'bad' : 'warn'}">${pct > 50 ? '🚫' : '⚠️'} En el escenario típico retirarías menos de tu gasto objetivo (${objetivo}/año brutos) en el <b>${pct.toFixed(0)}% de los años</b>; en el 10% de futuros más malos, en el ${peor.toFixed(0)}%. Con esta estrategia el riesgo no es quedarte sin dinero, es tener que <b>recortar el gasto</b> en los años flojos.${notaPension}</div>`;
+  // Si la retirada fija no llega al gasto que querías, el capital simulado se queda
+  // corto (pasa sobre todo al escribir el capital a mano por debajo del que pide el plan).
+  const corta = k.rentaFija < mcData.objetivo * 0.995 && !mcData.pensionDesde
+    ? ` Ojo: esos ${fmt.format(k.rentaFija)}/año brutos se quedan por debajo de tu gasto objetivo (${objetivo}/año), así que con este capital cobrarías menos de lo que querías gastar.`
+    : '';
+  box.innerHTML = fallo < 5
+    ? `<div class="alert ok">✅ Sacando ${fmt.format(k.rentaFija)}/año brutos (siempre lo mismo, en € de hoy) la cartera aguanta en el <b>${(k.exito * 100).toFixed(1)}%</b> de los futuros simulados.${notaPension}${corta}</div>`
+    : `<div class="alert ${fallo > 15 ? 'bad' : 'warn'}">${fallo > 15 ? '🚫' : '⚠️'} En el <b>${fallo.toFixed(1)}% de los futuros</b> te quedas sin cartera antes de los ${mcData.edades[mcData.edades.length - 1]} (mediana: a los ${Math.round(k.agotaP50)}). Con una retirada fija el riesgo no es cobrar menos, es <b>quedarte sin dinero</b>: para bajarlo, retrasa el retiro, gasta menos o prepárate para recortar en los años malos.${notaPension}${corta}</div>`;
 }
 // Selector de gráfica: proyección determinista del plan o simulación de mercado.
 function drawSelectedChart() {

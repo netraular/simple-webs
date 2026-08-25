@@ -339,6 +339,10 @@
         </div>
         <label for="fin">Vives hasta (edad)</label>
         <input type="number" id="fin" value="105" min="70" max="105">
+
+        <label for="neto">Lo que ingresas hoy, neto al mes (€)</label>
+        <input type="number" id="neto" value="3500" min="0" step="100">
+        <div class="hint">Lo que te queda cada mes después de impuestos y cotizaciones, repartido en 12 pagas. <span id="neto-anual"></span> Se usa solo para calcular tu tasa de ahorro. <b>No lo confundas con el gasto que quieres en el retiro</b>, que va en la columna de al lado.</div>
       </div>
 
       <div class="group">
@@ -346,13 +350,9 @@
         <label for="capital">Capital ya invertido (€)</label>
         <input type="number" id="capital" value="200000" min="0" step="1000">
 
-        <label for="neto">Ingreso neto mensual (€)</label>
-        <input type="number" id="neto" value="3500" min="0" step="100">
-        <div class="hint">Lo que te queda cada mes después de impuestos y cotizaciones, repartido en 12 pagas. <span id="neto-anual"></span> Se usa solo para calcular tu tasa de ahorro.</div>
-
         <label for="gasto">Gasto mensual que quieres en el retiro (€ de hoy)</label>
         <input type="number" id="gasto" value="3500" min="0" step="100">
-        <div class="hint" id="gasto-hint">Lo que quieres poder gastar cada mes, todos los meses, ya jubilado. <span id="gasto-anual"></span></div>
+        <div class="hint" id="gasto-hint">Lo que quieres poder gastar cada mes, todos los meses, <b>ya jubilado</b> (no es lo que ingresas hoy: eso va en la columna <b>Tú</b>). <span id="gasto-anual"></span></div>
 
         <label for="impuestos">Impuesto efectivo sobre lo retirado (%)</label>
         <input type="number" id="impuestos" value="15" min="0" max="45" step="1">
@@ -495,7 +495,7 @@
   <!-- LO QUE PONES TÚ vs LO QUE LLEGA A VALER (estilo investor.gov) -->
   <div class="card chart-card">
     <h2>Tu dinero frente al interés compuesto</h2>
-    <p class="subtitle" style="margin-bottom:14px">Desde hoy hasta que te retiras, en <b>€ de hoy</b>: la línea de abajo es lo que has puesto tú (tu capital inicial más las aportaciones acumuladas) y la de arriba lo que llega a valer la cartera con un <span id="projR">—</span> real anual. <b>La franja entre las dos es el interés.</b></p>
+    <p class="subtitle" style="margin-bottom:14px">Desde hoy hasta que te retiras, en <b>€ de hoy</b>: la línea de abajo es lo que has puesto tú (tu capital inicial más las aportaciones acumuladas) y la de arriba lo que llega a valer la cartera con un <span id="projR">—</span> real anual. <b>La distancia entre las dos es el interés.</b></p>
 
     <div class="legend">
       <span><i class="dot" style="background:#1463ff"></i> Valor total</span>
@@ -1156,7 +1156,7 @@ const CHART = {
 };
 // Colores de las dos series 'aportado vs total', compartidos por la gráfica del plan
 // y por la de la calculadora de interés compuesto: las dos cuentan la misma historia.
-const CI_COL = { aportado: '#8fa3b8', aportadoFill: 'rgba(143,163,184,0.30)', interes: '#1463ff', interesFill: 'rgba(20,99,255,0.18)' };
+const CI_COL = { aportado: '#8fa3b8', interes: '#1463ff', rango: 'rgba(20,99,255,0.45)' };
 // Serie de la gráfica del plan: para cada año de la fase de acumulación, cuánto has
 // puesto tú (capital inicial + aportaciones acumuladas) y cuánto vale la cartera. La
 // franja entre las dos curvas es el interés compuesto. Solo la acumulación: una vez
@@ -1211,17 +1211,15 @@ function drawChart(hoverIdx = null) {
   ctx.textAlign = 'center'; ctx.textBaseline = 'top'; ctx.fillStyle = CHART.label;
   for (let a = 0; a <= maxAnio; a += stepX) ctx.fillText(a + 'a', X(a), yb + 8);
 
-  const area = (key, fill, stroke) => {
-    ctx.beginPath(); ctx.moveTo(X(0), yb);
-    chartData.forEach(f => ctx.lineTo(X(f.anio), Y(f[key])));
-    ctx.lineTo(X(maxAnio), yb); ctx.closePath();
-    ctx.fillStyle = fill; ctx.fill();
+  // Solo líneas: rellenar por debajo tapaba la rejilla y dejaba la zona baja de la
+  // gráfica hecha un bloque de color en el que no se distinguía nada.
+  const linea = (key, stroke) => {
     ctx.beginPath();
     chartData.forEach((f, k) => k ? ctx.lineTo(X(f.anio), Y(f[key])) : ctx.moveTo(X(f.anio), Y(f[key])));
-    ctx.strokeStyle = stroke; ctx.lineWidth = 2; ctx.stroke();
+    ctx.strokeStyle = stroke; ctx.lineWidth = 2.4; ctx.stroke();
   };
-  area('total', CI_COL.interesFill, CI_COL.interes);
-  area('aportado', CI_COL.aportadoFill, CI_COL.aportado);
+  linea('total', CI_COL.interes);
+  linea('aportado', CI_COL.aportado);
 
   if (hoverIdx !== null && chartData[hoverIdx]) {
     const f = chartData[hoverIdx], xh = Math.round(X(f.anio)) + 0.5;
@@ -1399,26 +1397,27 @@ function drawCiChart(hoverIdx = null) {
   c.textAlign = 'center'; c.textBaseline = 'top'; c.fillStyle = CHART.label;
   for (let a = 0; a <= maxAnio; a += stepX) c.fillText(a + 'a', X(a), yb + 8);
 
-  // Banda peor–mejor por detrás de todo
+  // Banda peor–mejor: dos líneas finas discontinuas en vez de una mancha rellena, que
+  // tapaba la curva principal. Sigue viéndose el rango sin ensuciar la gráfica.
   if (banda) {
-    c.fillStyle = 'rgba(20,99,255,0.10)'; c.beginPath();
-    banda.mejor.forEach((f, k) => k ? c.lineTo(X(f.anio), Y(f.saldo)) : c.moveTo(X(f.anio), Y(f.saldo)));
-    for (let k = banda.peor.length - 1; k >= 0; k--) c.lineTo(X(banda.peor[k].anio), Y(banda.peor[k].saldo));
-    c.closePath(); c.fill();
+    c.strokeStyle = CI_COL.rango; c.lineWidth = 1; c.setLineDash([4, 4]);
+    for (const serie of [banda.mejor, banda.peor]) {
+      c.beginPath();
+      serie.forEach((f, k) => k ? c.lineTo(X(f.anio), Y(f.saldo)) : c.moveTo(X(f.anio), Y(f.saldo)));
+      c.stroke();
+    }
+    c.setLineDash([]);
   }
 
-  // Área del saldo total (arriba) y del aportado (abajo): la franja entre ambas es el interés
-  const area = (key, fill, stroke) => {
-    c.beginPath(); c.moveTo(X(0), yb);
-    filas.forEach(f => c.lineTo(X(f.anio), Y(f[key])));
-    c.lineTo(X(maxAnio), yb); c.closePath();
-    c.fillStyle = fill; c.fill();
+  // Saldo total (arriba) y aportado (abajo): la distancia entre ambas líneas es el
+  // interés. Sin relleno, igual que la gráfica del plan.
+  const linea = (key, stroke) => {
     c.beginPath();
     filas.forEach((f, k) => k ? c.lineTo(X(f.anio), Y(f[key])) : c.moveTo(X(f.anio), Y(f[key])));
-    c.strokeStyle = stroke; c.lineWidth = 2; c.stroke();
+    c.strokeStyle = stroke; c.lineWidth = 2.4; c.stroke();
   };
-  area('saldo', CI_COL.interesFill, CI_COL.interes);
-  area('aportado', CI_COL.aportadoFill, CI_COL.aportado);
+  linea('saldo', CI_COL.interes);
+  linea('aportado', CI_COL.aportado);
 
   // Marca del año en el que se deja de aportar
   const { aporteAnios, Y: plazo } = ciChartData;

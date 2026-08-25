@@ -566,17 +566,17 @@
       <div class="budget-grid">
         <div>
           <label for="ci_inicial">Capital inicial (€)</label>
-          <input type="number" id="ci_inicial" value="10000" min="0" step="1000">
+          <input type="number" id="ci_inicial" value="0" min="0" step="1000">
           <div class="hint">Lo que inviertes de una vez al empezar. Puede ser 0 si arrancas de cero.</div>
         </div>
         <div>
           <label for="ci_aporte">Aportación mensual (€)</label>
-          <input type="number" id="ci_aporte" value="300" min="0" step="50">
+          <input type="number" id="ci_aporte" value="0" min="0" step="50">
           <div class="hint">Lo que añades al final de cada mes, constante durante todo el plazo.</div>
         </div>
         <div>
           <label for="ci_anios">Plazo (años)</label>
-          <input type="number" id="ci_anios" value="20" min="1" max="80" step="1">
+          <input type="number" id="ci_anios" value="0" min="0" max="80" step="1">
           <div class="hint">Cuánto tiempo dejas trabajar al dinero. Es la variable que más manda: el interés compuesto se nota sobre todo en los últimos años.</div>
         </div>
         <div>
@@ -1748,7 +1748,7 @@ function computeCompound() {
   if (!document.getElementById('ci_inicial')) return;
   const P = Math.max(0, val('ci_inicial'));
   const C = Math.max(0, val('ci_aporte'));
-  const Y = Math.max(1, Math.min(80, Math.round(val('ci_anios')) || 1));
+  const Y = Math.max(0, Math.min(80, Math.round(val('ci_anios')) || 0));
   const tasa = Math.max(0, val('ci_tasa')) / 100;
   const varia = Math.max(0, val('ci_var')) / 100;
   const freqKey = document.getElementById('ci_freq').value;

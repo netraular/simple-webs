@@ -41,11 +41,9 @@
   .inputs-body .group { margin: 0 0 20px; }
   .inputs-col .group:last-child { margin-bottom: 0; }
   /* Separación vertical entre tarjetas consecutivas (datos → resultados → …) */
-  .wrap > .card + .card { margin-top: 24px; }
-  /* Cabeceras de tarjeta con botón para plegar el contenido */
-  h2.with-toggle { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-  .card-toggle { margin-left: auto; font-weight: 700; line-height: 1; padding: 6px 11px; font-size: .8rem; }
-  .is-collapsed { display: none !important; }
+  .tabpanel > .card + .card { margin-top: 24px; }
+  /* Cabecera de tarjeta con algo más en línea junto al título (el chip "viendo · N años") */
+  h2.with-aside { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
   /* Gestor de escenarios en la barra de herramientas */
   .tool-label { font-size: .82rem; color: var(--muted); }
   select.tool { width: auto; max-width: 260px; }
@@ -196,11 +194,23 @@
   body::before{display:none}
   .wrap{position:relative; max-width:1240px}
   .hero{margin:20px 0 0; padding:36px 210px 32px 34px; background:#1457d9; color:#fff; position:relative; border:0; box-shadow:inset 7px 0 0 #21c3d6}
-  .hero::after{content:"FIRE / 3,5%"; position:absolute; right:30px; top:36px; padding:13px 16px; border:1px solid rgba(255,255,255,.65); color:#124bb9; background:#fff; font:600 .78rem/1 "IBM Plex Mono",monospace; letter-spacing:.06em}
+  .hero::after{content:"FIRE"; position:absolute; right:30px; top:36px; padding:13px 16px; border:1px solid rgba(255,255,255,.65); color:#124bb9; background:#fff; font:600 .78rem/1 "IBM Plex Mono",monospace; letter-spacing:.06em}
   .eyebrow{display:block; color:#a9f1f7; font:600 .7rem/1 "IBM Plex Mono",monospace; letter-spacing:.08em; text-transform:uppercase; margin-bottom:12px}
   h1{font:800 clamp(2.2rem,4.5vw,4.25rem)/.98 "Manrope",sans-serif; max-width:850px; letter-spacing:0; margin:0}
   .hero .subtitle{color:#dce8ff; font-size:.95rem; max-width:680px; margin:14px 0 0}
   .toolbar{margin:18px 0; position:relative; z-index:2; padding:10px; background:#dce5ef; border:1px solid #c4cfda; border-radius:6px; box-shadow:none}
+  /* Pestañas: separan el plan de retiro de la calculadora de interés compuesto, que es
+     una herramienta independiente y no parte del plan. */
+  .tabs{display:flex; gap:2px; margin:20px 0 0; border-bottom:1px solid var(--border)}
+  .tab{appearance:none; margin:0 0 -1px; padding:11px 20px; cursor:pointer; color:var(--muted);
+    background:transparent; border:1px solid transparent; border-bottom:0; border-radius:4px 4px 0 0;
+    font:600 .74rem/1 "IBM Plex Mono",monospace; text-transform:uppercase; letter-spacing:.06em}
+  .tab:hover{color:var(--accent)}
+  .tab[aria-selected="true"]{background:var(--card); border-color:var(--border); color:var(--text);
+    box-shadow:inset 0 3px 0 var(--accent)}
+  .tabpanel{padding-top:18px}
+  .tabpanel[hidden]{display:none}
+  .tabpanel > .toolbar:first-child{margin-top:0}
   .tool{background:#fff; color:var(--text); border-color:#b9c6d3; border-radius:4px}
   .tool:hover{border-color:var(--accent); color:var(--accent)}
   .tool-sep{background:#b9c6d3}
@@ -222,10 +232,15 @@
   input[type="range"]{padding:0; height:28px; border:0; box-shadow:none; accent-color:var(--accent); cursor:pointer}
   .range-value{display:flex; justify-content:space-between; align-items:center; margin-top:4px; color:var(--muted); font-size:.72rem}
   .range-value output{font:600 .85rem "IBM Plex Mono",monospace; color:var(--accent)}
-  .advanced-inputs{margin-top:22px; border-top:1px solid var(--border)}
-  .advanced-inputs > summary{cursor:pointer; padding:16px 0 0; color:var(--text); font-weight:700; font-size:.82rem; list-style:none}
-  .advanced-inputs > summary::after{content:"+"; float:right; color:var(--accent); font:600 1rem "IBM Plex Mono",monospace}
-  .advanced-inputs[open] > summary::after{content:"−"}
+  /* Bloque secundario que se despliega con un "+" al pie de la tarjeta. Mismo gesto en
+     todas: ajustes avanzados, detalle del esfuerzo y plan año a año. */
+  .expander{margin-top:22px; border-top:1px solid var(--border)}
+  .expander > summary{cursor:pointer; padding:16px 0 0; color:var(--text); font-weight:700; font-size:.82rem; list-style:none}
+  .expander > summary::-webkit-details-marker{display:none}
+  .expander > summary::after{content:"+"; float:right; color:var(--accent); font:600 1rem "IBM Plex Mono",monospace}
+  .expander[open] > summary::after{content:"−"}
+  .expander-body{padding-top:18px}
+  .expander-note{margin:0; font-size:.78rem; color:var(--muted); line-height:1.5}
   .advanced-grid{display:grid; grid-template-columns:1fr 1fr; gap:24px; padding-top:18px}
   .hint{color:#718091}
   #aportarCard{position:sticky; top:18px; background:#fff; border:1px solid var(--border); border-top:4px solid var(--accent); padding:24px}
@@ -278,9 +293,6 @@
   .chart-card{background:#fff}
   #chart,#ciChart{background:#f8fafc; border:1px solid var(--border); border-radius:4px}
   #ciChart{width:100%; height:320px; display:block; cursor:crosshair}
-  /* Subsección dentro de una tarjeta: se lee como apartado menor, no como sección propia. */
-  .sub-toggle{display:flex; align-items:center; gap:10px; flex-wrap:wrap; font-size:.95rem;
-    margin:28px 0 0; padding-top:18px; border-top:1px solid var(--border); color:var(--accent)}
   .comp tr.active td{background:#e8f0ff}.comp tr.active td:first-child{border-left-color:var(--accent)}
   .np-col{background:#f2f6fa;border-color:var(--border)}
   .disclaimer{color:var(--muted)}
@@ -288,6 +300,7 @@
   @media(max-width:620px){
     body{padding-left:14px;padding-right:14px;background:var(--bg)}
     .hero{margin-top:14px;padding:26px 20px 22px}.hero::after{display:none}
+    .tab{padding:10px 13px; font-size:.66rem; letter-spacing:.04em}
     .toolbar{display:grid;grid-template-columns:auto 1fr auto auto;gap:8px}
     .presets{grid-column:1/5; display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px}
     .presets .tool-label{grid-column:1/4}
@@ -303,6 +316,13 @@
     <h1>¿Cuándo puedes dejar de trabajar?</h1>
     <p class="subtitle">Traza una ruta realista desde tu capital actual hasta la vida que quieres, siempre en euros de hoy.</p>
   </header>
+
+  <div class="tabs" role="tablist" aria-label="Secciones de la calculadora">
+    <button type="button" class="tab" id="tabPlan" role="tab" aria-controls="panelPlan" aria-selected="true">Plan de retiro</button>
+    <button type="button" class="tab" id="tabCi" role="tab" aria-controls="panelCi" aria-selected="false" tabindex="-1">Interés compuesto</button>
+  </div>
+
+  <section class="tabpanel" id="panelPlan" role="tabpanel" aria-labelledby="tabPlan">
   <div class="toolbar">
     <div class="presets">
       <span class="tool-label">Ejemplos de sueldo:</span>
@@ -323,9 +343,7 @@
   <div class="planner-grid">
   <!-- ENTRADAS (ancho completo: se rellenan primero, antes de visualizar resultados) -->
   <div class="card" id="inputsCard">
-    <h2 class="with-toggle">Diseña tu ruta
-      <button type="button" class="tool card-toggle" id="btnInputs" title="Ocultar los datos" aria-label="Ocultar los datos">▾</button>
-    </h2>
+    <h2>Diseña tu ruta</h2>
     <div class="inputs-body" id="inputsBody">
       <!-- Columna 1: Tú + Dinero -->
       <div class="inputs-col primary-inputs">
@@ -365,7 +383,7 @@
       </div>
       </div><!-- /col 1 -->
 
-      <details class="advanced-inputs">
+      <details class="expander">
       <summary>Ajustes avanzados · pensión, mercados y estrategia</summary>
       <div class="advanced-grid">
       <!-- Columna 2 (centro): Pensión pública, aislada para no mover el resto al activarla/desactivarla -->
@@ -457,11 +475,10 @@
   <!-- RESULTADOS -->
   <!-- Cuánto tienes que aportar (ancho completo; el detalle listado se puede plegar) -->
   <div class="card" id="aportarCard">
-    <h2 class="with-toggle">Tu esfuerzo mensual
+    <h2 class="with-aside">Tu esfuerzo mensual
       <span class="view-chip" id="viewChip" hidden>viendo · <b id="viewChipAge">—</b>
         <button type="button" id="btnViewReset" title="Volver a hoy" aria-label="Volver a hoy">↺</button>
       </span>
-      <button type="button" class="tool card-toggle" id="btnDetalle" title="Ocultar el detalle" aria-label="Ocultar el detalle">▾</button>
     </h2>
     <div class="split-head"><span id="splitTitle">Tu patrimonio</span><b id="splitTotal">—</b></div>
     <div class="result-visual">
@@ -489,11 +506,14 @@
       <div class="mini"><div class="k" id="ringLabel">Aportación del mes</div><div class="v" id="mensual">—</div><div class="s" id="ringRate">— del ingreso neto</div></div>
     </div>
 
-    <div id="detalleWrap">
+    <details class="expander" id="detalleWrap">
+    <summary>Detalle del cálculo · desglose y avisos</summary>
+    <div class="expander-body">
       <div class="breakdown" id="breakdown"></div>
       <div id="alerts"></div>
       <div class="muted" style="font-size:.74rem; margin-top:12px; line-height:1.5">El "capital al retirarte" se dimensiona con la <b>regla del 3,5%</b>: necesitas ~28,6× el gasto anual (dejando herencia), y ya cuenta con impuestos y pensión. En la <b>proyección</b> de abajo puedes ver la curva completa de tu patrimonio, año a año.</div>
     </div>
+    </details>
   </div>
   </div>
 
@@ -510,20 +530,21 @@
     <p class="proj-resumen" id="projResumen"></p>
 
     <!-- Plan año a año: subsección plegable, no una tarjeta al mismo nivel que el resto -->
-    <h3 class="sub-toggle">Plan año a año
-      <button type="button" class="tool card-toggle" id="btnTablaAporte" style="margin-left:auto" title="Mostrar tabla" aria-label="Mostrar tabla">▸</button>
-    </h3>
-    <p class="hint" style="margin:4px 0 0">La aportación mensual prevista, año a año, en euros de hoy y en euros nominales.</p>
-    <div id="tablaAporteWrap" style="display:none; margin-top:14px; overflow-x:auto"></div>
+    <details class="expander">
+    <summary>Plan año a año · la cuota mensual prevista</summary>
+    <div class="expander-body">
+      <p class="expander-note">La aportación mensual prevista, año a año, en euros de hoy y en euros nominales.</p>
+      <div id="tablaAporteWrap" style="margin-top:14px; overflow-x:auto"></div>
+    </div>
+    </details>
   </div>
+  </section>
 
-  <!-- INTERÉS COMPUESTO: cálculo rápido e independiente del plan de arriba -->
+  <!-- INTERÉS COMPUESTO: cálculo rápido e independiente del plan, en su propia pestaña -->
+  <section class="tabpanel" id="panelCi" role="tabpanel" aria-labelledby="tabCi" hidden>
   <div class="card" id="ciCard">
-    <h2 class="with-toggle">Calculadora de interés compuesto
-      <button type="button" class="tool card-toggle" id="btnCi" title="Ocultar la calculadora" aria-label="Ocultar la calculadora">▾</button>
-    </h2>
-    <div id="ciBody">
-      <p class="subtitle" style="margin-bottom:20px">Prueba capital, aportación, plazo y rentabilidad sin alterar tu plan de retiro.</p>
+    <h2>Calculadora de interés compuesto</h2>
+      <p class="subtitle" style="margin-bottom:20px">Prueba capital, aportación, plazo y rentabilidad sin alterar tu plan de retiro. Usa la inflación de <b>Ajustes avanzados → Mercados</b> (pestaña «Plan de retiro») para pasar el saldo a € de hoy.</p>
 
       <div class="budget-grid">
         <div>
@@ -592,9 +613,11 @@
         <span id="ciLegendBanda" style="display:none"><i class="dot" style="background:var(--accent);opacity:.25"></i> Rango peor–mejor</span>
       </div>
       <canvas id="ciChart"></canvas>
-      <div class="hint" id="ci-graf-hint" style="margin-top:10px"></div>
-    </div>
+      <!-- Cierre de la gráfica: es la conclusión, no una ayuda, así que va siempre visible
+           (mismo papel que #projResumen en la gráfica del plan). -->
+      <p class="proj-resumen" id="ci-graf-hint"></p>
   </div>
+  </section>
 
   <p class="disclaimer">
     Herramienta educativa, no asesoramiento financiero ni fiscal. Las rentabilidades son hipótesis y los mercados no son lineales; usa márgenes de seguridad.
@@ -1265,26 +1288,6 @@ window.addEventListener('resize', () => {
   drawCiChart();
 });
 
-// Flechas de plegado: ▾ = desplegado (clic para ocultar), ▸ = plegado (clic para mostrar).
-function setToggleArrow(btn, collapsed, name) {
-  btn.textContent = collapsed ? '▸' : '▾';
-  btn.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
-  btn.title = (collapsed ? 'Mostrar ' : 'Ocultar ') + name;
-  btn.setAttribute('aria-label', btn.title);
-}
-
-// Botón (flecha) para plegar/desplegar la tabla de aportación año a año (arranca plegada).
-(function () {
-  const b = document.getElementById('btnTablaAporte'), w = document.getElementById('tablaAporteWrap');
-  if (!b || !w) return;
-  setToggleArrow(b, true, 'tabla');
-  b.addEventListener('click', () => {
-    const show = w.style.display === 'none';
-    w.style.display = show ? '' : 'none';
-    setToggleArrow(b, !show, 'tabla');
-  });
-})();
-
 /* ============ Interés compuesto: cálculo rápido, al estilo de investor.gov ============
    Independiente del plan FIRE de arriba (no entra en ningún otro cálculo): capital
    inicial + aportación mensual, un tipo con margen de variación y la frecuencia de
@@ -1473,39 +1476,36 @@ function drawCiChart(hoverIdx = null) {
   cv.addEventListener('mouseleave', () => { tip.style.opacity = 0; drawCiChart(); });
 })();
 
-// Plegar/desplegar bloques de tarjeta (las entradas y el detalle de "cuánto aportar"),
-// recordando el estado en este navegador para no tener que volver a encogerlos.
-const LS_UI = 'jubilacion-ui-v1';
-function readUi() { try { return JSON.parse(localStorage.getItem(LS_UI) || '{}') || {}; } catch (e) { return {}; } }
-function writeUi(o) { try { localStorage.setItem(LS_UI, JSON.stringify(o)); } catch (e) {} }
-function wireCardToggle(btnId, targetId, name, defaultCollapsed = false) {
-  const btn = document.getElementById(btnId), t = document.getElementById(targetId);
-  if (!btn || !t) return;
-  const ui = readUi();
-  const setState = collapsed => {
-    t.classList.toggle('is-collapsed', collapsed);
-    setToggleArrow(btn, collapsed, name);
-  };
-  setState(targetId in ui ? !!ui[targetId] : defaultCollapsed);
-  btn.addEventListener('click', () => {
-    const collapsed = !t.classList.contains('is-collapsed');
-    setState(collapsed);
-    const u = readUi(); u[targetId] = collapsed; writeUi(u);
-  });
-}
-// El bloque de interés compuesto cambió de contenido (una gráfica en vez de dos tablas):
-// se olvida una sola vez el estado recordado para que vuelva a arrancar plegado.
+/* ---------- Pestañas ----------
+   Los bloques secundarios de cada tarjeta se pliegan solos con <details class="expander">;
+   aquí solo queda el cambio de pestaña. Mientras un panel está oculto sus canvas miden 0
+   y no se pueden pintar, así que al mostrarlo hay que redibujar. */
 (function () {
-  const u = readUi();
-  if (!u._ciV2) { delete u.ciBody; u._ciV2 = 1; writeUi(u); }
+  const tabs = Array.from(document.querySelectorAll('.tabs .tab'));
+  if (!tabs.length) return;
+  const activar = tab => {
+    tabs.forEach(t => {
+      const on = t === tab;
+      t.setAttribute('aria-selected', on ? 'true' : 'false');
+      t.tabIndex = on ? 0 : -1;
+      const panel = document.getElementById(t.getAttribute('aria-controls'));
+      if (panel) panel.hidden = !on;
+    });
+    drawChart();
+    drawCiChart();
+  };
+  tabs.forEach(t => t.addEventListener('click', () => activar(t)));
+  // Flechas ← → para moverse entre pestañas, como pide el patrón ARIA de tablist.
+  document.querySelector('.tabs').addEventListener('keydown', e => {
+    const paso = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0;
+    const i = tabs.indexOf(document.activeElement);
+    if (!paso || i < 0) return;
+    e.preventDefault();
+    const next = tabs[(i + paso + tabs.length) % tabs.length];
+    next.focus();
+    activar(next);
+  });
 })();
-
-wireCardToggle('btnInputs', 'inputsBody', 'los datos');
-wireCardToggle('btnDetalle', 'detalleWrap', 'el detalle', true);
-wireCardToggle('btnCi', 'ciBody', 'la calculadora', true);
-// Mientras la tarjeta está plegada el canvas mide 0 y no se puede pintar: al desplegarla
-// hay que redibujar. Este listener corre después del que registra wireCardToggle.
-document.getElementById('btnCi').addEventListener('click', () => drawCiChart());
 
 // ---- Persistencia del formulario en este navegador (como la calculadora de estilo de vida) ----
 const LS_FORM = 'jubilacion-v1';

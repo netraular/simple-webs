@@ -555,7 +555,7 @@
   <section class="tabpanel" id="panelCi" role="tabpanel" aria-labelledby="tabCi" hidden>
   <div class="card" id="ciCard">
     <h2>Calculadora de interés compuesto</h2>
-      <p class="subtitle" style="margin-bottom:20px">Prueba capital, aportación, plazo y rentabilidad sin alterar tu plan de retiro. Usa la inflación de <b>Ajustes avanzados → Mercados</b> (pestaña «Plan de retiro») para pasar el saldo a € de hoy.</p>
+      <p class="subtitle" style="margin-bottom:20px">Prueba capital, aportación, plazo y rentabilidad sin alterar tu plan de retiro. Con una aportación <b>negativa</b> funciona al revés y te dice cuánto aguanta un capital del que vas sacando dinero cada mes. Usa la inflación de <b>Ajustes avanzados → Mercados</b> (pestaña «Plan de retiro») para pasar el saldo a € de hoy.</p>
 
       <div class="budget-grid">
         <div>
@@ -564,9 +564,9 @@
           <div class="hint">Lo que inviertes de una vez al empezar. Puede ser 0 si arrancas de cero.</div>
         </div>
         <div>
-          <label for="ci_aporte">Aportación mensual (€)</label>
-          <input type="number" id="ci_aporte" value="0" min="0" step="50">
-          <div class="hint">Lo que añades al final de cada mes, constante durante todo el plazo.</div>
+          <label for="ci_aporte">Aportación mensual (€) — en negativo, retirada</label>
+          <input type="number" id="ci_aporte" value="0" step="50">
+          <div class="hint">Lo que añades al final de cada mes, constante durante todo el plazo. <b>En negativo es una retirada:</b> pon <b>−1500</b> para ver cuánto aguanta un capital del que sacas 1.500 € al mes. Si la cartera se queda a cero, la retirada se corta ahí (no se sigue sacando en negativo).</div>
         </div>
         <div>
           <label for="ci_anios">Plazo (años)</label>
@@ -596,13 +596,13 @@
         <div>
           <label for="ci_parar" style="display:flex; align-items:center; gap:8px; cursor:pointer">
             <input type="checkbox" id="ci_parar" style="width:auto; margin:0">
-            Dejar de aportar antes de acabar
+            Parar el movimiento antes de acabar
           </label>
           <div id="ciPararWrap" style="display:none; margin-top:10px">
-            <label for="ci_anios_aporte">Años aportando</label>
+            <label for="ci_anios_aporte" id="ciPararLabel">Años aportando</label>
             <input type="number" id="ci_anios_aporte" value="10" min="0" max="80" step="1">
           </div>
-          <div class="hint">Aportas solo durante los primeros años y luego dejas el dinero quieto componiendo hasta el final del plazo. Es la idea de la «bola de nieve»: el esfuerzo se concentra al principio.</div>
+          <div class="hint">La cuota mensual solo se mueve durante los primeros años; después el dinero se queda quieto componiendo hasta el final del plazo. Con aportaciones es la idea de la «bola de nieve» (el esfuerzo se concentra al principio); con retiradas, dejar de sacar dinero a partir de cierto año.</div>
         </div>
       </div>
 
@@ -611,7 +611,7 @@
       <div class="result-sub" id="ci-sub"></div>
 
       <div class="cards-mini" id="ciKpis">
-        <div class="mini"><div class="k">Total aportado (inicial + cuotas)</div><div class="v" id="ci-aportado">—</div></div>
+        <div class="mini"><div class="k" id="ci-aportado-k">Total aportado (inicial + cuotas)</div><div class="v" id="ci-aportado">—</div></div>
         <div class="mini"><div class="k">Intereses generados</div><div class="v" id="ci-intereses" style="color:var(--blue)">—</div></div>
         <div class="mini"><div class="k">Ese saldo, en € de hoy</div><div class="v" id="ci-real" style="color:var(--amber)">—</div></div>
       </div>
@@ -619,8 +619,8 @@
       <!-- Evolución año a año: sustituye a la tabla de escenarios y al detalle año a año.
            Pasa el ratón (o toca) por la gráfica para ver las cifras de cada año. -->
       <div class="legend" style="margin-top:24px">
-        <span><i class="dot" style="background:#0c9b76"></i> Lo que has puesto tú</span>
-        <span><i class="dot" style="background:var(--accent)"></i> Lo que ha puesto el interés</span>
+        <span><i class="dot" style="background:#0c9b76"></i> <span id="ciLegendAportado">Lo que has puesto tú</span></span>
+        <span><i class="dot" style="background:var(--accent)"></i> <span id="ciLegendSaldo">Lo que ha puesto el interés</span></span>
         <span id="ciLegendBanda" style="display:none"><i class="dot" style="background:var(--accent);opacity:.25"></i> Rango peor–mejor</span>
       </div>
       <canvas id="ciChart"></canvas>
@@ -1325,26 +1325,46 @@ const CI_FREQ = { diaria: 365, mensual: 12, trimestral: 4, anual: 1 };
 const CI_FREQ_TXT = { diaria: 'diaria', mensual: 'mensual', trimestral: 'trimestral', anual: 'anual' };
 const ciPct = t => (t * 100).toLocaleString('es-ES', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 
-// Serie año a año con aportación al final de cada mes. La frecuencia de capitalización
-// se respeta usando su tipo efectivo mensual equivalente: (1 + tasa/n)^(n/12) − 1.
-// `aporteAnios` limita los años en los que se aporta: pasado ese punto la cartera
-// solo compone. Por defecto se aporta durante todo el plazo.
+// Serie año a año con el movimiento mensual al final de cada mes. La frecuencia de
+// capitalización se respeta usando su tipo efectivo mensual equivalente:
+// (1 + tasa/n)^(n/12) − 1. `aporteAnios` limita los años en los que hay movimiento:
+// pasado ese punto la cartera solo compone. Por defecto se mueve durante todo el plazo.
+// C puede ser NEGATIVO: entonces es una retirada mensual y la serie describe cómo se
+// consume el capital. La retirada se corta cuando el saldo llega a cero (no se sigue
+// sacando dinero que no existe), así que `aportado` deja de bajar a partir de ahí.
+// `aportado` es el capital NETO que has puesto: inicial + aportaciones − retiradas, y
+// puede acabar en negativo si sacas más de lo que metiste. `interes` sigue siendo la
+// distancia entre el saldo y ese neto, es decir, todo lo que ha puesto el mercado.
 function ciSerie(P, C, anios, tasa, n, aporteAnios = Infinity) {
   const im = Math.pow(1 + tasa / n, n / 12) - 1;
   const filas = [{ anio: 0, saldo: P, aportado: P, interes: 0 }];
   let saldo = P, aportado = P;
   for (let y = 1; y <= anios; y++) {
     const c = y <= aporteAnios ? C : 0;
-    for (let m = 0; m < 12; m++) { saldo = saldo * (1 + im) + c; aportado += c; }
+    for (let m = 0; m < 12; m++) {
+      const bruto = saldo * (1 + im);
+      const mov = c < 0 ? Math.max(c, -bruto) : c;   // no puedes retirar más de lo que hay
+      saldo = bruto + mov;
+      aportado += mov;
+    }
     filas.push({ anio: y, saldo, aportado, interes: saldo - aportado });
   }
   return filas;
 }
 
+// Primer año en el que la cartera se queda a cero por las retiradas (o null). Solo tiene
+// sentido cuando se retira: con aportaciones un saldo de 0 es simplemente el punto de partida.
+function ciAgotado(filas, C) {
+  if (C >= 0) return null;
+  const f = filas.find(f => f.anio > 0 && f.saldo <= 0.005);
+  return f ? f.anio : null;
+}
+
 function computeCompound() {
   if (!document.getElementById('ci_inicial')) return;
   const P = Math.max(0, val('ci_inicial'));
-  const C = Math.max(0, val('ci_aporte'));
+  const C = val('ci_aporte');            // negativo = retirada mensual (fase de consumo)
+  const retira = C < 0;
   const Y = Math.max(0, Math.min(80, Math.round(val('ci_anios')) || 0));
   const tasa = Math.max(0, val('ci_tasa')) / 100;
   const varia = Math.max(0, val('ci_var')) / 100;
@@ -1352,19 +1372,33 @@ function computeCompound() {
   const n = CI_FREQ[freqKey] || 12;
   const infl = val('inflacion') / 100;
 
-  // Aportar solo durante los primeros años (el resto del plazo la cartera solo compone).
+  // Mover la cuota solo durante los primeros años (el resto del plazo la cartera solo compone).
   const parar = document.getElementById('ci_parar').checked;
   const pw = document.getElementById('ciPararWrap');
   if (pw) pw.style.display = parar ? '' : 'none';
+  const pl = document.getElementById('ciPararLabel');
+  if (pl) pl.textContent = retira ? 'Años retirando' : 'Años aportando';
   const aporteAnios = parar ? Math.max(0, Math.min(Y, Math.round(val('ci_anios_aporte')) || 0)) : Y;
 
   const filas = ciSerie(P, C, Y, tasa, n, aporteAnios);
   const fin = filas[filas.length - 1];
+  const agotado = ciAgotado(filas, C);
+  const cuota = fmt.format(Math.abs(C));
+
+  // Los rótulos cambian de sentido al retirar: lo que en acumulación es "lo que pones tú"
+  // aquí es el capital neto que queda de tu bolsillo una vez descontado lo que has sacado.
+  document.getElementById('ci-aportado-k').textContent = retira
+    ? 'Capital neto tuyo (inicial − retirado)' : 'Total aportado (inicial + cuotas)';
+  document.getElementById('ciLegendAportado').textContent = retira
+    ? 'Lo que queda de tu bolsillo' : 'Lo que has puesto tú';
+  document.getElementById('ciLegendSaldo').textContent = retira
+    ? 'Saldo de la cartera' : 'Lo que ha puesto el interés';
 
   document.getElementById('ci-total').textContent = fmt.format(fin.saldo);
+  const verbo = retira ? 'retirando' : 'aportando';
   const txtAporte = aporteAnios >= Y
-    ? `aportando <b>${fmt.format(C)}/mes</b>`
-    : `aportando <b>${fmt.format(C)}/mes</b> solo los <b>${aporteAnios} primeros años</b> (y dejándolo componer los ${Y - aporteAnios} restantes)`;
+    ? `${verbo} <b>${cuota}/mes</b>`
+    : `${verbo} <b>${cuota}/mes</b> solo los <b>${aporteAnios} primeros años</b> (y dejándolo componer los ${Y - aporteAnios} restantes)`;
   document.getElementById('ci-sub').innerHTML =
     `Dentro de <b>${Y} años</b>, partiendo de <b>${fmt.format(P)}</b> y ${txtAporte} al <b>${ciPct(tasa)}%</b> anual (capitalización ${CI_FREQ_TXT[freqKey] || 'mensual'}).`;
   document.getElementById('ci-aportado').textContent = fmtShort(fin.aportado);
@@ -1381,29 +1415,41 @@ function computeCompound() {
 
   const hint = document.getElementById('ci-graf-hint');
   if (hint) {
-    const base = aporteAnios >= Y
-      ? `De los <b>${fmt.format(fin.saldo)}</b> finales, <b>${fmt.format(fin.aportado)}</b> los pones tú y <b>${fmt.format(fin.interes)}</b> los pone el interés compuesto.`
-      : `Dejas de aportar en el año <b>${aporteAnios}</b>: a partir de ahí la franja gris deja de crecer y todo lo que sube es interés. De los <b>${fmt.format(fin.saldo)}</b> finales, <b>${fmt.format(fin.aportado)}</b> los pones tú.`;
+    let base;
+    if (retira) {
+      // Fase de consumo: lo que interesa es cuánto has sacado y si el capital aguanta.
+      const sacado = Math.max(0, P - fin.aportado);
+      base = agotado !== null
+        ? `La cartera <b>se queda a cero en el año ${agotado}</b>: para entonces habrás sacado <b>${fmt.format(sacado)}</b>, de los que <b>${fmt.format(fin.interes)}</b> los ha puesto el interés. Baja la retirada o sube el capital inicial para que dure los ${Y} años.`
+        : `Aguanta los <b>${Y} años</b> y todavía quedan <b>${fmt.format(fin.saldo)}</b>: habrás sacado <b>${fmt.format(sacado)}</b> y el interés ha puesto <b>${fmt.format(fin.interes)}</b> por el camino.`;
+      if (aporteAnios < Y) base += ` Dejas de retirar en el año <b>${aporteAnios}</b>; a partir de ahí la cartera solo compone.`;
+    } else {
+      base = aporteAnios >= Y
+        ? `De los <b>${fmt.format(fin.saldo)}</b> finales, <b>${fmt.format(fin.aportado)}</b> los pones tú y <b>${fmt.format(fin.interes)}</b> los pone el interés compuesto.`
+        : `Dejas de aportar en el año <b>${aporteAnios}</b>: a partir de ahí lo que has puesto tú deja de crecer y todo lo que sube es interés. De los <b>${fmt.format(fin.saldo)}</b> finales, <b>${fmt.format(fin.aportado)}</b> los pones tú.`;
+    }
     const extra = banda
       ? ` Con un tipo ± ${ciPct(varia)} puntos, el saldo final iría de <b>${fmt.format(banda.peor.slice(-1)[0].saldo)}</b> a <b>${fmt.format(banda.mejor.slice(-1)[0].saldo)}</b>.`
       : '';
     hint.innerHTML = base + extra + ' Pasa el ratón o toca la gráfica para ver el detalle de cada año.';
   }
 
-  ciChartData = { filas, banda, aporteAnios, Y };
+  ciChartData = { filas, banda, aporteAnios, Y, retira, agotado };
   drawCiChart();
 }
 
 /* ---------- Gráfica del interés compuesto ---------- */
-// Área apilada: abajo lo aportado, encima los intereses; la suma es el saldo. Sustituye
-// a la tabla de escenarios y al detalle año a año (las cifras salen al pasar por encima).
+// Dos líneas: el saldo de la cartera y el capital neto que has puesto tú; la distancia
+// entre ambas es el interés. Sustituye a la tabla de escenarios y al detalle año a año
+// (las cifras salen al pasar por encima). Sirve igual acumulando que consumiendo: al
+// retirar, el saldo baja y la línea del capital neto puede cruzar el 0.
 let ciChartData = null;
 let ciPlot = null;
 
 function drawCiChart(hoverIdx = null) {
   const cv = document.getElementById('ciChart');
   if (!cv || !ciChartData) return;
-  const { filas, banda } = ciChartData;
+  const { filas, banda, retira, agotado } = ciChartData;
   const dpr = window.devicePixelRatio || 1;
   const cssW = cv.clientWidth, cssH = cv.clientHeight;
   if (!cssW || !cssH) return;
@@ -1415,20 +1461,34 @@ function drawCiChart(hoverIdx = null) {
   const pd = { top: 16, right: 16, bottom: 30, left: 64 };
   const x0 = pd.left, x1 = cssW - pd.right, yb = cssH - pd.bottom, yt = pd.top;
   const maxAnio = filas[filas.length - 1].anio || 1;
-  const maxY = Math.max(banda ? banda.mejor.slice(-1)[0].saldo : 0, filas[filas.length - 1].saldo, 1) * 1.06;
+  // El eje se ajusta a TODAS las series y a los dos extremos: retirando, el máximo está
+  // al principio (no al final) y "lo que queda de tu bolsillo" puede bajar de 0 cuando
+  // sacas más de lo que metiste, así que la escala tiene que admitir valores negativos.
+  let hiY = 0, loY = 0;
+  for (const serie of [filas, ...(banda ? [banda.peor, banda.mejor] : [])]) {
+    for (const f of serie) {
+      hiY = Math.max(hiY, f.saldo, f.aportado);
+      loY = Math.min(loY, f.saldo, f.aportado);
+    }
+  }
+  const maxY = Math.max(hiY * 1.06, 1), minY = loY * 1.06;
   const X = a => x0 + (a / maxAnio) * (x1 - x0);
-  const Y = v => yb - (Math.max(v, 0) / maxY) * (yb - yt);
+  const Y = v => yb - ((v - minY) / (maxY - minY)) * (yb - yt);
   ciPlot = { X, Y, x0, x1, yb, yt, maxAnio };
 
   // Rejilla horizontal (sin verticales, como en el resto de gráficas)
   c.font = '11px system-ui, sans-serif'; c.lineWidth = 1;
   for (let k = 0; k <= 5; k++) {
-    const v = (maxY / 5) * k, y = Y(v);
-    c.strokeStyle = k === 0 ? CHART.axis : CHART.grid;
+    const v = minY + ((maxY - minY) / 5) * k, y = Y(v);
+    c.strokeStyle = CHART.grid;
     c.beginPath(); c.moveTo(x0, y); c.lineTo(x1, y); c.stroke();
     c.fillStyle = CHART.label; c.textAlign = 'right'; c.textBaseline = 'middle';
     c.fillText(fmtShort(v), x0 - 8, y);
   }
+  // La línea del 0 es el eje: con retiradas deja de estar en el borde inferior.
+  const y0 = Math.round(Y(0)) + 0.5;
+  c.strokeStyle = CHART.axis;
+  c.beginPath(); c.moveTo(x0, y0); c.lineTo(x1, y0); c.stroke();
   const stepX = maxAnio > 40 ? 10 : maxAnio > 15 ? 5 : maxAnio > 8 ? 2 : 1;
   c.textAlign = 'center'; c.textBaseline = 'top'; c.fillStyle = CHART.label;
   for (let a = 0; a <= maxAnio; a += stepX) c.fillText(a + 'a', X(a), yb + 8);
@@ -1455,15 +1515,20 @@ function drawCiChart(hoverIdx = null) {
   linea('saldo', CI_COL.interes);
   linea('aportado', CI_COL.aportado);
 
-  // Marca del año en el que se deja de aportar
+  // Hitos verticales: el año en que se deja de mover la cuota y, retirando, el año en
+  // que la cartera se queda a cero.
   const { aporteAnios, Y: plazo } = ciChartData;
-  if (aporteAnios < plazo) {
-    const xm = X(aporteAnios);
+  const marca = (anio, txt) => {
+    const xm = X(anio);
     c.strokeStyle = CHART.ref; c.setLineDash([4, 4]);
     c.beginPath(); c.moveTo(xm, yt); c.lineTo(xm, yb); c.stroke(); c.setLineDash([]);
-    c.fillStyle = CHART.label; c.textAlign = 'center'; c.textBaseline = 'bottom';
-    c.fillText('dejas de aportar', xm, yt + 10);
-  }
+    c.fillStyle = CHART.label; c.textBaseline = 'bottom';
+    // Cerca del borde derecho la etiqueta centrada se saldría del lienzo.
+    c.textAlign = xm > x1 - 60 ? 'right' : 'center';
+    c.fillText(txt, Math.min(xm, x1), yt + 10);
+  };
+  if (aporteAnios < plazo) marca(aporteAnios, retira ? 'dejas de retirar' : 'dejas de aportar');
+  if (agotado != null) marca(agotado, 'se queda a cero');
 
   if (hoverIdx != null && filas[hoverIdx]) {
     const f = filas[hoverIdx], xh = X(f.anio);
@@ -1488,9 +1553,10 @@ function drawCiChart(hoverIdx = null) {
     let best = 0, bestD = Infinity;
     filas.forEach((f, k) => { const d = Math.abs(ciPlot.X(f.anio) - mx); if (d < bestD) { bestD = d; best = k; } });
     const f = filas[best];
+    const etqNeto = ciChartData.retira ? 'Te queda de tu bolsillo' : 'Has puesto tú';
     tip.innerHTML = `<div class="t-year">Año ${f.anio} · ${baseYear + f.anio}</div>
       <div class="t-row"><span style="color:#cbd5e1">Saldo</span><span>${fmt.format(f.saldo)}</span></div>
-      <div class="t-row"><span style="color:#0c9b76">Has puesto tú</span><span>${fmt.format(f.aportado)}</span></div>
+      <div class="t-row"><span style="color:#0c9b76">${etqNeto}</span><span>${fmt.format(f.aportado)}</span></div>
       <div class="t-row"><span style="color:#60a5fa">Lo ha puesto el interés</span><span>${fmt.format(f.interes)}</span></div>`;
     tip.style.opacity = 1;
     tip.style.left = (p.clientX + 14) + 'px';

@@ -627,6 +627,19 @@ const escHtml = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').repl
 
 const val = id => parseFloat(document.getElementById(id).value) || 0;
 
+// Acceso a localStorage a prueba de fallos: en modo privado o con el almacenamiento
+// deshabilitado, cualquiera de las dos operaciones lanza. Nada de lo que guarda esta
+// página es imprescindible, así que un fallo se traduce en "no había nada guardado".
+function lsRead(key, fallback) {
+  try {
+    const raw = localStorage.getItem(key);
+    return raw === null ? fallback : JSON.parse(raw);
+  } catch (e) { return fallback; }
+}
+function lsWrite(key, value) {
+  try { localStorage.setItem(key, JSON.stringify(value)); } catch (e) {}
+}
+
 // Tasa de retirada segura con la que se dimensiona el plan: convierte la retirada
 // bruta anual en capital necesario (capital = bruto / tasa → con el 3,5% por defecto,
 // ~28,6× el gasto). Es una retirada FIJA: se calcula una sola vez sobre el capital
@@ -1250,14 +1263,12 @@ const SNAP_MAX = 5;
 // `snaps` es la única copia viva; localStorage solo se toca al guardar y al borrar.
 let snaps = readStoredSnaps();
 function readStoredSnaps() {
-  try {
-    const arr = JSON.parse(localStorage.getItem(LS_SNAPS) || '[]');
-    return Array.isArray(arr) ? arr.filter(s => s && Array.isArray(s.puntos) && s.puntos.length) : [];
-  } catch (e) { return []; }
+  const arr = lsRead(LS_SNAPS, []);
+  return Array.isArray(arr) ? arr.filter(s => s && Array.isArray(s.puntos) && s.puntos.length) : [];
 }
 function writeSnaps(arr) {
   snaps = arr;
-  try { localStorage.setItem(LS_SNAPS, JSON.stringify(arr)); } catch (e) {}
+  lsWrite(LS_SNAPS, arr);
 }
 // Tramo activo: el último cuyos datos se han aplicado al plan. Se resalta con una banda
 // de fondo en su franja de edades, no con un color de línea propio.
@@ -1369,16 +1380,53 @@ const canvas = document.getElementById('chart');
 const ctx = canvas.getContext('2d');
 let plot = null;
 
+// Prepara un canvas para dibujar a la resolución real de la pantalla y devuelve su
+// tamaño en píxeles CSS, que es en los que piensan las dos gráficas. Devuelve null si
+// el canvas todavía no mide nada (su pestaña está oculta): no hay nada que pintar.
+function setupCanvas(cv) {
+  const dpr = window.devicePixelRatio || 1;
+  const cssW = cv.clientWidth, cssH = cv.clientHeight;
+  if (!cssW || !cssH) return null;
+  cv.width = Math.round(cssW * dpr); cv.height = Math.round(cssH * dpr);
+  const c = cv.getContext('2d');
+  c.setTransform(dpr, 0, 0, dpr, 0, 0);
+  c.clearRect(0, 0, cssW, cssH);
+  return { c, cssW, cssH };
+}
+
+// Une el puntero (o el dedo) con el punto más cercano de una serie y coloca el
+// flotante #tooltip a su lado. Lo comparten las dos gráficas: solo cambian de dónde
+// sale la serie, cómo se proyecta al eje X y qué se escribe dentro.
+function bindTooltip(cv, serieDe, xDe, htmlDe, redibuja) {
+  if (!cv) return;
+  const tip = document.getElementById('tooltip');
+  const show = e => {
+    const serie = serieDe();
+    if (!serie || !serie.length) return;
+    const p = e.touches ? e.touches[0] : e;
+    const mx = p.clientX - cv.getBoundingClientRect().left;
+    let best = 0, bestD = Infinity;
+    serie.forEach((f, k) => { const d = Math.abs(xDe(f) - mx); if (d < bestD) { bestD = d; best = k; } });
+    tip.innerHTML = htmlDe(serie[best]);
+    tip.style.opacity = 1;
+    tip.style.left = (p.clientX + 14) + 'px';
+    tip.style.top = (p.clientY + 14) + 'px';
+    redibuja(best);
+  };
+  cv.addEventListener('mousemove', show);
+  cv.addEventListener('click', show);
+  cv.addEventListener('touchstart', show, { passive: true });
+  cv.addEventListener('touchmove', show, { passive: true });
+  cv.addEventListener('mouseleave', () => { tip.style.opacity = 0; redibuja(); });
+}
+
 // Dos áreas apiladas, igual que la gráfica de interés compuesto: el valor total por
 // encima y lo aportado por debajo, con el interés como la franja que queda entre ambas.
 function drawChart(hoverIdx = null) {
   if (!chartData || !chartData.length) return;
-  const dpr = window.devicePixelRatio || 1;
-  const cssW = canvas.clientWidth, cssH = canvas.clientHeight;
-  if (!cssW || !cssH) return;
-  canvas.width = Math.round(cssW * dpr); canvas.height = Math.round(cssH * dpr);
-  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  ctx.clearRect(0, 0, cssW, cssH);
+  const medidas = setupCanvas(canvas);
+  if (!medidas) return;
+  const { cssW, cssH } = medidas;
 
   // Los tramos pueden cubrir edades que el plan de ahora no cubre (guardaste 30→40 y
   // ahora miras 40→50), así que el eje X va en EDADES absolutas y abarca la ruta entera.
@@ -1452,38 +1500,20 @@ function drawChart(hoverIdx = null) {
   }
 }
 
-// Tooltip: reutiliza el flotante #tooltip del resto de la página.
-(function () {
-  const tip = document.getElementById('tooltip');
-  const show = e => {
-    // Se recorre la ruta compuesta, así que el tooltip responde en cualquier tramo y no
-    // solo en el trecho que cubre el plan de ahora.
-    const ruta = plot && plot.ruta;
-    if (!ruta || !ruta.length) return;
-    const p = (e.touches ? e.touches[0] : e);
-    const mx = p.clientX - canvas.getBoundingClientRect().left;
-    let best = 0, bestD = Infinity;
-    ruta.forEach((f, k) => { const d = Math.abs(plot.X(f.edad) - mx); if (d < bestD) { bestD = d; best = k; } });
-    const f = ruta[best], interes = f.total - f.aportado;
-    const cual = f.origen
-      ? `<div class="t-row"><span class="muted">Tramo</span><span>${tramoTxt(f.origen)}</span></div>`
-      : `<div class="t-row"><span class="muted">Tramo</span><span>plan de ahora</span></div>`;
-    const cuota = f.cuota
-      ? `<div class="t-row"><span class="muted">Aportas ese año</span><span>${fmt.format(f.cuota)}/mes</span></div>`
-      : '';
-    tip.innerHTML = `<div class="t-year">${f.edad} años · año ${f.anio}</div>
-      <div class="t-row"><span style="color:${CI_COL.interes}">Valor total</span><span>${fmt.format(f.total)}</span></div>
-      <div class="t-row"><span style="color:${CI_COL.aportado}">Lo que has puesto</span><span>${fmt.format(f.aportado)}</span></div>
-      <div class="t-row"><span class="muted">Interés generado</span><span>${fmt.format(interes)}</span></div>${cuota}${cual}`;
-    tip.style.opacity = 1;
-    tip.style.left = (p.clientX + 14) + 'px';
-    tip.style.top = (p.clientY + 14) + 'px';
-    drawChart(best);
-  };
-  canvas.addEventListener('mousemove', show);
-  canvas.addEventListener('touchmove', show, { passive: true });
-  canvas.addEventListener('mouseleave', () => { tip.style.opacity = 0; drawChart(); });
-})();
+// Se recorre la ruta compuesta, así que el tooltip responde en cualquier tramo y no
+// solo en el trecho que cubre el plan de ahora.
+bindTooltip(canvas, () => plot && plot.ruta, f => plot.X(f.edad), f => {
+  const interes = f.total - f.aportado;
+  const cual = f.origen ? tramoTxt(f.origen) : 'plan de ahora';
+  const cuota = f.cuota
+    ? `<div class="t-row"><span class="muted">Aportas ese año</span><span>${fmt.format(f.cuota)}/mes</span></div>`
+    : '';
+  return `<div class="t-year">${f.edad} años · año ${f.anio}</div>
+    <div class="t-row"><span style="color:${CI_COL.interes}">Valor total</span><span>${fmt.format(f.total)}</span></div>
+    <div class="t-row"><span style="color:${CI_COL.aportado}">Lo que has puesto</span><span>${fmt.format(f.aportado)}</span></div>
+    <div class="t-row"><span class="muted">Interés generado</span><span>${fmt.format(interes)}</span></div>${cuota}
+    <div class="t-row"><span class="muted">Tramo</span><span>${cual}</span></div>`;
+}, drawChart);
 
 window.addEventListener('resize', () => {
   drawChart();
@@ -1624,13 +1654,9 @@ function drawCiChart(hoverIdx = null) {
   const cv = document.getElementById('ciChart');
   if (!cv || !ciChartData) return;
   const { filas, banda, retira, agotado } = ciChartData;
-  const dpr = window.devicePixelRatio || 1;
-  const cssW = cv.clientWidth, cssH = cv.clientHeight;
-  if (!cssW || !cssH) return;
-  cv.width = cssW * dpr; cv.height = cssH * dpr;
-  const c = cv.getContext('2d');
-  c.setTransform(dpr, 0, 0, dpr, 0, 0);
-  c.clearRect(0, 0, cssW, cssH);
+  const medidas = setupCanvas(cv);
+  if (!medidas) return;
+  const { c, cssW, cssH } = medidas;
 
   const pd = { top: 16, right: 16, bottom: 30, left: 64 };
   const x0 = pd.left, x1 = cssW - pd.right, yb = cssH - pd.bottom, yt = pd.top;
@@ -1713,36 +1739,16 @@ function drawCiChart(hoverIdx = null) {
   }
 }
 
-// Tooltip de la gráfica: reutiliza el flotante #tooltip del resto de la página.
-(function () {
-  const cv = document.getElementById('ciChart');
-  if (!cv) return;
-  const tip = document.getElementById('tooltip');
-  const baseYear = new Date().getFullYear();
-  const show = e => {
-    if (!ciChartData || !ciPlot) return;
-    const p = (e.touches ? e.touches[0] : e);
-    const mx = p.clientX - cv.getBoundingClientRect().left;
-    const { filas } = ciChartData;
-    let best = 0, bestD = Infinity;
-    filas.forEach((f, k) => { const d = Math.abs(ciPlot.X(f.anio) - mx); if (d < bestD) { bestD = d; best = k; } });
-    const f = filas[best];
+bindTooltip(document.getElementById('ciChart'),
+  () => ciPlot && ciChartData && ciChartData.filas,
+  f => ciPlot.X(f.anio),
+  f => {
     const etqNeto = ciChartData.retira ? 'Te queda de tu bolsillo' : 'Has puesto tú';
-    tip.innerHTML = `<div class="t-year">Año ${f.anio} · ${baseYear + f.anio}</div>
+    return `<div class="t-year">Año ${f.anio} · ${new Date().getFullYear() + f.anio}</div>
       <div class="t-row"><span style="color:#cbd5e1">Saldo</span><span>${fmt.format(f.saldo)}</span></div>
-      <div class="t-row"><span style="color:#0c9b76">${etqNeto}</span><span>${fmt.format(f.aportado)}</span></div>
+      <div class="t-row"><span style="color:${CI_COL.aportado}">${etqNeto}</span><span>${fmt.format(f.aportado)}</span></div>
       <div class="t-row"><span style="color:#60a5fa">Lo ha puesto el interés</span><span>${fmt.format(f.interes)}</span></div>`;
-    tip.style.opacity = 1;
-    tip.style.left = (p.clientX + 14) + 'px';
-    tip.style.top = (p.clientY + 14) + 'px';
-    drawCiChart(best);
-  };
-  cv.addEventListener('mousemove', show);
-  cv.addEventListener('click', show);
-  cv.addEventListener('touchstart', show, { passive: true });
-  cv.addEventListener('touchmove', show, { passive: true });
-  cv.addEventListener('mouseleave', () => { tip.style.opacity = 0; drawCiChart(); });
-})();
+  }, drawCiChart);
 
 /* ---------- Pestañas ----------
    Los bloques secundarios de cada tarjeta se pliegan solos con <details class="expander">;
@@ -1798,21 +1804,12 @@ function migrateData(data) {
 }
 
 function saveForm() {
-  const data = currentFormData();
-  try { localStorage.setItem(LS_FORM, JSON.stringify(data)); } catch (e) {}
+  lsWrite(LS_FORM, currentFormData());
   const ind = document.getElementById('saveState');
   if (ind) { ind.classList.add('show'); clearTimeout(saveForm._t); saveForm._t = setTimeout(() => ind.classList.remove('show'), 1200); }
 }
 function loadForm() {
-  let data = null;
-  try { data = JSON.parse(localStorage.getItem(LS_FORM) || 'null'); } catch (e) {}
-  if (!data) return;
-  migrateData(data);
-  formInputs.forEach(el => {
-    if (!el.id || !(el.id in data)) return;
-    if (el.type === 'checkbox') el.checked = !!data[el.id];
-    else el.value = data[el.id];
-  });
+  applyData(lsRead(LS_FORM, null));
 }
 /* ---- Ejemplos de sueldo ----
    Cuatro perfiles de un adulto de 30 años que se diferencian SOLO en lo que depende del
@@ -1845,11 +1842,10 @@ const LS_CURRENT   = 'jubilacion-actual-v1';       // nombre del escenario carga
 const scenarioSel  = document.getElementById('scenarioSel');
 
 function readScenarios() {
-  try { return JSON.parse(localStorage.getItem(LS_SCENARIOS) || '{}') || {}; }
-  catch (e) { return {}; }
+  return lsRead(LS_SCENARIOS, {}) || {};
 }
 function writeScenarios(obj) {
-  try { localStorage.setItem(LS_SCENARIOS, JSON.stringify(obj)); } catch (e) {}
+  lsWrite(LS_SCENARIOS, obj);
 }
 function currentFormData() {
   const data = { _v: FORM_VERSION };

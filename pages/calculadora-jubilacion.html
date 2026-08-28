@@ -277,29 +277,6 @@
   .route-flags span{position:absolute; top:0; white-space:nowrap}
   .route-flags b{color:var(--text)}
   .route-flags .on, .route-flags .on b{color:var(--accent)}
-  /* Editor de la ruta por tramos: una fila por etapa, con el número de tramo a la
-     izquierda y la edad de cierre calculada (no editable: la fija el tramo siguiente). */
-  .tramo{display:grid; grid-template-columns:auto 84px auto 1fr auto; align-items:center; gap:9px; padding:7px 0; border-bottom:1px solid #e3eaf1}
-  .tramo:last-of-type{border-bottom:0}
-  .tramo input{margin:0; padding:7px 9px; font:600 .84rem "IBM Plex Mono",monospace; text-align:right}
-  .tramo-n{font:600 .64rem "IBM Plex Mono",monospace; color:var(--accent)}
-  .tramo-hasta{font:500 .72rem "IBM Plex Mono",monospace; color:var(--muted); white-space:nowrap}
-  .tramo-desde{display:inline-block; min-width:84px; padding:7px 9px; font:600 .84rem "IBM Plex Mono",monospace;
-    text-align:right; color:var(--muted); background:#eef2f7; border:1px solid #dbe3ec; border-radius:4px}
-  .tramo-del{padding:4px 9px; line-height:1.2; color:var(--muted)}
-  .tramo-del:hover{border-color:var(--red); color:var(--red)}
-  .tramo-del[disabled]{opacity:.35; cursor:not-allowed}
-  .tramo-del[disabled]:hover{border-color:#b9c6d3; color:var(--muted)}
-  /* Etapas de la ruta bajo la gráfica: mismo lenguaje que .split-legend, pero con el
-     tramo de edades delante del importe. */
-  .route-chips{display:flex; flex-wrap:wrap; gap:6px 8px; margin:0 0 12px}
-  /* `display:flex` gana al `[hidden]{display:none}` del navegador: hay que repetirlo. */
-  .route-chips[hidden]{display:none}
-  .route-chips span{display:inline-flex; align-items:center; gap:6px; padding:3px 9px; background:#f2f6fa;
-    border:1px solid #d2dce5; border-radius:4px; font:500 .7rem "IBM Plex Mono",monospace; color:var(--muted)}
-  .route-chips b{color:var(--text)}
-  .route-chips .pausa b{color:var(--amber)}
-  .route-chips .retira b{color:var(--red)}
   .mini .s{font-size:.66rem; color:var(--muted); margin-top:4px; line-height:1.35}
   .mini{background:#f2f6fa; border-color:#d2dce5; border-radius:4px}
   .mini .v{font-family:"IBM Plex Mono",monospace}
@@ -323,10 +300,6 @@
     .toolbar{display:grid;grid-template-columns:auto 1fr auto auto;gap:8px}
     .tool-label{grid-column:1}#scenarioSel{grid-column:2;min-width:0;width:100%}#btnSave{grid-column:3}#btnDelete{grid-column:4}.save-state{position:absolute;right:14px;bottom:-22px}
     .primary-inputs{grid-template-columns:1fr}.card{padding:18px}.inputs-body{padding:18px}.cards-mini{grid-template-columns:1fr}.result-ring{width:220px}
-    /* El "hasta" pasa a la fila de abajo: en móvil no caben cinco columnas. */
-    .tramo{grid-template-columns:auto 1fr auto auto; gap:7px}
-    .tramo-hasta{grid-column:2/-1; grid-row:2; text-align:right}
-    .tramo-desde{min-width:0}
   }
 </style>
 </head>
@@ -399,7 +372,6 @@
           <option value="cero">Decreciente — hasta 0 € justo al retirarte</option>
           <option value="tope" selected>Tope de aportación → cuota decreciente, sin pasar de él</option>
           <option value="sprint">Bola de nieve → sprint plano y luego parar del todo</option>
-          <option value="tramos">Por tramos → tú decides la cuota de cada etapa</option>
         </select>
         <div class="hint">Como el dinero aportado pronto crece más años, <b>front-cargar</b> el ahorro hace que el <b>total aportado sea menor</b> para el mismo objetivo, a cambio de más esfuerzo los primeros años.
           <ul style="margin:6px 0 0; padding-left:18px">
@@ -408,7 +380,6 @@
             <li><b>Hasta 0 €:</b> la cuota baja en línea recta desde el primer año y llega a <b>0 €</b> justo al retirarte, así que el último año aún aportas algo. Es el reparto más front-cargado con esfuerzo repartido.</li>
             <li><b>Tope:</b> fijas cuánto es lo máximo que puedes aportar al mes y la calculadora busca <b>durante cuántos años</b> hay que pagar (bajando hasta 0 €) para llegar justo al objetivo. Si el tope no da para parar antes del retiro, en vez de fallar <b>levanta el suelo</b>: la cuota baja del tope a la <b>mínima cuota</b> que aún llega, aportando todos los años. Y si ni pagando el tope entero todos los años se llega, te avisa y te dice cuánto faltaría.</li>
             <li><b>Bola de nieve (<i>Coast FIRE</i>):</b> ahorras una cifra fija y agresiva, la misma cada mes, y la calculadora busca <b>en qué año puedes parar del todo</b>. A partir de ahí no aportas ni un euro más y el interés compuesto hace el resto: la cartera "rueda sola" hasta el objetivo justo a la edad de retiro, y tú solo necesitas ganar para tus gastos del día a día. Es el que <b>menos dinero total</b> requiere, a cambio de los años de esfuerzo más duros.</li>
-            <li><b>Por tramos:</b> el único en el que <b>mandas tú</b>. Partes tu vida laboral en etapas y le pones a cada una su cuota, así que la aportación puede <b>subir</b> (un ascenso a los 40) o pararse en seco (un año sabático). Como los importes los fijas tú, el plan deja de cuadrar solo: te dice si con esa ruta <b>llegas, te quedas corto o te pasas</b> del objetivo.</li>
           </ul>
         </div>
         <div id="perfilRatioWrap" style="display:none">
@@ -425,17 +396,6 @@
           <label for="sprint_ahorro">Ahorro sprint mensual (€ de hoy)</label>
           <input type="number" id="sprint_ahorro" value="2500" min="0" step="50">
           <div class="hint">Cuánto ahorras de forma agresiva, <b>igual todos los meses</b>, hasta el año en que puedes parar. Súbelo para adelantar esa fecha; bájalo para retrasarla. <b>Es en € de hoy:</b> el modelo asume que lo mantienes en <b>términos reales</b>, es decir, <b>subiendo el importe nominal cada año con la inflación</b>. Si aportaras siempre la misma cifra nominal, su valor real se erosionaría y tendrías que ahorrar <b>más años</b> de los que se muestran.</div>
-        </div>
-        <!-- Ruta por tramos: cada fila abre una etapa y la anterior se cierra sola, así que
-             no hay huecos ni solapes posibles. El primer tramo arranca siempre hoy. -->
-        <!-- La ruta viaja como JSON en un input oculto: así entra en el autoguardado y en
-             los escenarios con nombre sin tocar `currentFormData()`. -->
-        <input type="hidden" id="tramos" value="">
-        <div id="perfilTramosWrap" style="display:none">
-          <label>Tu ruta de ahorro, etapa a etapa (€/mes de hoy)</label>
-          <div id="tramosRows"></div>
-          <button type="button" class="tool" id="btnTramoAdd" style="margin-top:10px">+ Añadir tramo</button>
-          <div class="hint">Cada tramo empieza en la edad que le pongas y dura <b>hasta que empieza el siguiente</b> (el último llega al retiro), así que la ruta siempre cubre toda la acumulación. El primero arranca hoy y por eso su edad no se toca. <b>Pon 0 €</b> para un año sabático en el que no aportas pero tampoco tocas la cartera; <b>ponlo en negativo</b> si ese año además vas a vivir de lo invertido. Es en <b>€ de hoy</b>: se asume que subes el importe nominal con la inflación.</div>
         </div>
       </div>
       </div><!-- /col 1 -->
@@ -589,9 +549,6 @@
       <span><i class="dot" style="background:#1463ff"></i> Valor total</span>
       <span><i class="dot" style="background:#0c9b76"></i> Lo que has puesto tú</span>
     </div>
-    <!-- Solo en el perfil por tramos: las etapas de la ruta, en el mismo orden en que la
-         gráfica las dibuja. Las líneas verticales del canvas marcan estos mismos cortes. -->
-    <div class="route-chips" id="rutaResumen" hidden></div>
     <canvas id="chart"></canvas>
     <p class="proj-resumen" id="projResumen"></p>
 
@@ -775,49 +732,6 @@ function perfilAportacion() {
   };
 }
 
-/* ---- Ruta por tramos ----
-   Lista ordenada de etapas [{edad, mes}]: cada una abre en su edad y se cierra sola
-   cuando empieza la siguiente (la última llega al retiro). Al ser cortes y no intervalos
-   no puede haber huecos ni solapes, y el importe es ABSOLUTO en € de hoy, no un peso:
-   por eso el modo "tramos" no despeja `base` (vale 1) y puede no cuadrar con el objetivo.
-   Un importe negativo es una retirada: el sabático en el que vives de lo invertido. */
-const TRAMO_MES_DEF = 1000;
-const tramosEl = () => document.getElementById('tramos');
-
-function readTramos() {
-  let arr = null;
-  try { arr = JSON.parse(tramosEl().value || 'null'); } catch (e) {}
-  if (!Array.isArray(arr) || !arr.length) return null;
-  return arr
-    .map(t => ({ edad: Math.round(+t.edad) || 0, mes: Math.round(+t.mes) || 0 }))
-    .sort((a, b) => a.edad - b.edad);
-}
-function writeTramos(tr) { tramosEl().value = JSON.stringify(tr); }
-
-// Ruta normalizada y lista para usar: ordenada, con el primer tramo anclado a la edad de
-// hoy y sin cortes duplicados ni posteriores al retiro (se quedarían fuera del plan).
-function tramosNorm(a0, F) {
-  const tr = readTramos() || [{ edad: a0, mes: TRAMO_MES_DEF }];
-  tr[0].edad = a0;                                   // el primer tramo arranca siempre hoy
-  const out = [];
-  for (const t of tr) {
-    const edad = Math.max(a0, Math.min(F - 1, t.edad));
-    if (out.length && edad <= out[out.length - 1].edad) out[out.length - 1].mes = t.mes;
-    else out.push({ edad, mes: t.mes });
-  }
-  return out;
-}
-
-// Función de peso del modo "tramos": devuelve directamente los €/mes de ese año. Antes
-// del primer corte se aplica el primer importe, así la ruta cubre la acumulación entera.
-function tramosWeight(tr) {
-  return age => {
-    let mes = tr.length ? tr[0].mes : 0;
-    for (const t of tr) { if (age < t.edad) break; mes = t.mes; }
-    return mes;
-  };
-}
-
 // Pensión estimada escalando por años cotizados (aprox. escala española)
 function pensionAt(F, startWork, fullPension) {
   const years = F - startWork;
@@ -898,15 +812,8 @@ function scenario(F) {
   const fvPlano = fvOf(() => 1);
   const importeMinimo = fvPlano > 0 ? need / fvPlano : 0;
   const forma = PERFIL_VENTANA[perfil.modo];
-  const modoTramos = perfil.modo === 'tramos';
-  let weight, base, ventana = M, ventanaCorta = false, suelo = 0, tramos = null;
-  if (modoTramos) {
-    // Aquí no hay incógnita que despejar: los importes los pone el usuario. `base` = 1
-    // porque el peso YA son los €/mes, y el plan pasa de resolver a evaluar.
-    tramos = tramosNorm(a0, F);
-    weight = tramosWeight(tramos);
-    base = 1;
-  } else if (forma) {
+  let weight, base, ventana = M, ventanaCorta = false, suelo = 0;
+  if (forma) {
     base = perfil.modo === 'tope' ? perfil.tope : perfil.sprint;
     const fvVentana = T => fvOf(age => forma(age - a0, T)) * base;
     if (base > 0 && fvVentana(M) >= need) {
@@ -946,37 +853,21 @@ function scenario(F) {
     const fvUnit = fvOf(weight);
     base = fvUnit > 0 ? need / fvUnit : 0;
   }
-  // Capital que faltaría al retirarte si ni con el máximo esfuerzo posible se llega, y
-  // lo que te pasarías si te sobra. En los perfiles que despejan `base` ambos son 0 por
-  // construcción (aterrizan justo en el objetivo); en "tramos" mandan los importes que
-  // haya puesto el usuario, así que la ruta puede quedarse corta o pasarse.
-  const fvRuta = fvOf(weight) * base;
-  const falta = (ventanaCorta || modoTramos) ? Math.max(0, need - fvRuta) : 0;
-  const sobra = modoTramos ? Math.max(0, fvRuta - need) : 0;
-  const mensualIni = base * (M > 0 ? weight(a0) : 0);      // primer año
+  // Capital que faltaría al retirarte si ni con el máximo esfuerzo posible se llega (€ de hoy).
+  const falta = ventanaCorta ? Math.max(0, need - fvOf(weight) * base) : 0;
+  const mensualIni = base * (M > 0 ? weight(a0) : 0);      // primer año (pico)
   const mensualFin = base * (M > 0 ? weight(F - 1) : 0);   // último año
-  // Pico y valle del esfuerzo. El resto de perfiles no crecen nunca, así que su pico es
-  // el primer año; "tramos" sí puede subir (un ascenso), y es el pico —no el arranque—
-  // el que decide si la tasa de ahorro es asumible.
-  let mensualMax = 0, mensualMin = 0, picoAge = a0;
-  for (let age = a0; age < F; age++) {
-    const c = base * weight(age);
-    if (age === a0) { mensualMax = mensualMin = c; continue; }
-    if (c > mensualMax) { mensualMax = c; picoAge = age; }
-    if (c < mensualMin) mensualMin = c;
-  }
-  const mensual = mensualMax;                 // el año más exigente de la ruta
+  const mensual = mensualIni;                 // el primer año es el más exigente
   const anual = mensual * 12;
   const tasa = neto > 0 ? anual / neto : 0;
-  // Años en los que de verdad aportas algo (en "cero", "tope" y "sprint" la cola es 0 €;
-  // en "tramos" puede haber además huecos en medio, como un sabático).
-  let aniosAportando = 0, stopAge = a0;
-  for (let age = a0; age < F; age++) if (base * weight(age) > 0.5) { aniosAportando++; stopAge = age + 1; }
-  // Edad en la que ya no aportas nada más: el fin del esfuerzo. Es la última cuota real,
-  // no la cuenta de años, porque con un hueco intermedio no coinciden. `paraAntes`
-  // distingue el caso en que de verdad hay "bola de nieve" (sueltas el ahorro y la
-  // cartera compone sola un tramo) del caso en que la última cuota cae justo en el año
-  // del retiro, donde no hay nada que soltar. Fuente única para el subtítulo y el hito.
+  // Años en los que de verdad aportas algo (en "cero", "tope" y "sprint" la cola es 0 €).
+  let aniosAportando = 0;
+  for (let age = a0; age < F; age++) if (base * weight(age) > 0.5) aniosAportando++;
+  // Primera edad en la que ya no aportas nada: el fin del esfuerzo. `paraAntes` distingue
+  // el caso en que de verdad hay "bola de nieve" (sueltas el ahorro y la cartera compone
+  // sola un tramo) del caso en que la última cuota cae justo en el año del retiro, donde
+  // no hay nada que soltar. Fuente única para el subtítulo y para el hito de la línea.
+  const stopAge = a0 + aniosAportando;
   const paraAntes = aniosAportando > 0 && stopAge < F;
 
   // Nº Coast FIRE: cuánto habría que tener invertido HOY para no aportar nada más y aun
@@ -984,7 +875,7 @@ function scenario(F) {
   // efectivo sobre lo retirado y, si la cuentas, con la pensión pública ya descontada).
   const coastNum = capNeeded / Math.pow(1 + rA, M);
 
-  return { F, a0, PA, E, cap0, S, P, rA, rR, rate0, infl, i, M, capNeeded, capBase, pensionPV, cobrarePension, mensual, anual, tasa, coastNum, tr, convenioActivo, convenioMes, convenioAnual, base, frontload, mensualIni, mensualFin, mensualMax, mensualMin, picoAge, perfil, modoTramos, tramos, weight, ventana, ventanaCorta, suelo, importeMinimo, falta, sobra, aniosAportando, stopAge, paraAntes };
+  return { F, a0, PA, E, cap0, S, P, rA, rR, rate0, infl, i, M, capNeeded, capBase, pensionPV, cobrarePension, mensual, anual, tasa, coastNum, tr, convenioActivo, convenioMes, convenioAnual, base, frontload, mensualIni, mensualFin, perfil, weight, ventana, ventanaCorta, suelo, importeMinimo, falta, aniosAportando, stopAge, paraAntes };
 }
 
 // Construye la curva determinista de patrimonio (€ de hoy) año a año a partir de
@@ -1027,10 +918,8 @@ function compute() {
   if (F <= a0 || E <= F) return;
 
   const sc = scenario(F);
-  const { PA, S, P, infl, i, M, capNeeded, pensionPV, cobrarePension, mensual, anual, tasa, coastNum, cap0, rA, tr, convenioActivo, convenioMes, convenioAnual, base, mensualIni, mensualFin, mensualMax, mensualMin, picoAge, perfil, modoTramos, tramos, ventana, ventanaCorta, suelo, importeMinimo, falta, sobra, aniosAportando, stopAge, paraAntes } = sc;
-  // La lectura "primer año → último año" solo describe un perfil que baja de forma
-  // monótona. La ruta por tramos puede subir, bajar y volver a subir: se cuenta aparte.
-  const decreciente = !modoTramos && mensualIni > mensualFin + 1;
+  const { PA, S, P, infl, i, M, capNeeded, pensionPV, cobrarePension, mensual, anual, tasa, coastNum, cap0, rA, tr, convenioActivo, convenioMes, convenioAnual, base, mensualIni, mensualFin, perfil, ventana, ventanaCorta, suelo, importeMinimo, falta, aniosAportando, stopAge, paraAntes } = sc;
+  const decreciente = mensualIni > mensualFin + 1;
   // Modo "tope" resuelto por suelo: la rampa hasta 0 € no llegaba al objetivo ni ocupando
   // todo el horizonte, así que baja solo hasta una cuota mínima y aportas hasta el final.
   // Lo decide la rama que resolvió el escenario, no la cuota final: con la rampa completa
@@ -1040,7 +929,7 @@ function compute() {
   document.getElementById('fireValue').textContent = `${F} años`;
 
   // Solo se muestra el campo del perfil elegido (ratio / tope / sprint).
-  const wraps = { ratio: 'perfilRatioWrap', tope: 'perfilTopeWrap', sprint: 'perfilSprintWrap', tramos: 'perfilTramosWrap' };
+  const wraps = { ratio: 'perfilRatioWrap', tope: 'perfilTopeWrap', sprint: 'perfilSprintWrap' };
   for (const [modo, id] of Object.entries(wraps)) {
     const el = document.getElementById(id);
     if (el) el.style.display = perfil.modo === modo ? '' : 'none';
@@ -1074,18 +963,8 @@ function compute() {
   const tPct = t => (t * 100).toFixed(0) + '%';
   const tIni = neto > 0 ? mensualIni * 12 / neto : 0;
   const tFin = neto > 0 ? mensualFin * 12 / neto : 0;
-  // En "tramos" los extremos de la ruta no son el primer y el último año, sino el valle
-  // y el pico: son los que dicen si el esfuerzo es asumible en su peor momento.
-  const tMin = neto > 0 ? mensualMin * 12 / neto : 0;
-  const tMax = neto > 0 ? mensualMax * 12 / neto : 0;
-  const tasaRowLabel = modoTramos ? 'Tasa de ahorro sobre neto (tramo más flojo→más duro)'
-    : decreciente ? 'Tasa de ahorro sobre neto (primer→último año)'
-    : 'Tasa de ahorro (sobre neto)';
+  const tasaRowLabel = decreciente ? 'Tasa de ahorro sobre neto (primer→último año)' : 'Tasa de ahorro (sobre neto)';
   const tasaRowVal = (neto <= 0) ? '—'
-    : modoTramos
-      ? (mensualMax - mensualMin < 1
-          ? `<span style="color:${tCol(tMax)}">${tPct(tMax)}</span>`
-          : `<span style="color:${tCol(tMin)}">${tPct(tMin)}</span> → <span style="color:${tCol(tMax)}">${tPct(tMax)}</span>`)
     : decreciente
       ? `<span style="color:${tCol(tIni)}">${tPct(tIni)}</span> → <span style="color:${tCol(tFin)}">${tPct(tFin)}</span>`
       : `<span style="color:${tCol(tIni)}">${tPct(tIni)}</span>`;
@@ -1096,10 +975,7 @@ function compute() {
     <div class="row"><span class="muted">Pensión estimada (desde ${PA})${convenioActivo?' · 100% vía convenio':''}</span><span>${fmt.format(P)}/año</span></div>` : ''}
     <div class="row"><span class="muted">Retirada bruta anual de la cartera (con ${(tr*100).toFixed(0)}% impuestos)</span><span>${fmt.format(S/(1-tr))}/año</span></div>
     ${convenioActivo ? `<div class="row"><span class="muted">Coste convenio especial (solo hasta la edad de pensión)</span><span>${fmt.format(convenioMes)}/mes · ${fmt.format(convenioAnual)}/año</span></div>` : ''}
-    ${modoTramos
-      ? `<div class="row"><span class="muted">Cuota mensual de la ruta (más floja→más dura)</span><span>${fmt.format(mensualMin)} → ${fmt.format(mensualMax)}/mes</span></div>
-         <div class="row"><span class="muted">Tramos de la ruta${mensualMax > mensualMin + 1 ? ` · el pico cae a los ${picoAge}` : ''}</span><span>${tramos.length} ${tramos.length === 1 ? 'etapa' : 'etapas'} · aportas ${aniosAportando} de ${M} años</span></div>`
-      : `<div class="row"><span class="muted">Aportación anual necesaria${decreciente?' (primer→último año)':''}</span><span>${decreciente?`${fmt.format(anual)} → ${fmt.format(mensualFin*12)}`:fmt.format(anual)}</span></div>`}
+    <div class="row"><span class="muted">Aportación anual necesaria${decreciente?' (primer→último año)':''}</span><span>${decreciente?`${fmt.format(anual)} → ${fmt.format(mensualFin*12)}`:fmt.format(anual)}</span></div>
     ${conSuelo ? `<div class="row"><span class="muted">Con ese tope aportas los ${M} años (no da para parar antes)</span><span>${fmt.format(base)} → ${fmt.format(mensualFin)}/mes</span></div>`
       : PERFIL_VENTANA[perfil.modo] && !ventanaCorta ? `<div class="row"><span class="muted">${perfil.modo === 'tope' ? 'Años pagando con ese tope (hasta llegar a 0 €)' : 'Años de sprint (luego dejas de ahorrar)'}</span><span>${aniosAportando} de ${M} (${a0}→${stopAge})</span></div>` : ''}
     <div class="row"><span class="muted">${tasaRowLabel}</span><span>${tasaRowVal}</span></div>
@@ -1107,21 +983,11 @@ function compute() {
   `;
 
   let alerts = '';
-  // La ruta por tramos es la única que no cuadra sola: hay que decir dónde aterriza.
-  // El margen del 1% evita que un redondeo convierta un plan exacto en un "te pasas".
-  if (modoTramos) {
-    const margen = Math.max(1, capNeeded * 0.01);
-    if (falta > margen) alerts += `<div class="alert bad">🚫 Con esta ruta no llegas: al retirarte te faltarían <b>${fmt.format(falta)}</b> de los ${fmt.format(capNeeded)}. Aportando lo mismo todos los años harían falta <b>${fmt.format(importeMinimo)}/mes</b> (en € de hoy), así que sube algún tramo, retrasa el retiro o baja el gasto.</div>`;
-    else if (sobra > margen) alerts += `<div class="alert ok">✅ Con esta ruta te pasas del objetivo en <b>${fmt.format(sobra)}</b>: podrías adelantar el retiro, gastar más ya jubilado o aliviar algún tramo.</div>`;
-    else alerts += `<div class="alert ok">✅ Esta ruta cuadra: llegas justo al capital objetivo de <b>${fmt.format(capNeeded)}</b>.</div>`;
-  }
   if (ventanaCorta) alerts += perfil.modo === 'tope'
     ? `<div class="alert bad">🚫 Con un tope de ${fmt.format(base)}/mes no llegas ni aportándolo <b>entero los ${M} años</b>: al retirarte te faltarían <b>${fmt.format(falta)}</b> de los ${fmt.format(capNeeded)}. Harían falta al menos <b>${fmt.format(importeMinimo)}/mes</b> (constantes, en € de hoy) — o retrasar el retiro o bajar el gasto.</div>`
     : `<div class="alert bad">🚫 Con un sprint de ${fmt.format(base)}/mes nunca llegas a poder parar: aun aportándolo los ${M} años completos te faltarían <b>${fmt.format(falta)}</b> de los ${fmt.format(capNeeded)}. Harían falta al menos <b>${fmt.format(importeMinimo)}/mes</b> — o retrasar el retiro o bajar el gasto.</div>`;
   else if (conSuelo) alerts += `<div class="alert warn">📉 Llegas al objetivo, pero aportando los ${M} años: de <b>${fmt.format(base)}</b> a <b>${fmt.format(mensualFin)}/mes</b>. Sube el tope para poder parar antes.</div>`;
-  // En "tramos" una cuota de 0 € es una decisión del usuario, no la señal de que ya
-  // llegas: si de verdad llega, lo dice la alerta de la ruta que hay más arriba.
-  if (!modoTramos && mensual <= 0) alerts += `<div class="alert ok">✅ Ya llegas sin aportar más: podrías adelantar el retiro o gastar más.</div>`;
+  if (mensual <= 0) alerts += `<div class="alert ok">✅ Ya llegas sin aportar más: podrías adelantar el retiro o gastar más.</div>`;
   if (tasa > 1) alerts += `<div class="alert bad">🚫 Necesitarías más del 100% de tu neto: inviable. Retrasa el retiro o baja el gasto.</div>`;
   if (cobrarePension) {
     if (F < PA && !convenioActivo) alerts += `<div class="alert warn">⚠️ Te retiras ${PA-F} años antes de la pensión sin convenio: podrías reducirla. Plantéate pagarlo.</div>`;
@@ -1140,30 +1006,8 @@ function compute() {
   // acumulación. La rentabilidad que manda aquí es la de esa fase (r_acum).
   document.getElementById('projR').textContent = (sc.rA * 100).toFixed(1) + '%';
   chartData = planSerie(curve);
-  renderRuta(sc);
   drawChart();
   renderPlanResumen();
-}
-
-// Etapas de la ruta bajo la gráfica y cortes que `drawChart()` dibuja en el canvas: son
-// los "puntos" en los que la curva cambia de pendiente. Fuera del modo por tramos no hay
-// nada que marcar (el perfil es una única forma continua) y la tira se oculta.
-let chartMarks = [];
-function renderRuta(sc) {
-  const el = document.getElementById('rutaResumen');
-  if (!el) return;
-  if (!sc.modoTramos || !sc.tramos) { el.hidden = true; el.innerHTML = ''; chartMarks = []; return; }
-  const { tramos, a0, F } = sc;
-  chartMarks = tramos.slice(1)
-    .filter(t => t.edad > a0 && t.edad < F)
-    .map(t => ({ anio: t.edad - a0, txt: fmtShort(t.mes) }));
-  el.hidden = false;
-  el.innerHTML = tramos.map((t, k) => {
-    const hasta = k + 1 < tramos.length ? tramos[k + 1].edad : F;
-    const cls = t.mes < 0 ? ' class="retira"' : t.mes === 0 ? ' class="pausa"' : '';
-    const importe = t.mes === 0 ? 'sin aportar' : `${fmt.format(t.mes)}/mes`;
-    return `<span${cls}>${t.edad}→${hasta} · <b>${importe}</b></span>`;
-  }).join('');
 }
 
 // Frase de cierre de la gráfica: de todo lo que acumulas, cuánto has puesto tú y
@@ -1274,20 +1118,15 @@ function renderEsfuerzo() {
   const tasa = neto > 0 ? cuota * 12 / neto : 0;
   const cuotaEl = document.getElementById('kpiCuota');
   cuotaEl.innerHTML = `${fmt.format(cuota)}<small> /mes</small>`;
-  cuotaEl.style.color = cuota < 0 ? 'var(--red)'
-    : cuota === 0 ? 'var(--muted)'
+  cuotaEl.style.color = cuota <= 0 ? 'var(--muted)'
     : neto <= 0 ? 'var(--text)'
     : tasa > 0.6 ? 'var(--red)'
     : tasa > 0.4 ? 'var(--amber)'
     : 'var(--green)';
-  // Una cuota negativa es un tramo en el que vives de lo invertido (sabático): no es
-  // "no aportar", es sacar dinero, y la cartera lo nota.
-  set('kpiCuotaS', cuota < 0
-    ? `🏖️ este año sacas ${fmt.format(-cuota)}/mes de la cartera`
-    : cuota === 0
-      ? '✅ este año no aportas nada'
-      : (neto > 0 ? `<b>${(tasa * 100).toFixed(0)}%</b> de tu neto · ` : '')
-        + `${fmt.format(nominal(cuota))}/mes en € de ${anyo}`);
+  set('kpiCuotaS', cuota <= 0
+    ? '✅ este año no aportas nada'
+    : (neto > 0 ? `<b>${(tasa * 100).toFixed(0)}%</b> de tu neto · ` : '')
+      + `${fmt.format(nominal(cuota))}/mes en € de ${anyo}`);
 
   // Lo que queda de esfuerzo: euros por pagar, barra con la parte ya pagada y, en la
   // letra pequeña, cuánto llevas y cuántos años más.
@@ -1406,22 +1245,6 @@ function drawChart(hoverIdx = null) {
   const stepX = maxAnio > 40 ? 10 : maxAnio > 15 ? 5 : maxAnio > 8 ? 2 : 1;
   ctx.textAlign = 'center'; ctx.textBaseline = 'top'; ctx.fillStyle = CHART.label;
   for (let a = 0; a <= maxAnio; a += stepX) ctx.fillText(a + 'a', X(a), yb + 8);
-
-  // Cortes de la ruta por tramos: en cada uno cambia la cuota y la curva se dobla. Van
-  // debajo de las líneas para no taparlas. Con muchos tramos las etiquetas se pisarían,
-  // así que a partir de 8 se dibuja solo la marca.
-  if (chartMarks.length) {
-    const conTxt = chartMarks.length <= 8;
-    ctx.textAlign = 'center'; ctx.textBaseline = 'top';
-    for (const m of chartMarks) {
-      if (m.anio <= 0 || m.anio >= maxAnio) continue;
-      const xm = Math.round(X(m.anio)) + 0.5;
-      ctx.setLineDash([2, 4]); ctx.strokeStyle = CHART.ref; ctx.lineWidth = 1;
-      ctx.beginPath(); ctx.moveTo(xm, yt + (conTxt ? 13 : 0)); ctx.lineTo(xm, yb); ctx.stroke();
-      ctx.setLineDash([]);
-      if (conTxt) { ctx.fillStyle = CHART.label; ctx.fillText(m.txt, xm, yt); }
-    }
-  }
 
   // Solo líneas: rellenar por debajo tapaba la rejilla y dejaba la zona baja de la
   // gráfica hecha un bloque de color en el que no se distinguía nada.
@@ -1769,16 +1592,12 @@ const formInputs = Array.from(document.querySelectorAll('input, select')).filter
 //   v3 → v4: la simulación Monte Carlo se sustituyó por una proyección determinista,
 //            así que ni el selector de gráfica ni el capital propio de la simulación
 //            existen ya; sus valores guardados se descartan.
-//   v4 → v5: nuevo perfil "tramos" con su ruta en `tramos`. Los datos antiguos no la
-//            traen: se deja vacía para que el editor la siembre por defecto en vez de
-//            heredar la ruta que hubiera en pantalla.
-const FORM_VERSION = 5;
+const FORM_VERSION = 4;
 function migrateData(data) {
   if (!data || data._v >= FORM_VERSION) return data;
   const v = data._v || 1;
   if (v < 2 && data.neto != null) data.neto = String(Math.round((parseFloat(data.neto) || 0) / 12));
   if (v < 4) { delete data.mcChartSel; delete data.mc_capital; delete data.mc_capital_manual; }
-  if (v < 5 && data.tramos == null) data.tramos = '';
   data._v = FORM_VERSION;
   return data;
 }
@@ -1915,7 +1734,6 @@ scenarioSel.addEventListener('change', () => {
   const store = readScenarios();
   if (!store[name]) return;
   applyData(store[name]);
-  renderTramos();          // la ruta llega en el JSON del escenario: hay que repintarla
   setCurrentName(name);
   compute();
   saveForm();
@@ -1932,118 +1750,12 @@ function loadPresetSueldo(key) {
     if (el.type === 'checkbox') el.checked = p.datos[id];
     else el.value = p.datos[id];
   }
-  renderTramos();   // los ejemplos cambian la edad, y el primer tramo cuelga de ella
   compute(); saveForm();
   return true;
 }
 
-/* ---- Editor de la ruta por tramos ----
-   El input oculto #tramos es la única fuente de verdad; estas filas son su vista. Se
-   repintan enteras solo al añadir, borrar o cargar datos de fuera: escribir en un campo
-   actualiza el JSON y recalcula sin tocar el DOM, porque reconstruirlo robaría el foco. */
-const tramosRows = document.getElementById('tramosRows');
-
-function renderTramos() {
-  const a0 = val('edad'), F = val('fire');
-  const tr = tramosNorm(a0, Math.max(F, a0 + 1));
-  writeTramos(tr);
-  tramosRows.innerHTML = tr.map((t, k) => {
-    const hasta = k + 1 < tr.length ? tr[k + 1].edad : F;
-    // El primer tramo arranca hoy por definición, así que su edad se muestra pero no se edita.
-    const desde = k === 0
-      ? `<span class="tramo-desde" title="El primer tramo arranca siempre en tu edad de hoy">${t.edad}</span>`
-      : `<input type="number" class="t-edad" value="${t.edad}" min="${a0 + 1}" max="${Math.max(a0 + 1, F - 1)}" step="1" aria-label="Edad de inicio del tramo ${k + 1}">`;
-    return `<div class="tramo">
-      <span class="tramo-n">${String(k + 1).padStart(2, '0')}</span>
-      ${desde}
-      <span class="tramo-hasta">→ ${hasta}</span>
-      <input type="number" class="t-mes" value="${t.mes}" step="50" aria-label="Aportación mensual del tramo ${k + 1}">
-      <button type="button" class="tool tramo-del" title="Eliminar este tramo" aria-label="Eliminar el tramo ${k + 1}"${tr.length === 1 ? ' disabled' : ''}>✕</button>
-    </div>`;
-  }).join('');
-}
-
-// Lee las filas tal cual están en pantalla. Sin ordenar ni normalizar: eso lo hace
-// `tramosNorm()` al calcular, para que teclear una edad "4" camino de "42" no reordene
-// las filas de golpe bajo el cursor.
-function rowsToTramos() {
-  return Array.from(tramosRows.querySelectorAll('.tramo')).map(row => {
-    const e = row.querySelector('.t-edad');
-    return { edad: e ? Math.round(+e.value) || 0 : val('edad'), mes: Math.round(+row.querySelector('.t-mes').value) || 0 };
-  });
-}
-function syncTramosFromRows() {
-  const tr = rowsToTramos();
-  if (tr.length) writeTramos(tr);
-}
-
-// El "hasta" de cada fila lo fija la siguiente: se refresca a mano al teclear, porque
-// repintar el editor entero dejaría el campo sin foco a media edición.
-function refreshTramosHasta() {
-  const F = val('fire');
-  const rows = Array.from(tramosRows.querySelectorAll('.tramo'));
-  rows.forEach((row, k) => {
-    const sig = rows[k + 1] && rows[k + 1].querySelector('.t-edad');
-    row.querySelector('.tramo-hasta').textContent = '→ ' + (sig ? (Math.round(+sig.value) || F) : F);
-  });
-}
-
-tramosRows.addEventListener('input', e => {
-  if (!e.target.matches('.t-edad, .t-mes')) return;
-  syncTramosFromRows();
-  refreshTramosHasta();
-  compute();
-  saveForm();
-});
-// Al soltar el campo la edad ya es definitiva y puede tocar reordenar o recortar. Se
-// repinta SOLO si la normalización cambia algo: un repintado gratuito destruye el botón
-// que estuviera a punto de recibir el clic (el blur va antes que el click) y se perdería
-// el borrado del tramo que el usuario acaba de pulsar.
-tramosRows.addEventListener('change', e => {
-  if (!e.target.matches('.t-edad')) return;
-  const antes = JSON.stringify(rowsToTramos());
-  syncTramosFromRows();
-  const despues = JSON.stringify(tramosNorm(val('edad'), Math.max(val('fire'), val('edad') + 1)));
-  if (antes !== despues) renderTramos();
-  else refreshTramosHasta();
-  compute();
-  saveForm();
-});
-tramosRows.addEventListener('click', e => {
-  const btn = e.target.closest('.tramo-del');
-  if (!btn) return;
-  // Se borra por posición en el DOM, no por el índice con el que se pintó la fila: si
-  // hay una edición sin confirmar, el orden guardado y el de pantalla no coinciden.
-  const fila = btn.closest('.tramo');
-  const tr = Array.from(tramosRows.querySelectorAll('.tramo'));
-  if (tr.length <= 1) return;                 // la ruta necesita al menos un tramo
-  const k = tr.indexOf(fila);
-  const ruta = rowsToTramos();
-  ruta.splice(k, 1);
-  writeTramos(ruta);
-  renderTramos();
-  compute();
-  saveForm();
-});
-
-// Un tramo nuevo empieza 5 años después del último (sin pasarse del retiro) y hereda su
-// importe: así aparece sin cambiar el plan y solo hay que tocar la cifra que interesa.
-document.getElementById('btnTramoAdd').addEventListener('click', () => {
-  const a0 = val('edad'), F = Math.max(val('fire'), a0 + 1);
-  const tr = tramosNorm(a0, F);
-  const ult = tr[tr.length - 1];
-  const edad = Math.min(F - 1, ult.edad + 5);
-  if (edad <= ult.edad) { alert('No queda hueco para otro tramo antes de la edad de retiro.'); return; }
-  tr.push({ edad, mes: ult.mes });
-  writeTramos(tr);
-  renderTramos();
-  compute();
-  saveForm();
-});
-
 // Restaurar los datos guardados ANTES de calcular, y reflejar el escenario cargado en la lista
 loadForm();
-renderTramos();
 refreshScenarioSel(getCurrentName());
 
 // Recibir el gasto anual desde la calculadora de estilo de vida (por URL). Sobrescribe lo guardado.
@@ -2065,12 +1777,6 @@ refreshScenarioSel(getCurrentName());
 formInputs.forEach(el => {
   el.addEventListener('input', () => { compute(); saveForm(); });
   el.addEventListener('change', () => { compute(); saveForm(); });
-});
-
-// La ruta por tramos cuelga de la edad de hoy (primer tramo) y de la de retiro (cierre
-// del último), así que al moverlas hay que repintar el editor con los topes nuevos.
-['edad', 'fire'].forEach(id => {
-  document.getElementById(id).addEventListener('change', () => { renderTramos(); compute(); saveForm(); });
 });
 
 // El slider de "edad que quieres ver" no toca el plan: no recalcula ni se guarda,

@@ -329,9 +329,11 @@
     </div>
   </section>
 
-  <!-- Apagadas: la portada se quedó en veredicto + ranking + reparto del neto.
-       Se marcan una a una con `hidden` en vez de esconderlas por posición desde
-       el CSS, que se rompía al reordenar o insertar cualquier <section>. -->
+  <!-- De aquí en adelante las secciones están apagadas: la portada se quedó en
+       veredicto + ranking + reparto del neto. Cada una lleva su propio `hidden`;
+       antes las escondía una regla CSS por posición (de la cuarta en adelante),
+       que se rompía al reordenarlas o al insertar una nueva. El cálculo sí las
+       sigue rellenando, así que basta con quitar el `hidden` para recuperarlas. -->
   <!-- ============ TEST DEL UMBRAL ============ -->
   <section hidden>
     <h2 class="sec">4 · Tu regla del <span id="hUmbral">1,30×</span> en ahorro</h2>

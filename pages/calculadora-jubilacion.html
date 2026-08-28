@@ -12,63 +12,37 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&amp;family=Manrope:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
 <style>
-  :root {
-    --bg: #0f172a;
-    --card: #1e293b;
-    --accent: #38bdf8;
-    --accent-strong: #0ea5e9;
-    --text: #e2e8f0;
-    --muted: #94a3b8;
-    --green: #34d399;
-    --blue: #60a5fa;
-    --amber: #fbbf24;
-    --red: #f87171;
-    --border: #334155;
+  /* Horizonte: panel técnico de planificación. */
+  :root{
+    --bg:#e9eef4; --card:#ffffff; --accent:#1463ff; --accent-strong:#004bd1;
+    --text:#17212b; --muted:#667382; --green:#0c9b76; --blue:#00a3c7;
+    --amber:#f2aa17; --red:#df4d5b; --border:#cbd5df;
   }
   * { box-sizing: border-box; }
-  body {
-    margin: 0;
-    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-    background: linear-gradient(160deg, #0f172a, #1e293b);
-    color: var(--text);
-    min-height: 100vh;
-    padding: 24px;
-  }
-  .wrap { max-width: 1150px; margin: 0 auto; }
-  h1 { font-size: 1.8rem; margin: 0 0 4px; }
+  body { margin: 0; min-height: 100vh; padding: 0 24px 64px;
+    font-family: "Manrope", sans-serif; background: var(--bg); color: var(--text); }
   .subtitle { color: var(--muted); margin: 0 0 24px; font-size: .95rem; }
-  /* Entradas a ancho completo (se rellenan primero); las secciones se empaquetan solas en columnas */
-  /* 3 columnas fijas: cada columna es independiente, así activar/desactivar la pensión
-     (columna central) no reorganiza ni mueve las demás. */
-  .inputs-body { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px 30px; align-items: start; }
   .inputs-col { min-width: 0; }
   .inputs-body .group { margin: 0 0 20px; }
   .inputs-col .group:last-child { margin-bottom: 0; }
-  /* Separación vertical entre tarjetas consecutivas (datos → resultados → …) */
-  .tabpanel > .card + .card { margin-top: 24px; }
   /* Cabecera de tarjeta con algo más en línea junto al título (el chip "viendo · N años") */
   h2.with-aside { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
   /* Gestor de escenarios en la barra de herramientas */
   .tool-label { font-size: .82rem; color: var(--muted); }
   select.tool { width: auto; max-width: 260px; }
-  .card {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 24px;
-  }
-  h2 { font-size: 1rem; margin: 0 0 14px; color: var(--accent); }
+  h2 { font: 750 1.28rem/1.15 "Manrope", sans-serif; color: var(--text); margin: 0 0 14px; }
   .group { margin-bottom: 18px; }
-  .group-title { font-size: .72rem; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 0 0 8px; border-bottom: 1px solid var(--border); padding-bottom: 6px; }
+  .group-title { font-size: .72rem; text-transform: uppercase; letter-spacing: .06em; color: var(--accent);
+    font-family: "IBM Plex Mono", monospace; margin: 0 0 8px; border-bottom: 1px solid var(--border); padding-bottom: 6px; }
   label { display: block; font-size: .82rem; color: var(--muted); margin: 10px 0 5px; }
-  .hint { font-size: .72rem; color: #64748b; margin-top: 3px; }
+  .hint { font-size: .72rem; color: #718091; margin-top: 3px; }
   /* Descripciones plegables (compactar la interfaz, compatible con móvil) */
   .hint-toggle { display: inline; vertical-align: baseline; margin: 0 0 0 5px; padding: 0 2px; font-size: .95em; line-height: 1; color: var(--muted); background: transparent; border: 0; cursor: pointer; -webkit-tap-highlight-color: transparent; }
   .hint-toggle:hover { color: var(--text); }
   .hint-toggle.active { color: var(--accent); }
-  .toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 0 0 22px; }
-  .tool { font-size: .82rem; color: var(--text); background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 7px 12px; cursor: pointer; -webkit-tap-highlight-color: transparent; }
-  .tool:hover { border-color: var(--accent); }
+  .toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 18px 0;
+    position: relative; z-index: 2; padding: 10px; background: #dce5ef; border: 1px solid #c4cfda; border-radius: 6px; }
+  .tool { font-size: .82rem; color: var(--text); background: #fff; border: 1px solid #b9c6d3; border-radius: 4px; padding: 7px 12px; cursor: pointer; -webkit-tap-highlight-color: transparent; }
   .save-state { font-size: .78rem; color: var(--green); opacity: 0; transition: opacity .3s; }
   .save-state.show { opacity: 1; }
   /* Cierre de la gráfica del plan: es la conclusión, no una ayuda. Siempre visible,
@@ -81,15 +55,14 @@
   input, select {
     width: 100%;
     padding: 10px 12px;
-    border-radius: 10px;
-    border: 1px solid var(--border);
-    background: #0f172a;
+    border-radius: 4px;
+    border: 1px solid #b8c4d0;
+    background: #f8fafc;
     color: var(--text);
     font-size: .98rem;
     outline: none;
     transition: border-color .15s;
   }
-  input:focus, select:focus { border-color: var(--accent); }
   .two { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 
   .result-total { font-size: 2.1rem; font-weight: 700; color: var(--green); margin: 2px 0 2px; }
@@ -104,18 +77,18 @@
   .muted { color: var(--muted); }
 
   .cards-mini { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 4px 0 4px; }
-  .mini {
-    background: #0f172a; border: 1px solid var(--border); border-radius: 12px; padding: 14px;
-  }
+  .mini { background: #f2f6fa; border: 1px solid #d2dce5; border-radius: 4px; padding: 14px; }
   .mini .k { font-size: .72rem; color: var(--muted); }
-  .mini .v { font-size: 1.25rem; font-weight: 700; margin-top: 4px; }
+  .mini .v { font-size: 1.25rem; font-weight: 700; margin-top: 4px; font-family: "IBM Plex Mono", monospace; }
+  .mini .v small { font-size: .72rem; color: var(--muted); font-weight: 600; }
+  .mini .s { font-size: .66rem; color: var(--muted); margin-top: 4px; line-height: 1.35; }
 
   .alert { border-radius: 10px; padding: 12px 14px; font-size: .86rem; margin-top: 14px; line-height: 1.45; }
-  .alert.ok  { background: rgba(52,211,153,.10); border: 1px solid rgba(52,211,153,.4); color: #a7f3d0; }
-  .alert.warn{ background: rgba(251,191,36,.10); border: 1px solid rgba(251,191,36,.4); color: #fde68a; }
-  .alert.bad { background: rgba(248,113,113,.10); border: 1px solid rgba(248,113,113,.4); color: #fecaca; }
+  .alert.ok  { background: #e2f4ee; border: 1px solid #9dd3c2; color: #17634f; }
+  .alert.warn{ background: #fff3d6; border: 1px solid #e1c36f; color: #72510e; }
+  .alert.bad { background: #fae3e5; border: 1px solid #dda3aa; color: #7e3038; }
 
-  .chart-card { margin-top: 24px; }
+  .chart-card { margin-top: 24px; background: #fff; }
   .legend { display: flex; gap: 20px; margin-bottom: 8px; font-size: .85rem; flex-wrap: wrap; }
   .legend span { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); }
   .dot { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
@@ -130,13 +103,7 @@
   #tooltip .muted { color: #94a3b8; }
   #tooltip .t-row { display: flex; justify-content: space-between; gap: 16px; }
 
-  .toggle { display: flex; gap: 8px; margin-bottom: 6px; }
-  .toggle button {
-    flex: 1; padding: 9px; border-radius: 10px; border: 1px solid var(--border);
-    background: #0f172a; color: var(--muted); cursor: pointer; font-size: .82rem; font-weight: 600;
-  }
-  .toggle button.active { background: var(--accent-strong); color: #fff; border-color: var(--accent-strong); }
-  .disclaimer { font-size: .75rem; color: #64748b; margin-top: 18px; line-height: 1.5; }
+  .disclaimer { font-size: .75rem; color: var(--muted); margin-top: 18px; line-height: 1.5; }
 
   /* Comparador */
   .comp { width: 100%; border-collapse: collapse; font-size: .9rem; }
@@ -144,10 +111,13 @@
   .comp th { color: var(--muted); font-weight: 600; font-size: .7rem; text-transform: uppercase; letter-spacing: .04em; }
   .comp td:first-child, .comp th:first-child { text-align: left; }
   .comp tr:last-child td { border-bottom: none; }
-  .comp tr.active td { background: rgba(56,189,248,.10); }
+  .comp tr.active td { background: #e8f0ff; }
   .comp tr.active td:first-child { border-left: 3px solid var(--accent); }
-  .comp .age { font-size: 1.15rem; font-weight: 700; color: var(--text); }
-  .comp .age small { display: block; font-size: .68rem; font-weight: 400; color: var(--muted); }
+  /* Cabecera y subtotal de cada tramo en la tabla año a año. */
+  .comp tr.grp td { background: #eef4ff; color: var(--accent); font: 600 .68rem "IBM Plex Mono", monospace;
+    text-transform: uppercase; letter-spacing: .05em; text-align: left; }
+  .comp tr.sub td { background: #f6f9fc; border-bottom: 2px solid var(--border); }
+  .comp tr.sub td:first-child { text-align: left; }
   @media (max-width: 720px){ .comp { font-size: .78rem; } .comp th, .comp td { padding: 8px 5px; } }
 
   /* Presupuesto */
@@ -162,22 +132,12 @@
      ancho). Las del plan van en 2×2, porque su tarjeta es la columna estrecha. */
   @media (min-width: 780px) { #ciKpis { grid-template-columns: repeat(3, 1fr); } }
 
-
-  /* Horizonte: panel técnico de planificación. */
-  :root{
-    --bg:#e9eef4; --card:#ffffff; --accent:#1463ff; --accent-strong:#004bd1;
-    --text:#17212b; --muted:#667382; --green:#0c9b76; --blue:#00a3c7;
-    --amber:#f2aa17; --red:#df4d5b; --border:#cbd5df;
-  }
-  body{font-family:"Manrope",sans-serif; background:var(--bg); color:var(--text); padding:0 24px 64px}
-  body::before{display:none}
-  .wrap{position:relative; max-width:1240px}
+  .wrap{position:relative; max-width:1240px; margin:0 auto}
   .hero{margin:20px 0 0; padding:36px 210px 32px 34px; background:#1457d9; color:#fff; position:relative; border:0; box-shadow:inset 7px 0 0 #21c3d6}
   .hero::after{content:"FIRE"; position:absolute; right:30px; top:36px; padding:13px 16px; border:1px solid rgba(255,255,255,.65); color:#124bb9; background:#fff; font:600 .78rem/1 "IBM Plex Mono",monospace; letter-spacing:.06em}
   .eyebrow{display:block; color:#a9f1f7; font:600 .7rem/1 "IBM Plex Mono",monospace; letter-spacing:.08em; text-transform:uppercase; margin-bottom:12px}
   h1{font:800 clamp(2.2rem,4.5vw,4.25rem)/.98 "Manrope",sans-serif; max-width:850px; letter-spacing:0; margin:0}
   .hero .subtitle{color:#dce8ff; font-size:.95rem; max-width:680px; margin:14px 0 0}
-  .toolbar{margin:18px 0; position:relative; z-index:2; padding:10px; background:#dce5ef; border:1px solid #c4cfda; border-radius:6px; box-shadow:none}
   /* Pestañas: separan el plan de retiro de la calculadora de interés compuesto, que es
      una herramienta independiente y no parte del plan. */
   .tabs{display:flex; gap:2px; margin:20px 0 0; border-bottom:1px solid var(--border)}
@@ -190,12 +150,9 @@
   .tabpanel{padding-top:18px}
   .tabpanel[hidden]{display:none}
   .tabpanel > .toolbar:first-child{margin-top:0}
-  .tool{background:#fff; color:var(--text); border-color:#b9c6d3; border-radius:4px}
   .tool:hover{border-color:var(--accent); color:var(--accent)}
   .card{background:var(--card); border:1px solid var(--border); border-radius:6px; padding:24px; box-shadow:0 2px 7px rgba(34,54,74,.04)}
-  h2{font:750 1.28rem/1.15 "Manrope",sans-serif; color:var(--text)}
   .planner-grid{display:grid; grid-template-columns:minmax(0,1.16fr) minmax(340px,.84fr); gap:16px; align-items:start}
-  .planner-grid > .card{margin-top:0 !important}
   #inputsCard{padding:0; overflow:hidden}
   #inputsCard > h2{padding:18px 22px; margin:0; border-bottom:1px solid var(--border)}
   #inputsCard > h2::before,#aportarCard h2::before{font:600 .66rem "IBM Plex Mono",monospace; color:var(--accent); margin-right:10px}
@@ -205,9 +162,6 @@
   .primary-inputs .group{margin:0}
   /* Grupo que ocupa las dos columnas y cierra la tarjeta (el perfil de aportación). */
   .primary-inputs .span-cols{grid-column:1/-1; padding-top:20px; border-top:1px solid var(--border)}
-  .group-title{color:var(--accent); border-color:var(--border); font-family:"IBM Plex Mono",monospace}
-  label{color:var(--muted)}
-  input,select{background:#f8fafc; color:var(--text); border-color:#b8c4d0; border-radius:4px}
   input:focus,select:focus{border-color:var(--accent); box-shadow:0 0 0 3px rgba(20,99,255,.12)}
   input[type="range"]{padding:0; height:28px; border:0; box-shadow:none; accent-color:var(--accent); cursor:pointer}
   .range-value{display:flex; justify-content:space-between; align-items:center; margin-top:4px; color:var(--muted); font-size:.72rem}
@@ -222,7 +176,6 @@
   .expander-body{padding-top:18px}
   .expander-note{margin:0; font-size:.78rem; color:var(--muted); line-height:1.5}
   .advanced-grid{display:grid; grid-template-columns:1fr 1fr; gap:24px; padding-top:18px}
-  .hint{color:#718091}
   #aportarCard{position:sticky; top:18px; background:#fff; border:1px solid var(--border); border-top:4px solid var(--accent); padding:24px}
   #aportarCard h2{font-size:.78rem; font-family:"IBM Plex Mono",monospace; text-transform:uppercase; letter-spacing:.06em; color:var(--text)}
   .result-visual{display:grid; place-items:center; padding:10px 0 20px}
@@ -283,28 +236,14 @@
   .snap-del:hover{color:var(--red)}
   .snap-vacio{margin:0 0 14px; font-size:.78rem; color:var(--muted); line-height:1.5}
   .legend-nota{font-size:.72rem; color:var(--muted)}
-  /* Cabecera y subtotal de cada tramo en la tabla año a año. */
-  .comp tr.grp td{background:#eef4ff; color:var(--accent); font:600 .68rem "IBM Plex Mono",monospace;
-    text-transform:uppercase; letter-spacing:.05em; text-align:left}
-  .comp tr.sub td{background:#f6f9fc; border-bottom:2px solid var(--border)}
-  .comp tr.sub td:first-child{text-align:left}
-  .mini .s{font-size:.66rem; color:var(--muted); margin-top:4px; line-height:1.35}
-  .mini{background:#f2f6fa; border-color:#d2dce5; border-radius:4px}
-  .mini .v{font-family:"IBM Plex Mono",monospace}
-  .mini .v small{font-size:.72rem; color:var(--muted); font-weight:600}
   /* Barra de progreso del esfuerzo: cuánto del total que vas a aportar llevas ya pagado. */
   .mini-bar{height:4px; margin-top:8px; background:#dce5ef; border-radius:2px; overflow:hidden}
   .mini-bar i{display:block; height:100%; background:var(--accent); border-radius:2px}
-  .result-sub{color:var(--muted)}
-  .alert.ok{background:#e2f4ee;border-color:#9dd3c2;color:#17634f}.alert.warn{background:#fff3d6;border-color:#e1c36f;color:#72510e}.alert.bad{background:#fae3e5;border-color:#dda3aa;color:#7e3038}
-  .chart-card{background:#fff}
   #chart,#ciChart{background:#f8fafc; border:1px solid var(--border); border-radius:4px}
   #ciChart{width:100%; height:320px; display:block; cursor:crosshair}
-  .comp tr.active td{background:#e8f0ff}.comp tr.active td:first-child{border-left-color:var(--accent)}
-  .disclaimer{color:var(--muted)}
   @media(max-width:900px){.planner-grid{grid-template-columns:1fr}#aportarCard{position:static}.advanced-grid{grid-template-columns:1fr}}
   @media(max-width:620px){
-    body{padding-left:14px;padding-right:14px;background:var(--bg)}
+    body{padding-left:14px;padding-right:14px}
     .hero{margin-top:14px;padding:26px 20px 22px}.hero::after{display:none}
     .tab{padding:10px 13px; font-size:.66rem; letter-spacing:.04em}
     .toolbar{display:grid;grid-template-columns:auto 1fr auto auto;gap:8px}

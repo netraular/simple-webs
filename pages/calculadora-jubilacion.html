@@ -293,6 +293,8 @@
   /* Etapas de la ruta bajo la gráfica: mismo lenguaje que .split-legend, pero con el
      tramo de edades delante del importe. */
   .route-chips{display:flex; flex-wrap:wrap; gap:6px 8px; margin:0 0 12px}
+  /* `display:flex` gana al `[hidden]{display:none}` del navegador: hay que repetirlo. */
+  .route-chips[hidden]{display:none}
   .route-chips span{display:inline-flex; align-items:center; gap:6px; padding:3px 9px; background:#f2f6fa;
     border:1px solid #d2dce5; border-radius:4px; font:500 .7rem "IBM Plex Mono",monospace; color:var(--muted)}
   .route-chips b{color:var(--text)}
@@ -1951,7 +1953,7 @@ function renderTramos() {
     const desde = k === 0
       ? `<span class="tramo-desde" title="El primer tramo arranca siempre en tu edad de hoy">${t.edad}</span>`
       : `<input type="number" class="t-edad" value="${t.edad}" min="${a0 + 1}" max="${Math.max(a0 + 1, F - 1)}" step="1" aria-label="Edad de inicio del tramo ${k + 1}">`;
-    return `<div class="tramo" data-k="${k}">
+    return `<div class="tramo">
       <span class="tramo-n">${String(k + 1).padStart(2, '0')}</span>
       ${desde}
       <span class="tramo-hasta">→ ${hasta}</span>
@@ -1961,13 +1963,17 @@ function renderTramos() {
   }).join('');
 }
 
-// Relee las filas a JSON. Sin ordenar ni normalizar: eso lo hace `tramosNorm()` al
-// calcular, para que teclear una edad "22" camino de "42" no reordene las filas de golpe.
-function syncTramosFromRows() {
-  const tr = Array.from(tramosRows.querySelectorAll('.tramo')).map(row => {
+// Lee las filas tal cual están en pantalla. Sin ordenar ni normalizar: eso lo hace
+// `tramosNorm()` al calcular, para que teclear una edad "4" camino de "42" no reordene
+// las filas de golpe bajo el cursor.
+function rowsToTramos() {
+  return Array.from(tramosRows.querySelectorAll('.tramo')).map(row => {
     const e = row.querySelector('.t-edad');
     return { edad: e ? Math.round(+e.value) || 0 : val('edad'), mes: Math.round(+row.querySelector('.t-mes').value) || 0 };
   });
+}
+function syncTramosFromRows() {
+  const tr = rowsToTramos();
   if (tr.length) writeTramos(tr);
 }
 
@@ -1989,22 +1995,32 @@ tramosRows.addEventListener('input', e => {
   compute();
   saveForm();
 });
-// Al soltar el campo sí se repinta: es cuando la edad ya es definitiva y toca reordenar.
+// Al soltar el campo la edad ya es definitiva y puede tocar reordenar o recortar. Se
+// repinta SOLO si la normalización cambia algo: un repintado gratuito destruye el botón
+// que estuviera a punto de recibir el clic (el blur va antes que el click) y se perdería
+// el borrado del tramo que el usuario acaba de pulsar.
 tramosRows.addEventListener('change', e => {
   if (!e.target.matches('.t-edad')) return;
+  const antes = JSON.stringify(rowsToTramos());
   syncTramosFromRows();
-  renderTramos();
+  const despues = JSON.stringify(tramosNorm(val('edad'), Math.max(val('fire'), val('edad') + 1)));
+  if (antes !== despues) renderTramos();
+  else refreshTramosHasta();
   compute();
   saveForm();
 });
 tramosRows.addEventListener('click', e => {
   const btn = e.target.closest('.tramo-del');
   if (!btn) return;
-  const k = +btn.closest('.tramo').dataset.k;
-  const tr = tramosNorm(val('edad'), Math.max(val('fire'), val('edad') + 1));
+  // Se borra por posición en el DOM, no por el índice con el que se pintó la fila: si
+  // hay una edición sin confirmar, el orden guardado y el de pantalla no coinciden.
+  const fila = btn.closest('.tramo');
+  const tr = Array.from(tramosRows.querySelectorAll('.tramo'));
   if (tr.length <= 1) return;                 // la ruta necesita al menos un tramo
-  tr.splice(k, 1);
-  writeTramos(tr);
+  const k = tr.indexOf(fila);
+  const ruta = rowsToTramos();
+  ruta.splice(k, 1);
+  writeTramos(ruta);
   renderTramos();
   compute();
   saveForm();
@@ -2054,7 +2070,7 @@ formInputs.forEach(el => {
 // La ruta por tramos cuelga de la edad de hoy (primer tramo) y de la de retiro (cierre
 // del último), así que al moverlas hay que repintar el editor con los topes nuevos.
 ['edad', 'fire'].forEach(id => {
-  document.getElementById(id).addEventListener('change', () => { renderTramos(); compute(); });
+  document.getElementById(id).addEventListener('change', () => { renderTramos(); compute(); saveForm(); });
 });
 
 // El slider de "edad que quieres ver" no toca el plan: no recalcula ni se guarda,

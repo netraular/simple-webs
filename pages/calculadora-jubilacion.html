@@ -144,13 +144,6 @@
   .comp tr.active td:first-child { border-left: 3px solid var(--accent); }
   .comp .age { font-size: 1.15rem; font-weight: 700; color: var(--text); }
   .comp .age small { display: block; font-size: .68rem; font-weight: 400; color: var(--muted); }
-  .bar-cell { position: relative; min-width: 130px; }
-  .bar { position: absolute; left: 0; top: 50%; transform: translateY(-50%); height: 62%; border-radius: 5px; z-index: 0; }
-  .bar-cell b { position: relative; z-index: 1; }
-  .pill { display: inline-block; padding: 3px 9px; border-radius: 999px; font-size: .78rem; font-weight: 700; }
-  .pill.g { background: rgba(52,211,153,.18); color: #6ee7b7; }
-  .pill.a { background: rgba(251,191,36,.18); color: #fcd34d; }
-  .pill.r { background: rgba(248,113,113,.18); color: #fca5a5; }
   @media (max-width: 720px){ .comp { font-size: .78rem; } .comp th, .comp td { padding: 8px 5px; } }
 
   /* Presupuesto */
@@ -158,23 +151,8 @@
   @media (max-width: 780px){ .budget-grid { grid-template-columns: 1fr 1fr; } }
   @media (max-width: 500px){ .budget-grid { grid-template-columns: 1fr; } }
   .budget-grid label { margin-top: 0; min-height: 2.2em; }
-  .budget-foot { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border); }
   .check { display: inline-flex; align-items: center; gap: 8px; font-size: .9rem; color: var(--text); cursor: pointer; }
   .check input { width: auto; }
-  .budget-total { font-size: 1.4rem; font-weight: 700; color: var(--green); }
-
-  /* Escenario sin pensión */
-  .np-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-  @media (max-width: 640px) { .np-cols { grid-template-columns: 1fr; } }
-  .np-col { background: #0f172a; border: 1px solid var(--border); border-radius: 12px; padding: 16px 18px; }
-  .np-col.np-hl { border-color: var(--accent); box-shadow: 0 0 0 1px rgba(56,189,248,.25); }
-  .np-col h3 { margin: 0 0 4px; font-size: 1rem; color: var(--text); }
-  .np-col .np-when { font-size: .74rem; color: var(--muted); line-height: 1.4; margin-bottom: 12px; }
-  .np-col .np-cap { font-size: 1.1rem; font-weight: 700; color: var(--blue); padding-bottom: 12px; border-bottom: 1px solid var(--border); }
-  .np-metric { padding: 12px 0 4px; }
-  .np-metric .np-k { font-size: .74rem; color: var(--muted); }
-  .np-metric .np-v { font-size: 1.5rem; font-weight: 700; color: var(--green); margin: 2px 0; }
-  .np-metric .np-s { font-size: .7rem; color: #64748b; line-height: 1.4; }
 
   /* Cifras clave del interés compuesto: las tres en una fila (la tarjeta ocupa todo el
      ancho). Las del plan van en 2×2, porque su tarjeta es la columna estrecha. */
@@ -293,11 +271,9 @@
   .snap-btn{display:inline-flex; align-items:stretch; background:#fff; border:1px solid #b9c6d3; border-radius:4px}
   .snap-btn:hover{border-color:var(--accent)}
   .snap-btn.on{border-color:var(--accent); background:#eef4ff; box-shadow:inset 0 0 0 1px var(--accent)}
-  .snap-btn.sin-datos{border-style:dashed}
   .snap-btn button{background:none; border:0; cursor:pointer; color:var(--text); font-size:.8rem;
     -webkit-tap-highlight-color:transparent}
   .snap-apply{display:inline-flex; align-items:center; gap:9px; padding:7px 4px 7px 9px; text-align:left}
-  .snap-btn.sin-datos .snap-apply{color:var(--muted)}
   .snap-apply .n{font:600 .64rem "IBM Plex Mono",monospace; color:var(--accent)}
   .snap-apply .nom{font-weight:600; max-width:15ch; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
   .snap-apply .rango{font:500 .72rem "IBM Plex Mono",monospace; color:var(--muted); white-space:nowrap}
@@ -324,7 +300,6 @@
   #chart,#ciChart{background:#f8fafc; border:1px solid var(--border); border-radius:4px}
   #ciChart{width:100%; height:320px; display:block; cursor:crosshair}
   .comp tr.active td{background:#e8f0ff}.comp tr.active td:first-child{border-left-color:var(--accent)}
-  .np-col{background:#f2f6fa;border-color:var(--border)}
   .disclaimer{color:var(--muted)}
   @media(max-width:900px){.planner-grid{grid-template-columns:1fr}#aportarCard{position:static}.advanced-grid{grid-template-columns:1fr}}
   @media(max-width:620px){
@@ -367,7 +342,7 @@
   <!-- ENTRADAS (ancho completo: se rellenan primero, antes de visualizar resultados) -->
   <div class="card" id="inputsCard">
     <h2>Diseña tu ruta</h2>
-    <div class="inputs-body" id="inputsBody">
+    <div class="inputs-body">
       <!-- Columna 1: Tú + Dinero -->
       <div class="inputs-col primary-inputs">
       <div class="group">
@@ -392,7 +367,7 @@
 
         <label for="gasto">Gasto mensual que quieres en el retiro (€ de hoy)</label>
         <input type="number" id="gasto" value="3500" min="0" step="100">
-        <div class="hint" id="gasto-hint">Lo que quieres poder gastar cada mes, todos los meses, <b>ya jubilado</b> (no es lo que ingresas hoy: eso va en <b>Ajustes avanzados → Tu ingreso</b>). <span id="gasto-anual"></span></div>
+        <div class="hint">Lo que quieres poder gastar cada mes, todos los meses, <b>ya jubilado</b> (no es lo que ingresas hoy: eso va en <b>Ajustes avanzados → Tu ingreso</b>). <span id="gasto-anual"></span></div>
       </div>
 
       <!-- Cómo repartir el ahorro: es una decisión de ruta, no un ajuste fino, así que
@@ -516,7 +491,7 @@
     <h2 class="with-aside">Tu esfuerzo mensual
       <!-- Único sitio donde se dice qué edad estás mirando: todo lo de abajo describe
            ese año, así que ni el círculo ni las cifras lo repiten. -->
-      <span class="view-chip" id="viewChip">a los <b id="viewChipAge">—</b>
+      <span class="view-chip">a los <b id="viewChipAge">—</b>
         <button type="button" id="btnViewReset" title="Volver a hoy" aria-label="Volver a hoy" hidden>↺</button>
       </span>
     </h2>
@@ -540,7 +515,7 @@
 
     <!-- Cifras clave, todas referidas a la edad que estás viendo y con la misma forma
          en todos los años (no hay un caso especial para hoy ni para el retiro). -->
-    <div class="cards-mini" id="keyKpis" style="margin-top:18px">
+    <div class="cards-mini" style="margin-top:18px">
       <div class="mini" title="La cuota mensual que toca pagar el año que empieza a esa edad">
         <div class="k">Aportación de ese año</div>
         <div class="v" id="kpiCuota">—</div>
@@ -564,7 +539,7 @@
       </div>
     </div>
 
-    <details class="expander" id="detalleWrap">
+    <details class="expander">
     <summary>Detalle del cálculo · desglose y avisos</summary>
     <div class="expander-body">
       <div class="breakdown" id="breakdown"></div>
@@ -614,7 +589,7 @@
 
   <!-- INTERÉS COMPUESTO: cálculo rápido e independiente del plan, en su propia pestaña -->
   <section class="tabpanel" id="panelCi" role="tabpanel" aria-labelledby="tabCi" hidden>
-  <div class="card" id="ciCard">
+  <div class="card">
     <h2>Calculadora de interés compuesto</h2>
       <p class="subtitle" style="margin-bottom:20px">Prueba capital, aportación, plazo y rentabilidad sin alterar tu plan de retiro. Con una aportación <b>negativa</b> funciona al revés y te dice cuánto aguanta un capital del que vas sacando dinero cada mes. Usa la inflación de <b>Ajustes avanzados → Mercados</b> (pestaña «Plan de retiro») para pasar el saldo a € de hoy.</p>
 
@@ -700,7 +675,6 @@
 
 <script>
 const fmt = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 });
-const fmt2 = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 });
 const fmtShort = v => {
   if (Math.abs(v) >= 1e6) return (v/1e6).toLocaleString('es-ES',{maximumFractionDigits:2}) + 'M€';
   if (Math.abs(v) >= 1000) return Math.round(v/1000) + 'k€';
@@ -708,6 +682,8 @@ const fmtShort = v => {
 };
 
 let chartData = null;      // curva determinista que dibuja la tarjeta de proyección
+
+const escHtml = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
 const val = id => parseFloat(document.getElementById(id).value) || 0;
 
@@ -1325,8 +1301,8 @@ const SNAP_MAX = 5;
 // `drawChart()` y el tooltip corren en cada mousemove, así que la lista vive en memoria:
 // leer y parsear localStorage por frame era gratis de escribir y caro de ejecutar.
 // `snaps` es la única copia viva; localStorage solo se toca al guardar y al borrar.
-let snaps = leerSnapsDeDisco();
-function leerSnapsDeDisco() {
+let snaps = readStoredSnaps();
+function readStoredSnaps() {
   try {
     const arr = JSON.parse(localStorage.getItem(LS_SNAPS) || '[]');
     return Array.isArray(arr) ? arr.filter(s => s && Array.isArray(s.puntos) && s.puntos.length) : [];
@@ -1369,14 +1345,11 @@ function renderSnaps() {
   }
   cont.innerHTML = snaps.map((s, k) => {
     const fin = s.puntos[s.puntos.length - 1];
-    // Los tramos guardados antes de que se almacenara la configuración no se pueden
-    // volver a aplicar: se dibujan igual, pero el botón lo dice en vez de fallar.
-    const aplicable = !!s.datos;
     // El ✕ va como botón hermano, no dentro del otro: un control dentro de otro control
     // es HTML inválido y deja el borrado fuera del alcance del teclado.
-    return `<span class="snap-btn${snapActivo === s.id ? ' on' : ''}${aplicable ? '' : ' sin-datos'}">
+    return `<span class="snap-btn${snapActivo === s.id ? ' on' : ''}">
       <button type="button" class="snap-apply" data-id="${s.id}"
-        title="${aplicable ? 'Aplicar esta configuración a «Diseña tu ruta» y «Tu esfuerzo mensual»' : 'Este tramo se guardó sin su configuración: no se puede volver a aplicar'}">
+        title="Aplicar esta configuración a «Diseña tu ruta» y «Tu esfuerzo mensual»">
         <span class="n">${String(k + 1).padStart(2, '0')}</span>
         <span class="nom">${escHtml(s.nombre)}</span>
         <span class="rango">${s.desde}→${s.hasta} a · <b>${fmtShort(fin.total)}</b></span>
@@ -1385,7 +1358,6 @@ function renderSnaps() {
     </span>`;
   }).join('');
 }
-const escHtml = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
 // Guardar congela los puntos que se están viendo ahora mismo.
 document.getElementById('btnSnapSave').addEventListener('click', () => {
@@ -1427,7 +1399,6 @@ document.getElementById('snapsList').addEventListener('click', e => {
     compute();                 // la tabla año a año también deja de listarlo
     return;
   }
-  if (!s.datos) { alert('Este tramo se guardó antes de que se almacenara la configuración, así que no se puede volver a aplicar. Sigue dibujándose en la gráfica.'); return; }
   // Aplicar devuelve el plan al estado con el que se guardó el tramo, incluido el rango
   // visible: las dos tarjetas de arriba pasan a describir ese tramo.
   applyData(s.datos);
@@ -1949,12 +1920,11 @@ function getCurrentName() {
 function refreshScenarioSel(selected) {
   const store = readScenarios();
   const names = Object.keys(store).sort((a, b) => a.localeCompare(b, 'es'));
-  const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
   const ejemplos = Object.entries(PRESETS_SUELDO)
-    .map(([k, p]) => `<option value="${PRESET_PREFIX}${k}" title="${esc(p.desc)}">${esc(p.label)}</option>`).join('');
+    .map(([k, p]) => `<option value="${PRESET_PREFIX}${k}" title="${escHtml(p.desc)}">${escHtml(p.label)}</option>`).join('');
   scenarioSel.innerHTML = '<option value="">— Sin guardar —</option>'
     + `<optgroup label="Ejemplos de sueldo">${ejemplos}</optgroup>`
-    + (names.length ? `<optgroup label="Tus escenarios">${names.map(n => `<option value="${esc(n)}">${esc(n)}</option>`).join('')}</optgroup>` : '');
+    + (names.length ? `<optgroup label="Tus escenarios">${names.map(n => `<option value="${escHtml(n)}">${escHtml(n)}</option>`).join('')}</optgroup>` : '');
   const esPreset = selected && selected.startsWith(PRESET_PREFIX) && PRESETS_SUELDO[selected.slice(PRESET_PREFIX.length)];
   scenarioSel.value = (selected && (esPreset || store[selected])) ? selected : '';
 }

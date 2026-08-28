@@ -8,202 +8,46 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,400..800&amp;family=DM+Sans:opsz,wght@9..40,400..700&amp;display=swap" rel="stylesheet">
 <style>
-  /* Mismo brutalismo colorido que el resto del sitio: fondo crema, tipografía
-     monoespaciada, bordes gruesos y sombras desplazadas. Sin librerías: todos
-     los gráficos son <div> con anchos en %. */
+  /* Brújula: una identidad editorial inspirada en mapas y billetes de viaje.
+     Sin librerías: todos los gráficos son <div> con anchos en %. */
   :root{
-    --bg:#f6f2e7; --card:#fbf8f0; --line:#16203c; --txt:#16203c; --mut:#514b5e;
-    --ink:#16203c; --accent:#c0186f; --accent2:#1a3fb0; --ok:#0b7268; --ok2:#256a29;
-    --warn:#c2410c; --danger:#d61f4e; --purple:#6d28c9;
-  }
-  *{box-sizing:border-box}
-  body{ margin:0; font-family:"SFMono-Regular",Consolas,"Liberation Mono",Menlo,"DejaVu Sans Mono",monospace;
-    background:var(--bg); color:var(--txt); line-height:1.45; -webkit-font-smoothing:none; padding-bottom:60px; }
-  header{ padding:34px 20px 28px; text-align:center; background:var(--card); border-bottom:5px solid var(--accent); }
-  header h1{ margin:0 0 10px; font-size:1.75rem; font-weight:800; text-transform:uppercase; letter-spacing:1px; color:var(--accent2); }
-  header p{ margin:0 auto; max-width:820px; color:var(--mut); font-size:.9rem; }
-  header .caso{ margin:14px auto 0; max-width:820px; background:#fff; border:3px solid var(--ink);
-    box-shadow:6px 6px 0 var(--accent2); padding:12px 16px; font-size:.86rem; text-align:left; }
-  header .caso b{color:var(--accent)}
-  .wrap{max-width:1140px; margin:0 auto; padding:26px 20px}
-
-  /* ---- barra de supuestos (los dos únicos controles de la página) ---- */
-  .ctrls{ display:flex; flex-wrap:wrap; gap:14px 22px; align-items:center; justify-content:center;
-    background:var(--card); border:3px solid var(--ink); box-shadow:6px 6px 0 var(--accent); padding:14px 18px; margin-bottom:28px; }
-  .ctrls label{font-size:.82rem; font-weight:800; text-transform:uppercase; letter-spacing:.5px; display:flex; align-items:center; gap:8px}
-  .ctrls input,.ctrls select{ background:#fff; color:var(--txt); border:2px solid var(--ink); border-radius:0;
-    padding:7px 9px; font-size:.88rem; font-family:inherit; font-weight:800; }
-  .ctrls input{width:110px; text-align:right}
-  .ctrls input:focus,.ctrls select:focus{outline:none; border-color:var(--accent); box-shadow:3px 3px 0 var(--accent)}
-  .ctrls .hint{font-size:.75rem; color:var(--mut); font-weight:400; text-transform:none; letter-spacing:0; flex:1 1 220px}
-
-  section{margin-bottom:38px}
-  h2.sec{ font-size:1.05rem; font-weight:800; text-transform:uppercase; letter-spacing:.6px; color:var(--accent2);
-    border-bottom:4px solid var(--accent2); padding-bottom:6px; margin:0 0 6px; }
-  p.lead{font-size:.84rem; color:var(--mut); margin:0 0 18px}
-
-  /* ---- veredicto ---- */
-  .kpis{display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:18px}
-  .kpi{ background:#fff; border:3px solid var(--k,var(--accent2)); box-shadow:6px 6px 0 var(--k,var(--accent2)); padding:14px 16px; }
-  .kpi .k{font-size:.72rem; text-transform:uppercase; letter-spacing:1px; font-weight:800; color:var(--k)}
-  .kpi .v{font-size:1.5rem; font-weight:800; margin:6px 0 2px; line-height:1.1}
-  .kpi .s{font-size:.78rem; color:var(--mut)}
-
-  /* ---- tabla ranking ---- */
-  .tablewrap{overflow-x:auto; border:3px solid var(--ink); box-shadow:6px 6px 0 var(--accent2); background:#fff}
-  table{border-collapse:collapse; width:100%; min-width:1120px; font-size:.82rem}
-  thead th{ background:var(--accent2); color:#fff; text-transform:uppercase; letter-spacing:.5px; font-size:.7rem;
-    padding:9px 8px; text-align:right; border-bottom:3px solid var(--ink); white-space:nowrap; }
-  thead th:first-child,thead th:nth-child(2){text-align:left}
-  tbody td{padding:8px; border-bottom:2px dashed #c9c3b4; text-align:right; white-space:nowrap}
-  tbody td:first-child,tbody td:nth-child(2){text-align:left}
-  tbody tr:hover{background:#fdf6ea}
-  tbody tr.base{background:#eef1fb}
-  tbody tr.base td{font-weight:800}
-  .rk{font-weight:800; color:var(--mut)}
-  .city{font-weight:800}
-  .city small{display:block; font-weight:400; color:var(--mut); font-size:.72rem}
-  .pos{color:var(--ok2); font-weight:800}
-  .neg{color:var(--danger); font-weight:800}
-  .pass{background:var(--ok2); color:#fff; padding:1px 6px; font-weight:800; font-size:.72rem}
-  .fail{background:#e5e0d3; color:var(--mut); padding:1px 6px; font-weight:800; font-size:.72rem}
-
-  /* ---- gráficos de barras ---- */
-  .chart{background:var(--card); border:3px solid var(--ink); box-shadow:6px 6px 0 var(--ok); padding:18px 18px 14px}
-  .chart.b2{box-shadow:6px 6px 0 var(--purple)}
-  .chart.b3{box-shadow:6px 6px 0 var(--warn)}
-  .chart.b4{box-shadow:6px 6px 0 var(--danger)}
-  .seg.marg{background:var(--danger)}
-  .seg.marg.ok{background:var(--ok)}
-  .crow{display:grid; grid-template-columns:132px 1fr 168px; gap:10px; align-items:center; margin-bottom:7px; font-size:.78rem}
-  .crow .cl{font-weight:800; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
-  .crow .cl.base{color:var(--accent2)}
-  .crow .cv{text-align:right; font-weight:800; white-space:nowrap}
-  /* Marca de fiscalidad del ahorro en el reloj FIRE: el mismo 4 % real para todos
-     esconde que en algunos países la cartera paga impuestos cada año. */
-  .crow .cv .fdot{margin-right:5px; font-size:1.05em; vertical-align:-1px}
-  .track{position:relative; background:#fff; border:2px solid var(--ink); height:20px; display:flex; overflow:hidden}
-  .seg{height:100%; display:block}
-  .seg.col{background:repeating-linear-gradient(45deg,#1a3fb0,#1a3fb0 5px,#3556c4 5px,#3556c4 10px)}
-  .seg.sav{background:var(--ok2)}
-  .seg.rat{background:var(--purple)}
-  .seg.rat.no{background:#b8b1a2}
-  .seg.fire{background:var(--warn)}
-  .seg.fire.base{background:var(--accent2)}
-  .marker{position:absolute; top:-4px; bottom:-4px; width:3px; background:var(--danger); z-index:2}
-  .marker span{ position:absolute; top:-17px; left:50%; transform:translateX(-50%); background:var(--danger); color:#fff;
-    font-size:.62rem; font-weight:800; padding:1px 5px; white-space:nowrap; }
-  .legend{display:flex; flex-wrap:wrap; gap:16px; margin-top:14px; font-size:.75rem; font-weight:700}
-  .legend i{display:inline-block; width:14px; height:14px; border:2px solid var(--ink); margin-right:6px; vertical-align:-3px}
-
-  /* ---- fiscalidad del ahorro ---- */
-  .fisc{display:grid; grid-template-columns:repeat(auto-fill,minmax(330px,1fr)); gap:16px}
-  .fi{background:#fff; border:3px solid var(--ink); border-left:11px solid var(--n);
-    box-shadow:5px 5px 0 var(--n); padding:11px 13px}
-  .fi h4{margin:0; font-size:.88rem; font-weight:800; display:flex; justify-content:space-between;
-    align-items:baseline; gap:8px}
-  .fi .nota{font-size:.66rem; font-weight:800; text-transform:uppercase; letter-spacing:.5px;
-    color:#fff; background:var(--n); padding:2px 7px; white-space:nowrap}
-  .fi p{margin:7px 0 0; font-size:.75rem; color:var(--mut)}
-  .fi p strong{color:var(--txt); text-transform:uppercase; font-size:.68rem; letter-spacing:.5px}
-
-  /* ---- fichas ---- */
-  .cards{display:grid; grid-template-columns:repeat(auto-fill,minmax(320px,1fr)); gap:20px}
-  .card{background:#fff; border:3px solid var(--c,var(--accent2)); box-shadow:6px 6px 0 var(--c,var(--accent2)); display:flex; flex-direction:column}
-  .card h3{ margin:0; padding:11px 14px; background:var(--c); color:#fff; font-size:.92rem; text-transform:uppercase;
-    letter-spacing:.5px; border-bottom:3px solid var(--ink); display:flex; justify-content:space-between; gap:10px; align-items:baseline; }
-  .card h3 em{font-style:normal; font-size:.74rem; opacity:.9; font-weight:400}
-  .card .body{padding:12px 14px; flex:1}
-  .ln{display:flex; justify-content:space-between; gap:10px; font-size:.79rem; padding:3px 0; border-bottom:1px dotted #ccc5b6}
-  .ln:last-of-type{border-bottom:none}
-  .ln b{white-space:nowrap}
-  .ln.tot{border-top:2px solid var(--ink); margin-top:5px; padding-top:6px; font-weight:800; border-bottom:none}
-  /* Aviso de caducidad del régimen fiscal: etiqueta larga, mejor en dos líneas. */
-  .ln.stack{display:block; border-bottom:none; margin-top:9px; background:#fff4ec;
-    border:2px solid var(--warn); padding:6px 8px; font-size:.76rem}
-  .ln.stack b{display:block; margin-top:2px; color:var(--warn)}
-  .ln .m{color:var(--mut)}
-  .badges{display:flex; flex-wrap:wrap; gap:6px; margin:11px 0 0}
-  .badge{font-size:.68rem; font-weight:800; text-transform:uppercase; letter-spacing:.3px; padding:2px 6px; border:2px solid var(--ink); background:#fff}
-  .badge.g{background:var(--ok2); color:#fff; border-color:var(--ok2)}
-  .badge.r{background:var(--danger); color:#fff; border-color:var(--danger)}
-  .badge.o{background:var(--warn); color:#fff; border-color:var(--warn)}
-  .badge.b{background:var(--accent2); color:#fff; border-color:var(--accent2)}
-  .notas{margin:11px 0 0; padding:0 0 0 16px; font-size:.74rem; color:var(--mut)}
-  .notas li{margin-bottom:4px}
-
-  /* ---- avisos y supuestos ---- */
-  .warns{display:grid; grid-template-columns:repeat(auto-fit,minmax(290px,1fr)); gap:18px}
-  .warn{background:#fff; border:3px solid var(--warn); box-shadow:6px 6px 0 var(--warn); padding:13px 15px}
-  .warn h4{margin:0 0 6px; font-size:.84rem; text-transform:uppercase; letter-spacing:.5px; color:var(--warn)}
-  .warn p{margin:0; font-size:.78rem; color:var(--mut)}
-  details.sup{background:var(--card); border:3px solid var(--ink); box-shadow:6px 6px 0 var(--ink); padding:0}
-  details.sup summary{ cursor:pointer; padding:13px 16px; font-weight:800; text-transform:uppercase; letter-spacing:.5px;
-    font-size:.86rem; background:var(--ink); color:#fff; }
-  details.sup .inner{padding:16px; font-size:.8rem; color:var(--mut)}
-  details.sup h4{color:var(--txt); font-size:.82rem; text-transform:uppercase; letter-spacing:.5px; margin:16px 0 6px}
-  details.sup h4:first-child{margin-top:0}
-  details.sup ul{margin:0 0 0 18px; padding:0}
-  details.sup li{margin-bottom:5px}
-  details.sup code{background:#fff; border:1px solid #ccc5b6; padding:0 4px}
-  a{color:var(--accent); font-weight:700}
-  footer{text-align:center; font-size:.76rem; color:var(--mut); max-width:820px; margin:34px auto 0; padding:0 20px}
-  @media(max-width:640px){
-    .crow{grid-template-columns:90px 1fr 118px; font-size:.7rem}
-    header h1{font-size:1.3rem}
-  }
-
-  /* Brújula: una identidad editorial inspirada en mapas y billetes de viaje. */
-  :root{
-    --bg:#f2f0e8; --card:#fffdf7; --line:#173d32; --txt:#173d32; --mut:#607068;
+    --bg:#f2f0e8; --card:#fffdf7; --txt:#173d32; --mut:#607068;
     --ink:#173d32; --accent:#ef6f4e; --accent2:#173d32; --ok:#18866b; --ok2:#18866b;
     --warn:#c45a3f; --danger:#c9453d; --purple:#4c6b5f;
   }
-  body{
-    font-family:"DM Sans",sans-serif; line-height:1.5; -webkit-font-smoothing:antialiased;
+  *{box-sizing:border-box}
+  body{ margin:0; font-family:"DM Sans",sans-serif; color:var(--txt); line-height:1.5;
+    -webkit-font-smoothing:antialiased; padding-bottom:60px;
     background:
       linear-gradient(rgba(23,61,50,.045) 1px,transparent 1px),
       linear-gradient(90deg,rgba(23,61,50,.045) 1px,transparent 1px),var(--bg);
-    background-size:32px 32px;
-  }
-  header{background:var(--ink); color:#f9f7ef; border:0; text-align:left; padding:58px max(24px,calc((100vw - 1140px)/2 + 20px)) 52px}
-  header h1{font-family:"Bricolage Grotesque",sans-serif; color:#f9f7ef; text-transform:none; letter-spacing:0; font-size:clamp(2.7rem,6vw,5.8rem); line-height:.93; max-width:850px}
-  header p{margin:20px 0 0; color:#bed4ca; max-width:620px; font-size:1.05rem}
-  header .caso{margin:32px 0 0; max-width:760px; border:0; box-shadow:none; background:#ddec91; color:var(--ink); border-radius:6px; padding:16px 20px}
-  header .caso b{color:var(--ink)}
-  .wrap{padding-top:32px}
-  .ctrls{justify-content:flex-start; border:0; box-shadow:none; border-radius:6px; padding:18px 20px; background:var(--card)}
-  .ctrls label{text-transform:none; letter-spacing:0}
-  .ctrls input,.ctrls select{border:1px solid #a8b6ae; border-radius:4px; font-family:inherit}
-  h2.sec{font-family:"Bricolage Grotesque",sans-serif; text-transform:none; letter-spacing:0; font-size:1.55rem; border:0; color:var(--ink)}
-  p.lead{font-size:.92rem; max-width:760px}
-  .kpis{gap:12px}
-  .kpi,.chart,.fisc .fi,.card,.warn,.tablewrap,details.sup{border:0; box-shadow:none; border-radius:6px}
-  .kpi{background:var(--card); padding:20px}
-  .kpi .k{letter-spacing:.08em}
-  .kpi .v{font-family:"Bricolage Grotesque",sans-serif; font-size:1.8rem}
-  .chart{background:var(--card); padding:22px}
-  .track{border:0; background:#e4e7df; border-radius:3px}
-  .seg.col{background:#8fc9bd}
-  .seg.sav{background:var(--accent)}
-  .tablewrap{box-shadow:0 0 0 1px #d6ddd8}
-  thead th{background:var(--ink); border:0}
-  tbody td{border-bottom:1px solid #e1e4dd}
-  .card h3{border:0; text-transform:none; letter-spacing:0}
-  details.sup summary{background:var(--ink); text-transform:none; letter-spacing:0; border-radius:6px}
-  @media(max-width:640px){
-    header{padding:38px 20px}
-    header h1{font-size:3rem}
-  }
-  header{position:relative; overflow:hidden}
+    background-size:32px 32px; }
+  header{ background:var(--ink); color:#f9f7ef; border:0; text-align:left; position:relative; overflow:hidden;
+    padding:58px max(24px,calc((100vw - 1140px)/2 + 20px)) 52px; }
   header::before{content:""; position:absolute; inset:0; opacity:.18; pointer-events:none;
     background:repeating-radial-gradient(circle at 86% 22%,transparent 0 42px,#b9d0c6 43px 44px)}
   header > *{position:relative; z-index:1}
+  header h1{ margin:0 0 10px; font-family:"Bricolage Grotesque",sans-serif; color:#f9f7ef;
+    font-size:clamp(2.7rem,6vw,5.8rem); font-weight:800; line-height:.93; letter-spacing:0;
+    text-transform:none; max-width:850px; }
+  header p{ margin:20px 0 0; max-width:620px; color:#bed4ca; font-size:1.05rem; }
+  header .caso{ margin:32px 0 0; max-width:760px; background:#ddec91; color:var(--ink); border:0;
+    border-radius:6px; padding:16px 20px; font-size:.86rem; text-align:left; }
+  header .caso b{color:var(--ink)}
   .eyebrow{display:block; color:#ddec91; font:700 .74rem/1 "DM Sans",sans-serif; letter-spacing:.14em; text-transform:uppercase; margin-bottom:24px}
-  section{margin-bottom:54px}
-  .wrap > section:nth-of-type(n+4):not(:last-of-type){display:none}
-  .ctrls{position:relative; margin-top:-54px; margin-bottom:12px; z-index:3; box-shadow:0 16px 38px rgba(23,61,50,.12)}
-  .ctrls .hint{margin-left:auto; max-width:360px}
+  .wrap{max-width:1140px; margin:0 auto; padding:32px 20px 26px}
+
+  /* ---- barra de supuestos: se monta encima del borde inferior de la cabecera ---- */
+  .ctrls{ display:flex; flex-wrap:wrap; gap:14px 22px; align-items:center; justify-content:flex-start;
+    background:var(--card); border:0; border-radius:6px; padding:18px 20px; margin:-54px 0 12px;
+    position:relative; z-index:3; box-shadow:0 16px 38px rgba(23,61,50,.12); }
+  .ctrls label{font-size:.82rem; font-weight:800; text-transform:none; letter-spacing:0; display:flex; align-items:center; gap:8px}
+  .ctrls input,.ctrls select{ background:#fff; color:var(--txt); border:1px solid #a8b6ae; border-radius:4px;
+    padding:7px 9px; font-size:.88rem; font-family:inherit; font-weight:800; }
+  .ctrls input{width:110px; text-align:right}
+  .ctrls input:focus,.ctrls select:focus{outline:none; border-color:var(--accent); box-shadow:3px 3px 0 var(--accent)}
+  .ctrls .hint{font-size:.75rem; color:var(--mut); font-weight:400; text-transform:none; letter-spacing:0;
+    flex:1 1 220px; margin-left:auto; max-width:360px}
   .money-input{display:flex; align-items:center; gap:6px; white-space:nowrap}
   .scenario-control{flex:1 0 100%}
   .scenario-label{display:block; margin-bottom:10px; font-size:.72rem; font-weight:700; color:var(--mut); letter-spacing:.08em; text-transform:uppercase}
@@ -218,6 +62,13 @@
   .custom-salary{font-size:.78rem}
   .custom-salary summary{color:var(--mut); cursor:pointer; font-weight:700}
   .custom-salary .money-input{margin-top:8px}
+
+  section{margin-bottom:54px}
+  h2.sec{ font-family:"Bricolage Grotesque",sans-serif; font-size:1.55rem; font-weight:800; text-transform:none;
+    letter-spacing:0; color:var(--ink); border:0; padding-bottom:6px; margin:0 0 6px; }
+  p.lead{font-size:.92rem; color:var(--mut); margin:0 0 18px; max-width:760px}
+
+  /* ---- referencia de Barcelona ---- */
   .bcn-reference{display:grid; grid-template-columns:1.25fr repeat(5,1fr); gap:0; margin-bottom:46px;
     background:#dbe8e1; border-left:5px solid var(--accent); border-radius:6px; overflow:hidden}
   .bcn-place,.bcn-metric{padding:16px 18px}
@@ -230,11 +81,18 @@
   .bcn-metric span{display:block; color:var(--mut); margin-bottom:5px}
   .bcn-metric b{display:block; font:700 1.03rem/1.2 "Bricolage Grotesque",sans-serif}
   .bcn-metric small{display:block; color:var(--mut); font-size:.68rem; margin-top:3px}
-  .kpis{grid-template-columns:1.4fr repeat(2,1fr)}
-  .kpi{border-top:4px solid var(--k,var(--accent)); min-height:170px; display:flex; flex-direction:column}
+
+  /* ---- veredicto ---- */
+  .kpis{display:grid; grid-template-columns:1.4fr repeat(2,1fr); gap:12px}
+  .kpi{ background:var(--card); border:0; border-top:4px solid var(--k,var(--accent)); border-radius:6px;
+    padding:20px; min-height:170px; display:flex; flex-direction:column; }
   .kpi:first-child{background:var(--ink); color:#fff; border-top-color:#ddec91}
+  .kpi .k{font-size:.72rem; text-transform:uppercase; letter-spacing:.08em; font-weight:800; color:var(--k)}
+  .kpi .v{font-family:"Bricolage Grotesque",sans-serif; font-size:1.8rem; font-weight:800; margin:6px 0 2px; line-height:1.1}
+  .kpi .s{font-size:.78rem; color:var(--mut); margin-top:auto}
   .kpi:first-child .k,.kpi:first-child .s{color:#bed4ca}
-  .kpi .s{margin-top:auto}
+
+  /* ---- lista de destinos ---- */
   .destinations{display:grid; grid-template-columns:repeat(3,1fr); gap:12px}
   .destination{background:var(--card); border-radius:6px; padding:20px; min-height:196px; display:flex; flex-direction:column; position:relative; overflow:hidden}
   .destination:first-child{grid-row:span 2; background:#ddec91; min-height:404px}
@@ -264,9 +122,38 @@
   .destination .fiscal p b{color:var(--ink); text-transform:uppercase; font-size:.66rem; letter-spacing:.4px}
   .destination .status{position:absolute; top:16px; right:16px; border-radius:99px; padding:5px 8px; background:#e4e7df; font-size:.66rem; font-weight:700}
   .destination .status.yes{background:var(--ink); color:#fff}
-  .chart{padding:26px 22px}
-  .crow{grid-template-columns:150px 1fr 150px; margin-bottom:12px; font-size:.82rem}
-  .track{height:26px}
+
+  .pos{color:var(--ok2); font-weight:800}
+  .neg{color:var(--danger); font-weight:800}
+
+  /* ---- gráficos de barras ---- */
+  .chart{background:var(--card); border:0; border-radius:6px; box-shadow:none; padding:26px 22px}
+  .chart.b2{box-shadow:6px 6px 0 var(--purple)}
+  .chart.b3{box-shadow:6px 6px 0 var(--warn)}
+  .chart.b4{box-shadow:6px 6px 0 var(--danger)}
+  .seg.marg{background:var(--danger)}
+  .seg.marg.ok{background:var(--ok)}
+  .crow{display:grid; grid-template-columns:150px 1fr 150px; gap:10px; align-items:center; margin-bottom:12px; font-size:.82rem}
+  .crow .cl{font-weight:800; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+  .crow .cl.base{color:var(--accent2)}
+  .crow .cv{text-align:right; font-weight:800; white-space:nowrap}
+  /* Marca de fiscalidad del ahorro en el reloj FIRE: el mismo 4 % real para todos
+     esconde que en algunos países la cartera paga impuestos cada año. */
+  .crow .cv .fdot{margin-right:5px; font-size:1.05em; vertical-align:-1px}
+  .track{position:relative; display:flex; overflow:hidden; height:26px; background:#e4e7df; border:0; border-radius:3px}
+  .seg{height:100%; display:block}
+  .seg.col{background:#8fc9bd}
+  .seg.sav{background:var(--accent)}
+  .seg.rat{background:var(--purple)}
+  .seg.rat.no{background:#b8b1a2}
+  .seg.fire{background:var(--warn)}
+  .seg.fire.base{background:var(--accent2)}
+  .marker{position:absolute; top:-4px; bottom:-4px; width:3px; background:var(--danger); z-index:2}
+  .marker span{ position:absolute; top:-17px; left:50%; transform:translateX(-50%); background:var(--danger); color:#fff;
+    font-size:.62rem; font-weight:800; padding:1px 5px; white-space:nowrap; }
+  .legend{display:flex; flex-wrap:wrap; gap:16px; margin-top:14px; font-size:.75rem; font-weight:500; color:var(--mut)}
+  .legend i{display:inline-block; width:14px; height:14px; border:2px solid var(--ink); margin-right:6px; vertical-align:-3px}
+  /* Barra apilada con desglose al pasar por encima: el globo se sale del carril. */
   .stack-track{overflow:visible}
   .stack-seg{position:relative; cursor:help; outline:none}
   .stack-seg:first-child{border-radius:3px 0 0 3px}
@@ -283,10 +170,64 @@
   }
   .stack-seg:hover .seg-tip,.stack-seg:focus .seg-tip{opacity:1; transform:translate(-50%,0)}
   .stack-seg:focus-visible{box-shadow:inset 0 0 0 2px #fff,0 0 0 2px var(--ink)}
-  .legend{color:var(--mut); font-weight:500}
-  details.sup{overflow:hidden; box-shadow:0 0 0 1px #d6ddd8}
-  details.sup summary{font-family:"Bricolage Grotesque",sans-serif; font-size:1rem}
-  footer{padding-bottom:20px}
+
+  /* ---- fiscalidad del ahorro ---- */
+  .fisc{display:grid; grid-template-columns:repeat(auto-fill,minmax(330px,1fr)); gap:16px}
+  .fi{background:#fff; border:0; border-radius:6px; box-shadow:none; padding:11px 13px}
+  .fi h4{margin:0; font-size:.88rem; font-weight:800; display:flex; justify-content:space-between;
+    align-items:baseline; gap:8px}
+  .fi .nota{font-size:.66rem; font-weight:800; text-transform:uppercase; letter-spacing:.5px;
+    color:#fff; background:var(--n); padding:2px 7px; white-space:nowrap}
+  .fi p{margin:7px 0 0; font-size:.75rem; color:var(--mut)}
+  .fi p strong{color:var(--txt); text-transform:uppercase; font-size:.68rem; letter-spacing:.5px}
+
+  /* ---- fichas ---- */
+  .cards{display:grid; grid-template-columns:repeat(auto-fill,minmax(320px,1fr)); gap:20px}
+  .card{background:#fff; border:0; border-radius:6px; box-shadow:none; display:flex; flex-direction:column}
+  .card h3{ margin:0; padding:11px 14px; background:var(--c); color:#fff; font-size:.92rem; text-transform:none;
+    letter-spacing:0; border:0; display:flex; justify-content:space-between; gap:10px; align-items:baseline; }
+  .card h3 em{font-style:normal; font-size:.74rem; opacity:.9; font-weight:400}
+  .card .body{padding:12px 14px; flex:1}
+  .ln{display:flex; justify-content:space-between; gap:10px; font-size:.79rem; padding:3px 0; border-bottom:1px dotted #ccc5b6}
+  .ln:last-of-type{border-bottom:none}
+  .ln b{white-space:nowrap}
+  .ln.tot{border-top:2px solid var(--ink); margin-top:5px; padding-top:6px; font-weight:800; border-bottom:none}
+  /* Aviso de caducidad del régimen fiscal: etiqueta larga, mejor en dos líneas. */
+  .ln.stack{display:block; border-bottom:none; margin-top:9px; background:#fff4ec;
+    border:2px solid var(--warn); padding:6px 8px; font-size:.76rem}
+  .ln.stack b{display:block; margin-top:2px; color:var(--warn)}
+  .ln .m{color:var(--mut)}
+  .badges{display:flex; flex-wrap:wrap; gap:6px; margin:11px 0 0}
+  .badge{font-size:.68rem; font-weight:800; text-transform:uppercase; letter-spacing:.3px; padding:2px 6px; border:2px solid var(--ink); background:#fff}
+  .badge.g{background:var(--ok2); color:#fff; border-color:var(--ok2)}
+  .badge.r{background:var(--danger); color:#fff; border-color:var(--danger)}
+  .badge.o{background:var(--warn); color:#fff; border-color:var(--warn)}
+  .badge.b{background:var(--accent2); color:#fff; border-color:var(--accent2)}
+  .notas{margin:11px 0 0; padding:0 0 0 16px; font-size:.74rem; color:var(--mut)}
+  .notas li{margin-bottom:4px}
+
+  /* ---- avisos y supuestos ---- */
+  .warns{display:grid; grid-template-columns:repeat(auto-fit,minmax(290px,1fr)); gap:18px}
+  .warn{background:#fff; border:0; border-radius:6px; box-shadow:none; padding:13px 15px}
+  .warn h4{margin:0 0 6px; font-size:.84rem; text-transform:uppercase; letter-spacing:.5px; color:var(--warn)}
+  .warn p{margin:0; font-size:.78rem; color:var(--mut)}
+  details.sup{background:var(--card); border:0; border-radius:6px; box-shadow:0 0 0 1px #d6ddd8; padding:0; overflow:hidden}
+  details.sup summary{ cursor:pointer; padding:13px 16px; font-weight:800; text-transform:none; letter-spacing:0;
+    font-family:"Bricolage Grotesque",sans-serif; font-size:1rem; background:var(--ink); color:#fff; border-radius:6px; }
+  details.sup .inner{padding:16px; font-size:.8rem; color:var(--mut)}
+  details.sup h4{color:var(--txt); font-size:.82rem; text-transform:uppercase; letter-spacing:.5px; margin:16px 0 6px}
+  details.sup h4:first-child{margin-top:0}
+  details.sup ul{margin:0 0 0 18px; padding:0}
+  details.sup li{margin-bottom:5px}
+  details.sup code{background:#fff; border:1px solid #ccc5b6; padding:0 4px}
+  a{color:var(--accent); font-weight:700}
+  footer{text-align:center; font-size:.76rem; color:var(--mut); max-width:820px; margin:34px auto 0; padding:0 20px 20px}
+
+  @media(max-width:640px){
+    header{padding:38px 20px}
+    header h1{font-size:3rem}
+    .crow{grid-template-columns:90px 1fr 118px; font-size:.7rem}
+  }
   @media(max-width:820px){
     .bcn-reference{grid-template-columns:repeat(5,1fr)}
     .bcn-place{grid-column:1/-1; flex-direction:row; align-items:center; justify-content:space-between}
@@ -373,7 +314,6 @@
     Ordena por <b>cuánto ahorras</b>, que no es lo mismo que <b>dónde conviene invertirlo</b>: pulsa la etiqueta
     de color de cada tarjeta para ver qué le hace ese país a una cartera a largo plazo.</p>
     <div class="destinations" id="destinations"></div>
-    <div hidden><table><tbody id="tbody"></tbody></table></div>
   </section>
 
   <!-- ============ A DÓNDE VA EL NETO ============ -->
@@ -389,8 +329,11 @@
     </div>
   </section>
 
+  <!-- Apagadas: la portada se quedó en veredicto + ranking + reparto del neto.
+       Se marcan una a una con `hidden` en vez de esconderlas por posición desde
+       el CSS, que se rompía al reordenar o insertar cualquier <section>. -->
   <!-- ============ TEST DEL UMBRAL ============ -->
-  <section>
+  <section hidden>
     <h2 class="sec">4 · Tu regla del <span id="hUmbral">1,30×</span> en ahorro</h2>
     <p class="lead">Múltiplo del <b>ahorro anual</b> respecto a Barcelona: cuánto más te queda al año una vez
     pagado todo, manteniendo el mismo nivel de vida sobrio. A la derecha, el múltiplo del neto para que veas
@@ -401,7 +344,7 @@
   </section>
 
   <!-- ============ PROGRESIÓN ============ -->
-  <section>
+  <section hidden>
     <h2 class="sec">5 · Progresión · si te suben 10.000 €</h2>
     <p class="lead">Tipo <b>marginal</b>: de cada 10.000 € brutos de subida, cuánto se queda el Estado y cuánto
     llega a tu bolsillo. Importa tanto como el sueldo de partida: dice si ascender ahí te renta o si trabajas
@@ -414,7 +357,7 @@
   </section>
 
   <!-- ============ FISCALIDAD DEL AHORRO ============ -->
-  <section>
+  <section hidden>
     <h2 class="sec">6 · Fiscalidad del ahorro · ¿te dejan invertir tranquilo?</h2>
     <p class="lead">Escenario de referencia: <b>500.000 € en un indexado al S&amp;P 500 al 7 % real</b>, comprado
     y mantenido a largo plazo. Aquí no interesa la cifra exacta sino el trato: hay países donde <b>sólo pagas
@@ -424,7 +367,7 @@
   </section>
 
   <!-- ============ RELOJ FIRE ============ -->
-  <section>
+  <section hidden>
     <h2 class="sec">7 · Reloj FIRE · años hasta poder retirarte</h2>
     <p class="lead">Partiendo de cero, invirtiendo todo el ahorro al <b>4 % real</b> anual, hasta juntar
     <b id="hTarget">—</b> (25× tu gasto anual en Barcelona, regla del 4 %).
@@ -440,7 +383,7 @@
   </section>
 
   <!-- ============ FICHAS ============ -->
-  <section>
+  <section hidden>
     <h2 class="sec">8 · Ficha por ciudad</h2>
     <p class="lead">Desglose anual en moneda local y avisos específicos. Fíjate sobre todo en la fiscalidad
     del ahorro: si vas a invertir 20 años, pesa tanto como el sueldo.</p>
@@ -448,7 +391,7 @@
   </section>
 
   <!-- ============ AVISOS ============ -->
-  <section>
+  <section hidden>
     <h2 class="sec">9 · Lo que puede tirar abajo el cálculo</h2>
     <div class="warns">
       <div class="warn">
@@ -953,29 +896,6 @@ function render(){
       </details>
     </article>`).join('');
 
-  /* ---- 2. Tabla ---- */
-  let puesto = 0;   // la fila base no consume número de ranking
-  document.getElementById('tbody').innerHTML = filas.map(f => {
-    const d = f.base ? '—'
-      : `<span class="${f.deltaAhorro>=0?'pos':'neg'}">${f.deltaAhorro>=0?'+':'−'}${eur(Math.abs(f.deltaAhorro))}</span>`;
-    if (!f.base) puesto++;
-    return `<tr class="${f.base?'base':''}">
-      <td class="rk">${f.base ? '·' : puesto}</td>
-      <td class="city">${f.bandera} ${f.ciudad}<small>${f.pais}${f.regimen ? ' · '+f.regimen : ''}${f.b2b ? ' · B2B' : ''}</small></td>
-      <td>${nf.format(f.bruto)} ${f.mon}</td>
-      <td><b>${eur(f.netoMesEUR)}</b></td>
-      <td>${f.base ? '—' : nf2.format(f.ratio)+'×'}</td>
-      <td>${eur(f.colMesEUR)}</td>
-      <td><b>${eur(f.ahorroEUR)}</b></td>
-      <td>${f.base ? '—' : `<b class="${f.pasa?'pos':''}">${nf2.format(f.ratioAhorro)}×</b>`}</td>
-      <td>${d}</td>
-      <td>${nf.format(f.tasa*100)} %</td>
-      <td class="${f.marginal < base.marginal ? 'pos' : (f.marginal > base.marginal ? 'neg' : '')}">${nf1.format(f.marginal*100)} %</td>
-      <td>${isFinite(f.anios) ? nf1.format(f.anios) : '∞'}</td>
-      <td>${f.base ? '—' : `<span class="${f.pasa?'pass':'fail'}">${f.pasa?'sí':'no'}</span>`}</td>
-    </tr>`;
-  }).join('');
-
   /* ---- 3. Barras apiladas neto = coste + ahorro ---- */
   const visibles = filas.filter((f, index) => index < 7 || f.base);
   const maxNeto = Math.max(...visibles.map(f => f.netoMesEUR));
@@ -1056,7 +976,7 @@ function render(){
       <span style="color:${CGT_TIPO.r.c}">● Tributa aunque no vendas → esta barra es optimista</span>
     </div>`;
 
-  /* ---- 6. Fichas ---- */
+  /* ---- 8. Fichas ---- */
   document.getElementById('cards').innerHTML = filas.map(f => {
     const badges = [];
     if (f.base)     badges.push('<span class="badge b">Tu situación actual</span>');

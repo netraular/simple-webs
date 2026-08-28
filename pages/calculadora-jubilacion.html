@@ -4,6 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Horizonte · Calcula tu retiro</title>
+<!-- Favicon en línea, como en index.html. Sin declararlo, el navegador lanza igualmente
+     su petición automática, y abriendo la página con file:// eso choca con el origen
+     único de ese esquema y ensucia la consola con un aviso de carga insegura. -->
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='88'>📈</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&amp;family=Manrope:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
@@ -266,18 +270,15 @@
   .tool[disabled]{opacity:.45; cursor:not-allowed}
   .tool[disabled]:hover{border-color:#b9c6d3; color:var(--text)}
   /* Tramos guardados: botones que devuelven su configuración al plan. Hacen además de
-     leyenda y de tabla, así que llevan el nombre y la cifra a la vista. */
+     leyenda: el rango de edades es lo que identifica a cada tramo. */
   #snapsList{display:flex; flex-wrap:wrap; gap:8px; margin:0 0 14px}
   .snap-btn{display:inline-flex; align-items:stretch; background:#fff; border:1px solid #b9c6d3; border-radius:4px}
   .snap-btn:hover{border-color:var(--accent)}
   .snap-btn.on{border-color:var(--accent); background:#eef4ff; box-shadow:inset 0 0 0 1px var(--accent)}
   .snap-btn button{background:none; border:0; cursor:pointer; color:var(--text); font-size:.8rem;
     -webkit-tap-highlight-color:transparent}
-  .snap-apply{display:inline-flex; align-items:center; gap:9px; padding:7px 4px 7px 9px; text-align:left}
-  .snap-apply .n{font:600 .64rem "IBM Plex Mono",monospace; color:var(--accent)}
-  .snap-apply .nom{font-weight:600; max-width:15ch; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
-  .snap-apply .rango{font:500 .72rem "IBM Plex Mono",monospace; color:var(--muted); white-space:nowrap}
-  .snap-apply .rango b{color:var(--text)}
+  .snap-apply{padding:7px 6px 7px 11px; font:600 .8rem "IBM Plex Mono",monospace; white-space:nowrap}
+  .snap-btn.on .snap-apply{color:var(--accent)}
   .snap-del{padding:0 9px; color:var(--muted); font-size:.9rem; line-height:1}
   .snap-del:hover{color:var(--red)}
   .snap-vacio{margin:0 0 14px; font-size:.78rem; color:var(--muted); line-height:1.5}
@@ -1209,7 +1210,7 @@ function renderTablaAporte(sc) {
     return;
   }
   const baseYear = new Date().getFullYear();
-  const nombreDe = o => o ? `${String(o.n).padStart(2, '0')} · ${escHtml(o.nombre)}` : 'Plan de ahora';
+  const nombreDe = o => o ? `Tramo ${tramoTxt(o)}` : 'Plan de ahora';
   const idDe = o => o ? o.id : '';
   let rows = '', totHoy = 0, totNom = 0, subHoy = 0, subNom = 0, subN = 0, grupo = null;
   // Subtotal del tramo que se acaba de cerrar. Va como fila propia para que se pueda
@@ -1241,7 +1242,7 @@ function renderTablaAporte(sc) {
     <tbody>${rows}</tbody>
     <tfoot><tr><td><b>Total aportado</b></td><td class="muted">${anios.length} años</td><td><b>${fmt.format(totHoy)}</b></td><td class="muted">${fmt.format(totNom)}</td></tr></tfoot>
   </table>
-  <div class="hint" style="margin-top:10px">El <b>«Total aportado»</b> es la suma de todas las cuotas del periodo, no tu patrimonio final (que incluye además la rentabilidad). En <b>€ de hoy</b> mide tu esfuerzo real acumulado; en <b>€ nominales</b>, la suma de lo que irías transfiriendo año a año subiendo con la inflación.${variosTramos ? ' Con varios tramos guardados la tabla recorre la <b>ruta completa</b>, igual que la gráfica: si dos tramos se pisan en la misma edad, manda el plan de ahora y, entre los guardados, el más reciente.' : ''}</div>`;
+  <div class="hint" style="margin-top:10px">El <b>«Total aportado»</b> es la suma de todas las cuotas del periodo, no tu patrimonio final (que incluye además la rentabilidad). En <b>€ de hoy</b> mide tu esfuerzo real acumulado; en <b>€ nominales</b>, la suma de lo que irías transfiriendo año a año subiendo con la inflación.${variosTramos ? ' Con varios tramos guardados la tabla recorre la <b>ruta completa</b>, igual que la gráfica: si dos tramos se pisan en la misma edad, manda el plan de ahora y, entre los guardados, el que empieza más tarde.' : ''}</div>`;
 }
 
 /* ---------- Gráfica ---------- */
@@ -1279,17 +1280,24 @@ function planSerie(curve, hasta) {
     });
     if (curve.ages[i] >= hasta) break;
   }
+  // El último punto cierra la serie: el año que arranca ahí ya cae fuera del tramo y su
+  // cuota es de quien venga después. Sin esto un tramo 30→40 se apuntaría también el año
+  // 40→41, y la tabla lo contaría dos veces al encadenarlo con el siguiente.
+  if (filas.length) filas[filas.length - 1].cuota = 0;
   return filas;
 }
 
-/* ---------- Instantáneas de la evolución del ahorro ----------
-   Un tramo congelado de la curva: de la edad de hoy a la que el usuario elija, con la
-   configuración que hubiera al guardarlo. Se guardan los PUNTOS ya calculados, no los
-   parámetros, porque una instantánea tiene que quedarse quieta aunque luego cambies el
-   plan — es su razón de ser. Sirven para comparar alternativas (¿y si aporto 300 € más?)
-   y para ir componiendo una ruta a trozos: guardas 30→40, mueves tu edad a 40, cambias
-   la aportación y guardas 40→50, y la gráfica los enseña uno detrás de otro. */
-const LS_SNAPS = 'jubilacion-instantaneas-v1';
+/* ---------- Tramos de la ruta de ahorro ----------
+   Un trozo congelado de la curva: de la edad de hoy a la que el usuario elija, con la
+   configuración que hubiera al guardarlo. Se guardan los PUNTOS ya calculados y no los
+   parámetros, porque un tramo tiene que quedarse quieto aunque luego cambies el plan —
+   es su razón de ser—; la configuración viaja aparte, en `datos`, solo para poder
+   volver a él. Sirven para componer una ruta a trozos: guardas 30→40, mueves tu edad a
+   40, cambias la aportación y guardas 40→50, y las dos líneas los recorren seguidos. */
+// v2: los tramos guardados antes no llevaban la cuota de cada año ni identificaban el
+// tramo por su rango de edades. La página no arrastra formatos viejos, así que la clave
+// cambia y los guardados con el formato anterior simplemente se dejan de leer.
+const LS_SNAPS = 'jubilacion-tramos-v2';
 /* Los tramos son trozos consecutivos de UNA ruta, así que se cosen en dos líneas
    continuas —valor total y lo que has puesto— en vez de dibujar un par por tramo. Esto
    es lo que quita de en medio el problema del color: no hace falta un tono por tramo
@@ -1317,44 +1325,49 @@ function writeSnaps(arr) {
 let snapActivo = null;
 
 /* Ruta compuesta: los tramos guardados y el plan de ahora, cosidos por edad en UNA sola
-   serie. De ahí salen las dos únicas líneas de la gráfica. Cuando dos tramos se pisan en
-   la misma edad manda el plan de ahora y, entre los guardados, el más reciente: es la
-   regla que hace que ir componiendo la ruta hacia delante (guardas 30→40, te mueves a
-   40, guardas 40→50) simplemente funcione. Un salto vertical en un empalme significa que
-   el capital inicial del tramo siguiente no era el saldo con el que acabó el anterior;
-   se dibuja tal cual, porque esconderlo sería mentir sobre la ruta. */
+   serie. De ahí salen las dos únicas líneas de la gráfica y las filas de la tabla año a
+   año. Un salto vertical en un empalme significa que el capital inicial del tramo
+   siguiente no era el saldo con el que acabó el anterior; se dibuja tal cual, porque
+   esconderlo sería mentir sobre la ruta.
+
+   Quién manda cuando dos se pisan: primero el plan de ahora, y entre los guardados el
+   que EMPIEZA más tarde. Ojo con esto último, que no es un capricho: dos tramos
+   consecutivos comparten siempre la edad del empalme —30→40 y 40→50 se tocan en el 40—
+   y ahí el punto del primero es su cierre, que ya no lleva cuota, mientras que el del
+   segundo abre su primer año. Ordenar por edad de inicio hace que gane el que abre, y
+   además vuelve el resultado independiente del orden en que se guardaron: componer la
+   ruta hacia atrás daba antes un año sin cuota en cada empalme. */
 function rutaCompuesta() {
   const porEdad = new Map();
   const add = (puntos, origen) => { for (const p of puntos) porEdad.set(p.edad, { ...p, origen }); };
-  snaps.forEach((s, k) => add(s.puntos, { id: s.id, nombre: s.nombre, n: k + 1 }));
+  [...snaps].sort((a, b) => a.desde - b.desde)
+    .forEach(s => add(s.puntos, { id: s.id, desde: s.desde, hasta: s.hasta }));
   if (chartData && chartData.length) add(chartData, null);
   return [...porEdad.values()].sort((a, b) => a.edad - b.edad);
 }
 
-// Lista de instantáneas: hace de leyenda (color + nombre) y de vista en tabla (las
-// cifras), así la identidad de cada curva nunca depende solo del color.
+// Un tramo se llama por su rango de edades: es lo único que lo identifica, en el botón,
+// en la tabla año a año y en el tooltip.
+const tramoTxt = s => `${s.desde} → ${s.hasta}`;
+
 function renderSnaps() {
   const cont = document.getElementById('snapsList');
   const cuenta = document.getElementById('snapCount');
   if (!cont) return;
-  cuenta.textContent = snaps.length ? `${snaps.length} de ${SNAP_MAX} guardadas` : '';
+  cuenta.textContent = snaps.length ? `${snaps.length} de ${SNAP_MAX} guardados` : '';
   document.getElementById('btnSnapSave').disabled = snaps.length >= SNAP_MAX;
   if (!snaps.length) {
-    cont.innerHTML = `<p class="snap-vacio">Aún no has guardado ningún tramo. Ajusta el plan, elige hasta qué edad quieres verlo y pulsa <b>Guardar este tramo</b>: la curva se congela y se queda dibujada aquí aunque después cambies los datos, para que puedas ir componiendo tu ruta a trozos o comparar alternativas.</p>`;
+    cont.innerHTML = `<p class="snap-vacio">Aún no has guardado ningún tramo. Ajusta el plan, elige hasta qué edad quieres verlo y pulsa <b>Guardar este tramo</b>: la curva se congela y se queda dibujada aquí aunque después cambies los datos, para que puedas ir componiendo tu ruta a trozos.</p>`;
     return;
   }
-  cont.innerHTML = snaps.map((s, k) => {
-    const fin = s.puntos[s.puntos.length - 1];
+  cont.innerHTML = snaps.map(s => {
+    const on = snapActivo === s.id;
     // El ✕ va como botón hermano, no dentro del otro: un control dentro de otro control
     // es HTML inválido y deja el borrado fuera del alcance del teclado.
-    return `<span class="snap-btn${snapActivo === s.id ? ' on' : ''}">
-      <button type="button" class="snap-apply" data-id="${s.id}"
-        title="Aplicar esta configuración a «Diseña tu ruta» y «Tu esfuerzo mensual»">
-        <span class="n">${String(k + 1).padStart(2, '0')}</span>
-        <span class="nom">${escHtml(s.nombre)}</span>
-        <span class="rango">${s.desde}→${s.hasta} a · <b>${fmtShort(fin.total)}</b></span>
-      </button>
-      <button type="button" class="snap-del" data-id="${s.id}" title="Eliminar este tramo" aria-label="Eliminar el tramo ${escHtml(s.nombre)}">✕</button>
+    return `<span class="snap-btn${on ? ' on' : ''}">
+      <button type="button" class="snap-apply" data-id="${s.id}" aria-pressed="${on}"
+        title="${on ? 'Quitar la selección de este tramo' : 'Aplicar esta configuración a «Diseña tu ruta» y «Tu esfuerzo mensual»'}">${tramoTxt(s)}</button>
+      <button type="button" class="snap-del" data-id="${s.id}" title="Eliminar este tramo" aria-label="Eliminar el tramo ${tramoTxt(s)}">✕</button>
     </span>`;
   }).join('');
 }
@@ -1363,15 +1376,13 @@ function renderSnaps() {
 document.getElementById('btnSnapSave').addEventListener('click', () => {
   if (!chartData || chartData.length < 2) { alert('Todavía no hay una evolución que guardar: revisa las edades del plan.'); return; }
   if (snaps.length >= SNAP_MAX) {
-    alert(`Puedes tener ${SNAP_MAX} instantáneas a la vez. Elimina una para guardar otra.\n\nEl tope es para que las curvas se sigan distinguiendo entre sí de un vistazo.`);
+    alert(`Puedes tener ${SNAP_MAX} tramos guardados a la vez. Elimina uno para guardar otro.`);
     return;
   }
   const desde = chartData[0].edad, hasta = chartData[chartData.length - 1].edad;
-  const nombre = (prompt('Nombre para este tramo:', `${desde}→${hasta} · ${fmtShort(chartData[chartData.length - 1].total)}`) || '').trim();
-  if (!nombre) return;
   const id = 's' + Date.now().toString(36);
   const nuevas = snaps.concat({
-    id, nombre, desde, hasta,
+    id, desde, hasta,
     // La configuración entera viaja con el tramo: es lo que permite volver a él después
     // y que "Diseña tu ruta" y "Tu esfuerzo mensual" pasen a describirlo otra vez.
     datos: currentFormData(),
@@ -1392,11 +1403,19 @@ document.getElementById('snapsList').addEventListener('click', e => {
   const s = snaps.find(x => x.id === btn.dataset.id);
   if (!s) return;
   if (btn.classList.contains('snap-del')) {
-    if (!confirm(`¿Eliminar el tramo "${s.nombre}"?\nEsto no cambia los datos que tienes ahora en pantalla.`)) return;
+    if (!confirm(`¿Eliminar el tramo ${tramoTxt(s)}?\nEsto no cambia los datos que tienes ahora en pantalla.`)) return;
     if (snapActivo === s.id) snapActivo = null;
     writeSnaps(snaps.filter(x => x.id !== s.id));
     renderSnaps();
     compute();                 // la tabla año a año también deja de listarlo
+    return;
+  }
+  // Pulsar el tramo ya seleccionado lo deselecciona: quita el resaltado y deja el plan
+  // como está. Volver atrás no debería exigir buscar otro sitio donde pulsar.
+  if (snapActivo === s.id) {
+    snapActivo = null;
+    renderSnaps();
+    drawChart();
     return;
   }
   // Aplicar devuelve el plan al estado con el que se guardó el tramo, incluido el rango
@@ -1462,17 +1481,15 @@ function drawChart(hoverIdx = null) {
     ctx.fillRect(xa, yt, Math.max(1, xz - xa), yb - yt);
   }
 
-  // Cortes entre tramos, rotulados con su número: es lo que dice dónde empieza cada uno
-  // ahora que todos comparten las mismas dos líneas.
-  ctx.font = '11px system-ui, sans-serif';
-  ctx.textAlign = 'center'; ctx.textBaseline = 'top';
-  snaps.forEach((s, k) => {
-    if (s.desde <= minAge || s.desde >= maxAge) return;
+  // Cortes entre tramos: dónde empieza cada uno, ahora que todos comparten las mismas
+  // dos líneas. Sin rótulo, porque la edad del corte ya está en el eje de abajo.
+  ctx.setLineDash([2, 4]); ctx.strokeStyle = CHART.ref; ctx.lineWidth = 1;
+  for (const s of snaps) {
+    if (s.desde <= minAge || s.desde >= maxAge) continue;
     const xm = Math.round(X(s.desde)) + 0.5;
-    ctx.setLineDash([2, 4]); ctx.strokeStyle = CHART.ref; ctx.lineWidth = 1;
-    ctx.beginPath(); ctx.moveTo(xm, yt + 13); ctx.lineTo(xm, yb); ctx.stroke(); ctx.setLineDash([]);
-    ctx.fillStyle = CHART.label; ctx.fillText(String(k + 1).padStart(2, '0'), xm, yt);
-  });
+    ctx.beginPath(); ctx.moveTo(xm, yt); ctx.lineTo(xm, yb); ctx.stroke();
+  }
+  ctx.setLineDash([]);
 
   // Solo líneas: rellenar por debajo tapaba la rejilla y dejaba la zona baja de la
   // gráfica hecha un bloque de color en el que no se distinguía nada. Son DOS, cosidas
@@ -1510,7 +1527,7 @@ function drawChart(hoverIdx = null) {
     ruta.forEach((f, k) => { const d = Math.abs(plot.X(f.edad) - mx); if (d < bestD) { bestD = d; best = k; } });
     const f = ruta[best], interes = f.total - f.aportado;
     const cual = f.origen
-      ? `<div class="t-row"><span class="muted">Tramo</span><span>${String(f.origen.n).padStart(2, '0')} · ${f.origen.nombre}</span></div>`
+      ? `<div class="t-row"><span class="muted">Tramo</span><span>${tramoTxt(f.origen)}</span></div>`
       : `<div class="t-row"><span class="muted">Tramo</span><span>plan de ahora</span></div>`;
     const cuota = f.cuota
       ? `<div class="t-row"><span class="muted">Aportas ese año</span><span>${fmt.format(f.cuota)}/mes</span></div>`

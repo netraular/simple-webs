@@ -404,12 +404,13 @@ function render(){
     const rows = cat.items.map(it=>rowHTML(cat.id, it, false)).join('');
     const customRows = (store.custom[cat.id]||[]).map(it=>rowHTML(cat.id, it, true)).join('');
     return `<div class="cat" data-cat="${cat.id}">
-      <div class="cat-head" role="button" tabindex="0" aria-label="Plegar o desplegar ${escAttr(cat.name)}">
+      <div class="cat-head" role="button" tabindex="0" aria-expanded="${collapsed?'false':'true'}"
+           aria-controls="body-${cat.id}" aria-label="Plegar o desplegar ${escAttr(cat.name)}">
         <span class="ico" aria-hidden="true">${cat.ico}</span>
         <h2>${cat.name}</h2>
         <span class="sub" data-sub="${cat.id}">0 €/mes</span>
       </div>
-      <div class="cat-body" style="${collapsed?'display:none':''}">
+      <div class="cat-body" id="body-${cat.id}" style="${collapsed?'display:none':''}">
         ${rows}${customRows}
         <button class="addline" data-add="${cat.id}">+ Añadir línea personalizada</button>
       </div>
@@ -457,6 +458,7 @@ function toggleCat(head){
   const body = head.nextElementSibling;
   const abierta = body.style.display==='none';
   body.style.display = abierta ? '' : 'none';
+  head.setAttribute('aria-expanded', abierta ? 'true' : 'false');
   store.collapsed[head.parentElement.dataset.cat] = !abierta;
   save();
 }
@@ -693,9 +695,9 @@ document.getElementById('btnJubi').addEventListener('click', ()=>{
       + '¿Enviar el total completo de todas formas?\n(Cancela si prefieres desactivarlos antes.)';
     if(!confirm(msg)) return;
   }
-  const anual = Math.round(lastTotal*12);
-  try{ localStorage.setItem('gasto-jubilacion-anual', String(anual)); }catch(e){}
-  window.open('calculadora-jubilacion.html?gasto='+anual, '_blank');
+  // El traspaso viaja por la URL: la otra calculadora lee ?gasto= y no consulta
+  // ningún dato guardado, así que no hay nada más que dejar por el camino.
+  window.open('calculadora-jubilacion.html?gasto=' + Math.round(lastTotal*12), '_blank');
 });
 
 /* ---- Init ---- */

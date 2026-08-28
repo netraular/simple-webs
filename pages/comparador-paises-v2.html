@@ -68,6 +68,11 @@
     letter-spacing:0; color:var(--ink); border:0; padding-bottom:6px; margin:0 0 6px; }
   p.lead{font-size:.92rem; color:var(--mut); margin:0 0 18px; max-width:760px}
 
+  /* Aviso de que el sueldo de partida no da para ahorrar en Barcelona. */
+  .aviso{margin:0 0 22px; padding:14px 18px; background:#fdeee4; border-left:5px solid var(--warn);
+    border-radius:6px; font-size:.86rem; line-height:1.5; color:var(--txt)}
+  .aviso[hidden]{display:none}
+
   /* ---- referencia de Barcelona ---- */
   .bcn-reference{display:grid; grid-template-columns:1.25fr repeat(5,1fr); gap:0; margin-bottom:46px;
     background:#dbe8e1; border-left:5px solid var(--accent); border-radius:6px; overflow:hidden}
@@ -297,6 +302,8 @@
     </details>
     <span class="hint">Ajustamos los salarios locales manteniendo tu posición profesional en cada mercado.</span>
   </div>
+
+  <p class="aviso" id="aviso" role="status" hidden></p>
 
   <aside class="bcn-reference" id="bcnReference" aria-label="Datos de referencia de Barcelona"></aside>
 
@@ -717,6 +724,9 @@ const nf  = new Intl.NumberFormat('es-ES', {maximumFractionDigits:0});
 const nf1 = new Intl.NumberFormat('es-ES', {minimumFractionDigits:1, maximumFractionDigits:1});
 const nf2 = new Intl.NumberFormat('es-ES', {minimumFractionDigits:2, maximumFractionDigits:2});
 const eur = v => nf.format(Math.round(v)) + ' €';
+/** Múltiplo «×» respecto a Barcelona. Sin referencia válida (ver `hayReferencia`)
+    llega NaN y se dibuja un guion en vez de una cifra inventada. */
+const mult = (v, f = nf2) => isFinite(v) ? f.format(v) + '×' : '—';
 
 /** Impuesto total (IRPF + cotizaciones) en moneda local.
     Se interpola el IMPORTE entre puntos ancla, no el porcentaje: así el tipo
@@ -820,10 +830,17 @@ function calcular(brutoBase, umbral){
   const base = filas.find(f => f.base);
   const objetivoFIRE = base.colMesEUR * 12 * MULTIPLO_FIRE;
 
+  // Con un sueldo bajo, en Barcelona no sobra nada al mes: el ahorro de referencia sale
+  // cero o negativo y todos los múltiplos «× vs Barcelona» dejan de significar algo
+  // (dividir entre un número negativo hasta les da la vuelta al signo, y una ciudad
+  // mejor salía peor). En ese caso el múltiplo es NaN y la interfaz lo dibuja como «—»:
+  // las cifras absolutas —neto, coste, ahorro por ciudad— siguen siendo válidas.
+  const hayReferencia = base.ahorroEUR > 0;
+
   filas.forEach(f => {
     f.ratio       = f.netoMesEUR / base.netoMesEUR;   // informativo: el múltiplo del neto
-    f.ratioAhorro = f.ahorroEUR / base.ahorroEUR;     // el que decide: múltiplo del ahorro
-    f.pasa        = f.ratioAhorro >= umbral;
+    f.ratioAhorro = hayReferencia ? f.ahorroEUR / base.ahorroEUR : NaN;
+    f.pasa        = f.ratioAhorro >= umbral;          // con NaN es false: nadie "pasa"
     f.deltaAhorro = f.ahorroEUR - base.ahorroEUR;
     f.anios      = aniosHasta(objetivoFIRE, f.ahorroEUR, RETORNO_REAL);
     f.breakeven  = f.deltaAhorro > 0 ? COSTE_MUDANZA / (f.deltaAhorro/12) : Infinity;
@@ -833,17 +850,27 @@ function calcular(brutoBase, umbral){
   });
 
   filas.sort((a,b) => b.ahorroEUR - a.ahorroEUR);
-  return { filas, base, objetivoFIRE };
+  return { filas, base, objetivoFIRE, hayReferencia };
 }
 
 /* ======================= RENDER ======================= */
 function render(){
   const brutoBase = Math.max(20000, Math.min(200000, +document.getElementById('inBruto').value || 60000));
   const umbral    = +document.getElementById('inUmbral').value;
-  const { filas, base, objetivoFIRE } = calcular(brutoBase, umbral);
+  const { filas, base, objetivoFIRE, hayReferencia } = calcular(brutoBase, umbral);
 
   document.getElementById('hUmbral').textContent = nf2.format(umbral) + '×';
   document.getElementById('hTarget').textContent = eur(objetivoFIRE);
+
+  // Aviso cuando el sueldo de partida no da para ahorrar nada en Barcelona: sin ahorro
+  // de referencia no hay «× vs Barcelona» que valga, y conviene decirlo en vez de
+  // enseñar múltiplos sin sentido.
+  const aviso = document.getElementById('aviso');
+  aviso.hidden = hayReferencia;
+  if (!hayReferencia) aviso.innerHTML = `Con <b>${eur(base.brutoEUR)}</b> brutos, en Barcelona no llegas a
+    ahorrar nada: te faltan <b>${eur(-base.ahorroEUR)}</b> al año para cubrir el coste de vida. Sin ahorro de
+    partida no hay con qué comparar, así que los múltiplos <b>«× vs Barcelona»</b> salen en blanco. Las cifras
+    absolutas de cada ciudad —neto, coste de vida y ahorro— sí siguen valiendo.`;
 
   document.getElementById('bcnReference').innerHTML = `
     <div class="bcn-place"><span>Referencia actual</span><strong>${base.bandera} Barcelona</strong></div>
@@ -854,22 +881,22 @@ function render(){
     <div class="bcn-metric"><span>Ahorro anual</span><b>${eur(base.ahorroEUR)}</b><small>${nf.format(base.tasa*100)} % del neto</small></div>`;
 
   /* ---- 1. Veredicto ---- */
-  const mejorAhorro = filas[0];
-  const mejorTasa   = [...filas].sort((a,b) => b.tasa - a.tasa)[0];
-  const pasan       = filas.filter(f => f.pasa && !f.base);
+  const mejorAhorro  = filas[0];
+  const pasan        = filas.filter(f => f.pasa && !f.base);
+  // Sin ahorro de referencia, base.anios es infinito y la resta no dice nada.
   const aniosGanados = base.anios - mejorAhorro.anios;
-  // Espejismo del sueldo: pagan >= umbral en neto pero no llegan al umbral en ahorro.
-  const espejismo = filas.filter(f => !f.base && f.ratio >= umbral && !f.pasa);
 
   document.getElementById('kpis').innerHTML = `
     <div class="kpi" style="--k:var(--ok2)">
       <div class="k">Tu mejor destino</div>
       <div class="v">${mejorAhorro.bandera} ${mejorAhorro.ciudad}</div>
-      <div class="s"><b>${eur(mejorAhorro.ahorroEUR)} al año</b>, ${nf1.format(mejorAhorro.ahorroEUR/base.ahorroEUR)} veces tu ahorro actual.</div>
+      <div class="s"><b>${eur(mejorAhorro.ahorroEUR)} al año</b>${hayReferencia
+        ? `, ${nf1.format(mejorAhorro.ratioAhorro)} veces tu ahorro actual.`
+        : `, frente a los ${eur(base.ahorroEUR)} de Barcelona.`}</div>
     </div>
     <div class="kpi" style="--k:var(--warn)">
       <div class="k">Tiempo recuperado</div>
-      <div class="v">${nf1.format(aniosGanados)} años antes</div>
+      <div class="v">${isFinite(aniosGanados) ? nf1.format(aniosGanados) + ' años antes' : '—'}</div>
       <div class="s">Hasta tu objetivo FIRE frente a Barcelona.</div>
     </div>
     <div class="kpi" style="--k:var(--accent)">
@@ -883,7 +910,7 @@ function render(){
   document.getElementById('destinations').innerHTML = shortlist.map((f, index) => `
     <article class="destination">
       <span class="rank">${index === 0 ? 'Mejor opción' : `Destino ${index + 1}`}</span>
-      <span class="status ${f.pasa ? 'yes' : ''}">${nf2.format(f.ratioAhorro)}× vs Barcelona</span>
+      <span class="status ${f.pasa ? 'yes' : ''}">${mult(f.ratioAhorro)} vs Barcelona</span>
       <h3>${f.bandera} ${f.ciudad}</h3>
       <span class="country">${f.pais}${f.regimen ? ` · ${f.regimen}` : ''}</span>
       <div class="saving">${eur(f.ahorroEUR)}<small>ahorro estimado / año</small></div>
@@ -924,7 +951,7 @@ function render(){
         <span class="seg rat ${f.pasa?'':'no'}" style="width:${(f.ratioAhorro/maxRatio)*100}%"></span>
         <span class="marker" style="left:${(umbral/maxRatio)*100}%"></span>
       </div>
-      <div class="cv">${nf2.format(f.ratioAhorro)}× · ${nf2.format(f.ratio)}× neto</div>
+      <div class="cv">${mult(f.ratioAhorro)} · ${mult(f.ratio)} neto</div>
     </div>`
   ).join('') + `<div class="legend">
       <span><i style="background:#6d28c9"></i>Ahorra ${nf2.format(umbral)}× o más</span>
@@ -981,9 +1008,11 @@ function render(){
   /* ---- 8. Fichas ---- */
   document.getElementById('cards').innerHTML = filas.map(f => {
     const badges = [];
-    if (f.base)     badges.push('<span class="badge b">Tu situación actual</span>');
-    if (f.pasa && !f.base) badges.push(`<span class="badge g">Ahorra ${nf2.format(f.ratioAhorro)}×</span>`);
-    if (!f.pasa && !f.base) badges.push(`<span class="badge">Solo ahorra ${nf2.format(f.ratioAhorro)}×</span>`);
+    if (f.base) badges.push('<span class="badge b">Tu situación actual</span>');
+    // Sin ahorro de referencia en Barcelona no hay múltiplo que enseñar (ver `hayReferencia`).
+    else if (isFinite(f.ratioAhorro)) badges.push(f.pasa
+      ? `<span class="badge g">Ahorra ${mult(f.ratioAhorro)}</span>`
+      : `<span class="badge">Solo ahorra ${mult(f.ratioAhorro)}</span>`);
     badges.push(`<span class="badge" style="background:${NOTA[f.inv.n].c};color:#fff;border-color:${NOTA[f.inv.n].c}">Fiscalidad del ahorro: ${NOTA[f.inv.n].t}</span>`);
     badges.push(`<span class="badge">Plusvalías: ${f.cgt}</span>`);
     if (f.marginal <= 0.42) badges.push(`<span class="badge g">Buena progresión: marginal ${nf1.format(f.marginal*100)} %</span>`);

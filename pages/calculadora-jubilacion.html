@@ -316,25 +316,18 @@
         <div class="group-title">Perfil de aportación</div>
         <label for="perfil_modo">Cómo repartir el ahorro en el tiempo</label>
         <select id="perfil_modo">
-          <option value="constante">Constante — lo mismo cada año</option>
-          <option value="ratio">Ahorrar más al principio (ratio primer/último año)</option>
+          <option value="constante">Constante — lo mismo cada año, calculado por la web</option>
           <option value="cero">Decreciente — hasta 0 € justo al retirarte</option>
           <option value="tope" selected>Tope de aportación → cuota decreciente, sin pasar de él</option>
-          <option value="sprint">Bola de nieve → sprint plano y luego parar del todo</option>
+          <option value="sprint">Constante que fijas tú → hasta el año en que puedes parar</option>
         </select>
         <div class="hint">Como el dinero aportado pronto crece más años, <b>front-cargar</b> el ahorro hace que el <b>total aportado sea menor</b> para el mismo objetivo, a cambio de más esfuerzo los primeros años.
           <ul style="margin:6px 0 0; padding-left:18px">
-            <li><b>Constante:</b> la misma cuota (en € de hoy) todos los años.</li>
-            <li><b>Ratio:</b> el primer año aportas N veces lo del último, bajando en línea recta.</li>
+            <li><b>Constante:</b> la misma cuota (en € de hoy) todos los años, hasta el retiro. La calculadora te dice cuánto es.</li>
             <li><b>Hasta 0 €:</b> la cuota baja en línea recta desde el primer año y llega a <b>0 €</b> justo al retirarte, así que el último año aún aportas algo. Es el reparto más front-cargado con esfuerzo repartido.</li>
             <li><b>Tope:</b> fijas cuánto es lo máximo que puedes aportar al mes y la calculadora busca <b>durante cuántos años</b> hay que pagar (bajando hasta 0 €) para llegar justo al objetivo. Si el tope no da para parar antes del retiro, en vez de fallar <b>levanta el suelo</b>: la cuota baja del tope a la <b>mínima cuota</b> que aún llega, aportando todos los años. Y si ni pagando el tope entero todos los años se llega, te avisa y te dice cuánto faltaría.</li>
-            <li><b>Bola de nieve (<i>Coast FIRE</i>):</b> ahorras una cifra fija y agresiva, la misma cada mes, y la calculadora busca <b>en qué año puedes parar del todo</b>. A partir de ahí no aportas ni un euro más y el interés compuesto hace el resto: la cartera "rueda sola" hasta el objetivo justo a la edad de retiro, y tú solo necesitas ganar para tus gastos del día a día. Es el que <b>menos dinero total</b> requiere, a cambio de los años de esfuerzo más duros.</li>
+            <li><b>Constante que fijas tú (<i>Coast FIRE</i>):</b> igual que el modo constante, pero el importe lo eliges tú y la incógnita es la otra: la calculadora busca <b>en qué año puedes parar del todo</b>. A partir de ahí no aportas ni un euro más y el interés compuesto hace el resto: la cartera "rueda sola" hasta el objetivo justo a la edad de retiro, y tú solo necesitas ganar para tus gastos del día a día. Cuanto más alta pongas la cuota, antes podrás soltarla.</li>
           </ul>
-        </div>
-        <div id="perfilRatioWrap" style="display:none">
-          <label for="frontload">Ratio primer año ÷ último año</label>
-          <input type="number" id="frontload" value="2" min="1" max="5" step="0.5">
-          <div class="hint"><b>1 = constante</b> (mismo ahorro cada año). <b>2</b> = el primer año aportas el doble que el último y va bajando de forma lineal. Ojo: el primer año exige la tasa de ahorro más alta.</div>
         </div>
         <div id="perfilTopeWrap">
           <label for="tope_aporte">Aportación máxima (€/mes de hoy)</label>
@@ -342,9 +335,9 @@
           <div class="hint">Lo máximo que estás dispuesto a aportar al mes, que se pagará el <b>primer año</b>. A partir de ahí la cuota baja en línea recta y la calculadora ajusta el reparto para llegar <b>exactamente</b> al capital objetivo: primero intenta llegar a <b>0 €</b> antes del retiro (los años restantes no aportas nada y la cartera solo compone) y, si el tope no da para tanto, baja solo hasta la <b>cuota mínima</b> que aún llega, aportando hasta el final. Nunca aportarás más que el tope; si ni así se llega, te lo dice.</div>
         </div>
         <div id="perfilSprintWrap" style="display:none">
-          <label for="sprint_ahorro">Ahorro sprint mensual (€ de hoy)</label>
+          <label for="sprint_ahorro">Ahorro constante mensual (€ de hoy)</label>
           <input type="number" id="sprint_ahorro" value="2500" min="0" step="50">
-          <div class="hint">Cuánto ahorras de forma agresiva, <b>igual todos los meses</b>, hasta el año en que puedes parar. Súbelo para adelantar esa fecha; bájalo para retrasarla. <b>Es en € de hoy:</b> el modelo asume que lo mantienes en <b>términos reales</b>, es decir, <b>subiendo el importe nominal cada año con la inflación</b>. Si aportaras siempre la misma cifra nominal, su valor real se erosionaría y tendrías que ahorrar <b>más años</b> de los que se muestran.</div>
+          <div class="hint">Cuánto ahorras, <b>igual todos los meses</b>, hasta el año en que puedes parar. Súbelo para adelantar esa fecha; bájalo para retrasarla. <b>Es en € de hoy:</b> el modelo asume que lo mantienes en <b>términos reales</b>, es decir, <b>subiendo el importe nominal cada año con la inflación</b>. Si aportaras siempre la misma cifra nominal, su valor real se erosionaría y tendrías que ahorrar <b>más años</b> de los que se muestran.</div>
         </div>
       </div>
       </div><!-- /col 1 -->
@@ -655,15 +648,6 @@ function tasaRetiro() {
 // Texto de la tasa para la interfaz ("3,5%"), para no repetir el número a mano.
 const tasaTxt = r => (r * 100).toLocaleString('es-ES', { maximumFractionDigits: 1 }) + '%';
 
-// Peso de la aportación en el año que empieza a la edad "age" (perfil decreciente lineal).
-// frontload=1 → constante; frontload=2 → primer año doble que el último, bajando en línea recta.
-function contribWeight(age, a0, F, frontload) {
-  const M = F - a0;
-  if (M <= 1 || frontload <= 1) return 1;
-  const t = age - a0;                 // 0 (primer año) .. M-1 (último año)
-  return frontload - (frontload - 1) * (t / (M - 1));
-}
-
 // Rampa decreciente: 1 en el primer año (t=0) y 0 justo al CUMPLIRSE los T años, no un
 // año antes. Así los T años de la ventana aportan algo (el último, 1/T del importe) en
 // vez de dejar muerto el último año, que era lo que hacía que el modo "tope" se quedara
@@ -685,7 +669,7 @@ function rampFloorWeight(t, T, suelo) {
   return Math.max(0, Math.min(1, 1 - (1 - suelo) * (t / T)));
 }
 
-// Sprint plano ("bola de nieve"): se aporta el importe completo durante T años y
+// Cuota plana fijada por el usuario: se aporta el importe completo durante T años y
 // después nada. T puede ser fraccionario: el último año se paga a medias.
 function flatWeight(t, T) {
   return Math.min(1, Math.max(0, T - t));
@@ -696,15 +680,15 @@ function flatWeight(t, T) {
 // crece con T, así que es monótona) y aterriza exactamente en el objetivo.
 const PERFIL_VENTANA = { tope: rampWeight, sprint: flatWeight };
 
-// Perfil de aportación elegido en el formulario.
-// El ratio se acota a 1 (el input ya lo pide, pero se puede teclear por debajo): un
-// ratio < 1 sería aportar MÁS al final, que no es lo que este perfil modela. Con 1 el
-// reparto es de hecho constante, y así lo dice la etiqueta del desglose.
+// Perfil de aportación elegido en el formulario. Un valor desconocido (datos guardados
+// con un perfil que ya no existe) cae al de por defecto en vez de dejar el cálculo sin
+// forma de reparto.
+const PERFILES = ['constante', 'cero', 'tope', 'sprint'];
 function perfilAportacion() {
   const sel = document.getElementById('perfil_modo');
+  const modo = sel && PERFILES.includes(sel.value) ? sel.value : 'tope';
   return {
-    modo: sel ? sel.value : 'tope',
-    frontload: Math.max(1, val('frontload') || 1),
+    modo,
     tope: val('tope_aporte'),
     sprint: val('sprint_ahorro'),
   };
@@ -767,7 +751,6 @@ function scenario(F) {
   const M = F - a0;
   const i = Math.pow(1 + rA, 1/12) - 1;
   const perfil = perfilAportacion();
-  const frontload = perfil.frontload;
   const fvInicial = cap0 * Math.pow(1 + rA, M);
   const need = Math.max(0, capNeeded - fvInicial);   // FV que tienen que aportar las cuotas
   // FV de aportar mensualmente el peso w(age) durante toda la acumulación.
@@ -781,10 +764,10 @@ function scenario(F) {
   };
 
   // El perfil define el peso de cada año; `base` es la cuota del primer año (el pico).
-  // En los modos "constante", "ratio" y "cero" el peso es fijo y se escala `base` para
-  // llegar al objetivo. En "tope" y "sprint" `base` es el importe que fija el usuario y
-  // lo que se ajusta es la VENTANA de años que hay que aportar: el tope la recorre
-  // bajando en línea recta hasta 0 €, el sprint la paga plana y luego para en seco.
+  // En los modos "constante" y "cero" el peso es fijo y se escala `base` para llegar al
+  // objetivo. En "tope" y "sprint" `base` es el importe que fija el usuario y lo que se
+  // ajusta es la VENTANA de años que hay que aportar: el tope la recorre bajando en
+  // línea recta hasta 0 €, el sprint la paga plana y luego para en seco.
   // Si el importe fijado (tope o sprint) no diera ni aportándolo plano todos los años,
   // no hay reparto posible: este es el mínimo mensual que haría falta para llegar.
   const fvPlano = fvOf(() => 1);
@@ -825,9 +808,8 @@ function scenario(F) {
       weight = age => forma(age - a0, ventana);
     }
   } else {
-    if (perfil.modo === 'constante')  weight = () => 1;
-    else if (perfil.modo === 'cero')  weight = age => rampWeight(age - a0, M);
-    else                              weight = age => contribWeight(age, a0, F, frontload);
+    if (perfil.modo === 'constante') weight = () => 1;
+    else                             weight = age => rampWeight(age - a0, M);   // "cero"
     const fvUnit = fvOf(weight);
     base = fvUnit > 0 ? need / fvUnit : 0;
   }
@@ -842,7 +824,7 @@ function scenario(F) {
   let aniosAportando = 0;
   for (let age = a0; age < F; age++) if (base * weight(age) > 0.5) aniosAportando++;
   // Primera edad en la que ya no aportas nada: el fin del esfuerzo. `paraAntes` distingue
-  // el caso en que de verdad hay "bola de nieve" (sueltas el ahorro y la cartera compone
+  // el caso en que de verdad puedes soltar el ahorro antes (y la cartera compone
   // sola un tramo) del caso en que la última cuota cae justo en el año del retiro, donde
   // no hay nada que soltar. Fuente única para el subtítulo y para el hito de la línea.
   const stopAge = a0 + aniosAportando;
@@ -853,7 +835,7 @@ function scenario(F) {
   // efectivo sobre lo retirado y, si la cuentas, con la pensión pública ya descontada).
   const coastNum = capNeeded / Math.pow(1 + rA, M);
 
-  return { F, a0, PA, E, cap0, S, P, rA, rR, rate0, infl, i, M, capNeeded, capBase, pensionPV, cobrarePension, mensual, anual, tasa, coastNum, tr, convenioActivo, convenioMes, convenioAnual, base, frontload, mensualIni, mensualFin, perfil, weight, ventana, ventanaCorta, suelo, importeMinimo, falta, aniosAportando, stopAge, paraAntes };
+  return { F, a0, PA, E, cap0, S, P, rA, rR, rate0, infl, i, M, capNeeded, capBase, pensionPV, cobrarePension, mensual, anual, tasa, coastNum, tr, convenioActivo, convenioMes, convenioAnual, base, mensualIni, mensualFin, perfil, weight, ventana, ventanaCorta, suelo, importeMinimo, falta, aniosAportando, stopAge, paraAntes };
 }
 
 // Construye la curva determinista de patrimonio (€ de hoy) año a año a partir de
@@ -906,8 +888,8 @@ function compute() {
 
   document.getElementById('fireValue').textContent = `${F} años`;
 
-  // Solo se muestra el campo del perfil elegido (ratio / tope / sprint).
-  const wraps = { ratio: 'perfilRatioWrap', tope: 'perfilTopeWrap', sprint: 'perfilSprintWrap' };
+  // Solo se muestra el campo del perfil elegido (tope / sprint).
+  const wraps = { tope: 'perfilTopeWrap', sprint: 'perfilSprintWrap' };
   for (const [modo, id] of Object.entries(wraps)) {
     const el = document.getElementById(id);
     if (el) el.style.display = perfil.modo === modo ? '' : 'none';
@@ -955,7 +937,7 @@ function compute() {
     ${convenioActivo ? `<div class="row"><span class="muted">Coste convenio especial (solo hasta la edad de pensión)</span><span>${fmt.format(convenioMes)}/mes · ${fmt.format(convenioAnual)}/año</span></div>` : ''}
     <div class="row"><span class="muted">Aportación anual necesaria${decreciente?' (primer→último año)':''}</span><span>${decreciente?`${fmt.format(anual)} → ${fmt.format(mensualFin*12)}`:fmt.format(anual)}</span></div>
     ${conSuelo ? `<div class="row"><span class="muted">Con ese tope aportas los ${M} años (no da para parar antes)</span><span>${fmt.format(base)} → ${fmt.format(mensualFin)}/mes</span></div>`
-      : PERFIL_VENTANA[perfil.modo] && !ventanaCorta ? `<div class="row"><span class="muted">${perfil.modo === 'tope' ? 'Años pagando con ese tope (hasta llegar a 0 €)' : 'Años de sprint (luego dejas de ahorrar)'}</span><span>${aniosAportando} de ${M} (${a0}→${stopAge})</span></div>` : ''}
+      : PERFIL_VENTANA[perfil.modo] && !ventanaCorta ? `<div class="row"><span class="muted">${perfil.modo === 'tope' ? 'Años pagando con ese tope (hasta llegar a 0 €)' : 'Años pagando esa cuota (luego dejas de ahorrar)'}</span><span>${aniosAportando} de ${M} (${a0}→${stopAge})</span></div>` : ''}
     <div class="row"><span class="muted">${tasaRowLabel}</span><span>${tasaRowVal}</span></div>
     ${cobrarePension && pensionPV > 0 ? `<div class="row"><span class="muted">Valor actual de la pensión (te lo ahorras)</span><span>− ${fmt.format(pensionPV)}</span></div>` : ''}
   `;
@@ -963,7 +945,7 @@ function compute() {
   let alerts = '';
   if (ventanaCorta) alerts += perfil.modo === 'tope'
     ? `<div class="alert bad">🚫 Con un tope de ${fmt.format(base)}/mes no llegas ni aportándolo <b>entero los ${M} años</b>: al retirarte te faltarían <b>${fmt.format(falta)}</b> de los ${fmt.format(capNeeded)}. Harían falta al menos <b>${fmt.format(importeMinimo)}/mes</b> (constantes, en € de hoy) — o retrasar el retiro o bajar el gasto.</div>`
-    : `<div class="alert bad">🚫 Con un sprint de ${fmt.format(base)}/mes nunca llegas a poder parar: aun aportándolo los ${M} años completos te faltarían <b>${fmt.format(falta)}</b> de los ${fmt.format(capNeeded)}. Harían falta al menos <b>${fmt.format(importeMinimo)}/mes</b> — o retrasar el retiro o bajar el gasto.</div>`;
+    : `<div class="alert bad">🚫 Con una cuota de ${fmt.format(base)}/mes nunca llegas a poder parar: aun aportándolo los ${M} años completos te faltarían <b>${fmt.format(falta)}</b> de los ${fmt.format(capNeeded)}. Harían falta al menos <b>${fmt.format(importeMinimo)}/mes</b> — o retrasar el retiro o bajar el gasto.</div>`;
   else if (conSuelo) alerts += `<div class="alert warn">📉 Llegas al objetivo, pero aportando los ${M} años: de <b>${fmt.format(base)}</b> a <b>${fmt.format(mensualFin)}/mes</b>. Sube el tope para poder parar antes.</div>`;
   if (mensual <= 0) alerts += `<div class="alert ok">✅ Ya llegas sin aportar más: podrías adelantar el retiro o gastar más.</div>`;
   if (tasa > 1) alerts += `<div class="alert bad">🚫 Necesitarías más del 100% de tu neto: inviable. Retrasa el retiro o baja el gasto.</div>`;
@@ -1793,12 +1775,16 @@ const formInputs = Array.from(document.querySelectorAll('input, select')).filter
 //   v3 → v4: la simulación Monte Carlo se sustituyó por una proyección determinista,
 //            así que ni el selector de gráfica ni el capital propio de la simulación
 //            existen ya; sus valores guardados se descartan.
-const FORM_VERSION = 4;
+//   v4 → v5: desaparece el perfil "ratio" (aportar más al principio según un ratio
+//            primer/último año). El reparto más parecido que queda es "cero", que
+//            también baja en línea recta pero hasta 0 € el año del retiro.
+const FORM_VERSION = 5;
 function migrateData(data) {
   if (!data || data._v >= FORM_VERSION) return data;
   const v = data._v || 1;
   if (v < 2 && data.neto != null) data.neto = String(Math.round((parseFloat(data.neto) || 0) / 12));
   if (v < 4) { delete data.mcChartSel; delete data.mc_capital; delete data.mc_capital_manual; }
+  if (v < 5) { if (data.perfil_modo === 'ratio') data.perfil_modo = 'cero'; delete data.frontload; }
   data._v = FORM_VERSION;
   return data;
 }
@@ -1820,7 +1806,7 @@ function loadForm() {
 const PRESET_BASE = {
   edad: '30', fire: '55', fin: '105', trabajo: '25', pension_edad: '65',
   impuestos: '15', tasa_retiro: '3.5', r_acum: '7', r_retiro: '5.5', inflacion: '3',
-  perfil_modo: 'tope', frontload: '2', convenio_coste: '400', cobrare_pension: false,
+  perfil_modo: 'tope', convenio_coste: '400', cobrare_pension: false,
 };
 const PRESETS_SUELDO = {
   s30: { label: 'Sueldo de 30.000 €', desc: 'Adulto de 30 años: 30.000 € brutos, 2.000 € netos al mes (12 pagas) y 100.000 € ya invertidos',

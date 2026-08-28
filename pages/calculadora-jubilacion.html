@@ -287,17 +287,30 @@
   .snap-count{font:500 .7rem "IBM Plex Mono",monospace; color:var(--muted); margin-left:auto}
   .tool[disabled]{opacity:.45; cursor:not-allowed}
   .tool[disabled]:hover{border-color:#b9c6d3; color:var(--text)}
-  /* Instantáneas guardadas: leyenda y tabla a la vez. */
-  .snap-row{display:grid; grid-template-columns:auto 1fr auto auto auto; align-items:center; gap:10px;
-    padding:9px 2px; border-bottom:1px solid #e3eaf1; font-size:.82rem}
-  .snap-row:last-child{border-bottom:0}
-  .snap-row i{width:11px; height:11px; flex:none; border-radius:2px}
-  .snap-row .nom{color:var(--text); font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
-  .snap-row .tramo-edades, .snap-row .cifra{font:500 .76rem "IBM Plex Mono",monospace; color:var(--muted); white-space:nowrap}
-  .snap-row .cifra b{color:var(--text)}
-  .snap-row button{padding:3px 8px; line-height:1.2; color:var(--muted)}
-  .snap-row button:hover{border-color:var(--red); color:var(--red)}
-  .snap-vacio{margin:0; padding:12px 2px 0; font-size:.78rem; color:var(--muted); line-height:1.5}
+  /* Tramos guardados: botones que devuelven su configuración al plan. Hacen además de
+     leyenda y de tabla, así que llevan el nombre y la cifra a la vista. */
+  #snapsList{display:flex; flex-wrap:wrap; gap:8px; margin:0 0 14px}
+  .snap-btn{display:inline-flex; align-items:stretch; background:#fff; border:1px solid #b9c6d3; border-radius:4px}
+  .snap-btn:hover{border-color:var(--accent)}
+  .snap-btn.on{border-color:var(--accent); background:#eef4ff; box-shadow:inset 0 0 0 1px var(--accent)}
+  .snap-btn.sin-datos{border-style:dashed}
+  .snap-btn button{background:none; border:0; cursor:pointer; color:var(--text); font-size:.8rem;
+    -webkit-tap-highlight-color:transparent}
+  .snap-apply{display:inline-flex; align-items:center; gap:9px; padding:7px 4px 7px 9px; text-align:left}
+  .snap-btn.sin-datos .snap-apply{color:var(--muted)}
+  .snap-apply .n{font:600 .64rem "IBM Plex Mono",monospace; color:var(--accent)}
+  .snap-apply .nom{font-weight:600; max-width:15ch; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+  .snap-apply .rango{font:500 .72rem "IBM Plex Mono",monospace; color:var(--muted); white-space:nowrap}
+  .snap-apply .rango b{color:var(--text)}
+  .snap-del{padding:0 9px; color:var(--muted); font-size:.9rem; line-height:1}
+  .snap-del:hover{color:var(--red)}
+  .snap-vacio{margin:0 0 14px; font-size:.78rem; color:var(--muted); line-height:1.5}
+  .legend-nota{font-size:.72rem; color:var(--muted)}
+  /* Cabecera y subtotal de cada tramo en la tabla año a año. */
+  .comp tr.grp td{background:#eef4ff; color:var(--accent); font:600 .68rem "IBM Plex Mono",monospace;
+    text-transform:uppercase; letter-spacing:.05em; text-align:left}
+  .comp tr.sub td{background:#f6f9fc; border-bottom:2px solid var(--border)}
+  .comp tr.sub td:first-child{text-align:left}
   .mini .s{font-size:.66rem; color:var(--muted); margin-top:4px; line-height:1.35}
   .mini{background:#f2f6fa; border-color:#d2dce5; border-radius:4px}
   .mini .v{font-family:"IBM Plex Mono",monospace}
@@ -575,16 +588,18 @@
       <span class="snap-count" id="snapCount"></span>
     </div>
 
+    <!-- Tramos guardados, sobre la gráfica: cada botón devuelve al plan la configuración
+         con la que se guardó ese tramo, así que "Diseña tu ruta" y "Tu esfuerzo mensual"
+         pasan a describirlo. También hacen de leyenda y de vista en tabla. -->
+    <div id="snapsList"></div>
+
     <div class="legend">
       <span><i class="dot" style="background:#1463ff"></i> Valor total</span>
       <span><i class="dot" style="background:#0c9b76"></i> Lo que has puesto tú</span>
+      <span class="legend-nota">Cada tramo dibuja sus dos líneas; el activo va resaltado</span>
     </div>
     <canvas id="chart"></canvas>
     <p class="proj-resumen" id="projResumen"></p>
-
-    <!-- Las instantáneas guardadas: hacen de leyenda (color + nombre) y de vista en tabla
-         (las cifras finales), que es lo que permite no depender solo del color. -->
-    <div id="snapsList"></div>
 
     <!-- Plan año a año: subsección plegable, no una tarjeta al mismo nivel que el resto -->
     <details class="expander">
@@ -1035,11 +1050,13 @@ function compute() {
   lastSc = sc; lastCurve = curve;
   syncViewSlider(sc);
   renderEsfuerzo();
-  renderTablaAporte(sc);
   // Gráfica del plan: lo que pones tú frente a lo que llega a valer, durante la
   // acumulación. La rentabilidad que manda aquí es la de esa fase (r_acum).
   document.getElementById('projR').textContent = (sc.rA * 100).toFixed(1) + '%';
+  // `chartData` va ANTES que la tabla: las dos leen la misma ruta compuesta, y la tabla
+  // se quedaría un ciclo por detrás si se pintara con el `chartData` del cálculo previo.
   chartData = planSerie(curve, syncVerHasta(sc));
+  renderTablaAporte(sc);
   renderSnaps();
   drawChart();
   renderPlanResumen();
@@ -1200,29 +1217,55 @@ function renderEsfuerzo() {
 }
 
 // Tabla de aportación año a año (€ de hoy y € nominales corregidos por inflación).
+// Recorre la MISMA ruta compuesta que la gráfica, así que lista también las cuotas de
+// cada tramo guardado y no solo las del plan de ahora. Cada fila dice a qué tramo
+// pertenece, y cada tramo cierra con su propio subtotal.
 function renderTablaAporte(sc) {
-  const { a0, F, base, weight, infl } = sc;
+  const { a0, F, base, infl } = sc;
   const wrap = document.getElementById('tablaAporteWrap');
   if (!wrap) return;
-  if (F <= a0 || base <= 0) {
-    wrap.innerHTML = '<p class="hint">Con tu capital actual ya llegas sin aportar nada más: no hay cuotas que mostrar.</p>';
+  // Solo los años en los que de verdad se aporta algo: el resto no es una cuota.
+  const anios = rutaCompuesta().filter(p => p.cuota > 0.5);
+  if (!anios.length) {
+    wrap.innerHTML = F <= a0 || base <= 0
+      ? '<p class="hint">Con tu capital actual ya llegas sin aportar nada más: no hay cuotas que mostrar.</p>'
+      : '<p class="hint">No hay ninguna cuota que mostrar en el rango dibujado.</p>';
     return;
   }
   const baseYear = new Date().getFullYear();
-  let rows = '', totHoy = 0, totNom = 0;
-  for (let age = a0; age < F; age++) {
-    const t = age - a0;
-    const mesHoy = base * weight(age);
-    const mesNom = mesHoy * Math.pow(1 + infl, t);
-    totHoy += mesHoy * 12; totNom += mesNom * 12;
-    rows += `<tr><td>${baseYear + t}</td><td class="muted">${age} → ${age + 1}</td><td><b>${fmt.format(mesHoy)}</b></td><td class="muted">${fmt.format(mesNom)}</td></tr>`;
-  }
+  const nombreDe = o => o ? `${String(o.n).padStart(2, '0')} · ${escHtml(o.nombre)}` : 'Plan de ahora';
+  const idDe = o => o ? o.id : '';
+  let rows = '', totHoy = 0, totNom = 0, subHoy = 0, subNom = 0, subN = 0, grupo = null;
+  // Subtotal del tramo que se acaba de cerrar. Va como fila propia para que se pueda
+  // leer el esfuerzo de cada etapa sin sumar a mano.
+  const cierra = () => subN
+    ? `<tr class="sub"><td colspan="2"><b>Subtotal ${nombreDe(grupo)}</b> · ${subN} ${subN === 1 ? 'año' : 'años'}</td>`
+      + `<td><b>${fmt.format(subHoy)}</b></td><td class="muted">${fmt.format(subNom)}</td></tr>`
+    : '';
+  anios.forEach((p, k) => {
+    if (k === 0 || idDe(p.origen) !== idDe(grupo)) {
+      if (k > 0) rows += cierra();
+      subHoy = subNom = subN = 0;
+      grupo = p.origen;
+      rows += `<tr class="grp"><td colspan="4">${nombreDe(grupo)}</td></tr>`;
+    }
+    // La inflación se cuenta desde la edad de hoy del plan, que es el origen común de
+    // todas las cifras "en € de hoy" de la página.
+    const t = p.edad - a0;
+    const mesNom = p.cuota * Math.pow(1 + infl, t);
+    subHoy += p.cuota * 12; subNom += mesNom * 12; subN++;
+    totHoy += p.cuota * 12; totNom += mesNom * 12;
+    rows += `<tr><td>${baseYear + t}</td><td class="muted">${p.edad} → ${p.edad + 1}</td>`
+      + `<td><b>${fmt.format(p.cuota)}</b></td><td class="muted">${fmt.format(mesNom)}</td></tr>`;
+  });
+  rows += cierra();
+  const variosTramos = new Set(anios.map(p => idDe(p.origen))).size > 1;
   wrap.innerHTML = `<table class="comp">
     <thead><tr><th>Año</th><th>Edad</th><th>Cuota €/mes (€ de hoy)</th><th>Cuota €/mes (€ nominales)</th></tr></thead>
     <tbody>${rows}</tbody>
-    <tfoot><tr><td><b>Total aportado</b></td><td class="muted">${F - a0} años</td><td><b>${fmt.format(totHoy)}</b></td><td class="muted">${fmt.format(totNom)}</td></tr></tfoot>
+    <tfoot><tr><td><b>Total aportado</b></td><td class="muted">${anios.length} años</td><td><b>${fmt.format(totHoy)}</b></td><td class="muted">${fmt.format(totNom)}</td></tr></tfoot>
   </table>
-  <div class="hint" style="margin-top:10px">El <b>«Total aportado»</b> es la suma de todas las cuotas del periodo, no tu patrimonio final (que incluye además la rentabilidad). En <b>€ de hoy</b> mide tu esfuerzo real acumulado; en <b>€ nominales</b>, la suma de lo que irías transfiriendo año a año subiendo con la inflación.</div>`;
+  <div class="hint" style="margin-top:10px">El <b>«Total aportado»</b> es la suma de todas las cuotas del periodo, no tu patrimonio final (que incluye además la rentabilidad). En <b>€ de hoy</b> mide tu esfuerzo real acumulado; en <b>€ nominales</b>, la suma de lo que irías transfiriendo año a año subiendo con la inflación.${variosTramos ? ' Con varios tramos guardados la tabla recorre la <b>ruta completa</b>, igual que la gráfica: si dos tramos se pisan en la misma edad, manda el plan de ahora y, entre los guardados, el más reciente.' : ''}</div>`;
 }
 
 /* ---------- Gráfica ---------- */
@@ -1250,7 +1293,14 @@ function planSerie(curve, hasta) {
   for (let i = 0; i < curve.ages.length; i++) {
     const f = i > 0 ? curve.flow[i] : null;
     if (f && f.acc) puesto += f.aport;
-    filas.push({ anio: i, edad: curve.ages[i], aportado: puesto, total: curve.bal[i] });
+    // `flow[i]` es el año que TERMINA en ages[i], así que la cuota del año que EMPIEZA
+    // ahí es la del flujo siguiente. La guarda la serie para que la tabla año a año
+    // pueda leerla también en un tramo congelado, donde ya no hay `weight()` que llamar.
+    const sig = curve.flow[i + 1];
+    filas.push({
+      anio: i, edad: curve.ages[i], aportado: puesto, total: curve.bal[i],
+      cuota: sig && sig.acc ? sig.aport / 12 : 0,
+    });
     if (curve.ages[i] >= hasta) break;
   }
   return filas;
@@ -1264,13 +1314,13 @@ function planSerie(curve, hasta) {
    y para ir componiendo una ruta a trozos: guardas 30→40, mueves tu edad a 40, cambias
    la aportación y guardas 40→50, y la gráfica los enseña uno detrás de otro. */
 const LS_SNAPS = 'jubilacion-instantaneas-v1';
-// Tope de tres, y es una restricción de color, no de espacio: los hues se asignan en
-// orden fijo y no se reciclan. Estos tres están validados contra el fondo del canvas
-// (#f8fafc) con la lista de TODOS los pares —la que aplica cuando las curvas se cruzan,
-// porque cualquier par puede acabar contiguo— y pasan holgados los suelos de visión
-// normal y de daltonismo sin necesitar apoyo. Un cuarto hue ya no pasa.
-const SNAP_MAX = 3;
-const SNAP_COL = ['#eb6834', '#b0309a', '#8a5a00'];
+/* Los tramos son trozos consecutivos de UNA ruta, así que se cosen en dos líneas
+   continuas —valor total y lo que has puesto— en vez de dibujar un par por tramo. Esto
+   es lo que quita de en medio el problema del color: no hace falta un tono por tramo
+   (cinco hues mutuamente distinguibles no existen sobre este fondo, y era lo que forzaba
+   el tope de tres). El color codifica el PAPEL de la línea; el tramo se identifica por
+   dónde cae en el eje de edades, por su corte marcado y por su botón. */
+const SNAP_MAX = 5;
 
 // `drawChart()` y el tooltip corren en cada mousemove, así que la lista vive en memoria:
 // leer y parsear localStorage por frame era gratis de escribir y caro de ejecutar.
@@ -1286,9 +1336,24 @@ function writeSnaps(arr) {
   snaps = arr;
   try { localStorage.setItem(LS_SNAPS, JSON.stringify(arr)); } catch (e) {}
 }
-// El color va con la posición en la lista, que es estable: borrar una instantánea sí
-// repinta las de debajo, pero no hay forma de reordenarlas, así que no "salta" sola.
-const snapColor = k => SNAP_COL[k % SNAP_COL.length];
+// Tramo activo: el último cuyos datos se han aplicado al plan. Se resalta con una banda
+// de fondo en su franja de edades, no con un color de línea propio.
+let snapActivo = null;
+
+/* Ruta compuesta: los tramos guardados y el plan de ahora, cosidos por edad en UNA sola
+   serie. De ahí salen las dos únicas líneas de la gráfica. Cuando dos tramos se pisan en
+   la misma edad manda el plan de ahora y, entre los guardados, el más reciente: es la
+   regla que hace que ir componiendo la ruta hacia delante (guardas 30→40, te mueves a
+   40, guardas 40→50) simplemente funcione. Un salto vertical en un empalme significa que
+   el capital inicial del tramo siguiente no era el saldo con el que acabó el anterior;
+   se dibuja tal cual, porque esconderlo sería mentir sobre la ruta. */
+function rutaCompuesta() {
+  const porEdad = new Map();
+  const add = (puntos, origen) => { for (const p of puntos) porEdad.set(p.edad, { ...p, origen }); };
+  snaps.forEach((s, k) => add(s.puntos, { id: s.id, nombre: s.nombre, n: k + 1 }));
+  if (chartData && chartData.length) add(chartData, null);
+  return [...porEdad.values()].sort((a, b) => a.edad - b.edad);
+}
 
 // Lista de instantáneas: hace de leyenda (color + nombre) y de vista en tabla (las
 // cifras), así la identidad de cada curva nunca depende solo del color.
@@ -1299,19 +1364,25 @@ function renderSnaps() {
   cuenta.textContent = snaps.length ? `${snaps.length} de ${SNAP_MAX} guardadas` : '';
   document.getElementById('btnSnapSave').disabled = snaps.length >= SNAP_MAX;
   if (!snaps.length) {
-    cont.innerHTML = `<p class="snap-vacio">Aún no has guardado ningún tramo. Ajusta el plan, elige hasta qué edad quieres verlo y pulsa <b>Guardar este tramo</b>: la curva se congela y se queda dibujada aquí aunque después cambies los datos, para que puedas comparar.</p>`;
+    cont.innerHTML = `<p class="snap-vacio">Aún no has guardado ningún tramo. Ajusta el plan, elige hasta qué edad quieres verlo y pulsa <b>Guardar este tramo</b>: la curva se congela y se queda dibujada aquí aunque después cambies los datos, para que puedas ir componiendo tu ruta a trozos o comparar alternativas.</p>`;
     return;
   }
   cont.innerHTML = snaps.map((s, k) => {
     const fin = s.puntos[s.puntos.length - 1];
-    const interes = Math.max(0, fin.total - fin.aportado);
-    return `<div class="snap-row" data-id="${s.id}">
-      <i style="background:${snapColor(k)}"></i>
-      <span class="nom">${escHtml(s.nombre)}</span>
-      <span class="tramo-edades">${s.desde} → ${s.hasta} años</span>
-      <span class="cifra"><b>${fmt.format(fin.total)}</b> · ${fmt.format(interes)} de interés</span>
-      <button type="button" class="tool" title="Eliminar esta instantánea" aria-label="Eliminar la instantánea ${escHtml(s.nombre)}">✕</button>
-    </div>`;
+    // Los tramos guardados antes de que se almacenara la configuración no se pueden
+    // volver a aplicar: se dibujan igual, pero el botón lo dice en vez de fallar.
+    const aplicable = !!s.datos;
+    // El ✕ va como botón hermano, no dentro del otro: un control dentro de otro control
+    // es HTML inválido y deja el borrado fuera del alcance del teclado.
+    return `<span class="snap-btn${snapActivo === s.id ? ' on' : ''}${aplicable ? '' : ' sin-datos'}">
+      <button type="button" class="snap-apply" data-id="${s.id}"
+        title="${aplicable ? 'Aplicar esta configuración a «Diseña tu ruta» y «Tu esfuerzo mensual»' : 'Este tramo se guardó sin su configuración: no se puede volver a aplicar'}">
+        <span class="n">${String(k + 1).padStart(2, '0')}</span>
+        <span class="nom">${escHtml(s.nombre)}</span>
+        <span class="rango">${s.desde}→${s.hasta} a · <b>${fmtShort(fin.total)}</b></span>
+      </button>
+      <button type="button" class="snap-del" data-id="${s.id}" title="Eliminar este tramo" aria-label="Eliminar el tramo ${escHtml(s.nombre)}">✕</button>
+    </span>`;
   }).join('');
 }
 const escHtml = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -1326,24 +1397,43 @@ document.getElementById('btnSnapSave').addEventListener('click', () => {
   const desde = chartData[0].edad, hasta = chartData[chartData.length - 1].edad;
   const nombre = (prompt('Nombre para este tramo:', `${desde}→${hasta} · ${fmtShort(chartData[chartData.length - 1].total)}`) || '').trim();
   if (!nombre) return;
+  const id = 's' + Date.now().toString(36);
   const nuevas = snaps.concat({
-    id: 's' + Date.now().toString(36), nombre, desde, hasta,
-    puntos: chartData.map(f => ({ edad: f.edad, aportado: Math.round(f.aportado), total: Math.round(f.total) })),
+    id, nombre, desde, hasta,
+    // La configuración entera viaja con el tramo: es lo que permite volver a él después
+    // y que "Diseña tu ruta" y "Tu esfuerzo mensual" pasen a describirlo otra vez.
+    datos: currentFormData(),
+    puntos: chartData.map(f => ({
+      edad: f.edad, aportado: Math.round(f.aportado), total: Math.round(f.total),
+      cuota: Math.round(f.cuota),
+    })),
   });
   writeSnaps(nuevas);
+  snapActivo = id;
   renderSnaps();
   drawChart();
 });
 
 document.getElementById('snapsList').addEventListener('click', e => {
-  const btn = e.target.closest('button');
+  const btn = e.target.closest('.snap-apply, .snap-del');
   if (!btn) return;
-  const id = btn.closest('.snap-row').dataset.id;
-  const s = snaps.find(x => x.id === id);
-  if (!s || !confirm(`¿Eliminar la instantánea "${s.nombre}"?`)) return;
-  writeSnaps(snaps.filter(x => x.id !== id));
-  renderSnaps();
-  drawChart();
+  const s = snaps.find(x => x.id === btn.dataset.id);
+  if (!s) return;
+  if (btn.classList.contains('snap-del')) {
+    if (!confirm(`¿Eliminar el tramo "${s.nombre}"?\nEsto no cambia los datos que tienes ahora en pantalla.`)) return;
+    if (snapActivo === s.id) snapActivo = null;
+    writeSnaps(snaps.filter(x => x.id !== s.id));
+    renderSnaps();
+    compute();                 // la tabla año a año también deja de listarlo
+    return;
+  }
+  if (!s.datos) { alert('Este tramo se guardó antes de que se almacenara la configuración, así que no se puede volver a aplicar. Sigue dibujándose en la gráfica.'); return; }
+  // Aplicar devuelve el plan al estado con el que se guardó el tramo, incluido el rango
+  // visible: las dos tarjetas de arriba pasan a describir ese tramo.
+  applyData(s.datos);
+  snapActivo = s.id;
+  compute();
+  saveForm();
 });
 
 const canvas = document.getElementById('chart');
@@ -1361,25 +1451,24 @@ function drawChart(hoverIdx = null) {
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   ctx.clearRect(0, 0, cssW, cssH);
 
-  // Las instantáneas pueden cubrir edades que el plan visible no cubre (guardaste 30→40
-  // y ahora miras 40→50), así que el eje X va en EDADES absolutas y abarca todo lo que
-  // hay que dibujar. Con el eje en "años desde hoy" dos tramos consecutivos se habrían
-  // solapado en el mismo origen en vez de ponerse uno detrás de otro.
-  const series = [chartData, ...snaps.map(s => s.puntos)];
-  let minAge = Infinity, maxAge = -Infinity, topY = 0;
-  for (const s of series) {
-    minAge = Math.min(minAge, s[0].edad);
-    maxAge = Math.max(maxAge, s[s.length - 1].edad);
-    for (const p of s) topY = Math.max(topY, p.total, p.aportado ?? 0);
-  }
-  // Con instantáneas hay que dejar sitio a la derecha para la etiqueta de cada línea.
-  const pd = { top: 16, right: snaps.length ? 58 : 16, bottom: 30, left: 64 };
+  // Los tramos pueden cubrir edades que el plan de ahora no cubre (guardaste 30→40 y
+  // ahora miras 40→50), así que el eje X va en EDADES absolutas y abarca la ruta entera.
+  // Con el eje en "años desde hoy" dos tramos consecutivos se habrían solapado en el
+  // mismo origen en vez de ponerse uno detrás de otro.
+  const ruta = rutaCompuesta();
+  if (!ruta.length) return;
+  const minAge = ruta[0].edad, maxAge = ruta[ruta.length - 1].edad;
+  let topY = 0;
+  for (const p of ruta) topY = Math.max(topY, p.total, p.aportado);
+  const pd = { top: 16, right: 16, bottom: 30, left: 64 };
   const x0 = pd.left, x1 = cssW - pd.right, yb = cssH - pd.bottom, yt = pd.top;
   const spanAge = Math.max(1, maxAge - minAge);
   const maxY = Math.max(topY, 1) * 1.06;
   const X = edad => x0 + ((edad - minAge) / spanAge) * (x1 - x0);
   const Y = v => yb - (Math.max(v, 0) / maxY) * (yb - yt);
-  plot = { X, Y, x0, x1, yb, yt, minAge, maxAge };
+  // `ruta` viaja en `plot` porque el tooltip la necesita para buscar el punto más cercano
+  // en CUALQUIER tramo, no solo en el trecho que cubre el plan de ahora.
+  plot = { X, Y, x0, x1, yb, yt, minAge, maxAge, ruta };
 
   // Rejilla horizontal (sin verticales, como en el resto de gráficas)
   ctx.font = '11px system-ui, sans-serif'; ctx.lineWidth = 1;
@@ -1394,27 +1483,40 @@ function drawChart(hoverIdx = null) {
   ctx.textAlign = 'center'; ctx.textBaseline = 'top'; ctx.fillStyle = CHART.label;
   for (let e = Math.ceil(minAge / stepX) * stepX; e <= maxAge; e += stepX) ctx.fillText(e + '', X(e), yb + 8);
 
-  // Solo líneas: rellenar por debajo tapaba la rejilla y dejaba la zona baja de la
-  // gráfica hecha un bloque de color en el que no se distinguía nada.
-  const linea = (datos, key, stroke, grosor) => {
-    ctx.beginPath();
-    datos.forEach((f, k) => k ? ctx.lineTo(X(f.edad), Y(f[key])) : ctx.moveTo(X(f.edad), Y(f[key])));
-    ctx.strokeStyle = stroke; ctx.lineWidth = grosor; ctx.stroke();
-  };
-  // Las instantáneas van primero y más finas: son la referencia, no el protagonista.
-  // De cada una solo su valor total; el desglose aportado/interés es del plan de ahora.
-  snaps.forEach((s, k) => {
-    linea(s.puntos, 'total', snapColor(k), 1.7);
-    const fin = s.puntos[s.puntos.length - 1];
-    // Etiqueta directa al final de cada línea: la identidad no depende solo del color.
-    ctx.fillStyle = snapColor(k); ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
-    ctx.fillText(fmtShort(fin.total), Math.min(X(fin.edad) + 6, cssW - 4), Y(fin.total));
-  });
-  linea(chartData, 'total', CI_COL.interes, 2.4);
-  linea(chartData, 'aportado', CI_COL.aportado, 2.4);
+  // Banda del tramo activo: resalta su franja de edades sin gastar un color de línea.
+  const act = snaps.find(s => s.id === snapActivo);
+  if (act) {
+    const xa = X(Math.max(act.desde, minAge)), xz = X(Math.min(act.hasta, maxAge));
+    ctx.fillStyle = 'rgba(20,99,255,.07)';
+    ctx.fillRect(xa, yt, Math.max(1, xz - xa), yb - yt);
+  }
 
-  if (hoverIdx !== null && chartData[hoverIdx]) {
-    const f = chartData[hoverIdx], xh = Math.round(X(f.edad)) + 0.5;
+  // Cortes entre tramos, rotulados con su número: es lo que dice dónde empieza cada uno
+  // ahora que todos comparten las mismas dos líneas.
+  ctx.font = '11px system-ui, sans-serif';
+  ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+  snaps.forEach((s, k) => {
+    if (s.desde <= minAge || s.desde >= maxAge) return;
+    const xm = Math.round(X(s.desde)) + 0.5;
+    ctx.setLineDash([2, 4]); ctx.strokeStyle = CHART.ref; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(xm, yt + 13); ctx.lineTo(xm, yb); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle = CHART.label; ctx.fillText(String(k + 1).padStart(2, '0'), xm, yt);
+  });
+
+  // Solo líneas: rellenar por debajo tapaba la rejilla y dejaba la zona baja de la
+  // gráfica hecha un bloque de color en el que no se distinguía nada. Son DOS, cosidas
+  // a lo largo de toda la ruta: el color dice el papel de la línea, no el tramo.
+  const linea = (key, stroke) => {
+    ctx.beginPath();
+    ruta.forEach((f, k) => k ? ctx.lineTo(X(f.edad), Y(f[key])) : ctx.moveTo(X(f.edad), Y(f[key])));
+    ctx.strokeStyle = stroke; ctx.lineWidth = 2.4; ctx.stroke();
+  };
+  linea('total', CI_COL.interes);
+  linea('aportado', CI_COL.aportado);
+
+  // El hover recorre la ruta entera, no solo el plan de ahora.
+  if (hoverIdx !== null && ruta[hoverIdx]) {
+    const f = ruta[hoverIdx], xh = Math.round(X(f.edad)) + 0.5;
     ctx.setLineDash([3, 3]); ctx.strokeStyle = CHART.ref; ctx.lineWidth = 1;
     ctx.beginPath(); ctx.moveTo(xh, yt); ctx.lineTo(xh, yb); ctx.stroke(); ctx.setLineDash([]);
     for (const [v, col] of [[f.total, CI_COL.interes], [f.aportado, CI_COL.aportado]]) {
@@ -1427,23 +1529,25 @@ function drawChart(hoverIdx = null) {
 (function () {
   const tip = document.getElementById('tooltip');
   const show = e => {
-    if (!chartData || !chartData.length || !plot) return;
+    // Se recorre la ruta compuesta, así que el tooltip responde en cualquier tramo y no
+    // solo en el trecho que cubre el plan de ahora.
+    const ruta = plot && plot.ruta;
+    if (!ruta || !ruta.length) return;
     const p = (e.touches ? e.touches[0] : e);
     const mx = p.clientX - canvas.getBoundingClientRect().left;
     let best = 0, bestD = Infinity;
-    chartData.forEach((f, k) => { const d = Math.abs(plot.X(f.edad) - mx); if (d < bestD) { bestD = d; best = k; } });
-    const f = chartData[best], interes = f.total - f.aportado;
-    // Cada instantánea que llegue a esa edad añade su fila: es la comparación directa,
-    // y es lo que hace útil superponerlas.
-    const filasSnap = snaps.map((s, k) => {
-      const p = s.puntos.find(p => p.edad === f.edad);
-      if (!p) return '';
-      return `<div class="t-row"><span style="color:${snapColor(k)}">${s.nombre}</span><span>${fmt.format(p.total)}</span></div>`;
-    }).join('');
+    ruta.forEach((f, k) => { const d = Math.abs(plot.X(f.edad) - mx); if (d < bestD) { bestD = d; best = k; } });
+    const f = ruta[best], interes = f.total - f.aportado;
+    const cual = f.origen
+      ? `<div class="t-row"><span class="muted">Tramo</span><span>${String(f.origen.n).padStart(2, '0')} · ${f.origen.nombre}</span></div>`
+      : `<div class="t-row"><span class="muted">Tramo</span><span>plan de ahora</span></div>`;
+    const cuota = f.cuota
+      ? `<div class="t-row"><span class="muted">Aportas ese año</span><span>${fmt.format(f.cuota)}/mes</span></div>`
+      : '';
     tip.innerHTML = `<div class="t-year">${f.edad} años · año ${f.anio}</div>
       <div class="t-row"><span style="color:${CI_COL.interes}">Valor total</span><span>${fmt.format(f.total)}</span></div>
       <div class="t-row"><span style="color:${CI_COL.aportado}">Lo que has puesto</span><span>${fmt.format(f.aportado)}</span></div>
-      <div class="t-row"><span class="muted">Interés generado</span><span>${fmt.format(interes)}</span></div>${filasSnap}`;
+      <div class="t-row"><span class="muted">Interés generado</span><span>${fmt.format(interes)}</span></div>${cuota}${cual}`;
     tip.style.opacity = 1;
     tip.style.left = (p.clientX + 14) + 'px';
     tip.style.top = (p.clientY + 14) + 'px';
@@ -1937,10 +2041,14 @@ refreshScenarioSel(getCurrentName());
   setTimeout(()=>{ inp.style.background=''; }, 1500);
 })();
 
-// recalcular en vivo + guardar en cada cambio
+// recalcular en vivo + guardar en cada cambio. Tocar el formulario a mano deja de
+// describir el tramo que se hubiera aplicado, así que se apaga su resaltado: `applyData()`
+// asigna los valores por código y no dispara estos eventos, de modo que aplicar un tramo
+// no se desmarca a sí mismo.
 formInputs.forEach(el => {
-  el.addEventListener('input', () => { compute(); saveForm(); });
-  el.addEventListener('change', () => { compute(); saveForm(); });
+  const alEditar = () => { snapActivo = null; compute(); saveForm(); };
+  el.addEventListener('input', alEditar);
+  el.addEventListener('change', alEditar);
 });
 
 // El slider de "edad que quieres ver" no toca el plan: no recalcula ni se guarda,

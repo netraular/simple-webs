@@ -176,9 +176,9 @@
   .np-metric .np-v { font-size: 1.5rem; font-weight: 700; color: var(--green); margin: 2px 0; }
   .np-metric .np-s { font-size: .7rem; color: #64748b; line-height: 1.4; }
 
-  /* Cifras clave del plan e interés compuesto: las tres en una fila
-     (la tarjeta ocupa todo el ancho) */
-  @media (min-width: 780px) { #keyKpis, #ciKpis { grid-template-columns: repeat(3, 1fr); } }
+  /* Cifras clave del interés compuesto: las tres en una fila (la tarjeta ocupa todo el
+     ancho). Las del plan van en 2×2, porque su tarjeta es la columna estrecha. */
+  @media (min-width: 780px) { #ciKpis { grid-template-columns: repeat(3, 1fr); } }
 
 
   /* Horizonte: panel técnico de planificación. */
@@ -250,7 +250,6 @@
   .ring-label{font:600 .64rem "IBM Plex Mono",monospace; color:var(--muted); text-transform:uppercase; letter-spacing:.06em}
   .ring-rate{font-size:.76rem; color:var(--accent); font-weight:700}
   /* Máquina del tiempo de la tarjeta: slider de edad + círculo de composición. */
-  .view-chip[hidden]{display:none}
   .view-chip{display:inline-flex; align-items:center; gap:7px; padding:3px 4px 3px 9px; background:#fff5e0; border:1px solid #e6c882;
     font:600 .64rem "IBM Plex Mono",monospace; color:#8a6410; text-transform:none; letter-spacing:0}
   .view-chip b{color:#5e4409}
@@ -266,27 +265,29 @@
     background:var(--amber); border:3px solid #fff; box-shadow:0 0 0 1px #bd850c}
   .tl-range::-moz-range-track{height:5px; background:var(--tl-track,#dce5ef); border:0}
   .tl-range::-moz-range-thumb{width:17px; height:17px; border-radius:2px; background:var(--amber); border:3px solid #fff; box-shadow:0 0 0 1px #bd850c}
-  .split-head{display:flex; align-items:baseline; gap:10px; margin-bottom:8px; font-size:.78rem; color:var(--muted)}
-  .split-head b{margin-left:auto; color:var(--text); font:600 .95rem "IBM Plex Mono",monospace}
-  .split-legend{margin-top:11px; font-size:.73rem; color:var(--muted)}
-  .split-legend .row{display:flex; align-items:center; gap:8px; padding:3px 0; border:0; font-size:.73rem}
-  .split-legend i{width:10px; height:10px; flex:none}
-  .split-legend em{font-style:normal; font:600 .68rem "IBM Plex Mono",monospace; margin-left:auto}
-  .split-legend b{color:var(--text); font:600 .73rem "IBM Plex Mono",monospace; width:74px; text-align:right}
-  .route-flags{position:relative; height:31px; margin:7px 8px 0; font:500 .66rem "IBM Plex Mono",monospace; color:var(--muted)}
-  .route-flags span{position:absolute; top:0; white-space:nowrap; transform:translateX(-50%)}
+  /* Leyenda del círculo: una tira de chips (color + importe). El reparto ya se ve en el
+     propio círculo, así que aquí no se repiten porcentajes ni se gasta una fila por dato. */
+  .split-legend{display:flex; flex-wrap:wrap; justify-content:center; gap:4px 14px; margin-top:2px; font-size:.7rem; color:var(--muted)}
+  .split-legend span{display:inline-flex; align-items:center; gap:5px; white-space:nowrap}
+  .split-legend i{width:9px; height:9px; flex:none; border-radius:2px}
+  .split-legend b{color:var(--text); font:600 .72rem "IBM Plex Mono",monospace}
+  /* Extremos de la línea de tiempo. El punto en que dejas de aportar no se rotula: ya se
+     ve en el color del raíl. */
+  .route-flags{position:relative; height:16px; margin:7px 8px 0; font:500 .66rem "IBM Plex Mono",monospace; color:var(--muted)}
+  .route-flags span{position:absolute; top:0; white-space:nowrap}
   .route-flags b{color:var(--text)}
-  .route-flags .on{color:var(--accent)}
-  .route-flags .on b{color:var(--accent)}
+  .route-flags .on, .route-flags .on b{color:var(--accent)}
   .mini .s{font-size:.66rem; color:var(--muted); margin-top:4px; line-height:1.35}
   .mini{background:#f2f6fa; border-color:#d2dce5; border-radius:4px}
   .mini .v{font-family:"IBM Plex Mono",monospace}
+  /* Cifra protagonista de la tarjeta: la cuota del año que estás mirando. */
+  .mini.hero{grid-column:1/-1; background:#fff; border-left:3px solid var(--accent)}
+  .mini.hero .v{font-size:2rem; line-height:1.05; margin-top:6px}
+  .mini.hero .v small{font-size:.9rem; color:var(--muted); font-weight:600}
+  /* Barra de progreso del esfuerzo: cuánto del total que vas a aportar llevas ya pagado. */
+  .mini-bar{height:4px; margin-top:8px; background:#dce5ef; border-radius:2px; overflow:hidden}
+  .mini-bar i{display:block; height:100%; background:var(--accent); border-radius:2px}
   .result-sub{color:var(--muted)}
-  .monthly-context{display:grid; grid-template-columns:1fr 1fr; border-block:1px solid var(--border); padding:10px 0}
-  .monthly-context span{min-width:0}
-  .monthly-context span+span{border-left:1px solid var(--border); padding-left:14px}
-  .monthly-context small{display:block; margin-bottom:3px; color:var(--muted); font-size:.65rem; text-transform:uppercase}
-  .monthly-context b{display:block; color:var(--text); font:600 .78rem "IBM Plex Mono",monospace; overflow-wrap:anywhere}
   .alert.ok{background:#e2f4ee;border-color:#9dd3c2;color:#17634f}.alert.warn{background:#fff3d6;border-color:#e1c36f;color:#72510e}.alert.bad{background:#fae3e5;border-color:#dda3aa;color:#7e3038}
   .chart-card{background:#fff}
   #chart,#ciChart{background:#f8fafc; border:1px solid var(--border); border-radius:4px}
@@ -482,34 +483,59 @@
   <!-- Cuánto tienes que aportar (ancho completo; el detalle listado se puede plegar) -->
   <div class="card" id="aportarCard">
     <h2 class="with-aside">Tu esfuerzo mensual
-      <span class="view-chip" id="viewChip" hidden>viendo · <b id="viewChipAge">—</b>
-        <button type="button" id="btnViewReset" title="Volver a hoy" aria-label="Volver a hoy">↺</button>
+      <!-- Único sitio donde se dice qué edad estás mirando: todo lo de abajo describe
+           ese año, así que ni el círculo ni las cifras lo repiten. -->
+      <span class="view-chip" id="viewChip">a los <b id="viewChipAge">—</b>
+        <button type="button" id="btnViewReset" title="Volver a hoy" aria-label="Volver a hoy" hidden>↺</button>
       </span>
     </h2>
-    <div class="split-head"><span id="splitTitle">Tu patrimonio</span><b id="splitTotal">—</b></div>
-    <div class="result-visual">
-      <div class="result-ring" id="resultRing">
-        <span class="ring-label" id="kpi3k">Nº Coast FIRE</span>
-        <div class="result-total" id="coast-num">—</div>
-        <span class="ring-rate" id="kpi3s"></span>
-      </div>
-    </div>
-    <div class="split-legend" id="originLegend"></div>
-    <div class="result-sub" id="mensual-sub"></div>
 
     <!-- Máquina del tiempo: recorre la fase de acumulación (hoy → retiro) y toda la
          tarjeta pasa a describir ese año. El raíl del slider es la propia línea de
-         fases (aportas / bola de nieve). -->
+         fases: lleno mientras aportas, apagado cuando la cartera compone sola. -->
     <div class="timeline" id="timeline">
       <input type="range" class="tl-range" id="viewAge" min="0" max="1" step="1" value="0" data-nosave aria-label="Edad que quieres ver">
       <div class="route-flags" id="lifeFlags"></div>
     </div>
 
-    <!-- Cifras clave siempre visibles, todas referidas a la edad que estás viendo -->
-    <div class="cards-mini" id="keyKpis" style="margin-top:16px">
-      <div class="mini"><div class="k" id="kpi1k">Tu capital hoy (€ hoy)</div><div class="v" id="cap-hoy">—</div><div class="s" id="kpi1s"></div></div>
-      <div class="mini"><div class="k" id="kpi2k">Nº Coast FIRE al retirarte</div><div class="v" id="cap-nominal">—</div><div class="s" id="kpi2s"></div></div>
-      <div class="mini"><div class="k" id="ringLabel">Aportación del mes</div><div class="v" id="mensual">—</div><div class="s" id="ringRate">— del ingreso neto</div></div>
+    <div class="result-visual">
+      <div class="result-ring" id="resultRing">
+        <span class="ring-label">Patrimonio · € de hoy</span>
+        <div class="result-total" id="ringTotal">—</div>
+        <span class="ring-rate" id="ringGoal"></span>
+      </div>
+    </div>
+    <div class="split-legend" id="originLegend"></div>
+
+    <!-- Cifras clave, todas referidas a la edad que estás viendo y con la misma forma
+         en todos los años (no hay un caso especial para hoy ni para el retiro). -->
+    <div class="cards-mini" id="keyKpis" style="margin-top:18px">
+      <div class="mini hero">
+        <div class="k">Aportación de ese año</div>
+        <div class="v" id="kpiCuota">—</div>
+        <div class="s" id="kpiCuotaS"></div>
+      </div>
+      <div class="mini" title="Suma de todas las cuotas pagadas desde hoy hasta esa edad, en € de hoy">
+        <div class="k">Llevas aportado</div>
+        <div class="v" id="kpiAportado">—</div>
+        <div class="mini-bar"><i id="kpiAportadoBar" style="width:0"></i></div>
+        <div class="s" id="kpiAportadoS"></div>
+      </div>
+      <div class="mini" title="Lo que te falta por poner de tu bolsillo desde esa edad hasta que dejas de aportar">
+        <div class="k">Te queda por aportar</div>
+        <div class="v" id="kpiRestante">—</div>
+        <div class="s" id="kpiRestanteS"></div>
+      </div>
+      <div class="mini" title="Capital con el que te retiras: la retirada bruta anual dividida entre tu tasa de retirada segura">
+        <div class="k">Objetivo al retirarte</div>
+        <div class="v" id="kpiObjetivo">—</div>
+        <div class="s" id="kpiObjetivoS"></div>
+      </div>
+      <div class="mini" title="Lo que tendrías que tener invertido a esa edad para no aportar nunca más y aun así llegar al objetivo">
+        <div class="k">Nº Coast FIRE</div>
+        <div class="v" id="kpiCoast">—</div>
+        <div class="s" id="kpiCoastS"></div>
+      </div>
     </div>
 
     <details class="expander" id="detalleWrap">
@@ -940,24 +966,8 @@ function compute() {
   const na = document.getElementById('neto-anual');
   if (na) na.textContent = neto > 0 ? `Equivale a ≈ ${fmt.format(neto)}/año.` : '';
 
-  // Panel principal. La cifra del anillo y su subtítulo los pinta renderEsfuerzo(),
-  // que depende de la edad que se esté viendo en el slider; aquí solo se prepara la
-  // frase del plan (la que se muestra cuando el slider está en "hoy").
-  // Subtítulo de la cifra principal: una frase por perfil, para poder afinar cada una
-  // por separado. Si el perfil no llega a decrecer (ratio 1, o cuota 0) se usa la de
-  // "constante", que es lo que de hecho está pasando.
-  const SUB_PERFIL = {
-    constante: () => `en euros de hoy · sube con la inflación (≈ ${fmt.format(mensual*Math.pow(1+infl,10))}/mes en € nominales dentro de 10 años)`,
-    ratio: () => `el <b>primer año</b> (en € de hoy) · baja de forma lineal hasta <b>${fmt.format(mensualFin)}/mes</b> el último año, aportando los <b>${M} años</b> (ratio ${perfil.frontload.toLocaleString('es-ES')}×)`,
-    cero: () => `el <b>primer año</b> (en € de hoy) · baja en línea recta hasta llegar a <b>0 €</b> justo al retirarte: repartes el esfuerzo a lo largo de los <b>${M} años</b>, cada vez menos (el último, <b>${fmt.format(mensualFin)}/mes</b>)`,
-    tope: () => conSuelo
-      ? `tu <b>tope</b>, que pagas el <b>primer año</b> (en € de hoy) · con ese tope no puedes dejar de aportar antes de tiempo, así que la cuota baja en línea recta solo hasta <b>${fmt.format(mensualFin)}/mes</b> y aportas los <b>${M} años</b>`
-      : `tu <b>tope</b>, que pagas el <b>primer año</b> (en € de hoy) · baja en línea recta hasta <b>0 €</b> a lo largo de <b>${aniosAportando} de los ${M} años</b>${aniosAportando < M ? `; ${M - aniosAportando === 1 ? 'el <b>año</b> restante' : `los <b>${M - aniosAportando}</b> restantes`} no aportas nada (la cartera solo compone)` : ''}`,
-    sprint: () => paraAntes
-      ? `Alcanzas tu <b>Nº Coast FIRE</b> a los <b>${stopAge}</b>: desde entonces puedes dejar de aportar y la bola rueda sola hasta el retiro.`
-      : `tu <b>sprint</b> (en € de hoy) · con ese importe la bola no llega a rodar sola: aportas hasta el <b>último año</b>, ya sin margen para parar antes del retiro. Súbelo para adelantar tu <b>Nº Coast FIRE</b>.`,
-  };
-  planSub = (decreciente && SUB_PERFIL[perfil.modo] || SUB_PERFIL.constante)();
+  // El panel del esfuerzo (círculo, línea de tiempo y cifras clave) lo pinta entero
+  // renderEsfuerzo(), porque todo él depende de la edad que marque el slider.
 
   // Tasa de ahorro sobre neto: primer y último año (con perfil de aportación decreciente)
   const tCol = t => t > 0.6 ? 'var(--red)' : t > 0.4 ? 'var(--amber)' : 'var(--green)';
@@ -1031,12 +1041,11 @@ function renderPlanResumen() {
 }
 
 // ---- Máquina del tiempo de la tarjeta "Tu esfuerzo mensual" ----
-// El slider recorre la fase de acumulación (hoy → retiro) y toda la tarjeta pasa a
-// describir esa edad: la cuota de ese año, de qué está hecho el patrimonio en ese
-// momento y cuánto falta para el objetivo. Con el slider en "hoy" la tarjeta dice
-// exactamente lo mismo que antes de existir el slider (la cuota del primer año es
-// la aportación necesaria del plan), así que no hay estado "raro" por defecto.
-let lastSc = null, lastCurve = null, planSub = '', viewAge = null;
+// El slider recorre la fase de acumulación (hoy → retiro) y toda la tarjeta describe
+// esa edad: la cuota de ese año, de qué está hecho el patrimonio en ese momento y
+// cuánto falta para el objetivo. Todos los años se cuentan igual —hoy y el retiro
+// incluidos—: mismas casillas, mismas unidades y ninguna frase especial.
+let lastSc = null, lastCurve = null, viewAge = null;
 
 // Ajusta el rango del slider a la acumulación del plan actual y conserva, si cabe,
 // la edad que el usuario estuviera mirando (al cambiar el retiro puede quedar fuera).
@@ -1050,88 +1059,59 @@ function syncViewSlider(sc) {
 function renderEsfuerzo() {
   const sc = lastSc, curve = lastCurve;
   if (!sc || !curve) return;
-  const { a0, F, cap0, capNeeded, rA, infl, base, weight, stopAge, paraAntes, M } = sc;
+  const { a0, F, cap0, capNeeded, rA, infl, base, weight, stopAge, paraAntes } = sc;
   const X = viewAge === null ? a0 : Math.max(a0, Math.min(F, viewAge));
-  const esHoy = X === a0;
   const t = X - a0;                                  // años transcurridos desde hoy
   const nominal = v => v * Math.pow(1 + infl, t);    // € de hoy → € del año X
+  const anyo = new Date().getFullYear() + t;
   const neto = val('neto') * 12;
+  const set = (id, txt) => { document.getElementById(id).innerHTML = txt; };
 
-  // Chip del encabezado: solo aparece cuando estás mirando un año que no es hoy.
-  const chip = document.getElementById('viewChip');
-  chip.hidden = esHoy;
-  document.getElementById('viewChipAge').textContent = `${X} años`;
+  // Chip del encabezado: la edad que estás mirando, el único sitio donde se dice.
+  document.getElementById('viewChipAge').textContent = `${X} años · ${anyo}`;
+  document.getElementById('btnViewReset').hidden = X === a0;
 
-  /* --- Tarjeta: la cuota del año que empieza a esa edad --- */
-  const cuota = X < F ? base * weight(X) : 0;
-  const tasa = neto > 0 ? cuota * 12 / neto : 0;
-  const colorTasa = neto <= 0 ? 'var(--muted)'
-    : tasa > 0.6 ? 'var(--red)'
-    : tasa > 0.4 ? 'var(--amber)'
-    : 'var(--green)';
-  document.getElementById('ringLabel').textContent = esHoy ? 'Aportación del mes' : `Aportación a los ${X}`;
-  const mensualEl = document.getElementById('mensual');
-  mensualEl.textContent = fmt.format(cuota);
-  mensualEl.style.color = colorTasa;
-  const ringRateEl = document.getElementById('ringRate');
-  ringRateEl.style.color = colorTasa;
-  ringRateEl.textContent =
-      cuota <= 0 ? (X >= F ? 'te retiras: dejas de aportar' : 'este año ya no aportas')
-    : neto > 0 ? `${(tasa * 100).toFixed(0)} % del ingreso neto`
-    : 'Añade tus ingresos para comparar';
+  /* --- Esfuerzo del plan (€ de hoy): lo pagado hasta X, lo que queda y el total --- */
+  const cuota = X < F ? base * weight(X) : 0;        // cuota mensual del año que empieza a los X
+  let pagado = 0, totalAportar = 0;
+  for (let age = a0; age < F; age++) {
+    const anualAge = base * weight(age) * 12;
+    totalAportar += anualAge;
+    if (age < X) pagado += anualAge;
+  }
+  const restante = Math.max(0, totalAportar - pagado);
+  const pctPagado = totalAportar > 1 ? Math.min(100, (pagado / totalAportar) * 100) : 100;
+  const aniosRestantes = Math.max(0, stopAge - X);
 
-  // Subtítulo: con el slider en hoy, la frase del plan; si no, la de ese año.
-  document.getElementById('mensual-sub').innerHTML = esHoy ? planSub
-    : cuota > 0
-      ? `<div class="monthly-context"><span><small>Periodo</small><b>${X} → ${X + 1}</b></span><span><small>Cuota nominal</small><b>${fmt.format(nominal(cuota))} / mes</b></span></div>`
-      : X >= F
-        ? `a los <b>${F}</b> te retiras: dejas de aportar y la cartera empieza a pagarte a ti`
-        : `a esta edad <b>ya no aportas nada</b>: la cartera compone sola hasta el retiro`;
-
-  /* --- Slider: el raíl es la línea de fases de la acumulación --- */
-  const span = Math.max(1, F - a0);                  // stopAge: dejas de aportar (tope / sprint / hasta 0)
+  /* --- Línea de tiempo: el raíl marca las fases de la acumulación --- */
+  const span = Math.max(1, F - a0);                  // stopAge: edad en la que dejas de aportar
   const at = age => Math.max(0, Math.min(100, ((age - a0) / span) * 100));
   const pStop = at(stopAge);
-  const paras = paraAntes;                           // hay tramo de "bola de nieve" que marcar
   document.getElementById('viewAge').style.setProperty('--tl-track',
-      paras ? `linear-gradient(90deg, var(--blue) 0 ${pStop}%, rgba(0,163,199,.28) ${pStop}% 100%)`
+      paraAntes ? `linear-gradient(90deg, var(--blue) 0 ${pStop}%, rgba(0,163,199,.28) ${pStop}% 100%)`
     : stopAge <= a0 ? 'rgba(0,163,199,.28)'          // no aportas nunca: ya llegas con lo que tienes
     : 'var(--blue)');
-
-  const hitos = [{ age: a0, txt: 'Hoy' }];
-  if (paras) hitos.push({ age: stopAge, txt: 'Dejas de aportar' });
-  hitos.push({ age: F, txt: 'Retiro' });
-  const usado = [12, -99], filaTop = [0, 15];        // dos filas alternas: no se pisan
-  document.getElementById('lifeFlags').innerHTML = hitos.map((h, n) => {
-    const on = h.age === X ? ' class="on"' : '';
-    if (n === 0) return `<span${on} style="left:0; top:0; transform:none">${h.txt} · <b>${h.age}</b></span>`;
-    if (n === hitos.length - 1) return `<span${on} style="left:100%; top:0; transform:translateX(-100%)">${h.txt} · <b>${h.age}</b></span>`;
-    const fila = (n - 1) % 2, p = Math.min(80, Math.max(at(h.age), usado[fila] + 26));
-    usado[fila] = p;
-    return `<span${on} style="left:${p}%; top:${filaTop[fila]}px">${h.txt} · <b>${h.age}</b></span>`;
-  }).join('');
+  // Solo los extremos: el punto en que dejas de aportar ya se ve en el color del raíl.
+  set('lifeFlags',
+      `<span${X === a0 ? ' class="on"' : ''} style="left:0">Hoy · <b>${a0}</b></span>`
+    + `<span${X === F ? ' class="on"' : ''} style="right:0">Retiro · <b>${F}</b></span>`);
 
   /* --- Círculo: de qué está hecho el patrimonio a los X y cuánto falta al objetivo --- */
   const patr = Math.max(0, curve.bal[t] ?? cap0);    // patrimonio a esa edad, € de hoy
-  let aportado = 0;
-  for (let age = a0; age < X; age++) aportado += base * weight(age) * 12;   // cuotas pagadas hasta X
   const yaTengo = Math.min(cap0, patr);
-  aportado = Math.min(aportado, Math.max(0, patr - yaTengo));
+  const aportado = Math.min(pagado, Math.max(0, patr - yaTengo));
   const mercado = Math.max(0, patr - yaTengo - aportado);   // el resto lo pone el interés compuesto
   const partes = [
-    { k: 'Lo que ya tenías invertido',            v: yaTengo,  c: 'var(--blue)' },
-    { k: esHoy ? 'Lo que aportarás' : 'Lo que has aportado', v: aportado, c: 'var(--accent)' },
-    { k: 'Lo que pone el mercado',                v: mercado,  c: 'var(--green)' },
+    { k: 'Ya invertido', v: yaTengo,  c: 'var(--blue)' },
+    { k: 'Aportado',     v: aportado, c: 'var(--accent)' },
+    { k: 'Mercado',      v: mercado,  c: 'var(--green)' },
   ];
-  const escala = Math.max(capNeeded, patr) || 1;     // la barra completa = el objetivo
+  const escala = Math.max(capNeeded, patr) || 1;     // el círculo completo = el objetivo
   const falta = Math.max(0, capNeeded - patr);
   const pObj = capNeeded > 0 ? Math.min(100, (patr / capNeeded) * 100) : 100;
   // Nº Coast FIRE de ese año: con eso invertido a los X ya no harían falta más cuotas.
   const coastX = capNeeded / Math.pow(1 + rA, F - X);
 
-  document.getElementById('splitTitle').innerHTML = esHoy
-    ? 'De qué está hecho tu capital, hoy' : `De qué estará hecho tu patrimonio a los <b>${X}</b>`;
-  document.getElementById('splitTotal').textContent = fmtShort(patr);
   let tramo = 0;
   const segmentos = partes.map(p => {
     const inicio = tramo;
@@ -1140,31 +1120,43 @@ function renderEsfuerzo() {
   });
   segmentos.push(`#dce5ef ${tramo}% 100%`);
   document.getElementById('resultRing').style.setProperty('--capital-split', `conic-gradient(${segmentos.join(',')})`);
-  document.getElementById('originLegend').innerHTML = partes
-      .map(p => `<div class="row"><i style="background:${p.c}"></i>${p.k}<em>${patr > 0 ? ((p.v / patr) * 100).toFixed(0) : 0}%</em><b>${fmtShort(p.v)}</b></div>`).join('')
-    + `<div class="row" style="margin-top:4px; border-top:1px solid var(--border); padding-top:7px">`
-    + `<i style="background:#dce5ef"></i>Falta para el objetivo del retiro<em></em><b>${fmtShort(falta)}</b></div>`;
+  set('ringTotal', fmtShort(patr));
+  set('ringGoal', `${pObj.toFixed(0)}% de tu objetivo`);
+  set('originLegend', partes.map(p =>
+    `<span><i style="background:${p.c}"></i>${p.k} <b>${fmtShort(p.v)}</b></span>`).join(''));
 
-  /* --- Cifras clave, todas referidas a la edad que estás viendo --- */
-  document.getElementById('kpi1k').textContent = esHoy ? 'Tu capital hoy (€ hoy)' : `Patrimonio a los ${X} (€ hoy)`;
-  document.getElementById('cap-hoy').textContent = fmtShort(patr);
-  document.getElementById('kpi1s').innerHTML = esHoy ? '' : `≈ ${fmtShort(nominal(patr))} en € de ese año`;
+  /* --- Cifras clave: mismas casillas y mismas unidades para todos los años --- */
+  const tasa = neto > 0 ? cuota * 12 / neto : 0;
+  const cuotaEl = document.getElementById('kpiCuota');
+  cuotaEl.innerHTML = `${fmt.format(cuota)}<small> /mes</small>`;
+  cuotaEl.style.color = cuota <= 0 ? 'var(--muted)'
+    : neto <= 0 ? 'var(--text)'
+    : tasa > 0.6 ? 'var(--red)'
+    : tasa > 0.4 ? 'var(--amber)'
+    : 'var(--green)';
+  set('kpiCuotaS', (neto > 0 ? `<b>${(tasa * 100).toFixed(0)}%</b> de tu neto · ` : '')
+    + `${fmt.format(nominal(cuota))}/mes en € de ${anyo}`);
 
-  // Objetivo: el Nº Coast FIRE del último día, que es el capital con el que te retiras.
-  // Es la cifra que manda en todo el plan, así que va en grande y no en la letra pequeña.
-  document.getElementById('kpi2k').textContent = `Nº Coast FIRE al retirarte (${F})`;
-  document.getElementById('cap-nominal').textContent = fmtShort(capNeeded);
-  document.getElementById('kpi2s').innerHTML = falta > 1
-    ? `Llevas el <b>${pObj.toFixed(0)}%</b> · te faltan ${fmtShort(falta)}`
-    : '✅ objetivo cubierto';
+  set('kpiAportado', fmtShort(pagado));
+  document.getElementById('kpiAportadoBar').style.width = pctPagado.toFixed(1) + '%';
+  set('kpiAportadoS', totalAportar > 1
+    ? `<b>${pctPagado.toFixed(0)}%</b> de los ${fmtShort(totalAportar)} del plan`
+    : 'el plan no necesita aportaciones');
 
-  document.getElementById('kpi3k').textContent = esHoy ? 'Nº Coast FIRE hoy' : `Nº Coast FIRE a los ${X}`;
-  document.getElementById('coast-num').textContent = fmtShort(coastX);
+  set('kpiRestante', fmtShort(restante));
+  set('kpiRestanteS', restante > 1
+    ? `${aniosRestantes} ${aniosRestantes === 1 ? 'año' : 'años'} más · hasta los <b>${stopAge}</b>`
+    : 'ya no aportas más');
+
+  set('kpiObjetivo', fmtShort(capNeeded));
+  set('kpiObjetivoS', falta > 1 ? `te faltan ${fmtShort(falta)} para el retiro (${F})` : '✅ objetivo cubierto');
+
+  set('kpiCoast', fmtShort(coastX));
   // El patrimonio clava el objetivo justo en el retiro, así que al final la comparación
   // se decide por decimales: un euro de margen evita el "te faltan 0 €".
-  document.getElementById('kpi3s').innerHTML = patr >= coastX - 1
+  set('kpiCoastS', patr >= coastX - 1
     ? '✅ ya puedes dejar de aportar'
-    : `te faltan ${fmtShort(coastX - patr)} para poder parar`;
+    : `te faltan ${fmtShort(coastX - patr)} para poder parar`);
 }
 
 // Tabla de aportación año a año (€ de hoy y € nominales corregidos por inflación).

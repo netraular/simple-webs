@@ -1123,15 +1123,17 @@ function renderEsfuerzo() {
     : tasa > 0.6 ? 'var(--red)'
     : tasa > 0.4 ? 'var(--amber)'
     : 'var(--green)';
-  set('kpiCuotaS', (neto > 0 ? `<b>${(tasa * 100).toFixed(0)}%</b> de tu neto · ` : '')
-    + `${fmt.format(nominal(cuota))}/mes en € de ${anyo}`);
+  set('kpiCuotaS', cuota <= 0
+    ? '✅ este año no aportas nada'
+    : (neto > 0 ? `<b>${(tasa * 100).toFixed(0)}%</b> de tu neto · ` : '')
+      + `${fmt.format(nominal(cuota))}/mes en € de ${anyo}`);
 
   // Lo que queda de esfuerzo: euros por pagar, barra con la parte ya pagada y, en la
   // letra pequeña, cuánto llevas y cuántos años más.
   set('kpiRestante', fmtShort(restante));
   document.getElementById('kpiRestanteBar').style.width = pctPagado.toFixed(1) + '%';
-  set('kpiRestanteS', totalAportar <= 1 ? 'el plan no necesita aportaciones'
-    : restante <= 1 ? `ya has aportado los ${fmtShort(totalAportar)} del plan`
+  set('kpiRestanteS', totalAportar <= 1 ? '✅ el plan no necesita aportaciones'
+    : restante <= 1 ? `✅ ya has aportado los ${fmtShort(totalAportar)} del plan`
     : `llevas ${fmtShort(pagado)} · ${aniosRestantes} ${aniosRestantes === 1 ? 'año' : 'años'} más`);
 
   // Distancia al objetivo del retiro: manda lo que falta, no la cifra fija del objetivo.

@@ -280,10 +280,7 @@
   .mini .s{font-size:.66rem; color:var(--muted); margin-top:4px; line-height:1.35}
   .mini{background:#f2f6fa; border-color:#d2dce5; border-radius:4px}
   .mini .v{font-family:"IBM Plex Mono",monospace}
-  /* Cifra protagonista de la tarjeta: la cuota del año que estás mirando. */
-  .mini.hero{grid-column:1/-1; background:#fff; border-left:3px solid var(--accent)}
-  .mini.hero .v{font-size:2rem; line-height:1.05; margin-top:6px}
-  .mini.hero .v small{font-size:.9rem; color:var(--muted); font-weight:600}
+  .mini .v small{font-size:.72rem; color:var(--muted); font-weight:600}
   /* Barra de progreso del esfuerzo: cuánto del total que vas a aportar llevas ya pagado. */
   .mini-bar{height:4px; margin-top:8px; background:#dce5ef; border-radius:2px; overflow:hidden}
   .mini-bar i{display:block; height:100%; background:var(--accent); border-radius:2px}
@@ -510,26 +507,21 @@
     <!-- Cifras clave, todas referidas a la edad que estás viendo y con la misma forma
          en todos los años (no hay un caso especial para hoy ni para el retiro). -->
     <div class="cards-mini" id="keyKpis" style="margin-top:18px">
-      <div class="mini hero">
+      <div class="mini" title="La cuota mensual que toca pagar el año que empieza a esa edad">
         <div class="k">Aportación de ese año</div>
         <div class="v" id="kpiCuota">—</div>
         <div class="s" id="kpiCuotaS"></div>
       </div>
-      <div class="mini" title="Suma de todas las cuotas pagadas desde hoy hasta esa edad, en € de hoy">
-        <div class="k">Llevas aportado</div>
-        <div class="v" id="kpiAportado">—</div>
-        <div class="mini-bar"><i id="kpiAportadoBar" style="width:0"></i></div>
-        <div class="s" id="kpiAportadoS"></div>
-      </div>
-      <div class="mini" title="Lo que te falta por poner de tu bolsillo desde esa edad hasta que dejas de aportar">
+      <div class="mini" title="Dinero que aún tienes que poner de tu bolsillo, desde esa edad hasta que dejas de aportar. La barra es la parte del esfuerzo que ya llevas pagada.">
         <div class="k">Te queda por aportar</div>
         <div class="v" id="kpiRestante">—</div>
+        <div class="mini-bar"><i id="kpiRestanteBar" style="width:0"></i></div>
         <div class="s" id="kpiRestanteS"></div>
       </div>
-      <div class="mini" title="Capital con el que te retiras: la retirada bruta anual dividida entre tu tasa de retirada segura">
-        <div class="k">Objetivo al retirarte</div>
-        <div class="v" id="kpiObjetivo">—</div>
-        <div class="s" id="kpiObjetivoS"></div>
+      <div class="mini" title="Cuánto le falta a tu patrimonio para el capital con el que te retiras. Ese capital es la retirada bruta anual dividida entre tu tasa de retirada segura.">
+        <div class="k">Te falta para el objetivo</div>
+        <div class="v" id="kpiFalta">—</div>
+        <div class="s" id="kpiFaltaS"></div>
       </div>
       <div class="mini" title="Lo que tendrías que tener invertido a esa edad para no aportar nunca más y aun así llegar al objetivo">
         <div class="k">Nº Coast FIRE</div>
@@ -1106,6 +1098,9 @@ function renderEsfuerzo() {
     { k: 'Aportado',     v: aportado, c: 'var(--accent)' },
     { k: 'Mercado',      v: mercado,  c: 'var(--green)' },
   ];
+  // La leyenda no repite el desglose del círculo: agrupa en uno lo que sale de tu
+  // bolsillo (ya invertido + aportado, de ahí el color partido) y añade el gris, que
+  // es el dato que el círculo deja sin nombrar.
   const escala = Math.max(capNeeded, patr) || 1;     // el círculo completo = el objetivo
   const falta = Math.max(0, capNeeded - patr);
   const pObj = capNeeded > 0 ? Math.min(100, (patr / capNeeded) * 100) : 100;
@@ -1122,8 +1117,11 @@ function renderEsfuerzo() {
   document.getElementById('resultRing').style.setProperty('--capital-split', `conic-gradient(${segmentos.join(',')})`);
   set('ringTotal', fmtShort(patr));
   set('ringGoal', `${pObj.toFixed(0)}% de tu objetivo`);
-  set('originLegend', partes.map(p =>
-    `<span><i style="background:${p.c}"></i>${p.k} <b>${fmtShort(p.v)}</b></span>`).join(''));
+  set('originLegend', [
+    { k: 'Tuyo',    v: yaTengo + aportado, c: 'linear-gradient(90deg,var(--blue) 0 50%,var(--accent) 50% 100%)' },
+    { k: 'Mercado', v: mercado,            c: 'var(--green)' },
+    { k: 'Falta',   v: falta,              c: '#dce5ef' },
+  ].map(p => `<span><i style="background:${p.c}"></i>${p.k} <b>${fmtShort(p.v)}</b></span>`).join(''));
 
   /* --- Cifras clave: mismas casillas y mismas unidades para todos los años --- */
   const tasa = neto > 0 ? cuota * 12 / neto : 0;
@@ -1137,26 +1135,28 @@ function renderEsfuerzo() {
   set('kpiCuotaS', (neto > 0 ? `<b>${(tasa * 100).toFixed(0)}%</b> de tu neto · ` : '')
     + `${fmt.format(nominal(cuota))}/mes en € de ${anyo}`);
 
-  set('kpiAportado', fmtShort(pagado));
-  document.getElementById('kpiAportadoBar').style.width = pctPagado.toFixed(1) + '%';
-  set('kpiAportadoS', totalAportar > 1
-    ? `<b>${pctPagado.toFixed(0)}%</b> de los ${fmtShort(totalAportar)} del plan`
-    : 'el plan no necesita aportaciones');
-
+  // Lo que queda de esfuerzo: euros por pagar, barra con la parte ya pagada y, en la
+  // letra pequeña, cuánto llevas y cuántos años más.
   set('kpiRestante', fmtShort(restante));
-  set('kpiRestanteS', restante > 1
-    ? `${aniosRestantes} ${aniosRestantes === 1 ? 'año' : 'años'} más · hasta los <b>${stopAge}</b>`
-    : 'ya no aportas más');
+  document.getElementById('kpiRestanteBar').style.width = pctPagado.toFixed(1) + '%';
+  set('kpiRestanteS', totalAportar <= 1 ? 'el plan no necesita aportaciones'
+    : restante <= 1 ? `ya has aportado los ${fmtShort(totalAportar)} del plan`
+    : `llevas ${fmtShort(pagado)} · ${aniosRestantes} ${aniosRestantes === 1 ? 'año' : 'años'} más`);
 
-  set('kpiObjetivo', fmtShort(capNeeded));
-  set('kpiObjetivoS', falta > 1 ? `te faltan ${fmtShort(falta)} para el retiro (${F})` : '✅ objetivo cubierto');
+  // Distancia al objetivo del retiro: manda lo que falta, no la cifra fija del objetivo.
+  set('kpiFalta', fmtShort(falta));
+  set('kpiFaltaS', falta > 1
+    ? `de ${fmtShort(capNeeded)} al retirarte (${F})`
+    : `✅ objetivo de ${fmtShort(capNeeded)} cubierto`);
 
-  set('kpiCoast', fmtShort(coastX));
+  // El Nº Coast FIRE no repite ese hueco: lo que aporta es cuánto de ese número ya
+  // tienes, es decir, lo cerca que estás de poder soltar las aportaciones.
   // El patrimonio clava el objetivo justo en el retiro, así que al final la comparación
-  // se decide por decimales: un euro de margen evita el "te faltan 0 €".
+  // se decide por decimales: un euro de margen evita el "llevas el 99%".
+  set('kpiCoast', fmtShort(coastX));
   set('kpiCoastS', patr >= coastX - 1
     ? '✅ ya puedes dejar de aportar'
-    : `te faltan ${fmtShort(coastX - patr)} para poder parar`);
+    : `llevas el <b>${coastX > 0 ? Math.min(100, (patr / coastX) * 100).toFixed(0) : 100}%</b> de ese número`);
 }
 
 // Tabla de aportación año a año (€ de hoy y € nominales corregidos por inflación).

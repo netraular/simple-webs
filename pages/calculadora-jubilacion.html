@@ -880,9 +880,8 @@ function scenario(F) {
 
 // Construye la curva determinista de patrimonio (€ de hoy) año a año a partir de
 // un escenario `sc`: fase de acumulación (aportas `base` con perfil) y fase de
-// retiro (gasto constante S, cubierto por pensión + cartera). Devuelve también el
-// año en que se agotaría la cartera (o null). No toca el DOM: sirve tanto para el
-// plan como para visualizar la proyección de otra estrategia.
+// retiro (gasto constante S, cubierto por pensión + cartera). No toca el DOM: sirve
+// tanto para el plan como para visualizar la proyección de otra estrategia.
 function buildCurve(sc) {
   const { a0, F, E, cap0, S, rR, i, tr, PA, P, cobrarePension, convenioAnual, base, weight } = sc;
   const ages = [], bal = [], phase = [], flow = [];
@@ -894,7 +893,6 @@ function buildCurve(sc) {
     ages.push(age + 1); bal.push(b); phase.push(0);
     flow.push({ acc: true, aport: aport * 12 });
   }
-  let ranOutAge = null;
   for (let age = F; age < E; age++) {
     const conPension = cobrarePension && age >= PA;
     const pensionNeta = conPension ? Math.min(P, S) : 0;         // pensión que cubre gasto
@@ -902,11 +900,10 @@ function buildCurve(sc) {
     const conv = (age < PA) ? convenioAnual : 0;                 // convenio solo en el puente
     const w = carteraNeta / (1 - tr) + conv;                     // retirada bruta de la cartera
     b = b * (1 + rR) - w;   // retirada a fin de año: gastas solo el rendimiento → principal plano
-    if (ranOutAge === null && b <= 0) ranOutAge = age + 1;       // la cartera se agota
     ages.push(age + 1); bal.push(b); phase.push(conPension ? 2 : 1);
     flow.push({ acc: false, gasto: S, pension: pensionNeta, cartera: carteraNeta, bruto: w, conv });
   }
-  return { ages, bal, phase, flow, F, PA: cobrarePension ? PA : null, ranOutAge };
+  return { ages, bal, phase, flow, F, PA: cobrarePension ? PA : null };
 }
 
 function compute() {
@@ -992,7 +989,6 @@ function compute() {
   else if (conSuelo) alerts += `<div class="alert warn">📉 Llegas al objetivo, pero aportando los ${M} años: de <b>${fmt.format(base)}</b> a <b>${fmt.format(mensualFin)}/mes</b>. Sube el tope para poder parar antes.</div>`;
   if (mensual <= 0) alerts += `<div class="alert ok">✅ Ya llegas sin aportar más: podrías adelantar el retiro o gastar más.</div>`;
   if (tasa > 1) alerts += `<div class="alert bad">🚫 Necesitarías más del 100% de tu neto: inviable. Retrasa el retiro o baja el gasto.</div>`;
-  else if (tasa > 0.6) alerts += `<div class="alert warn">⚠️ Tasa de ahorro muy exigente (${(tasa*100).toFixed(0)}%).</div>`;
   if (cobrarePension) {
     if (F < PA && !convenioActivo) alerts += `<div class="alert warn">⚠️ Te retiras ${PA-F} años antes de la pensión sin convenio: podrías reducirla. Plantéate pagarlo.</div>`;
     else if (convenioActivo) alerts += `<div class="alert warn">🌉 Pagas el convenio (${fmt.format(convenioMes)}/mes) hasta los ${PA} para conservar la pensión al 100%.</div>`;
@@ -1002,11 +998,6 @@ function compute() {
   // Curva determinista del plan (regla de retirada elegida). `flow` guarda el flujo de
   // cada año (aporte o gasto y de dónde sale) para el tooltip.
   const curve = buildCurve(sc);
-  const ranOutAge = curve.ranOutAge;
-  if (ranOutAge !== null) {
-    const box = document.getElementById('alerts');
-    box.innerHTML += `<div class="alert bad">📉 Se agota a los ${ranOutAge}: retiras más de lo que rinde. Baja el gasto o retrasa el retiro. (Con una retirada del ${tasaTxt(sc.rate0)} y una rentabilidad real ≥ ${tasaTxt(sc.rate0)} esto no debería ocurrir.)</div>`;
-  }
   lastSc = sc; lastCurve = curve;
   syncViewSlider(sc);
   renderEsfuerzo();

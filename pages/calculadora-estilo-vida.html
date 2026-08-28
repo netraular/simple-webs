@@ -300,20 +300,30 @@ const CATS = [
 /* ---- Estado & persistencia ---- */
 const LS_KEY = 'estilo-vida-v1';
 const HOGAR_DEF = {personas:2, ingresos:0};
-let store = {values:{}, custom:{}, collapsed:{}, hogar:Object.assign({},HOGAR_DEF)};
-let customSeq = 0;
+
+/* Acceso a localStorage a prueba de fallos: en modo privado o con el almacenamiento
+   deshabilitado, leer o escribir lanza. Nada de lo que guarda esta página es
+   imprescindible, así que un fallo se traduce en "no había nada guardado". */
+function lsRead(key, fallback){
+  try{
+    const raw = localStorage.getItem(key);
+    return raw === null ? fallback : JSON.parse(raw);
+  }catch(e){ return fallback; }
+}
+function lsWrite(key, value){
+  try{ localStorage.setItem(key, JSON.stringify(value)); }catch(e){}
+}
 
 function storeDefaults(){ return {values:{}, custom:{}, collapsed:{}, hogar:Object.assign({},HOGAR_DEF)}; }
 
+let store = storeDefaults();
+let customSeq = 0;
+
 function loadStore(){
-  try{
-    const raw = localStorage.getItem(LS_KEY);
-    if(raw){
-      const p = JSON.parse(raw);
-      store = Object.assign(storeDefaults(), p);
-      store.hogar = Object.assign({}, HOGAR_DEF, p.hogar||{});
-    }
-  }catch(e){ console.warn('No se pudo leer el guardado', e); }
+  const p = lsRead(LS_KEY, null);
+  if(!p) return;
+  store = Object.assign(storeDefaults(), p);
+  store.hogar = Object.assign({}, HOGAR_DEF, p.hogar||{});
 }
 
 /* Los datos del hogar no entran en el cálculo de ninguna línea: solo sirven
@@ -331,6 +341,7 @@ function paintHogar(){
   elIngresos.value = store.hogar.ingresos;
 }
 
+const elSaveState = document.getElementById('saveState');
 let saveTimer=null;
 function save(){
   store.hogar = readHogar();
@@ -344,11 +355,10 @@ function save(){
       nm: r.classList.contains('custom') ? r.querySelector('.namein').value : undefined,
     };
   });
-  try{ localStorage.setItem(LS_KEY, JSON.stringify(store)); }catch(e){}
-  const s = document.getElementById('saveState');
-  s.textContent = '✓ Guardado';
+  lsWrite(LS_KEY, store);
+  elSaveState.textContent = '✓ Guardado';
   clearTimeout(saveTimer);
-  saveTimer = setTimeout(()=>{ s.textContent=''; }, 1400);
+  saveTimer = setTimeout(()=>{ elSaveState.textContent=''; }, 1400);
 }
 
 /* ---- Render ---- */
@@ -386,8 +396,9 @@ function rowHTML(catId, it, custom){
   </div>`;
 }
 
+const grid = document.getElementById('grid');
+
 function render(){
-  const grid = document.getElementById('grid');
   grid.innerHTML = CATS.map(cat=>{
     const collapsed = store.collapsed[cat.id];
     const rows = cat.items.map(it=>rowHTML(cat.id, it, false)).join('');
@@ -404,47 +415,51 @@ function render(){
       </div>
     </div>`;
   }).join('');
-  attach();
   compute();
 }
 
-function attach(){
-  document.querySelectorAll('#grid input, #grid select').forEach(el=>{
-    el.addEventListener('input', ()=>{ onRowInput(el); });
-    el.addEventListener('change', ()=>{ onRowInput(el); });
-  });
-  document.querySelectorAll('.en').forEach(cb=>{
-    cb.addEventListener('change', ()=> cb.closest('.row').classList.toggle('off', !cb.checked));
-  });
-  document.querySelectorAll('button.del').forEach(b=>{
-    b.addEventListener('click', ()=>{
-      const row = b.closest('.row'); const cat = row.dataset.cat; const id = row.dataset.id;
-      store.custom[cat] = (store.custom[cat]||[]).filter(x=>x.id!==id);
-      delete store.values[id];
-      row.remove(); compute(); save();
-    });
-  });
-  document.querySelectorAll('[data-add]').forEach(b=>{
-    b.addEventListener('click', ()=> addCustom(b.dataset.add));
-  });
-  document.querySelectorAll('.cat-head').forEach(h=>{
-    const toggle = ()=>{
-      const cat = h.parentElement.dataset.cat;
-      const body = h.nextElementSibling;
-      const now = body.style.display==='none';
-      body.style.display = now ? '' : 'none';
-      store.collapsed[cat] = !now;
-      save();
-    };
-    h.addEventListener('click', e=>{ if(e.target.closest('.sub')) return; toggle(); });
-    h.addEventListener('keydown', e=>{
-      if(e.key!=='Enter' && e.key!==' ') return;
-      e.preventDefault(); toggle();
-    });
-  });
+/* Los oyentes viven en el contenedor, no en cada control: las filas se pintan y se
+   borran continuamente (render, añadir línea, eliminar línea) y volver a engancharlos
+   fila a fila acababa acumulando una copia por cada línea personalizada añadida, de
+   modo que cada tecla disparaba el cálculo y el guardado varias veces. */
+function onGridInput(e){
+  const el = e.target;
+  if(!el.matches('input, select')) return;
+  if(el.classList.contains('en')) el.closest('.row').classList.toggle('off', !el.checked);
+  compute(); save();
 }
+grid.addEventListener('input', onGridInput);
+grid.addEventListener('change', onGridInput);
 
-function onRowInput(el){ compute(); save(); }
+grid.addEventListener('click', e=>{
+  const del = e.target.closest('button.del');
+  if(del){
+    const row = del.closest('.row'), cat = row.dataset.cat, id = row.dataset.id;
+    store.custom[cat] = (store.custom[cat]||[]).filter(x=>x.id!==id);
+    delete store.values[id];
+    row.remove(); compute(); save();
+    return;
+  }
+  const add = e.target.closest('[data-add]');
+  if(add){ addCustom(add.dataset.add); return; }
+  // La cabecera pliega la categoría, salvo al pulsar sobre el subtotal.
+  const head = e.target.closest('.cat-head');
+  if(head && !e.target.closest('.sub')) toggleCat(head);
+});
+
+grid.addEventListener('keydown', e=>{
+  const head = e.target.closest('.cat-head');
+  if(!head || (e.key!=='Enter' && e.key!==' ')) return;
+  e.preventDefault(); toggleCat(head);
+});
+
+function toggleCat(head){
+  const body = head.nextElementSibling;
+  const abierta = body.style.display==='none';
+  body.style.display = abierta ? '' : 'none';
+  store.collapsed[head.parentElement.dataset.cat] = !abierta;
+  save();
+}
 
 function addCustom(catId){
   const existing = Object.keys(store.values).concat((store.custom[catId]||[]).map(x=>x.id));
@@ -453,12 +468,10 @@ function addCustom(catId){
   const item = {id, name:'', q:1, p:0, per:'mes', on:true};
   store.custom[catId] = store.custom[catId]||[];
   store.custom[catId].push(item);
-  const catEl = document.querySelector(`.cat[data-cat="${catId}"] .cat-body`);
-  const addBtn = catEl.querySelector('.addline');
-  addBtn.insertAdjacentHTML('beforebegin', rowHTML(catId, item, true));
-  attach();
-  const newRow = catEl.querySelector(`.row[data-id="${id}"] .namein`);
-  if(newRow) newRow.focus();
+  const catEl = grid.querySelector(`.cat[data-cat="${catId}"] .cat-body`);
+  catEl.querySelector('.addline').insertAdjacentHTML('beforebegin', rowHTML(catId, item, true));
+  const nombre = catEl.querySelector(`.row[data-id="${id}"] .namein`);
+  if(nombre) nombre.focus();
   compute(); save();
 }
 
@@ -479,8 +492,9 @@ function compute(){
 
   document.querySelectorAll('.row').forEach(row=>{
     const {m, en} = rowMonthly(row);
-    row.querySelector('.m').textContent = fmt2(m) + '';
-    row.querySelector('.m').style.opacity = en ? 1 : .4;
+    const celda = row.querySelector('.m');
+    celda.textContent = fmt2(m);
+    celda.style.opacity = en ? 1 : .4;
     if(en){
       total += m; activas++;
       catTotals[row.dataset.cat] += m;
@@ -593,11 +607,10 @@ const LS_CURRENT   = 'estilo-vida-actual-v1';       // nombre del escenario carg
 const scenarioSel  = document.getElementById('scenarioSel');
 
 function readScenarios(){
-  try{ return JSON.parse(localStorage.getItem(LS_SCENARIOS) || '{}') || {}; }
-  catch(e){ return {}; }
+  return lsRead(LS_SCENARIOS, {}) || {};
 }
 function writeScenarios(obj){
-  try{ localStorage.setItem(LS_SCENARIOS, JSON.stringify(obj)); }catch(e){}
+  lsWrite(LS_SCENARIOS, obj);
 }
 function setCurrentName(name){
   try{ name ? localStorage.setItem(LS_CURRENT, name) : localStorage.removeItem(LS_CURRENT); }catch(e){}
@@ -608,9 +621,8 @@ function getCurrentName(){
 function refreshScenarioSel(selected){
   const st = readScenarios();
   const names = Object.keys(st).sort((a,b)=>a.localeCompare(b,'es'));
-  const esc = s => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
   scenarioSel.innerHTML = '<option value="">— Sin guardar —</option>'
-    + names.map(n=>`<option value="${esc(n)}">${esc(n)}</option>`).join('');
+    + names.map(n=>`<option value="${escAttr(n)}">${escAttr(n)}</option>`).join('');
   scenarioSel.value = (selected && st[selected]) ? selected : '';
 }
 

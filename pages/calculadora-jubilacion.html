@@ -47,9 +47,6 @@
   /* Gestor de escenarios en la barra de herramientas */
   .tool-label { font-size: .82rem; color: var(--muted); }
   select.tool { width: auto; max-width: 260px; }
-  .tool-sep { width: 1px; align-self: stretch; background: var(--border); margin: 2px 4px; }
-  /* Ejemplos de sueldo: etiqueta + los tres botones se mantienen juntos en la barra */
-  .presets { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
   .card {
     background: var(--card);
     border: 1px solid var(--border);
@@ -213,7 +210,6 @@
   .tabpanel > .toolbar:first-child{margin-top:0}
   .tool{background:#fff; color:var(--text); border-color:#b9c6d3; border-radius:4px}
   .tool:hover{border-color:var(--accent); color:var(--accent)}
-  .tool-sep{background:#b9c6d3}
   .card{background:var(--card); border:1px solid var(--border); border-radius:6px; padding:24px; box-shadow:0 2px 7px rgba(34,54,74,.04)}
   h2{font:750 1.28rem/1.15 "Manrope",sans-serif; color:var(--text)}
   .planner-grid{display:grid; grid-template-columns:minmax(0,1.16fr) minmax(340px,.84fr); gap:16px; align-items:start}
@@ -304,9 +300,7 @@
     .hero{margin-top:14px;padding:26px 20px 22px}.hero::after{display:none}
     .tab{padding:10px 13px; font-size:.66rem; letter-spacing:.04em}
     .toolbar{display:grid;grid-template-columns:auto 1fr auto auto;gap:8px}
-    .presets{grid-column:1/5; display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px}
-    .presets .tool-label{grid-column:1/4}
-    .tool-sep{display:none}.tool-label{grid-column:1}#scenarioSel{grid-column:2;min-width:0;width:100%}#btnSave{grid-column:3}#btnDelete{grid-column:4}.save-state{position:absolute;right:14px;bottom:-22px}
+    .tool-label{grid-column:1}#scenarioSel{grid-column:2;min-width:0;width:100%}#btnSave{grid-column:3}#btnDelete{grid-column:4}.save-state{position:absolute;right:14px;bottom:-22px}
     .primary-inputs{grid-template-columns:1fr}.card{padding:18px}.inputs-body{padding:18px}.cards-mini{grid-template-columns:1fr}.result-ring{width:220px}
   }
 </style>
@@ -326,15 +320,10 @@
 
   <section class="tabpanel" id="panelPlan" role="tabpanel" aria-labelledby="tabPlan">
   <div class="toolbar">
-    <div class="presets">
-      <span class="tool-label">Ejemplos de sueldo:</span>
-      <button type="button" class="tool" id="btnS30" title="Adulto de 30 años: 30.000 € brutos, 2.000 € netos al mes (12 pagas) y 100.000 € ya invertidos">30.000 €</button>
-      <button type="button" class="tool" id="btnS40" title="Adulto de 30 años: 40.000 € brutos, 2.500 € netos al mes (12 pagas) y 125.000 € ya invertidos">40.000 €</button>
-      <button type="button" class="tool" id="btnS60" title="Adulto de 30 años: 60.000 € brutos, 3.500 € netos al mes (12 pagas) y 200.000 € ya invertidos">60.000 €</button>
-    </div>
-    <span class="tool-sep" aria-hidden="true"></span>
     <label class="tool-label" for="scenarioSel">Escenario:</label>
-    <select id="scenarioSel" class="tool" data-nosave title="Cargar un conjunto de datos guardado">
+    <!-- Un único selector: arriba los ejemplos de sueldo predefinidos y debajo los
+         conjuntos de datos que hayas guardado tú. Lo rellena refreshScenarioSel(). -->
+    <select id="scenarioSel" class="tool" data-nosave title="Cargar un ejemplo de sueldo o un conjunto de datos guardado">
       <option value="">— Sin guardar —</option>
     </select>
     <button type="button" class="tool" id="btnSave" title="Guardar datos actuales" aria-label="Guardar datos actuales">💾</button>
@@ -362,9 +351,6 @@
             <div class="range-value"><span>30</span><output id="fireValue">55 años</output><span>70</span></div>
           </div>
         </div>
-        <label for="neto">Lo que ingresas hoy, neto al mes (€)</label>
-        <input type="number" id="neto" value="3500" min="0" step="100">
-        <div class="hint">Lo que te queda cada mes después de impuestos y cotizaciones, repartido en 12 pagas. <span id="neto-anual"></span> Se usa solo para calcular tu tasa de ahorro. <b>No lo confundas con el gasto que quieres en el retiro</b>, que va en la columna de al lado.</div>
       </div>
 
       <div class="group">
@@ -374,7 +360,7 @@
 
         <label for="gasto">Gasto mensual que quieres en el retiro (€ de hoy)</label>
         <input type="number" id="gasto" value="3500" min="0" step="100">
-        <div class="hint" id="gasto-hint">Lo que quieres poder gastar cada mes, todos los meses, <b>ya jubilado</b> (no es lo que ingresas hoy: eso va en la columna <b>Tú</b>). <span id="gasto-anual"></span></div>
+        <div class="hint" id="gasto-hint">Lo que quieres poder gastar cada mes, todos los meses, <b>ya jubilado</b> (no es lo que ingresas hoy: eso va en <b>Ajustes avanzados → Tu ingreso</b>). <span id="gasto-anual"></span></div>
       </div>
 
       <!-- Cómo repartir el ahorro: es una decisión de ruta, no un ajuste fino, así que
@@ -384,9 +370,9 @@
         <label for="perfil_modo">Cómo repartir el ahorro en el tiempo</label>
         <select id="perfil_modo">
           <option value="constante">Constante — lo mismo cada año</option>
-          <option value="ratio" selected>Ahorrar más al principio (ratio primer/último año)</option>
+          <option value="ratio">Ahorrar más al principio (ratio primer/último año)</option>
           <option value="cero">Decreciente — hasta 0 € justo al retirarte</option>
-          <option value="tope">Tope de aportación → cuota decreciente, sin pasar de él</option>
+          <option value="tope" selected>Tope de aportación → cuota decreciente, sin pasar de él</option>
           <option value="sprint">Bola de nieve → sprint plano y luego parar del todo</option>
         </select>
         <div class="hint">Como el dinero aportado pronto crece más años, <b>front-cargar</b> el ahorro hace que el <b>total aportado sea menor</b> para el mismo objetivo, a cambio de más esfuerzo los primeros años.
@@ -398,14 +384,14 @@
             <li><b>Bola de nieve (<i>Coast FIRE</i>):</b> ahorras una cifra fija y agresiva, la misma cada mes, y la calculadora busca <b>en qué año puedes parar del todo</b>. A partir de ahí no aportas ni un euro más y el interés compuesto hace el resto: la cartera "rueda sola" hasta el objetivo justo a la edad de retiro, y tú solo necesitas ganar para tus gastos del día a día. Es el que <b>menos dinero total</b> requiere, a cambio de los años de esfuerzo más duros.</li>
           </ul>
         </div>
-        <div id="perfilRatioWrap">
+        <div id="perfilRatioWrap" style="display:none">
           <label for="frontload">Ratio primer año ÷ último año</label>
           <input type="number" id="frontload" value="2" min="1" max="5" step="0.5">
           <div class="hint"><b>1 = constante</b> (mismo ahorro cada año). <b>2</b> = el primer año aportas el doble que el último y va bajando de forma lineal. Ojo: el primer año exige la tasa de ahorro más alta.</div>
         </div>
-        <div id="perfilTopeWrap" style="display:none">
+        <div id="perfilTopeWrap">
           <label for="tope_aporte">Aportación máxima (€/mes de hoy)</label>
-          <input type="number" id="tope_aporte" value="1500" min="0" step="50">
+          <input type="number" id="tope_aporte" value="3000" min="0" step="50">
           <div class="hint">Lo máximo que estás dispuesto a aportar al mes, que se pagará el <b>primer año</b>. A partir de ahí la cuota baja en línea recta y la calculadora ajusta el reparto para llegar <b>exactamente</b> al capital objetivo: primero intenta llegar a <b>0 €</b> antes del retiro (los años restantes no aportas nada y la cartera solo compone) y, si el tope no da para tanto, baja solo hasta la <b>cuota mínima</b> que aún llega, aportando hasta el final. Nunca aportarás más que el tope; si ni así se llega, te lo dice.</div>
         </div>
         <div id="perfilSprintWrap" style="display:none">
@@ -417,10 +403,18 @@
       </div><!-- /col 1 -->
 
       <details class="expander">
-      <summary>Ajustes avanzados · pensión, mercados y estrategia</summary>
+      <summary>Ajustes avanzados · ingreso, pensión, mercados y estrategia</summary>
       <div class="advanced-grid">
-      <!-- Columna 2 (centro): Pensión pública, aislada para no mover el resto al activarla/desactivarla -->
+      <!-- Columna 2 (centro): tu ingreso de hoy (solo sirve para la tasa de ahorro) y la
+           pensión pública, aislada para no mover el resto al activarla/desactivarla -->
       <div class="inputs-col">
+      <div class="group">
+        <div class="group-title">Tu ingreso</div>
+        <label for="neto">Lo que ingresas hoy, neto al mes (€)</label>
+        <input type="number" id="neto" value="3500" min="0" step="100">
+        <div class="hint">Lo que te queda cada mes después de impuestos y cotizaciones, repartido en 12 pagas. <span id="neto-anual"></span> <b>No cambia el plan:</b> se usa solo para expresar la aportación como tasa de ahorro. <b>No lo confundas con el gasto que quieres en el retiro</b>, que va en la tarjeta principal.</div>
+      </div>
+
       <div class="group">
         <div class="group-title">Pensión pública</div>
         <label class="check"><input type="checkbox" id="cobrare_pension"> Cuento con cobrar la pensión pública</label>
@@ -713,7 +707,7 @@ const PERFIL_VENTANA = { tope: rampWeight, sprint: flatWeight };
 function perfilAportacion() {
   const sel = document.getElementById('perfil_modo');
   return {
-    modo: sel ? sel.value : 'ratio',
+    modo: sel ? sel.value : 'tope',
     frontload: Math.max(1, val('frontload') || 1),
     tope: val('tope_aporte'),
     sprint: val('sprint_ahorro'),
@@ -1640,6 +1634,31 @@ function loadForm() {
     else el.value = data[el.id];
   });
 }
+/* ---- Ejemplos de sueldo ----
+   Cuatro perfiles de un adulto de 30 años que se diferencian SOLO en lo que depende del
+   sueldo: el neto disponible, el gasto que quiere mantener ya jubilado (= su neto
+   mensual actual), el capital ya invertido, la pensión de carrera completa y el tope de
+   aportación que puede sostener. El resto de hipótesis son idénticas, así comparar los
+   cuatro ejemplos aísla el efecto del sueldo. Se cargan desde el selector de escenarios. */
+const PRESET_BASE = {
+  edad: '30', fire: '55', fin: '105', trabajo: '25', pension_edad: '65',
+  impuestos: '15', tasa_retiro: '3.5', r_acum: '7', r_retiro: '5.5', inflacion: '3',
+  perfil_modo: 'tope', frontload: '2', convenio_coste: '400', cobrare_pension: false,
+};
+const PRESETS_SUELDO = {
+  s30: { label: 'Sueldo de 30.000 €', desc: 'Adulto de 30 años: 30.000 € brutos, 2.000 € netos al mes (12 pagas) y 100.000 € ya invertidos',
+    datos: { ...PRESET_BASE, capital: '100000', neto: '2000', gasto: '2000', pension: '19000', sprint_ahorro: '500',  tope_aporte: '1700' } },
+  s40: { label: 'Sueldo de 40.000 €', desc: 'Adulto de 30 años: 40.000 € brutos, 2.500 € netos al mes (12 pagas) y 125.000 € ya invertidos',
+    datos: { ...PRESET_BASE, capital: '125000', neto: '2500', gasto: '2500', pension: '23000', sprint_ahorro: '700',  tope_aporte: '2150' } },
+  s50: { label: 'Sueldo de 50.000 €', desc: 'Adulto de 30 años: 50.000 € brutos, 3.000 € netos al mes (12 pagas) y 160.000 € ya invertidos',
+    datos: { ...PRESET_BASE, capital: '160000', neto: '3000', gasto: '3000', pension: '26500', sprint_ahorro: '850',  tope_aporte: '2550' } },
+  s60: { label: 'Sueldo de 60.000 €', desc: 'Adulto de 30 años: 60.000 € brutos, 3.500 € netos al mes (12 pagas) y 200.000 € ya invertidos',
+    datos: { ...PRESET_BASE, capital: '200000', neto: '3500', gasto: '3500', pension: '30000', sprint_ahorro: '1000', tope_aporte: '3000' } },
+};
+// Los ejemplos comparten el desplegable con los escenarios guardados; este prefijo
+// distingue unos de otros en el value de la opción.
+const PRESET_PREFIX = 'preset:';
+
 // ---- Escenarios con nombre: varios conjuntos de datos guardados en este navegador ----
 const LS_SCENARIOS = 'jubilacion-escenarios-v1';   // { "nombre": {datos...}, ... }
 const LS_CURRENT   = 'jubilacion-actual-v1';       // nombre del escenario cargado ahora
@@ -1672,19 +1691,28 @@ function setCurrentName(name) {
 function getCurrentName() {
   try { return localStorage.getItem(LS_CURRENT) || ''; } catch (e) { return ''; }
 }
+// Repinta el desplegable: primero los ejemplos de sueldo (siempre) y después los
+// escenarios que haya guardado el usuario (si hay alguno).
 function refreshScenarioSel(selected) {
   const store = readScenarios();
   const names = Object.keys(store).sort((a, b) => a.localeCompare(b, 'es'));
   const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
+  const ejemplos = Object.entries(PRESETS_SUELDO)
+    .map(([k, p]) => `<option value="${PRESET_PREFIX}${k}" title="${esc(p.desc)}">${esc(p.label)}</option>`).join('');
   scenarioSel.innerHTML = '<option value="">— Sin guardar —</option>'
-    + names.map(n => `<option value="${esc(n)}">${esc(n)}</option>`).join('');
-  scenarioSel.value = (selected && store[selected]) ? selected : '';
+    + `<optgroup label="Ejemplos de sueldo">${ejemplos}</optgroup>`
+    + (names.length ? `<optgroup label="Tus escenarios">${names.map(n => `<option value="${esc(n)}">${esc(n)}</option>`).join('')}</optgroup>` : '');
+  const esPreset = selected && selected.startsWith(PRESET_PREFIX) && PRESETS_SUELDO[selected.slice(PRESET_PREFIX.length)];
+  scenarioSel.value = (selected && (esPreset || store[selected])) ? selected : '';
 }
 
 // Guardar los datos actuales bajo un nombre (nuevo o sobrescribiendo uno existente).
 document.getElementById('btnSave').addEventListener('click', () => {
   const store = readScenarios();
-  const name = (prompt('Nombre para este conjunto de datos:', scenarioSel.value || '') || '').trim();
+  // Un ejemplo de sueldo no es un nombre válido que proponer: se parte del ejemplo pero
+  // se guarda con nombre propio.
+  const actual = scenarioSel.value.startsWith(PRESET_PREFIX) ? '' : scenarioSel.value;
+  const name = (prompt('Nombre para este conjunto de datos:', actual) || '').trim();
   if (!name) return;
   if (store[name] && !confirm(`Ya existe un escenario llamado "${name}". ¿Sobrescribirlo con los datos actuales?`)) return;
   store[name] = currentFormData();
@@ -1698,6 +1726,7 @@ document.getElementById('btnSave').addEventListener('click', () => {
 document.getElementById('btnDelete').addEventListener('click', () => {
   const name = scenarioSel.value;
   if (!name) { alert('Elige primero un escenario guardado en la lista.'); return; }
+  if (name.startsWith(PRESET_PREFIX)) { alert('Los ejemplos de sueldo vienen con la calculadora y no se pueden eliminar.'); return; }
   if (!confirm(`¿Eliminar el escenario guardado "${name}"?\nEsto no modifica los datos que tienes ahora en pantalla.`)) return;
   const store = readScenarios();
   delete store[name];
@@ -1706,10 +1735,17 @@ document.getElementById('btnDelete').addEventListener('click', () => {
   refreshScenarioSel('');
 });
 
-// Cargar un escenario al elegirlo en la lista.
+// Cargar un ejemplo de sueldo o un escenario guardado al elegirlo en la lista.
 scenarioSel.addEventListener('change', () => {
   const name = scenarioSel.value;
   if (!name) { setCurrentName(''); return; }
+  if (name.startsWith(PRESET_PREFIX)) {
+    // El ejemplo pisa TODO el formulario, así que se pide confirmación; si se cancela,
+    // el desplegable vuelve a lo que estuviera cargado antes.
+    if (!loadPresetSueldo(name.slice(PRESET_PREFIX.length))) { scenarioSel.value = getCurrentName(); return; }
+    setCurrentName(name);
+    return;
+  }
   const store = readScenarios();
   if (!store[name]) return;
   applyData(store[name]);
@@ -1718,41 +1754,20 @@ scenarioSel.addEventListener('change', () => {
   saveForm();
 });
 
-/* ---- Ejemplos de sueldo ----
-   Tres perfiles de un adulto de 30 años que se diferencian SOLO en lo que depende del
-   sueldo: el neto disponible, el gasto que quiere mantener ya jubilado (= su neto
-   mensual actual), el capital ya invertido y la pensión de carrera completa. El resto
-   de hipótesis son idénticas, así comparar los tres botones aísla el efecto del sueldo. */
-const PRESET_BASE = {
-  edad: '30', fire: '55', fin: '105', trabajo: '25', pension_edad: '65',
-  impuestos: '15', tasa_retiro: '3.5', r_acum: '7', r_retiro: '5.5', inflacion: '3',
-  perfil_modo: 'ratio', frontload: '2', convenio_coste: '400', cobrare_pension: false,
-};
-const PRESETS_SUELDO = {
-  s30: { label: 'Sueldo de 30.000 €', datos: { ...PRESET_BASE,
-    capital: '100000', neto: '2000', gasto: '2000', pension: '19000', sprint_ahorro: '500',  tope_aporte: '800' } },
-  s40: { label: 'Sueldo de 40.000 €', datos: { ...PRESET_BASE,
-    capital: '125000', neto: '2500', gasto: '2500', pension: '23000', sprint_ahorro: '700',  tope_aporte: '1100' } },
-  s60: { label: 'Sueldo de 60.000 €', datos: { ...PRESET_BASE,
-    capital: '200000', neto: '3500', gasto: '3500', pension: '30000', sprint_ahorro: '1000', tope_aporte: '1500' } },
-};
-// Carga un ejemplo: sustituye los datos actuales (incluidos los ajustes avanzados).
+// Carga un ejemplo de sueldo: sustituye los datos actuales (incluidos los ajustes avanzados).
 function loadPresetSueldo(key) {
   const p = PRESETS_SUELDO[key];
-  if (!p) return;
-  if (!confirm(`¿Cargar el ejemplo "${p.label}"? Sustituirá los valores actuales.`)) return;
+  if (!p) return false;
+  if (!confirm(`¿Cargar el ejemplo "${p.label}"? Sustituirá los valores actuales.`)) return false;
   for (const id in p.datos) {
     const el = document.getElementById(id);
     if (!el) continue;
     if (el.type === 'checkbox') el.checked = p.datos[id];
     else el.value = p.datos[id];
   }
-  setCurrentName(''); refreshScenarioSel('');
   compute(); saveForm();
+  return true;
 }
-document.getElementById('btnS30').addEventListener('click', () => loadPresetSueldo('s30'));
-document.getElementById('btnS40').addEventListener('click', () => loadPresetSueldo('s40'));
-document.getElementById('btnS60').addEventListener('click', () => loadPresetSueldo('s60'));
 
 // Restaurar los datos guardados ANTES de calcular, y reflejar el escenario cargado en la lista
 loadForm();

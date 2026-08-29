@@ -523,9 +523,10 @@
       <span class="snap-count" id="snapCount"></span>
     </div>
 
-    <!-- Tramos guardados, sobre la gráfica: cada botón devuelve al plan la configuración
-         con la que se guardó ese tramo, así que "Diseña tu ruta" y "Tu esfuerzo mensual"
-         pasan a describirlo. También hacen de leyenda y de vista en tabla. -->
+    <!-- Tramos guardados, sobre la gráfica: cada botón acota la gráfica (y la barra de
+         reparto) a las edades de su tramo y devuelve al plan la configuración con la que
+         se guardó, así que "Diseña tu ruta" y "Tu esfuerzo mensual" pasan a describirlo.
+         También hacen de leyenda. -->
     <div id="snapsList"></div>
 
     <div class="legend">
@@ -1113,7 +1114,9 @@ function syncVerHasta(sc) {
 function renderPlanResumen() {
   const cont = document.getElementById('projReparto');
   if (!cont) return;
-  const ruta = rutaCompuesta();
+  // La misma ruta que la gráfica, recorte incluido: la barra describe el punto que se ve
+  // en su extremo derecho, así que al acotar a un tramo pasa a hablar de ese tramo.
+  const ruta = rutaVisible();
   cont.hidden = !ruta.length;
   if (!ruta.length) return;
   const f = ruta[ruta.length - 1];
@@ -1123,9 +1126,12 @@ function renderPlanResumen() {
   const pct = v => suma > 0 ? (v / suma) * 100 : 0;
   const set = (id, txt) => { document.getElementById(id).innerHTML = txt; };
 
-  set('repartoCuando', lastSc && f.edad === lastSc.F
-    ? `En tu <b>fecha objetivo</b> (${f.edad} años)`
-    : `A los <b>${f.edad} años</b>`);
+  const act = tramoActivo();
+  set('repartoCuando', act && f.edad === act.hasta
+    ? `Al cerrar el tramo <b>${tramoTxt(act)}</b>`
+    : lastSc && f.edad === lastSc.F
+      ? `En tu <b>fecha objetivo</b> (${f.edad} años)`
+      : `A los <b>${f.edad} años</b>`);
   set('repartoTotal', fmt.format(f.total));
   document.getElementById('repartoSegTuyo').style.width = pct(tuyo).toFixed(1) + '%';
   document.getElementById('repartoSegInteres').style.width = pct(interes).toFixed(1) + '%';
@@ -1520,6 +1526,27 @@ function cierresDeTramo(ruta) {
 // Un tramo se llama por su rango de edades: es lo único que lo identifica, en el botón,
 // en la tabla año a año y en el tooltip.
 const tramoTxt = s => `${s.desde} → ${s.hasta}`;
+
+// El tramo que se está mirando, si sigue guardado.
+const tramoActivo = () => snaps.find(s => s.id === snapActivo) || null;
+
+/* La ruta que se DIBUJA: la entera, o solo la franja del tramo activo. Pulsar un tramo
+   acota la gráfica a sus edades —y con ella la barra de reparto de debajo—, que es la
+   única forma de mirar de cerca un trecho corto cuando la ruta abarca cuarenta años:
+   con el eje completo, diez años caben en dos centímetros.
+
+   Se recorta sobre la ruta ya cosida, no sobre los puntos crudos del tramo, para que al
+   acercarse cambie el encuadre y no las cifras: el "lo que has puesto tú" de un año es el
+   acumulado desde el principio de la ruta, se mire desde donde se mire. Si el recorte
+   dejara menos de dos puntos no habría línea que dibujar, así que se vuelve a la entera. */
+function rutaVisible() {
+  const ruta = rutaCompuesta();
+  const act = tramoActivo();
+  if (!act) return ruta;
+  const trecho = ruta.filter(p => p.edad >= act.desde && p.edad <= act.hasta);
+  return trecho.length > 1 ? trecho : ruta;
+}
+
 // Tramos ordenados por dónde empiezan, que es como se leen en la gráfica. El orden en que
 // se guardaron no dice nada: puedes guardar 40→50 y después 30→40.
 const snapsOrdenados = () => [...snaps].sort((a, b) => a.desde - b.desde || a.hasta - b.hasta);
@@ -1530,8 +1557,13 @@ function renderSnaps() {
   if (!cont) return;
   cuenta.textContent = snaps.length ? `${snaps.length} de ${SNAP_MAX} guardados` : '';
   document.getElementById('btnSnapSave').disabled = snaps.length >= SNAP_MAX;
-  // La nota de la leyenda solo dice algo cuando hay un tramo resaltado.
-  document.getElementById('legendNota').hidden = !snaps.some(s => s.id === snapActivo);
+  // La nota de la leyenda solo dice algo cuando hay un tramo acotando la vista, y lo que
+  // dice es cómo salir de ahí: el botón que acota es el mismo que devuelve la ruta entera,
+  // y eso no se adivina mirándolo.
+  const nota = document.getElementById('legendNota');
+  const act = tramoActivo();
+  nota.hidden = !act;
+  if (act) nota.innerHTML = `Viendo solo el tramo <b>${tramoTxt(act)}</b> · púlsalo otra vez para la ruta entera`;
   if (!snaps.length) {
     cont.innerHTML = `<p class="snap-vacio">Guarda el tramo que estás viendo y la curva se congela aquí, aunque luego cambies los datos: así compones tu ruta a trozos.</p>`;
     return;
@@ -1542,7 +1574,7 @@ function renderSnaps() {
     // es HTML inválido y deja el borrado fuera del alcance del teclado.
     return `<span class="snap-btn${on ? ' on' : ''}">
       <button type="button" class="snap-apply" data-id="${s.id}" aria-pressed="${on}"
-        title="${on ? 'Quitar la selección de este tramo' : 'Aplicar esta configuración a «Diseña tu ruta» y «Tu esfuerzo mensual»'}">${tramoTxt(s)}</button>
+        title="${on ? 'Volver a ver la ruta entera' : 'Ver solo este tramo en la gráfica y aplicar su configuración a «Diseña tu ruta» y «Tu esfuerzo mensual»'}">${tramoTxt(s)}</button>
       <button type="button" class="snap-del" data-id="${s.id}" title="Eliminar este tramo" aria-label="Eliminar el tramo ${tramoTxt(s)}">✕</button>
     </span>`;
   }).join('');
@@ -1569,9 +1601,16 @@ document.getElementById('btnSnapSave').addEventListener('click', () => {
   });
   writeSnaps(nuevas);
   snapActivo = id;
+  redibujaVista();
+});
+
+// Lo que hay que repintar cuando cambia el tramo activo sin que cambie ni un dato: la
+// lista de botones, la gráfica y la barra de reparto, que ahora comparten recorte.
+function redibujaVista() {
   renderSnaps();
   drawChart();
-});
+  renderPlanResumen();
+}
 
 document.getElementById('snapsList').addEventListener('click', e => {
   const btn = e.target.closest('.snap-apply, .snap-del');
@@ -1586,12 +1625,11 @@ document.getElementById('snapsList').addEventListener('click', e => {
     compute();                 // la tabla año a año también deja de listarlo
     return;
   }
-  // Pulsar el tramo ya seleccionado lo deselecciona: quita el resaltado y deja el plan
-  // como está. Volver atrás no debería exigir buscar otro sitio donde pulsar.
+  // Pulsar el tramo ya seleccionado lo deselecciona: devuelve la gráfica a la ruta entera
+  // y deja el plan como está. Volver atrás no debería exigir buscar otro sitio donde pulsar.
   if (snapActivo === s.id) {
     snapActivo = null;
-    renderSnaps();
-    drawChart();
+    redibujaVista();
     return;
   }
   // Aplicar devuelve el plan al estado con el que se guardó el tramo, incluido el rango
@@ -1666,7 +1704,7 @@ function drawChart(hoverIdx = null) {
   // ahora miras 40→50), así que el eje X va en EDADES absolutas y abarca la ruta entera.
   // Con el eje en "años desde hoy" dos tramos consecutivos se habrían solapado en el
   // mismo origen en vez de ponerse uno detrás de otro.
-  const ruta = rutaCompuesta();
+  const ruta = rutaVisible();
   if (!ruta.length) return;
   const minAge = ruta[0].edad, maxAge = ruta[ruta.length - 1].edad;
   // La escala admite valores negativos: con un tramo de consumo puedes llegar a sacar más
@@ -1704,9 +1742,11 @@ function drawChart(hoverIdx = null) {
   ctx.textAlign = 'center'; ctx.textBaseline = 'top'; ctx.fillStyle = CHART.label;
   for (let e = Math.ceil(minAge / stepX) * stepX; e <= maxAge; e += stepX) ctx.fillText(e + '', X(e), yb + 8);
 
-  // Banda del tramo activo: resalta su franja de edades sin gastar un color de línea.
-  const act = snaps.find(s => s.id === snapActivo);
-  if (act) {
+  // Banda del tramo activo: resalta su franja de edades sin gastar un color de línea. Si
+  // la gráfica ya está acotada a ese tramo se calla, porque teñiría la gráfica entera y
+  // el resaltado dejaría de resaltar nada.
+  const act = tramoActivo();
+  if (act && !(act.desde <= minAge && act.hasta >= maxAge)) {
     const xa = X(Math.max(act.desde, minAge)), xz = X(Math.min(act.hasta, maxAge));
     ctx.fillStyle = 'rgba(20,99,255,.07)';
     ctx.fillRect(xa, yt, Math.max(1, xz - xa), yb - yt);

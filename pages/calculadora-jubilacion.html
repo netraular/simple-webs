@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Horizonte · Calcula tu retiro</title>
+<title>Horizonte · Calcula tu fecha objetivo</title>
 <!-- Favicon en línea, como en index.html. Sin declararlo, el navegador lanza igualmente
      su petición automática, y abriendo la página con file:// eso choca con el origen
      único de ese esquema y ensucia la consola con un aviso de carga insegura. -->
@@ -36,6 +36,10 @@
     font-family: "IBM Plex Mono", monospace; margin: 0 0 8px; border-bottom: 1px solid var(--border); padding-bottom: 6px; }
   label { display: block; font-size: .82rem; color: var(--muted); margin: 10px 0 5px; }
   .hint { font-size: .72rem; color: #718091; margin-top: 3px; }
+  /* Rótulo bajo una casilla. No es una ayuda plegable (no lleva ⓘ ni se esconde): dice
+     qué unidad tiene el número que hay justo encima, así que siempre se ve. */
+  .sublabel { font-size: .72rem; color: var(--muted); margin-top: 4px; }
+  .sublabel b { color: var(--text); font-family: "IBM Plex Mono", monospace; }
   /* Descripciones plegables (compactar la interfaz, compatible con móvil) */
   .hint-toggle { display: inline; vertical-align: baseline; margin: 0 0 0 5px; padding: 0 2px; font-size: .95em; line-height: 1; color: var(--muted); background: transparent; border: 0; cursor: pointer; -webkit-tap-highlight-color: transparent; }
   .hint-toggle:hover { color: var(--text); }
@@ -138,7 +142,7 @@
   .eyebrow{display:block; color:#a9f1f7; font:600 .7rem/1 "IBM Plex Mono",monospace; letter-spacing:.08em; text-transform:uppercase; margin-bottom:12px}
   h1{font:800 clamp(2.2rem,4.5vw,4.25rem)/.98 "Manrope",sans-serif; max-width:850px; letter-spacing:0; margin:0}
   .hero .subtitle{color:#dce8ff; font-size:.95rem; max-width:680px; margin:14px 0 0}
-  /* Pestañas: separan el plan de retiro de la calculadora de interés compuesto, que es
+  /* Pestañas: separan el plan hasta la fecha objetivo de la calculadora de interés compuesto, que es
      una herramienta independiente y no parte del plan. */
   .tabs{display:flex; gap:2px; margin:20px 0 0; border-bottom:1px solid var(--border)}
   .tab{appearance:none; margin:0 0 -1px; padding:11px 20px; cursor:pointer; color:var(--muted);
@@ -255,13 +259,13 @@
 <body>
 <div class="wrap">
   <header class="hero">
-    <span class="eyebrow">Horizonte / Plan de retiro</span>
+    <span class="eyebrow">Horizonte / Plan hasta tu fecha objetivo</span>
     <h1>¿Cuándo puedes dejar de trabajar?</h1>
-    <p class="subtitle">Traza una ruta realista desde tu capital actual hasta la vida que quieres, siempre en euros de hoy.</p>
+    <p class="subtitle">Traza una ruta realista desde tu capital actual hasta la vida que quieres, siempre en euros de hoy. Fijas una <b>fecha objetivo</b> y lo que quieres tener en ella: la calculadora te dice qué ritmo hace falta para llegar.</p>
   </header>
 
   <div class="tabs" role="tablist" aria-label="Secciones de la calculadora">
-    <button type="button" class="tab" id="tabPlan" role="tab" aria-controls="panelPlan" aria-selected="true">Plan de retiro</button>
+    <button type="button" class="tab" id="tabPlan" role="tab" aria-controls="panelPlan" aria-selected="true">Tu plan</button>
     <button type="button" class="tab" id="tabCi" role="tab" aria-controls="panelCi" aria-selected="false" tabindex="-1">Interés compuesto</button>
   </div>
 
@@ -293,9 +297,10 @@
             <input type="number" id="edad" value="30" min="18" max="70">
           </div>
           <div>
-            <label for="fire">Edad de retiro</label>
+            <label for="fire">Edad objetivo</label>
             <input type="range" id="fire" value="55" min="30" max="70">
             <div class="range-value"><span>30</span><output id="fireValue">55 años</output><span>70</span></div>
+            <div class="hint">La edad a la que quieres tener el dinero listo: tu <b>fecha objetivo</b>. Hasta ahí acumulas; a partir de ahí el plan comprueba que lo acumulado aguanta el gasto que quieres.</div>
           </div>
         </div>
       </div>
@@ -305,9 +310,23 @@
         <label for="capital">Capital ya invertido (€)</label>
         <input type="number" id="capital" value="200000" min="0" step="1000">
 
-        <label for="gasto">Gasto mensual que quieres en el retiro (€ de hoy)</label>
-        <input type="number" id="gasto" value="3500" min="0" step="100">
-        <div class="hint">Lo que quieres poder gastar cada mes, todos los meses, <b>ya jubilado</b> (no es lo que ingresas hoy: eso va en <b>Ajustes avanzados → Tu ingreso</b>). <span id="gasto-anual"></span></div>
+        <!-- El objetivo se puede escribir por cualquiera de sus dos caras: el gasto que
+             quieres sostener o el capital total que quieres tener. La casilla que tocas
+             manda y la otra se recalcula sola; `objetivo_modo` recuerda cuál manda para
+             que al cambiar el resto del plan se rehaga la derivada y no la escrita. -->
+        <input type="hidden" id="objetivo_modo" value="gasto">
+        <label for="gasto">Qué quieres tener en tu fecha objetivo</label>
+        <div class="two">
+          <div>
+            <input type="number" id="gasto" value="3500" min="0" step="100" aria-label="Gasto mensual objetivo en euros de hoy">
+            <div class="sublabel">Gasto <b>€/mes</b></div>
+          </div>
+          <div>
+            <input type="number" id="capital_objetivo" value="0" min="0" step="10000" aria-label="Capital objetivo total en euros de hoy">
+            <div class="sublabel">Capital <b>total €</b></div>
+          </div>
+        </div>
+        <div class="hint">Dos formas de decir lo mismo, siempre en <b>€ de hoy</b>: el <b>gasto mensual</b> que quieres poder permitirte a partir de esa fecha, o el <b>capital total</b> que quieres tener acumulado. Escribe en la que prefieras y la otra se recalcula sola con tu tasa de retirada, los impuestos y —si la cuentas— la pensión pública. Ninguna de las dos es lo que ingresas hoy: eso va en <b>Ajustes avanzados → Tu ingreso</b>. <span id="gasto-anual"></span></div>
       </div>
 
       <!-- Cómo repartir el ahorro: es una decisión de ruta, no un ajuste fino, así que
@@ -317,27 +336,27 @@
         <label for="perfil_modo">Cómo repartir el ahorro en el tiempo</label>
         <select id="perfil_modo">
           <option value="constante">Constante — lo mismo cada año, calculado por la web</option>
-          <option value="cero">Decreciente — hasta 0 € justo al retirarte</option>
+          <option value="cero">Decreciente — hasta 0 € justo en la fecha objetivo</option>
           <option value="tope" selected>Tope de aportación → cuota decreciente, sin pasar de él</option>
-          <option value="sprint">Constante que fijas tú → hasta el año en que puedes parar</option>
+          <option value="sprint">Constante que fijas tú → hasta el año en que puedes parar (o gastar, en negativo)</option>
         </select>
         <div class="hint">Como el dinero aportado pronto crece más años, <b>front-cargar</b> el ahorro hace que el <b>total aportado sea menor</b> para el mismo objetivo, a cambio de más esfuerzo los primeros años.
           <ul style="margin:6px 0 0; padding-left:18px">
-            <li><b>Constante:</b> la misma cuota (en € de hoy) todos los años, hasta el retiro. La calculadora te dice cuánto es.</li>
-            <li><b>Hasta 0 €:</b> la cuota baja en línea recta desde el primer año y llega a <b>0 €</b> justo al retirarte, así que el último año aún aportas algo. Es el reparto más front-cargado con esfuerzo repartido.</li>
-            <li><b>Tope:</b> fijas cuánto es lo máximo que puedes aportar al mes y la calculadora busca <b>durante cuántos años</b> hay que pagar (bajando hasta 0 €) para llegar justo al objetivo. Si el tope no da para parar antes del retiro, en vez de fallar <b>levanta el suelo</b>: la cuota baja del tope a la <b>mínima cuota</b> que aún llega, aportando todos los años. Y si ni pagando el tope entero todos los años se llega, te avisa y te dice cuánto faltaría.</li>
-            <li><b>Constante que fijas tú (<i>Coast FIRE</i>):</b> igual que el modo constante, pero el importe lo eliges tú y la incógnita es la otra: la calculadora busca <b>en qué año puedes parar del todo</b>. A partir de ahí no aportas ni un euro más y el interés compuesto hace el resto: la cartera "rueda sola" hasta el objetivo justo a la edad de retiro, y tú solo necesitas ganar para tus gastos del día a día. Cuanto más alta pongas la cuota, antes podrás soltarla.</li>
+            <li><b>Constante:</b> la misma cuota (en € de hoy) todos los años, hasta la fecha objetivo. La calculadora te dice cuánto es.</li>
+            <li><b>Hasta 0 €:</b> la cuota baja en línea recta desde el primer año y llega a <b>0 €</b> justo en la fecha objetivo, así que el último año aún aportas algo. Es el reparto más front-cargado con esfuerzo repartido.</li>
+            <li><b>Tope:</b> fijas cuánto es lo máximo que puedes aportar al mes y la calculadora busca <b>durante cuántos años</b> hay que pagar (bajando hasta 0 €) para llegar justo al objetivo. Si el tope no da para parar antes de la fecha objetivo, en vez de fallar <b>levanta el suelo</b>: la cuota baja del tope a la <b>mínima cuota</b> que aún llega, aportando todos los años. Y si ni pagando el tope entero todos los años se llega, te avisa y te dice cuánto faltaría.</li>
+            <li><b>Constante que fijas tú (<i>Coast FIRE</i>):</b> igual que el modo constante, pero el importe lo eliges tú y la incógnita es la otra: la calculadora busca <b>en qué año puedes parar del todo</b>. A partir de ahí no aportas ni un euro más y el interés compuesto hace el resto: la cartera "rueda sola" hasta el objetivo justo en la fecha objetivo, y tú solo necesitas ganar para tus gastos del día a día. Cuanto más alta pongas la cuota, antes podrás soltarla. <b>En negativo</b> el modo se da la vuelta y describe un <b>tramo de consumo</b> (un sabático, una excedencia, unos años viviendo de la cartera): la pregunta pasa a ser <b>cuántos años puedes gastar ese importe</b> sin bajarte del objetivo.</li>
           </ul>
         </div>
         <div id="perfilTopeWrap">
           <label for="tope_aporte">Aportación máxima (€/mes de hoy)</label>
           <input type="number" id="tope_aporte" value="3000" min="0" step="50">
-          <div class="hint">Lo máximo que estás dispuesto a aportar al mes, que se pagará el <b>primer año</b>. A partir de ahí la cuota baja en línea recta y la calculadora ajusta el reparto para llegar <b>exactamente</b> al capital objetivo: primero intenta llegar a <b>0 €</b> antes del retiro (los años restantes no aportas nada y la cartera solo compone) y, si el tope no da para tanto, baja solo hasta la <b>cuota mínima</b> que aún llega, aportando hasta el final. Nunca aportarás más que el tope; si ni así se llega, te lo dice.</div>
+          <div class="hint">Lo máximo que estás dispuesto a aportar al mes, que se pagará el <b>primer año</b>. A partir de ahí la cuota baja en línea recta y la calculadora ajusta el reparto para llegar <b>exactamente</b> al capital objetivo: primero intenta llegar a <b>0 €</b> antes de la fecha objetivo (los años restantes no aportas nada y la cartera solo compone) y, si el tope no da para tanto, baja solo hasta la <b>cuota mínima</b> que aún llega, aportando hasta el final. Nunca aportarás más que el tope; si ni así se llega, te lo dice.</div>
         </div>
         <div id="perfilSprintWrap" style="display:none">
-          <label for="sprint_ahorro">Ahorro constante mensual (€ de hoy)</label>
-          <input type="number" id="sprint_ahorro" value="2500" min="0" step="50">
-          <div class="hint">Cuánto ahorras, <b>igual todos los meses</b>, hasta el año en que puedes parar. Súbelo para adelantar esa fecha; bájalo para retrasarla. <b>Es en € de hoy:</b> el modelo asume que lo mantienes en <b>términos reales</b>, es decir, <b>subiendo el importe nominal cada año con la inflación</b>. Si aportaras siempre la misma cifra nominal, su valor real se erosionaría y tendrías que ahorrar <b>más años</b> de los que se muestran.</div>
+          <label for="sprint_ahorro">Importe constante mensual (€ de hoy) — en negativo, consumo</label>
+          <input type="number" id="sprint_ahorro" value="2500" step="50">
+          <div class="hint">Cuánto mueves, <b>igual todos los meses</b>, hasta el año en que paras. <b>En positivo</b> es ahorro: súbelo para adelantar la fecha en que puedes soltar las aportaciones, bájalo para retrasarla. <b>En negativo</b> es consumo: pon <b>−2000</b> para vivir de la cartera con 2.000 €/mes y la calculadora te dirá <b>cuántos años puedes permitírtelo</b> sin dejar de llegar al objetivo en la fecha objetivo. Solo hay margen para gastar si tu capital actual ya va sobrado; si no, te lo dice. <b>Es en € de hoy:</b> el modelo asume que mantienes el importe en <b>términos reales</b>, es decir, <b>subiéndolo cada año con la inflación</b>. Si movieras siempre la misma cifra nominal, su valor real se erosionaría y los años que se muestran no cuadrarían.</div>
         </div>
       </div>
       </div><!-- /col 1 -->
@@ -352,7 +371,7 @@
         <div class="group-title">Tu ingreso</div>
         <label for="neto">Lo que ingresas hoy, neto al mes (€)</label>
         <input type="number" id="neto" value="3500" min="0" step="100">
-        <div class="hint">Lo que te queda cada mes después de impuestos y cotizaciones, repartido en 12 pagas. <span id="neto-anual"></span> <b>No cambia el plan:</b> se usa solo para expresar la aportación como tasa de ahorro. <b>No lo confundas con el gasto que quieres en el retiro</b>, que va en la tarjeta principal.</div>
+        <div class="hint">Lo que te queda cada mes después de impuestos y cotizaciones, repartido en 12 pagas. <span id="neto-anual"></span> <b>No cambia el plan:</b> se usa solo para expresar la aportación como tasa de ahorro. <b>No lo confundas con el gasto objetivo</b>, que va en la tarjeta principal.</div>
       </div>
 
       <div class="group">
@@ -367,38 +386,30 @@
           <input type="number" id="pension_edad" value="65" min="60" max="72">
           <label for="trabajo">Edad en que empezaste a cotizar</label>
           <input type="number" id="trabajo" value="25" min="16" max="50">
-          <div class="hint">Sirve para estimar la pensión según los años cotizados hasta que te retires (o hasta la edad de pensión si pagas el convenio especial).</div>
+          <div class="hint">Sirve para estimar la pensión según los años cotizados hasta la fecha objetivo (o hasta la edad de pensión si pagas el convenio especial).</div>
 
           <div class="group-title" style="margin-top:16px">Convenio especial (cotizar tras dejar de trabajar)</div>
           <label for="convenio_coste">Coste del convenio (€/mes de hoy) — pon 0 si no lo pagas</label>
           <input type="number" id="convenio_coste" value="400" min="0" step="10">
-          <div class="hint">Si dejas de trabajar antes de la edad de pensión, puedes seguir cotizando por tu cuenta (<b>convenio especial</b>) para no perder la pensión y llegar al 100%. Esos años cuentan como cotizados, pero tienen un coste mensual que tu cartera debe cubrir durante el "puente". La cuota mínima ronda los <b>370 €/mes</b> (~28% de la base mínima). <b>Ponlo a 0</b> si no piensas pagarlo: entonces solo cuentan los años cotizados hasta que te retiras.</div>
+          <div class="hint">Si dejas de trabajar antes de la edad de pensión, puedes seguir cotizando por tu cuenta (<b>convenio especial</b>) para no perder la pensión y llegar al 100%. Esos años cuentan como cotizados, pero tienen un coste mensual que tu cartera debe cubrir durante el "puente". La cuota mínima ronda los <b>370 €/mes</b> (~28% de la base mínima). <b>Ponlo a 0</b> si no piensas pagarlo: entonces solo cuentan los años cotizados hasta la fecha objetivo.</div>
         </div>
       </div>
       </div><!-- /col 2 -->
 
-      <!-- Columna 3: Mercados + reglas del retiro (horizonte, tasa de retirada, fiscalidad) -->
+      <!-- Columna 3: Mercados + reglas de la fase de retirada (horizonte, tasa, fiscalidad) -->
       <div class="inputs-col">
       <div class="group">
         <div class="group-title">Mercados (en términos reales, ya sin inflación)</div>
-        <div class="two">
-          <div>
-            <label for="r_acum">Rent. real al acumular (%)</label>
-            <input type="number" id="r_acum" value="7" min="0" max="12" step="0.1">
-          </div>
-          <div>
-            <label for="r_retiro">Rent. real ya jubilado (%)</label>
-            <input type="number" id="r_retiro" value="5.5" min="0" max="10" step="0.1">
-          </div>
-        </div>
-        <div class="hint" id="nom-hint"></div>
+        <label for="r_acum">Rentabilidad real (%)</label>
+        <input type="number" id="r_acum" value="6.5" min="0" max="12" step="0.1">
+        <div class="hint" id="r-acum-hint"></div>
         <label for="inflacion">Inflación anual asumida (%)</label>
         <input type="number" id="inflacion" value="3" min="0" max="8" step="0.1">
-        <div class="hint">Trabajas en términos reales (€ de hoy) = rentabilidad nominal − inflación. Aquí asumes <strong>7% real</strong> (≈ 10,2% nominal − 3% inflación). Ojo: el S&P500 real histórico ronda el 4,5%; 7% es una hipótesis <em>optimista</em>, razonable si cuentas con la pensión como colchón.</div>
+        <div class="hint">Solo sirve para traducir los € de hoy a € del año que toque (la cuota nominal de la tabla año a año y el saldo en € de hoy de la calculadora de interés compuesto). Como todo el plan se lleva en <b>términos reales</b>, subirla o bajarla no cambia el esfuerzo que hace falta.</div>
       </div>
 
       <div class="group">
-        <div class="group-title">Retiro y fiscalidad</div>
+        <div class="group-title">Retirada y fiscalidad</div>
         <label for="fin">Vives hasta (edad)</label>
         <input type="number" id="fin" value="105" min="70" max="105">
         <div class="hint">Hasta qué edad tiene que aguantar el plan. Cuanto más largo, más colchón pide (y más peso tiene la pensión pública, que se cobra hasta esa edad).</div>
@@ -421,7 +432,9 @@
   <!-- RESULTADOS -->
   <!-- Cuánto tienes que aportar (ancho completo; el detalle listado se puede plegar) -->
   <div class="card" id="aportarCard">
-    <h2 class="with-aside">Tu esfuerzo mensual
+    <!-- El título cambia con el signo del plan: con un tramo de consumo (perfil "constante
+         que fijas tú" en negativo) no hay ningún esfuerzo que describir. -->
+    <h2 class="with-aside"><span id="esfuerzoTitulo">Tu esfuerzo mensual</span>
       <!-- Único sitio donde se dice qué edad estás mirando: todo lo de abajo describe
            ese año, así que ni el círculo ni las cifras lo repiten. -->
       <span class="view-chip">a los <b id="viewChipAge">—</b>
@@ -429,7 +442,7 @@
       </span>
     </h2>
 
-    <!-- Máquina del tiempo: recorre la fase de acumulación (hoy → retiro) y toda la
+    <!-- Máquina del tiempo: recorre la fase de acumulación (hoy → fecha objetivo) y toda la
          tarjeta pasa a describir ese año. El raíl del slider es la propia línea de
          fases: lleno mientras aportas, apagado cuando la cartera compone sola. -->
     <div class="timeline" id="timeline">
@@ -447,20 +460,21 @@
     <div class="split-legend" id="originLegend"></div>
 
     <!-- Cifras clave, todas referidas a la edad que estás viendo y con la misma forma
-         en todos los años (no hay un caso especial para hoy ni para el retiro). -->
+         en todos los años (no hay un caso especial para hoy ni para la fecha objetivo).
+         Las dos primeras cambian de rótulo si el tramo es de consumo. -->
     <div class="cards-mini" style="margin-top:18px">
-      <div class="mini" title="La cuota mensual que toca pagar el año que empieza a esa edad">
-        <div class="k">Aportación de ese año</div>
+      <div class="mini" id="kpiCuotaCard" title="La cuota mensual que toca pagar el año que empieza a esa edad">
+        <div class="k" id="kpiCuotaK">Aportación de ese año</div>
         <div class="v" id="kpiCuota">—</div>
         <div class="s" id="kpiCuotaS"></div>
       </div>
-      <div class="mini" title="Dinero que aún tienes que poner de tu bolsillo, desde esa edad hasta que dejas de aportar. La barra es la parte del esfuerzo que ya llevas pagada.">
-        <div class="k">Te queda por aportar</div>
+      <div class="mini" id="kpiRestanteCard" title="Dinero que aún tienes que poner de tu bolsillo, desde esa edad hasta que dejas de aportar. La barra es la parte del esfuerzo que ya llevas pagada.">
+        <div class="k" id="kpiRestanteK">Te queda por aportar</div>
         <div class="v" id="kpiRestante">—</div>
         <div class="mini-bar"><i id="kpiRestanteBar" style="width:0"></i></div>
         <div class="s" id="kpiRestanteS"></div>
       </div>
-      <div class="mini" title="Cuánto le falta a tu patrimonio para el capital con el que te retiras. Ese capital es la retirada bruta anual dividida entre tu tasa de retirada segura.">
+      <div class="mini" title="Cuánto le falta a tu patrimonio para el capital objetivo. Ese capital es la retirada bruta anual dividida entre tu tasa de retirada segura, menos —si la cuentas— el valor actual de la pensión pública.">
         <div class="k">Te falta para el objetivo</div>
         <div class="v" id="kpiFalta">—</div>
         <div class="s" id="kpiFaltaS"></div>
@@ -485,9 +499,9 @@
   <!-- LO QUE PONES TÚ vs LO QUE LLEGA A VALER (estilo investor.gov) -->
   <div class="card chart-card">
     <h2>Evolución de tu ahorro</h2>
-    <p class="subtitle" style="margin-bottom:14px">En <b>€ de hoy</b> y con un <span id="projR">—</span> real anual: la línea de arriba es lo que llega a valer la cartera y la de abajo lo que has puesto tú (tu capital inicial más las aportaciones acumuladas). <b>La distancia entre las dos es el interés.</b> Elige hasta qué edad quieres mirar y <b>guarda ese tramo</b> para compararlo con otras configuraciones.</p>
+    <p class="subtitle" style="margin-bottom:14px">En <b>€ de hoy</b> y con un <span id="projR">—</span> real anual: la línea de arriba es lo que llega a valer la cartera y la de abajo lo que has puesto tú (tu capital inicial más las aportaciones acumuladas, menos lo que hayas sacado en un tramo de consumo). <b>La distancia entre las dos es el interés.</b> Elige hasta qué edad quieres mirar y <b>guarda ese tramo</b> para compararlo con otras configuraciones.</p>
 
-    <!-- Rango visible + guardado. La edad final no tiene por qué ser la del retiro: sirve
+    <!-- Rango visible + guardado. La edad final no tiene por qué ser la objetivo: sirve
          para mirar un trecho de la ruta y congelarlo. -->
     <div class="snap-bar">
       <span class="snap-range">Ver de <b id="verDesde">—</b> a
@@ -524,7 +538,7 @@
   <section class="tabpanel" id="panelCi" role="tabpanel" aria-labelledby="tabCi" hidden>
   <div class="card">
     <h2>Calculadora de interés compuesto</h2>
-      <p class="subtitle" style="margin-bottom:20px">Prueba capital, aportación, plazo y rentabilidad sin alterar tu plan de retiro. Con una aportación <b>negativa</b> funciona al revés y te dice cuánto aguanta un capital del que vas sacando dinero cada mes. Usa la inflación de <b>Ajustes avanzados → Mercados</b> (pestaña «Plan de retiro») para pasar el saldo a € de hoy.</p>
+      <p class="subtitle" style="margin-bottom:20px">Prueba capital, aportación, plazo y rentabilidad sin alterar tu plan. Con una aportación <b>negativa</b> funciona al revés y te dice cuánto aguanta un capital del que vas sacando dinero cada mes. Usa la inflación de <b>Ajustes avanzados → Mercados</b> (pestaña «Tu plan») para pasar el saldo a € de hoy.</p>
 
       <div class="budget-grid">
         <div>
@@ -545,7 +559,7 @@
         <div>
           <label for="ci_tasa">Tipo de interés anual (%)</label>
           <input type="number" id="ci_tasa" value="7" min="0" max="30" step="0.1">
-          <div class="hint">Rentabilidad media anual que asumes. Un fondo indexado global ronda el <b>7% nominal</b> (≈ 4% real, ya descontada la inflación). Si pones la <b>real</b>, el saldo ya está en € de hoy y puedes ignorar la tarjeta de la inflación.</div>
+          <div class="hint">Rentabilidad media anual que asumes. A largo plazo un indexado global ha rondado el <b>8–9% nominal</b> (≈ <b>5–6% real</b>, ya descontada la inflación) y el S&P 500 algo más. Si pones la <b>real</b>, el saldo ya está en € de hoy y puedes ignorar la casilla «Ese saldo, en € de hoy».</div>
         </div>
         <div>
           <label for="ci_var">Variación del tipo (± %)</label>
@@ -702,12 +716,15 @@ function pensionAt(F, startWork, fullPension) {
   return fullPension * factor;
 }
 
-// Calcula un escenario completo para una edad de retiro F. Todo en € de hoy.
+// Calcula un escenario completo para una edad objetivo F. Todo en € de hoy.
 function scenario(F) {
   const a0 = val('edad'), PA = val('pension_edad'), E = val('fin');
-  const cap0 = val('capital'), neto = val('neto') * 12, S = val('gasto') * 12;   // inputs mensuales → anuales
+  const cap0 = val('capital'), neto = val('neto') * 12;
   const fullPension = val('pension'), startWork = val('trabajo');
-  const rA = val('r_acum')/100, rR = val('r_retiro')/100, infl = val('inflacion')/100;
+  // Una sola rentabilidad real para todo el plan: la misma antes y después de la fecha
+  // objetivo. La inflación no entra en el cálculo (se trabaja en € de hoy); solo se usa
+  // para traducir a € nominales lo que se muestra.
+  const rA = val('r_acum')/100, infl = val('inflacion')/100;
   const rate0 = tasaRetiro();                        // regla de retirada: capital = retirada bruta / tasa
   const tr = Math.min(0.95, val('impuestos')/100);   // impuesto efectivo sobre retiradas
 
@@ -724,35 +741,58 @@ function scenario(F) {
   const convenioAnual = convenioActivo ? convenioMes * 12 : 0;
   const P = cobrarePension ? pensionAt(convenioActivo ? PA : F, startWork, fullPension) : 0;
 
-  // Capital necesario al retirarte con la regla de retirada elegida: capital = retirada
-  // bruta / tasa (con el 3,5% por defecto, ~28,6× el gasto). Se dimensiona al pico
-  // (gasto completo) + convenio.
-  const capBase = rate0 > 0 ? (S / (1 - tr) + convenioAnual) / rate0 : Infinity;
+  /* ---- Las dos caras del objetivo: gasto anual S ⇄ capital objetivo capNeeded ----
+     capBase  = (S + convenio) / (1 − impuesto) / tasa   ← capital que sostiene ese gasto
+     capNeeded = max(0, capBase − valor actual de la pensión)
+     El convenio también sale de la cartera, así que tributa igual que el resto de las
+     retiradas y va dentro del bruto (no sumado aparte, como estaba antes).
+     La pensión se descuenta por su valor actual en F, descontado a la misma rentabilidad
+     real del plan: una renta que empieza al cobrarla (max(PA,F)) y dura hasta E. Solo
+     cubre gasto, nunca más de S, y por eso la relación es lineal A TROZOS con el codo en
+     S = P — lo que permite invertirla exacta, sin buscar. */
+  const pvPension = (() => {
+    if (!cobrarePension || P <= 0) return 0;          // valor actual de 1 € NETO anual de pensión
+    const d = Math.max(0, PA - F);                    // años desde la fecha objetivo hasta cobrarla
+    const n = Math.max(0, E - Math.max(PA, F));       // años cobrándola
+    const annuityF = rA > 0 ? (1 - Math.pow(1 + rA, -n)) / rA : n;
+    return annuityF * Math.pow(1 + rA, -d) / (1 - tr);
+  })();
+  const kGasto = rate0 > 0 ? 1 / ((1 - tr) * rate0) : Infinity;   // capital por cada € anual de gasto
+  const kConv  = rate0 > 0 ? convenioAnual / ((1 - tr) * rate0) : Infinity;  // el que exige el convenio
+  const capDeGasto = s => Math.max(0, s * kGasto + kConv - Math.min(P, s) * pvPension);
+  const gastoDeCap = T => {
+    if (!(T > 0) || !isFinite(kGasto)) return 0;
+    const alta = (T - kConv + P * pvPension) / kGasto;    // tramo S ≥ P: la pensión ya da todo lo que puede
+    if (alta >= P) return Math.max(0, alta);
+    const k = kGasto - pvPension;                          // tramo S < P
+    // k ≤ 0 significa que un euro más de gasto rebaja el capital necesario (pensión
+    // desproporcionada frente a la tasa de retirada): ahí no hay inversa útil y se
+    // devuelve el tramo alto, que es el único con sentido económico.
+    return k > 0 ? Math.max(0, (T - kConv) / k) : Math.max(0, alta);
+  };
 
-  // Si cuentas con la pensión, restamos su VALOR ACTUAL (a la edad de retiro F, descontado a rR):
-  // una renta que empieza al cobrarla (max(PA,F)) y dura hasta E. Así la pensión reduce de verdad
-  // el capital necesario —y por tanto la aportación—, dejando aún colchón/herencia al final.
-  let pensionPV = 0;
-  if (cobrarePension && P > 0 && rR > 0) {
-    const netCredit = Math.min(P, S);              // no reduce la necesidad por debajo de 0
-    const A = netCredit / (1 - tr);                // retirada bruta de cartera que evita cada año
-    const d = Math.max(0, PA - F);                 // años desde el retiro hasta empezar a cobrarla
-    const n = Math.max(0, E - Math.max(PA, F));    // años cobrándola
-    const annuityF = (1 - Math.pow(1 + rR, -n)) / rR;
-    const deferF = Math.pow(1 + rR, -d);
-    pensionPV = A * annuityF * deferF;
-  }
+  // Cuál de las dos casillas manda: la última que tocó el usuario. La otra es derivada y
+  // compute() la reescribe, de modo que al cambiar edades, impuestos o pensión el objetivo
+  // se mantiene por el lado que el usuario fijó.
+  const objetivoModo = document.getElementById('objetivo_modo').value === 'capital' ? 'capital' : 'gasto';
+  const S = objetivoModo === 'capital' ? gastoDeCap(val('capital_objetivo')) : val('gasto') * 12;
+  const capBase = rate0 > 0 ? (S + convenioAnual) / (1 - tr) / rate0 : Infinity;
+  const pensionPV = Math.min(P, S) * pvPension;
   // La pensión reduce el capital necesario por su valor actual completo. Durante el "puente"
-  // (retiro anticipado, aún sin pensión) la cartera puede ir bajando: es normal, porque a partir
-  // de la edad de pensión esa renta compensa y el patrimonio se estabiliza o crece.
-  const capNeeded = Math.max(0, capBase - pensionPV);
+  // (dejas de trabajar antes de cobrarla) la cartera puede ir bajando: es normal, porque a
+  // partir de la edad de pensión esa renta compensa y el patrimonio se estabiliza o crece.
+  const capNeeded = capDeGasto(S);
 
   // Aportación mensual real necesaria (perfil constante o decreciente)
   const M = F - a0;
   const i = Math.pow(1 + rA, 1/12) - 1;
   const perfil = perfilAportacion();
   const fvInicial = cap0 * Math.pow(1 + rA, M);
-  const need = Math.max(0, capNeeded - fvInicial);   // FV que tienen que aportar las cuotas
+  // FV que tienen que poner las cuotas. En negativo significa que el capital que ya
+  // tienes se pasa del objetivo: ese margen es lo único que hace posible un tramo de
+  // consumo, así que se conserva con signo y solo se recorta donde se necesita positivo.
+  const sobra = Math.max(0, fvInicial - capNeeded);
+  const need = Math.max(0, capNeeded - fvInicial);
   // FV de aportar mensualmente el peso w(age) durante toda la acumulación.
   const fvOf = w => {
     let fv = 0;
@@ -774,10 +814,31 @@ function scenario(F) {
   const importeMinimo = fvPlano > 0 ? need / fvPlano : 0;
   const forma = PERFIL_VENTANA[perfil.modo];
   let weight, base, ventana = M, ventanaCorta = false, suelo = 0;
+  // Tramo de consumo: solo el modo "constante que fijas tú" admite importes negativos, y
+  // ahí la incógnita se da la vuelta —cuántos años puedes GASTAR ese importe sin bajarte
+  // del objetivo— en vez de cuántos tienes que aportar.
+  const consumo = perfil.modo === 'sprint' && perfil.sprint < 0;
   if (forma) {
     base = perfil.modo === 'tope' ? perfil.tope : perfil.sprint;
     const fvVentana = T => fvOf(age => forma(age - a0, T)) * base;
-    if (base > 0 && fvVentana(M) >= need) {
+    if (consumo) {
+      // fvVentana DECRECE con T (cada año gastando resta capital), así que el conjunto de
+      // ventanas válidas es [0, T*] y se busca la MAYOR. Solo hay margen si el capital que
+      // ya tienes se pasa del objetivo: `sobra` es exactamente ese margen, medido en F.
+      if (fvVentana(M) >= -sobra) ventana = M;      // aguantas gastando todo el tramo
+      else if (sobra > 0) {
+        let lo = 0, hi = M;
+        for (let it = 0; it < 50; it++) {
+          const mid = (lo + hi) / 2;
+          if (fvVentana(mid) >= -sobra) lo = mid; else hi = mid;
+        }
+        ventana = lo;
+      } else {
+        ventana = 0;                                // aún no llegas al objetivo: no hay nada que gastar
+        ventanaCorta = true;
+      }
+      weight = age => forma(age - a0, ventana);
+    } else if (base > 0 && fvVentana(M) >= need) {
       let lo = 0, hi = M;                       // fvVentana crece con T → búsqueda binaria
       for (let it = 0; it < 50; it++) {
         const mid = (lo + hi) / 2;
@@ -813,42 +874,40 @@ function scenario(F) {
     const fvUnit = fvOf(weight);
     base = fvUnit > 0 ? need / fvUnit : 0;
   }
-  // Capital que faltaría al retirarte si ni con el máximo esfuerzo posible se llega (€ de hoy).
+  // Capital que faltaría en la fecha objetivo si ni con el máximo esfuerzo posible se llega (€ de hoy).
   const falta = ventanaCorta ? Math.max(0, need - fvOf(weight) * base) : 0;
   const mensualIni = base * (M > 0 ? weight(a0) : 0);      // primer año (pico)
   const mensualFin = base * (M > 0 ? weight(F - 1) : 0);   // último año
   const mensual = mensualIni;                 // el primer año es el más exigente
   const anual = mensual * 12;
-  const tasa = neto > 0 ? anual / neto : 0;
-  // Años en los que de verdad aportas algo (en "cero", "tope" y "sprint" la cola es 0 €).
+  const tasa = neto > 0 ? anual / neto : 0;   // negativa en un tramo de consumo
+  // Años en los que de verdad se mueve dinero (en "cero", "tope" y "sprint" la cola es
+  // 0 €). Se mide en valor absoluto: un tramo de consumo también son años ocupados.
   let aniosAportando = 0;
-  for (let age = a0; age < F; age++) if (base * weight(age) > 0.5) aniosAportando++;
-  // Primera edad en la que ya no aportas nada: el fin del esfuerzo. `paraAntes` distingue
-  // el caso en que de verdad puedes soltar el ahorro antes (y la cartera compone
-  // sola un tramo) del caso en que la última cuota cae justo en el año del retiro, donde
-  // no hay nada que soltar. Fuente única para el subtítulo y para el hito de la línea.
+  for (let age = a0; age < F; age++) if (Math.abs(base * weight(age)) > 0.5) aniosAportando++;
+  // Primera edad en la que ya no se mueve dinero: el fin del esfuerzo (o del consumo).
+  // `paraAntes` distingue el caso en que de verdad puedes soltarlo antes (y la cartera
+  // compone sola un tramo) del caso en que la última cuota cae justo en el año objetivo,
+  // donde no hay nada que soltar. Fuente única para el subtítulo y para el hito de la línea.
   const stopAge = a0 + aniosAportando;
   const paraAntes = aniosAportando > 0 && stopAge < F;
 
-  // Nº Coast FIRE: cuánto habría que tener invertido HOY para no aportar nada más y aun
-  // así llegar al objetivo. Usa el MISMO capital objetivo que el plan (mismo impuesto
-  // efectivo sobre lo retirado y, si la cuentas, con la pensión pública ya descontada).
-  const coastNum = capNeeded / Math.pow(1 + rA, M);
-
-  return { F, a0, PA, E, cap0, S, P, rA, rR, rate0, infl, i, M, capNeeded, capBase, pensionPV, cobrarePension, mensual, anual, tasa, coastNum, tr, convenioActivo, convenioMes, convenioAnual, base, mensualIni, mensualFin, perfil, weight, ventana, ventanaCorta, suelo, importeMinimo, falta, aniosAportando, stopAge, paraAntes };
+  return { F, a0, PA, E, cap0, S, P, rA, rate0, infl, i, M, capNeeded, capBase, pensionPV, cobrarePension, mensual, anual, tasa, tr, convenioActivo, convenioMes, convenioAnual, base, mensualIni, mensualFin, perfil, consumo, weight, ventana, ventanaCorta, suelo, importeMinimo, falta, aniosAportando, stopAge, paraAntes, objetivoModo };
 }
 
 // Construye la curva determinista de patrimonio (€ de hoy) año a año a partir de
-// un escenario `sc`: fase de acumulación (aportas `base` con perfil) y fase de
-// retiro (gasto constante S, cubierto por pensión + cartera). No toca el DOM: sirve
-// tanto para el plan como para visualizar la proyección de otra estrategia.
+// un escenario `sc`: fase de acumulación (mueves `base` con el perfil elegido, que en un
+// tramo de consumo es negativo) y fase de retirada a partir de la fecha objetivo (gasto
+// constante S, cubierto por pensión + cartera). No toca el DOM: sirve tanto para el plan
+// como para visualizar la proyección de otra estrategia. Una sola rentabilidad real (rA)
+// para las dos fases.
 function buildCurve(sc) {
-  const { a0, F, E, cap0, S, rR, i, tr, PA, P, cobrarePension, convenioAnual, base, weight } = sc;
+  const { a0, F, E, cap0, S, rA, i, tr, PA, P, cobrarePension, convenioAnual, base, weight } = sc;
   const ages = [], bal = [], phase = [], flow = [];
   let b = cap0;
   ages.push(a0); bal.push(b); phase.push(0); flow.push(null);
   for (let age = a0; age < F; age++) {
-    const aport = base * weight(age);                            // aportación de ese año (perfil)
+    const aport = base * weight(age);                            // movimiento de ese año (perfil)
     for (let k = 0; k < 12; k++) b = b * (1 + i) + aport;
     ages.push(age + 1); bal.push(b); phase.push(0);
     flow.push({ acc: true, aport: aport * 12 });
@@ -858,8 +917,10 @@ function buildCurve(sc) {
     const pensionNeta = conPension ? Math.min(P, S) : 0;         // pensión que cubre gasto
     const carteraNeta = S - pensionNeta;                         // resto del gasto, de la cartera
     const conv = (age < PA) ? convenioAnual : 0;                 // convenio solo en el puente
-    const w = carteraNeta / (1 - tr) + conv;                     // retirada bruta de la cartera
-    b = b * (1 + rR) - w;   // retirada a fin de año: gastas solo el rendimiento → principal plano
+    // El convenio se paga también con dinero sacado de la cartera, así que entra dentro
+    // del bruto y tributa igual que el resto (antes se sumaba ya neto y se infravaloraba).
+    const w = (carteraNeta + conv) / (1 - tr);                   // retirada bruta de la cartera
+    b = b * (1 + rA) - w;   // retirada a fin de año, sobre el saldo ya revalorizado
     ages.push(age + 1); bal.push(b); phase.push(conPension ? 2 : 1);
     flow.push({ acc: false, gasto: S, pension: pensionNeta, cartera: carteraNeta, bruto: w, conv });
   }
@@ -878,7 +939,7 @@ function compute() {
   if (F <= a0 || E <= F) return;
 
   const sc = scenario(F);
-  const { PA, S, P, infl, i, M, capNeeded, pensionPV, cobrarePension, mensual, anual, tasa, coastNum, cap0, rA, tr, convenioActivo, convenioMes, convenioAnual, base, mensualIni, mensualFin, perfil, ventana, ventanaCorta, suelo, importeMinimo, falta, aniosAportando, stopAge, paraAntes } = sc;
+  const { PA, S, P, infl, M, capNeeded, capBase, pensionPV, cobrarePension, mensual, anual, tasa, rA, tr, convenioActivo, convenioMes, convenioAnual, base, mensualIni, mensualFin, perfil, consumo, ventanaCorta, suelo, importeMinimo, falta, aniosAportando, stopAge, objetivoModo } = sc;
   const decreciente = mensualIni > mensualFin + 1;
   // Modo "tope" resuelto por suelo: la rampa hasta 0 € no llegaba al objetivo ni ocupando
   // todo el horizonte, así que baja solo hasta una cuota mínima y aportas hasta el final.
@@ -898,19 +959,30 @@ function compute() {
   // Ayuda de la tasa de retirada: el multiplicador del gasto sale de la propia tasa.
   const tr0 = sc.rate0;
   const th = document.getElementById('tasa-retiro-hint');
-  if (th) th.innerHTML = `Qué porcentaje de la cartera retiras cada año una vez jubilado. Fija el capital objetivo: `
+  if (th) th.innerHTML = `Qué porcentaje de la cartera retiras cada año a partir de la fecha objetivo. Fija el capital objetivo: `
     + `<b>capital = retirada bruta ÷ ${tasaTxt(tr0)}</b>, es decir <b>${(1/tr0).toLocaleString('es-ES',{maximumFractionDigits:1})}×</b> el gasto anual bruto. `
-    + `El <b>3,5%</b> es la versión prudente de la regla del 4%: no toca el principal, así que la cartera aguanta indefinidamente y deja herencia. `
+    + `El <b>3,5%</b> es la versión prudente de la regla del 4%: se queda por debajo de la rentabilidad real que asumes, así que la cartera no se agota y deja herencia. `
     + `<b>Súbela</b> y necesitarás menos capital, pero asumes más riesgo de agotarla; <b>bájala</b> y pasa lo contrario.`;
 
-  // Ayuda nominal
+  // Ayuda de la rentabilidad: su equivalente nominal con la inflación asumida, y en qué
+  // rango histórico cae el número que has puesto.
   const nomA = ((1 + rA) * (1 + infl) - 1) * 100;
-  document.getElementById('nom-hint').textContent =
-    `≈ ${nomA.toFixed(1)}% nominal (lo que verías en el extracto del fondo, con inflación incluida).`;
+  const rPct = (rA * 100).toLocaleString('es-ES', { maximumFractionDigits: 1 });
+  const rh = document.getElementById('r-acum-hint');
+  if (rh) rh.innerHTML = `Rentabilidad anual <b>por encima de la inflación</b>, la misma antes y después de la fecha objetivo. `
+    + `Con un ${infl > 0 ? (infl * 100).toLocaleString('es-ES', { maximumFractionDigits: 1 }) + '%' : '0%'} de inflación, tu <b>${rPct}% real</b> equivale a ≈ <b>${nomA.toFixed(1)}% nominal</b>, que es lo que verías en el extracto del fondo. `
+    + `De referencia: a muy largo plazo el S&P 500 con dividendos reinvertidos ha dado en torno a un <b>6,5–7% real</b> y un indexado global algo menos, un <b>5–5,5%</b>. `
+    + `Son medias de periodos muy largos, no una garantía: si quieres un plan prudente, baja este número antes que subirlo.`;
+
+  // Las dos caras del objetivo: se reescribe la casilla DERIVADA (nunca la que manda, que
+  // es la que el usuario está escribiendo) para que las dos digan siempre lo mismo.
+  const objEl = document.getElementById(objetivoModo === 'capital' ? 'gasto' : 'capital_objetivo');
+  const objVal = objetivoModo === 'capital' ? Math.round(S / 12) : Math.round(capNeeded);
+  if (objEl && objEl.value !== String(objVal)) objEl.value = objVal;
 
   // Equivalente anual de los importes mensuales introducidos
   const ga = document.getElementById('gasto-anual');
-  if (ga) ga.textContent = `Equivale a ≈ ${fmt.format(S)}/año.`;
+  if (ga) ga.textContent = `Ahora mismo: ${fmt.format(S)}/año de gasto ↔ ${fmt.format(capNeeded)} de capital.`;
   const neto = val('neto') * 12;   // input mensual → neto anual
   const na = document.getElementById('neto-anual');
   if (na) na.textContent = neto > 0 ? `Equivale a ≈ ${fmt.format(neto)}/año.` : '';
@@ -918,39 +990,61 @@ function compute() {
   // El panel del esfuerzo (círculo, línea de tiempo y cifras clave) lo pinta entero
   // renderEsfuerzo(), porque todo él depende de la edad que marque el slider.
 
-  // Tasa de ahorro sobre neto: primer y último año (con perfil de aportación decreciente)
+  // Tasa de ahorro sobre neto: primer y último año (con perfil de aportación decreciente).
+  // En un tramo de consumo el porcentaje es negativo y no es una tasa de ahorro, así que
+  // cambia de rótulo y se muestra en valor absoluto.
   const tCol = t => t > 0.6 ? 'var(--red)' : t > 0.4 ? 'var(--amber)' : 'var(--green)';
-  const tPct = t => (t * 100).toFixed(0) + '%';
+  const tPct = t => (Math.abs(t) * 100).toFixed(0) + '%';
   const tIni = neto > 0 ? mensualIni * 12 / neto : 0;
   const tFin = neto > 0 ? mensualFin * 12 / neto : 0;
-  const tasaRowLabel = decreciente ? 'Tasa de ahorro sobre neto (primer→último año)' : 'Tasa de ahorro (sobre neto)';
+  const tasaRowLabel = consumo ? 'Lo que sacas cada mes, sobre tu neto de hoy'
+    : decreciente ? 'Tasa de ahorro sobre neto (primer→último año)'
+    : 'Tasa de ahorro (sobre neto)';
   const tasaRowVal = (neto <= 0) ? '—'
+    : consumo ? `<span style="color:var(--blue)">${tPct(tIni)}</span>`
     : decreciente
       ? `<span style="color:${tCol(tIni)}">${tPct(tIni)}</span> → <span style="color:${tCol(tFin)}">${tPct(tFin)}</span>`
       : `<span style="color:${tCol(tIni)}">${tPct(tIni)}</span>`;
 
   document.getElementById('breakdown').innerHTML = `
+    <div class="row"><span class="muted">Gasto objetivo, a partir de los ${F}</span><span>${fmt.format(S/12)}/mes · ${fmt.format(S)}/año</span></div>
+    <div class="row"><span class="muted">Retirada bruta anual de la cartera (con ${(tr*100).toFixed(0)}% impuestos)</span><span>${fmt.format(S/(1-tr))}/año</span></div>
+    ${convenioActivo ? `<div class="row"><span class="muted">Coste convenio especial (solo hasta la edad de pensión)</span><span>${fmt.format(convenioMes)}/mes · ${fmt.format(convenioAnual)}/año</span></div>` : ''}
     ${cobrarePension ? `
     <div class="row"><span class="muted">Años hasta la edad de pensión</span><span>${Math.max(0,Math.min(PA,E)-F)} años (${F}→${Math.min(PA,E)})</span></div>
     <div class="row"><span class="muted">Pensión estimada (desde ${PA})${convenioActivo?' · 100% vía convenio':''}</span><span>${fmt.format(P)}/año</span></div>` : ''}
-    <div class="row"><span class="muted">Retirada bruta anual de la cartera (con ${(tr*100).toFixed(0)}% impuestos)</span><span>${fmt.format(S/(1-tr))}/año</span></div>
-    ${convenioActivo ? `<div class="row"><span class="muted">Coste convenio especial (solo hasta la edad de pensión)</span><span>${fmt.format(convenioMes)}/mes · ${fmt.format(convenioAnual)}/año</span></div>` : ''}
-    <div class="row"><span class="muted">Aportación anual necesaria${decreciente?' (primer→último año)':''}</span><span>${decreciente?`${fmt.format(anual)} → ${fmt.format(mensualFin*12)}`:fmt.format(anual)}</span></div>
+    ${cobrarePension && pensionPV > 0 ? `
+    <div class="row"><span class="muted">Capital que pide ese gasto, sin contar la pensión</span><span>${fmt.format(capBase)}</span></div>
+    <div class="row"><span class="muted">Valor actual de la pensión (te lo ahorras)</span><span>− ${fmt.format(pensionPV)}</span></div>` : ''}
+    <div class="row"><span class="muted">Capital objetivo a los ${F}</span><span>${fmt.format(capNeeded)}</span></div>
+    ${consumo
+      ? `<div class="row"><span class="muted">Retirada anual del tramo de consumo</span><span>${fmt.format(-anual)}</span></div>`
+      : `<div class="row"><span class="muted">Aportación anual necesaria${decreciente?' (primer→último año)':''}</span><span>${decreciente?`${fmt.format(anual)} → ${fmt.format(mensualFin*12)}`:fmt.format(anual)}</span></div>`}
     ${conSuelo ? `<div class="row"><span class="muted">Con ese tope aportas los ${M} años (no da para parar antes)</span><span>${fmt.format(base)} → ${fmt.format(mensualFin)}/mes</span></div>`
-      : PERFIL_VENTANA[perfil.modo] && !ventanaCorta ? `<div class="row"><span class="muted">${perfil.modo === 'tope' ? 'Años pagando con ese tope (hasta llegar a 0 €)' : 'Años pagando esa cuota (luego dejas de ahorrar)'}</span><span>${aniosAportando} de ${M} (${a0}→${stopAge})</span></div>` : ''}
+      : PERFIL_VENTANA[perfil.modo] && !ventanaCorta ? `<div class="row"><span class="muted">${perfil.modo === 'tope' ? 'Años pagando con ese tope (hasta llegar a 0 €)' : consumo ? 'Años que puedes gastar ese importe' : 'Años pagando esa cuota (luego dejas de ahorrar)'}</span><span>${aniosAportando} de ${M} (${a0}→${stopAge})</span></div>` : ''}
     <div class="row"><span class="muted">${tasaRowLabel}</span><span>${tasaRowVal}</span></div>
-    ${cobrarePension && pensionPV > 0 ? `<div class="row"><span class="muted">Valor actual de la pensión (te lo ahorras)</span><span>− ${fmt.format(pensionPV)}</span></div>` : ''}
   `;
 
   let alerts = '';
   if (ventanaCorta) alerts += perfil.modo === 'tope'
-    ? `<div class="alert bad">🚫 Con un tope de ${fmt.format(base)}/mes no llegas ni aportándolo <b>entero los ${M} años</b>: al retirarte te faltarían <b>${fmt.format(falta)}</b> de los ${fmt.format(capNeeded)}. Harían falta al menos <b>${fmt.format(importeMinimo)}/mes</b> (constantes, en € de hoy) — o retrasar el retiro o bajar el gasto.</div>`
-    : `<div class="alert bad">🚫 Con una cuota de ${fmt.format(base)}/mes nunca llegas a poder parar: aun aportándolo los ${M} años completos te faltarían <b>${fmt.format(falta)}</b> de los ${fmt.format(capNeeded)}. Harían falta al menos <b>${fmt.format(importeMinimo)}/mes</b> — o retrasar el retiro o bajar el gasto.</div>`;
+    ? `<div class="alert bad">🚫 Con un tope de ${fmt.format(base)}/mes no llegas ni aportándolo <b>entero los ${M} años</b>: en la fecha objetivo te faltarían <b>${fmt.format(falta)}</b> de los ${fmt.format(capNeeded)}. Harían falta al menos <b>${fmt.format(importeMinimo)}/mes</b> (constantes, en € de hoy) — o retrasar la fecha objetivo o bajar el gasto.</div>`
+    : consumo
+    ? `<div class="alert bad">🚫 Todavía no puedes gastar nada: con lo que tienes invertido hoy te faltan <b>${fmt.format(falta)}</b> para los ${fmt.format(capNeeded)} del objetivo, así que cualquier retirada te alejaría más. Pon un importe positivo, retrasa la fecha objetivo o baja el gasto.</div>`
+    : `<div class="alert bad">🚫 Con una cuota de ${fmt.format(base)}/mes nunca llegas a poder parar: aun aportándolo los ${M} años completos te faltarían <b>${fmt.format(falta)}</b> de los ${fmt.format(capNeeded)}. Harían falta al menos <b>${fmt.format(importeMinimo)}/mes</b> — o retrasar la fecha objetivo o bajar el gasto.</div>`;
   else if (conSuelo) alerts += `<div class="alert warn">📉 Llegas al objetivo, pero aportando los ${M} años: de <b>${fmt.format(base)}</b> a <b>${fmt.format(mensualFin)}/mes</b>. Sube el tope para poder parar antes.</div>`;
-  if (mensual <= 0) alerts += `<div class="alert ok">✅ Ya llegas sin aportar más: podrías adelantar el retiro o gastar más.</div>`;
-  if (tasa > 1) alerts += `<div class="alert bad">🚫 Necesitarías más del 100% de tu neto: inviable. Retrasa el retiro o baja el gasto.</div>`;
+  else if (consumo) alerts += aniosAportando >= M
+    ? `<div class="alert ok">🏖️ Puedes sacar <b>${fmt.format(-base)}/mes</b> <b>todos los años</b> hasta los ${F} y aun así llegar al objetivo. Te sobra margen: prueba a subir la retirada o a adelantar la fecha objetivo.</div>`
+    : `<div class="alert ok">🏖️ Tramo de consumo: puedes sacar <b>${fmt.format(-base)}/mes</b> durante <b>${aniosAportando} ${aniosAportando === 1 ? 'año' : 'años'}</b> (de los ${a0} a los ${stopAge}) y, dejando después que la cartera componga sola, seguir llegando a los ${fmt.format(capNeeded)} a los ${F}.</div>`;
+  if (mensual === 0 && !consumo) alerts += `<div class="alert ok">✅ Ya llegas sin aportar más: podrías adelantar la fecha objetivo o gastar más.</div>`;
+  // Escribiendo el objetivo por el lado del capital hay un suelo: el convenio especial hay
+  // que pagarlo aunque el gasto sea 0, así que por debajo de ese mínimo el capital que pides
+  // no se puede traducir en ningún gasto y el plan usa el suelo. Se dice, en vez de callarlo.
+  if (objetivoModo === 'capital' && Math.abs(capNeeded - val('capital_objetivo')) > 1) {
+    alerts += `<div class="alert warn">ℹ️ Con este convenio especial el plan necesita <b>${fmt.format(capNeeded)}</b> como mínimo (solo para pagarlo hasta los ${PA}), así que el objetivo que se usa es ese y no los ${fmt.format(val('capital_objetivo'))} que has puesto. Baja el coste del convenio o pide más capital.</div>`;
+  }
+  if (tasa > 1) alerts += `<div class="alert bad">🚫 Necesitarías más del 100% de tu neto: inviable. Retrasa la fecha objetivo o baja el gasto.</div>`;
   if (cobrarePension) {
-    if (F < PA && !convenioActivo) alerts += `<div class="alert warn">⚠️ Te retiras ${PA-F} años antes de la pensión sin convenio: podrías reducirla. Plantéate pagarlo.</div>`;
+    if (F < PA && !convenioActivo) alerts += `<div class="alert warn">⚠️ Dejas de cotizar ${PA-F} años antes de la pensión sin convenio: podrías reducirla. Plantéate pagarlo.</div>`;
     else if (convenioActivo) alerts += `<div class="alert warn">🌉 Pagas el convenio (${fmt.format(convenioMes)}/mes) hasta los ${PA} para conservar la pensión al 100%.</div>`;
   }
   document.getElementById('alerts').innerHTML = alerts;
@@ -961,9 +1055,8 @@ function compute() {
   lastSc = sc; lastCurve = curve;
   syncViewSlider(sc);
   renderEsfuerzo();
-  // Gráfica del plan: lo que pones tú frente a lo que llega a valer, durante la
-  // acumulación. La rentabilidad que manda aquí es la de esa fase (r_acum).
-  document.getElementById('projR').textContent = (sc.rA * 100).toFixed(1) + '%';
+  // Gráfica del plan: lo que pones tú frente a lo que llega a valer.
+  document.getElementById('projR').textContent = (sc.rA * 100).toLocaleString('es-ES', { maximumFractionDigits: 1 }) + '%';
   // `chartData` va ANTES que la tabla: las dos leen la misma ruta compuesta, y la tabla
   // se quedaría un ciclo por detrás si se pintara con el `chartData` del cálculo previo.
   chartData = planSerie(curve, syncVerHasta(sc));
@@ -973,9 +1066,9 @@ function compute() {
   renderPlanResumen();
 }
 
-// Rango visible. La edad final la elige el usuario y no tiene por qué ser la del retiro:
-// se acota entre el año que viene y el final del plan, y en blanco significa "hasta el
-// retiro", que es lo que la tarjeta enseñaba antes de poder elegir.
+// Rango visible. La edad final la elige el usuario y no tiene por qué ser la objetivo:
+// se acota entre el año que viene y el final del plan, y en blanco significa "hasta la
+// fecha objetivo", que es lo que la tarjeta enseñaba antes de poder elegir.
 function syncVerHasta(sc) {
   const el = document.getElementById('verHasta');
   document.getElementById('verDesde').textContent = sc.a0;
@@ -992,21 +1085,25 @@ function renderPlanResumen() {
   const f = chartData[chartData.length - 1];
   const interes = Math.max(0, f.total - f.aportado);
   const pct = f.total > 0 ? (interes / f.total) * 100 : 0;
-  const cuando = lastSc && f.edad === lastSc.F ? `Al llegar al retiro (<b>${f.edad} años</b>)` : `A los <b>${f.edad} años</b>`;
-  el.innerHTML = `${cuando} tendrías <b>${fmt.format(f.total)}</b>: `
+  const cuando = lastSc && f.edad === lastSc.F ? `Al llegar a tu fecha objetivo (<b>${f.edad} años</b>)` : `A los <b>${f.edad} años</b>`;
+  // Con un tramo de consumo "lo puesto por ti" baja e incluso puede quedar por debajo de
+  // lo que empezaste: entonces el reparto en porcentaje no dice nada y se cuenta al revés.
+  el.innerHTML = f.aportado < 0
+    ? `${cuando} tendrías <b>${fmt.format(f.total)}</b>, después de haber sacado de la cartera <b>${fmt.format(-f.aportado)}</b> más de lo que pusiste: todo lo que queda lo ha puesto el interés compuesto.`
+    : `${cuando} tendrías <b>${fmt.format(f.total)}</b>: `
     + `<b>${fmt.format(f.aportado)}</b> los has puesto tú y <b>${fmt.format(interes)}</b> los ha puesto `
     + `el interés compuesto — el <b>${pct.toFixed(0)}%</b> del total.`;
 }
 
-// ---- Máquina del tiempo de la tarjeta "Tu esfuerzo mensual" ----
-// El slider recorre la fase de acumulación (hoy → retiro) y toda la tarjeta describe
-// esa edad: la cuota de ese año, de qué está hecho el patrimonio en ese momento y
-// cuánto falta para el objetivo. Todos los años se cuentan igual —hoy y el retiro
-// incluidos—: mismas casillas, mismas unidades y ninguna frase especial.
+// ---- Máquina del tiempo de la tarjeta del esfuerzo ----
+// El slider recorre la fase de acumulación (hoy → fecha objetivo) y toda la tarjeta
+// describe esa edad: la cuota de ese año, de qué está hecho el patrimonio en ese momento
+// y cuánto falta para el objetivo. Todos los años se cuentan igual —hoy y la fecha
+// objetivo incluidas—: mismas casillas, mismas unidades y ninguna frase especial.
 let lastSc = null, lastCurve = null, viewAge = null;
 
-// Ajusta el rango del slider a la acumulación del plan actual y conserva, si cabe,
-// la edad que el usuario estuviera mirando (al cambiar el retiro puede quedar fuera).
+// Ajusta el rango del slider a la acumulación del plan actual y conserva, si cabe, la
+// edad que el usuario estuviera mirando (al cambiar la fecha objetivo puede quedar fuera).
 function syncViewSlider(sc) {
   const el = document.getElementById('viewAge');
   el.max = sc.F; el.min = sc.a0; el.step = 1;   // max primero: el min nuevo puede ser > max viejo
@@ -1017,7 +1114,7 @@ function syncViewSlider(sc) {
 function renderEsfuerzo() {
   const sc = lastSc, curve = lastCurve;
   if (!sc || !curve) return;
-  const { a0, F, cap0, capNeeded, rA, infl, base, weight, stopAge, paraAntes } = sc;
+  const { a0, F, cap0, capNeeded, rA, infl, base, consumo, weight, stopAge, paraAntes } = sc;
   const X = viewAge === null ? a0 : Math.max(a0, Math.min(F, viewAge));
   const t = X - a0;                                  // años transcurridos desde hoy
   const nominal = v => v * Math.pow(1 + infl, t);    // € de hoy → € del año X
@@ -1028,8 +1125,14 @@ function renderEsfuerzo() {
   // Chip del encabezado: la edad que estás mirando, el único sitio donde se dice.
   document.getElementById('viewChipAge').textContent = `${X} años · ${anyo}`;
   document.getElementById('btnViewReset').hidden = X === a0;
+  // Con un tramo de consumo no hay ningún esfuerzo que describir: la tarjeta cuenta
+  // cuánto puedes sacar y durante cuánto tiempo, así que cambia de título y de rótulos.
+  set('esfuerzoTitulo', consumo ? 'Tu consumo mensual' : 'Tu esfuerzo mensual');
 
-  /* --- Esfuerzo del plan (€ de hoy): lo pagado hasta X, lo que queda y el total --- */
+  /* --- Movimiento del plan (€ de hoy): lo hecho hasta X, lo que queda y el total.
+     Con un tramo de consumo las tres cifras son negativas; el signo es uniforme (nunca
+     se mezclan aportaciones y retiradas en un mismo plan), así que basta con leerlas en
+     valor absoluto y cambiar el rótulo. --- */
   const cuota = X < F ? base * weight(X) : 0;        // cuota mensual del año que empieza a los X
   let pagado = 0, totalAportar = 0;
   for (let age = a0; age < F; age++) {
@@ -1037,27 +1140,30 @@ function renderEsfuerzo() {
     totalAportar += anualAge;
     if (age < X) pagado += anualAge;
   }
-  const restante = Math.max(0, totalAportar - pagado);
-  const pctPagado = totalAportar > 1 ? Math.min(100, (pagado / totalAportar) * 100) : 100;
+  const restante = Math.abs(totalAportar - pagado);
+  const pctPagado = Math.abs(totalAportar) > 1 ? Math.min(100, (Math.abs(pagado) / Math.abs(totalAportar)) * 100) : 100;
   const aniosRestantes = Math.max(0, stopAge - X);
 
   /* --- Línea de tiempo: el raíl marca las fases de la acumulación --- */
-  const span = Math.max(1, F - a0);                  // stopAge: edad en la que dejas de aportar
+  const span = Math.max(1, F - a0);                  // stopAge: edad en la que se para el movimiento
   const at = age => Math.max(0, Math.min(100, ((age - a0) / span) * 100));
   const pStop = at(stopAge);
   document.getElementById('viewAge').style.setProperty('--tl-track',
       paraAntes ? `linear-gradient(90deg, var(--blue) 0 ${pStop}%, rgba(0,163,199,.28) ${pStop}% 100%)`
-    : stopAge <= a0 ? 'rgba(0,163,199,.28)'          // no aportas nunca: ya llegas con lo que tienes
+    : stopAge <= a0 ? 'rgba(0,163,199,.28)'          // no mueves nada: ya llegas con lo que tienes
     : 'var(--blue)');
-  // Solo los extremos: el punto en que dejas de aportar ya se ve en el color del raíl.
+  // Solo los extremos: el punto en que se para el movimiento ya se ve en el color del raíl.
   set('lifeFlags',
       `<span${X === a0 ? ' class="on"' : ''} style="left:0">Hoy · <b>${a0}</b></span>`
-    + `<span${X === F ? ' class="on"' : ''} style="right:0">Retiro · <b>${F}</b></span>`);
+    + `<span${X === F ? ' class="on"' : ''} style="right:0">Objetivo · <b>${F}</b></span>`);
 
   /* --- Círculo: de qué está hecho el patrimonio a los X y cuánto falta al objetivo --- */
   const patr = Math.max(0, curve.bal[t] ?? cap0);    // patrimonio a esa edad, € de hoy
   const yaTengo = Math.min(cap0, patr);
-  const aportado = Math.min(pagado, Math.max(0, patr - yaTengo));
+  // En un tramo de consumo `pagado` es negativo: lo que has sacado se descuenta primero
+  // de tu propio dinero, así que el trozo "aportado" del círculo es simplemente 0 y el
+  // patrimonio que queda se reparte entre lo ya invertido y lo que ha puesto el mercado.
+  const aportado = Math.max(0, Math.min(pagado, Math.max(0, patr - yaTengo)));
   const mercado = Math.max(0, patr - yaTengo - aportado);   // el resto lo pone el interés compuesto
   const partes = [
     { k: 'Ya invertido', v: yaTengo,  c: 'var(--blue)' },
@@ -1089,60 +1195,77 @@ function renderEsfuerzo() {
     { k: 'Falta',   v: falta,              c: '#dce5ef' },
   ].map(p => `<span><i style="background:${p.c}"></i>${p.k} <b>${fmtShort(p.v)}</b></span>`).join(''));
 
-  /* --- Cifras clave: mismas casillas y mismas unidades para todos los años --- */
-  const tasa = neto > 0 ? cuota * 12 / neto : 0;
+  /* --- Cifras clave: mismas casillas y mismas unidades para todos los años. Las dos
+     primeras cambian de rótulo (y de signo) cuando el tramo es de consumo. --- */
+  const tasa = neto > 0 ? Math.abs(cuota) * 12 / neto : 0;
+  const cuotaCard = document.getElementById('kpiCuotaCard');
+  cuotaCard.title = consumo
+    ? 'Lo que sacas de la cartera cada mes durante el año que empieza a esa edad'
+    : 'La cuota mensual que toca pagar el año que empieza a esa edad';
+  set('kpiCuotaK', consumo ? 'Retirada de ese año' : 'Aportación de ese año');
   const cuotaEl = document.getElementById('kpiCuota');
-  cuotaEl.innerHTML = `${fmt.format(cuota)}<small> /mes</small>`;
-  cuotaEl.style.color = cuota <= 0 ? 'var(--muted)'
+  cuotaEl.innerHTML = `${fmt.format(Math.abs(cuota))}<small> /mes</small>`;
+  cuotaEl.style.color = cuota === 0 ? 'var(--muted)'
+    : cuota < 0 ? 'var(--blue)'
     : neto <= 0 ? 'var(--text)'
     : tasa > 0.6 ? 'var(--red)'
     : tasa > 0.4 ? 'var(--amber)'
     : 'var(--green)';
-  set('kpiCuotaS', cuota <= 0
-    ? '✅ este año no aportas nada'
+  set('kpiCuotaS', cuota === 0
+    ? (consumo ? '✅ este año ya no sacas nada' : '✅ este año no aportas nada')
     : (neto > 0 ? `<b>${(tasa * 100).toFixed(0)}%</b> de tu neto · ` : '')
-      + `${fmt.format(nominal(cuota))}/mes en € de ${anyo}`);
+      + `${fmt.format(Math.abs(nominal(cuota)))}/mes en € de ${anyo}`);
 
-  // Lo que queda de esfuerzo: euros por pagar, barra con la parte ya pagada y, en la
-  // letra pequeña, cuánto llevas y cuántos años más.
+  // Lo que queda de esfuerzo (o de consumo): euros por mover, barra con la parte ya
+  // hecha y, en la letra pequeña, cuánto llevas y cuántos años más.
+  const restanteCard = document.getElementById('kpiRestanteCard');
+  restanteCard.title = consumo
+    ? 'Dinero que aún vas a sacar de la cartera, desde esa edad hasta que dejas de gastar. La barra es la parte del tramo que ya llevas consumida.'
+    : 'Dinero que aún tienes que poner de tu bolsillo, desde esa edad hasta que dejas de aportar. La barra es la parte del esfuerzo que ya llevas pagada.';
+  set('kpiRestanteK', consumo ? 'Te queda por gastar' : 'Te queda por aportar');
   set('kpiRestante', fmtShort(restante));
   document.getElementById('kpiRestanteBar').style.width = pctPagado.toFixed(1) + '%';
-  set('kpiRestanteS', totalAportar <= 1 ? '✅ el plan no necesita aportaciones'
-    : restante <= 1 ? `✅ ya has aportado los ${fmtShort(totalAportar)} del plan`
-    : `llevas ${fmtShort(pagado)} · ${aniosRestantes} ${aniosRestantes === 1 ? 'año' : 'años'} más`);
+  const totalAbs = Math.abs(totalAportar);
+  set('kpiRestanteS', totalAbs <= 1 ? (consumo ? '✅ el plan no da margen para gastar' : '✅ el plan no necesita aportaciones')
+    : restante <= 1 ? `✅ ${consumo ? 'ya has sacado' : 'ya has aportado'} los ${fmtShort(totalAbs)} del plan`
+    : `llevas ${fmtShort(Math.abs(pagado))} · ${aniosRestantes} ${aniosRestantes === 1 ? 'año' : 'años'} más`);
 
-  // Distancia al objetivo del retiro: manda lo que falta, no la cifra fija del objetivo.
+  // Distancia al objetivo: manda lo que falta, no la cifra fija del objetivo.
   set('kpiFalta', fmtShort(falta));
   set('kpiFaltaS', falta > 1
-    ? `de ${fmtShort(capNeeded)} al retirarte (${F})`
+    ? `de ${fmtShort(capNeeded)} en tu fecha objetivo (${F})`
     : `✅ objetivo de ${fmtShort(capNeeded)} cubierto`);
 
   // El Nº Coast FIRE no repite ese hueco: lo que aporta es cuánto de ese número ya
-  // tienes, es decir, lo cerca que estás de poder soltar las aportaciones.
-  // El patrimonio clava el objetivo justo en el retiro, así que al final la comparación
-  // se decide por decimales: un euro de margen evita el "llevas el 99%".
+  // tienes, es decir, lo cerca que estás de poder soltar las aportaciones. En un tramo
+  // de consumo el dato útil es el contrario: cuánto margen te sobra por encima de él,
+  // que es justamente de donde sale lo que puedes gastar.
   set('kpiCoast', fmtShort(coastX));
+  // El patrimonio clava el objetivo justo en la fecha objetivo, así que al final la
+  // comparación se decide por decimales: un euro de margen evita el "llevas el 99%".
   set('kpiCoastS', patr >= coastX - 1
-    ? '✅ ya puedes dejar de aportar'
+    ? (consumo ? `✅ te sobran ${fmtShort(patr - coastX)} sobre ese número` : '✅ ya puedes dejar de aportar')
     : `llevas el <b>${coastX > 0 ? Math.min(100, (patr / coastX) * 100).toFixed(0) : 100}%</b> de ese número`);
 }
 
-// Tabla de aportación año a año (€ de hoy y € nominales corregidos por inflación).
+// Tabla de movimientos año a año (€ de hoy y € nominales corregidos por inflación).
 // Recorre la MISMA ruta compuesta que la gráfica, así que lista también las cuotas de
 // cada tramo guardado y no solo las del plan de ahora. Cada fila dice a qué tramo
-// pertenece, y cada tramo cierra con su propio subtotal.
+// pertenece, y cada tramo cierra con su propio subtotal. Las cuotas negativas son
+// retiradas (tramos de consumo) y se listan igual, con su signo.
 function renderTablaAporte(sc) {
   const { a0, F, base, infl } = sc;
   const wrap = document.getElementById('tablaAporteWrap');
   if (!wrap) return;
-  // Solo los años en los que de verdad se aporta algo: el resto no es una cuota.
-  const anios = rutaCompuesta().filter(p => p.cuota > 0.5);
+  // Solo los años en los que de verdad se mueve dinero: el resto no es una cuota.
+  const anios = rutaCompuesta().filter(p => Math.abs(p.cuota) > 0.5);
   if (!anios.length) {
-    wrap.innerHTML = F <= a0 || base <= 0
+    wrap.innerHTML = F <= a0 || base === 0
       ? '<p class="hint">Con tu capital actual ya llegas sin aportar nada más: no hay cuotas que mostrar.</p>'
       : '<p class="hint">No hay ninguna cuota que mostrar en el rango dibujado.</p>';
     return;
   }
+  const hayRetiradas = anios.some(p => p.cuota < 0);
   const baseYear = new Date().getFullYear();
   const nombreDe = o => o ? `Tramo ${tramoTxt(o)}` : 'Plan de ahora';
   const idDe = o => o ? o.id : '';
@@ -1174,9 +1297,9 @@ function renderTablaAporte(sc) {
   wrap.innerHTML = `<table class="comp">
     <thead><tr><th>Año</th><th>Edad</th><th>Cuota €/mes (€ de hoy)</th><th>Cuota €/mes (€ nominales)</th></tr></thead>
     <tbody>${rows}</tbody>
-    <tfoot><tr><td><b>Total aportado</b></td><td class="muted">${anios.length} años</td><td><b>${fmt.format(totHoy)}</b></td><td class="muted">${fmt.format(totNom)}</td></tr></tfoot>
+    <tfoot><tr><td><b>Total ${hayRetiradas ? 'neto' : 'aportado'}</b></td><td class="muted">${anios.length} años</td><td><b>${fmt.format(totHoy)}</b></td><td class="muted">${fmt.format(totNom)}</td></tr></tfoot>
   </table>
-  <div class="hint" style="margin-top:10px">El <b>«Total aportado»</b> es la suma de todas las cuotas del periodo, no tu patrimonio final (que incluye además la rentabilidad). En <b>€ de hoy</b> mide tu esfuerzo real acumulado; en <b>€ nominales</b>, la suma de lo que irías transfiriendo año a año subiendo con la inflación.${variosTramos ? ' Con varios tramos guardados la tabla recorre la <b>ruta completa</b>, igual que la gráfica: si dos tramos se pisan en la misma edad, manda el plan de ahora y, entre los guardados, el que empieza más tarde.' : ''}</div>`;
+  <div class="hint" style="margin-top:10px">El <b>total</b> es la suma de todas las cuotas del periodo, no tu patrimonio final (que incluye además la rentabilidad). En <b>€ de hoy</b> mide tu esfuerzo real acumulado; en <b>€ nominales</b>, la suma de lo que irías transfiriendo año a año subiendo con la inflación.${hayRetiradas ? ' Las cuotas <b>negativas</b> son retiradas: vienen de un tramo de consumo, y ahí el total es el saldo <b>neto</b> entre lo que pones y lo que sacas.' : ''}${variosTramos ? ' Con varios tramos guardados la tabla recorre la <b>ruta completa</b>, igual que la gráfica: si dos tramos se pisan en la misma edad, manda el plan de ahora y, entre los guardados, el que empieza más tarde.' : ''}</div>`;
 }
 
 /* ---------- Gráfica ---------- */
@@ -1196,8 +1319,8 @@ const CI_COL = { aportado: '#0c9b76', interes: '#1463ff', rango: 'rgba(20,99,255
 // Serie de la gráfica del plan: para cada año, cuánto has puesto tú (capital inicial +
 // aportaciones acumuladas) y cuánto vale la cartera. La franja entre las dos curvas es
 // el interés compuesto. La serie llega hasta `hasta`, que el usuario elige y no tiene
-// por qué ser la edad de retiro: puede quedarse en un trecho de la acumulación o seguir
-// dentro del retiro, donde ya no aportas y "lo puesto" se queda plano.
+// por qué ser la edad objetivo: puede quedarse en un trecho de la acumulación o seguir
+// más allá, donde ya no aportas y "lo puesto" se queda plano.
 function planSerie(curve, hasta) {
   const filas = [];
   let puesto = curve.bal[0];                 // el capital de partida también lo pusiste tú
@@ -1417,14 +1540,20 @@ function drawChart(hoverIdx = null) {
   const ruta = rutaCompuesta();
   if (!ruta.length) return;
   const minAge = ruta[0].edad, maxAge = ruta[ruta.length - 1].edad;
-  let topY = 0;
-  for (const p of ruta) topY = Math.max(topY, p.total, p.aportado);
+  // La escala admite valores negativos: con un tramo de consumo puedes llegar a sacar más
+  // de lo que pusiste y "lo que has puesto tú" cruza el 0. Recortarlo a 0 dejaba la línea
+  // pegada al suelo fingiendo que no pasaba nada.
+  let topY = 0, botY = 0;
+  for (const p of ruta) {
+    topY = Math.max(topY, p.total, p.aportado);
+    botY = Math.min(botY, p.total, p.aportado);
+  }
   const pd = { top: 16, right: 16, bottom: 30, left: 64 };
   const x0 = pd.left, x1 = cssW - pd.right, yb = cssH - pd.bottom, yt = pd.top;
   const spanAge = Math.max(1, maxAge - minAge);
-  const maxY = Math.max(topY, 1) * 1.06;
+  const maxY = Math.max(topY, 1) * 1.06, minY = botY * 1.06;
   const X = edad => x0 + ((edad - minAge) / spanAge) * (x1 - x0);
-  const Y = v => yb - (Math.max(v, 0) / maxY) * (yb - yt);
+  const Y = v => yb - ((v - minY) / (maxY - minY)) * (yb - yt);
   // `ruta` viaja en `plot` porque el tooltip la necesita para buscar el punto más cercano
   // en CUALQUIER tramo, no solo en el trecho que cubre el plan de ahora.
   plot = { X, Y, x0, x1, yb, yt, minAge, maxAge, ruta };
@@ -1432,12 +1561,16 @@ function drawChart(hoverIdx = null) {
   // Rejilla horizontal (sin verticales, como en el resto de gráficas)
   ctx.font = '11px system-ui, sans-serif'; ctx.lineWidth = 1;
   for (let k = 0; k <= 5; k++) {
-    const v = (maxY / 5) * k, y = Math.round(Y(v)) + 0.5;
-    ctx.strokeStyle = k === 0 ? CHART.axis : CHART.grid;
+    const v = minY + ((maxY - minY) / 5) * k, y = Math.round(Y(v)) + 0.5;
+    ctx.strokeStyle = CHART.grid;
     ctx.beginPath(); ctx.moveTo(x0, y); ctx.lineTo(x1, y); ctx.stroke();
     ctx.fillStyle = CHART.label; ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
     ctx.fillText(fmtShort(v), x0 - 8, Y(v));
   }
+  // La línea del 0 es el eje: con retiradas deja de estar en el borde inferior.
+  const yCero = Math.round(Y(0)) + 0.5;
+  ctx.strokeStyle = CHART.axis;
+  ctx.beginPath(); ctx.moveTo(x0, yCero); ctx.lineTo(x1, yCero); ctx.stroke();
   const stepX = spanAge > 40 ? 10 : spanAge > 15 ? 5 : spanAge > 8 ? 2 : 1;
   ctx.textAlign = 'center'; ctx.textBaseline = 'top'; ctx.fillStyle = CHART.label;
   for (let e = Math.ceil(minAge / stepX) * stepX; e <= maxAge; e += stepX) ctx.fillText(e + '', X(e), yb + 8);
@@ -1488,7 +1621,7 @@ bindTooltip(canvas, () => plot && plot.ruta, f => plot.X(f.edad), f => {
   const interes = f.total - f.aportado;
   const cual = f.origen ? tramoTxt(f.origen) : 'plan de ahora';
   const cuota = f.cuota
-    ? `<div class="t-row"><span class="muted">Aportas ese año</span><span>${fmt.format(f.cuota)}/mes</span></div>`
+    ? `<div class="t-row"><span class="muted">${f.cuota < 0 ? 'Sacas ese año' : 'Aportas ese año'}</span><span>${fmt.format(Math.abs(f.cuota))}/mes</span></div>`
     : '';
   return `<div class="t-year">${f.edad} años · año ${f.anio}</div>
     <div class="t-row"><span style="color:${CI_COL.interes}">Valor total</span><span>${fmt.format(f.total)}</span></div>
@@ -1777,14 +1910,18 @@ const formInputs = Array.from(document.querySelectorAll('input, select')).filter
 //            existen ya; sus valores guardados se descartan.
 //   v4 → v5: desaparece el perfil "ratio" (aportar más al principio según un ratio
 //            primer/último año). El reparto más parecido que queda es "cero", que
-//            también baja en línea recta pero hasta 0 € el año del retiro.
-const FORM_VERSION = 5;
+//            también baja en línea recta pero hasta 0 € el año objetivo.
+//   v5 → v6: una sola rentabilidad real para todo el plan, así que la de la fase de
+//            retirada (r_retiro) desaparece. Y el objetivo se puede escribir por sus dos
+//            caras: los datos viejos solo llevaban el gasto, que es el modo por defecto.
+const FORM_VERSION = 6;
 function migrateData(data) {
   if (!data || data._v >= FORM_VERSION) return data;
   const v = data._v || 1;
   if (v < 2 && data.neto != null) data.neto = String(Math.round((parseFloat(data.neto) || 0) / 12));
   if (v < 4) { delete data.mcChartSel; delete data.mc_capital; delete data.mc_capital_manual; }
   if (v < 5) { if (data.perfil_modo === 'ratio') data.perfil_modo = 'cero'; delete data.frontload; }
+  if (v < 6) { delete data.r_retiro; data.objetivo_modo = 'gasto'; }
   data._v = FORM_VERSION;
   return data;
 }
@@ -1799,14 +1936,15 @@ function loadForm() {
 }
 /* ---- Ejemplos de sueldo ----
    Cuatro perfiles de un adulto de 30 años que se diferencian SOLO en lo que depende del
-   sueldo: el neto disponible, el gasto que quiere mantener ya jubilado (= su neto
-   mensual actual), el capital ya invertido, la pensión de carrera completa y el tope de
-   aportación que puede sostener. El resto de hipótesis son idénticas, así comparar los
-   cuatro ejemplos aísla el efecto del sueldo. Se cargan desde el selector de escenarios. */
+   sueldo: el neto disponible, el gasto que quiere mantener a partir de la fecha objetivo
+   (= su neto mensual actual), el capital ya invertido, la pensión de carrera completa y
+   el tope de aportación que puede sostener. El resto de hipótesis son idénticas, así
+   comparar los cuatro ejemplos aísla el efecto del sueldo. Se cargan desde el selector de
+   escenarios. Todos fijan el objetivo por el lado del gasto; el capital lo deriva la web. */
 const PRESET_BASE = {
   edad: '30', fire: '55', fin: '105', trabajo: '25', pension_edad: '65',
-  impuestos: '15', tasa_retiro: '3.5', r_acum: '7', r_retiro: '5.5', inflacion: '3',
-  perfil_modo: 'tope', convenio_coste: '400', cobrare_pension: false,
+  impuestos: '15', tasa_retiro: '3.5', r_acum: '6.5', inflacion: '3',
+  perfil_modo: 'tope', convenio_coste: '400', cobrare_pension: false, objetivo_modo: 'gasto',
 };
 const PRESETS_SUELDO = {
   s30: { label: 'Sueldo de 30.000 €', desc: 'Adulto de 30 años: 30.000 € brutos, 2.000 € netos al mes (12 pagas) y 100.000 € ya invertidos',
@@ -1935,7 +2073,8 @@ loadForm();
 refreshScenarioSel(getCurrentName());
 
 // Recibir el gasto anual desde la calculadora de estilo de vida (por URL). Sobrescribe lo guardado.
-// El input es mensual, así que convertimos el anual entrante a mensual.
+// El input es mensual, así que convertimos el anual entrante a mensual. Llega un gasto,
+// así que el objetivo pasa a estar fijado por ese lado y el capital se deriva de él.
 (function(){
   const p = new URLSearchParams(location.search).get('gasto');
   if (p === null || p === '' || isNaN(+p)) return;
@@ -1943,11 +2082,21 @@ refreshScenarioSel(getCurrentName());
   if (g <= 0) return;
   const inp = document.getElementById('gasto');
   inp.value = Math.round(g / 12);
+  document.getElementById('objetivo_modo').value = 'gasto';
   saveForm();
   inp.style.transition = 'background .2s';
   inp.style.background = '#243a2a';
   setTimeout(()=>{ inp.style.background=''; }, 1500);
 })();
+
+// Las dos caras del objetivo: la última casilla que toca el usuario es la que manda, y
+// compute() reescribe la otra. Va ANTES del listener genérico de abajo para que el modo
+// esté puesto cuando se recalcule (los oyentes de un mismo evento corren en orden de alta).
+['gasto', 'capital_objetivo'].forEach(id => {
+  document.getElementById(id).addEventListener('input', () => {
+    document.getElementById('objetivo_modo').value = id === 'gasto' ? 'gasto' : 'capital';
+  });
+});
 
 // recalcular en vivo + guardar en cada cambio. Tocar el formulario a mano deja de
 // describir el tramo que se hubiera aplicado, así que se apaga su resaltado: `applyData()`

@@ -333,7 +333,7 @@
            va en la tarjeta principal y ocupa las dos columnas. -->
       <div class="group span-cols">
         <div class="group-title">Perfil de aportación</div>
-        <label for="perfil_modo">Cómo repartir el ahorro en el tiempo</label>
+        <label for="perfil_modo">Cómo repartir el ahorro (o el consumo) en el tiempo</label>
         <select id="perfil_modo">
           <option value="constante">Constante — lo mismo cada año, calculado por la web</option>
           <option value="cero">Decreciente — hasta 0 € justo en la fecha objetivo</option>
@@ -527,7 +527,7 @@
     <details class="expander">
     <summary>Plan año a año · la cuota mensual prevista</summary>
     <div class="expander-body">
-      <p class="expander-note">La aportación mensual prevista, año a año, en euros de hoy y en euros nominales.</p>
+      <p class="expander-note">La cuota mensual prevista, año a año, en euros de hoy y en euros nominales. En un tramo de consumo la cuota es negativa: es lo que sacas de la cartera.</p>
       <div id="tablaAporteWrap" style="margin-top:14px; overflow-x:auto"></div>
     </div>
     </details>
@@ -742,33 +742,36 @@ function scenario(F) {
   const P = cobrarePension ? pensionAt(convenioActivo ? PA : F, startWork, fullPension) : 0;
 
   /* ---- Las dos caras del objetivo: gasto anual S ⇄ capital objetivo capNeeded ----
-     capBase  = (S + convenio) / (1 − impuesto) / tasa   ← capital que sostiene ese gasto
+     capBase   = S / (1 − impuesto) / tasa + valor actual del convenio
      capNeeded = max(0, capBase − valor actual de la pensión)
-     El convenio también sale de la cartera, así que tributa igual que el resto de las
-     retiradas y va dentro del bruto (no sumado aparte, como estaba antes).
-     La pensión se descuenta por su valor actual en F, descontado a la misma rentabilidad
-     real del plan: una renta que empieza al cobrarla (max(PA,F)) y dura hasta E. Solo
-     cubre gasto, nunca más de S, y por eso la relación es lineal A TROZOS con el codo en
-     S = P — lo que permite invertirla exacta, sin buscar. */
+     El gasto es para siempre, así que se capitaliza con la tasa de retirada. El convenio
+     y la pensión NO: son rentas temporales, así que entran por su valor actual en F,
+     descontadas a la misma rentabilidad real del plan. Los dos salen (o evitan salir) de
+     la cartera, de modo que se cuentan en BRUTO, con el mismo impuesto efectivo. La
+     pensión solo cubre gasto, nunca más de S, y por eso la relación es lineal A TROZOS
+     con el codo en S = P — lo que permite invertirla exacta, sin buscar. */
+  const anualidad = n => n <= 0 ? 0 : rA > 0 ? (1 - Math.pow(1 + rA, -n)) / rA : n;
   const pvPension = (() => {
     if (!cobrarePension || P <= 0) return 0;          // valor actual de 1 € NETO anual de pensión
     const d = Math.max(0, PA - F);                    // años desde la fecha objetivo hasta cobrarla
     const n = Math.max(0, E - Math.max(PA, F));       // años cobrándola
-    const annuityF = rA > 0 ? (1 - Math.pow(1 + rA, -n)) / rA : n;
-    return annuityF * Math.pow(1 + rA, -d) / (1 - tr);
+    return anualidad(n) * Math.pow(1 + rA, -d) / (1 - tr);
   })();
+  // El convenio solo se paga durante el puente (de F a la edad de pensión), no de por
+  // vida: capitalizarlo con la tasa de retirada, como se hacía antes, multiplicaba su
+  // coste por cuatro e inflaba el objetivo.
+  const convenioPV = convenioAnual > 0 ? (convenioAnual / (1 - tr)) * anualidad(bridgeYears) : 0;
   const kGasto = rate0 > 0 ? 1 / ((1 - tr) * rate0) : Infinity;   // capital por cada € anual de gasto
-  const kConv  = rate0 > 0 ? convenioAnual / ((1 - tr) * rate0) : Infinity;  // el que exige el convenio
-  const capDeGasto = s => Math.max(0, s * kGasto + kConv - Math.min(P, s) * pvPension);
+  const capDeGasto = s => Math.max(0, s * kGasto + convenioPV - Math.min(P, s) * pvPension);
   const gastoDeCap = T => {
     if (!(T > 0) || !isFinite(kGasto)) return 0;
-    const alta = (T - kConv + P * pvPension) / kGasto;    // tramo S ≥ P: la pensión ya da todo lo que puede
+    const alta = (T - convenioPV + P * pvPension) / kGasto;   // tramo S ≥ P: la pensión ya da todo lo que puede
     if (alta >= P) return Math.max(0, alta);
-    const k = kGasto - pvPension;                          // tramo S < P
+    const k = kGasto - pvPension;                              // tramo S < P
     // k ≤ 0 significa que un euro más de gasto rebaja el capital necesario (pensión
     // desproporcionada frente a la tasa de retirada): ahí no hay inversa útil y se
     // devuelve el tramo alto, que es el único con sentido económico.
-    return k > 0 ? Math.max(0, (T - kConv) / k) : Math.max(0, alta);
+    return k > 0 ? Math.max(0, (T - convenioPV) / k) : Math.max(0, alta);
   };
 
   // Cuál de las dos casillas manda: la última que tocó el usuario. La otra es derivada y
@@ -776,7 +779,7 @@ function scenario(F) {
   // se mantiene por el lado que el usuario fijó.
   const objetivoModo = document.getElementById('objetivo_modo').value === 'capital' ? 'capital' : 'gasto';
   const S = objetivoModo === 'capital' ? gastoDeCap(val('capital_objetivo')) : val('gasto') * 12;
-  const capBase = rate0 > 0 ? (S + convenioAnual) / (1 - tr) / rate0 : Infinity;
+  const capBase = rate0 > 0 ? S * kGasto + convenioPV : Infinity;
   const pensionPV = Math.min(P, S) * pvPension;
   // La pensión reduce el capital necesario por su valor actual completo. Durante el "puente"
   // (dejas de trabajar antes de cobrarla) la cartera puede ir bajando: es normal, porque a
@@ -961,7 +964,8 @@ function compute() {
   const th = document.getElementById('tasa-retiro-hint');
   if (th) th.innerHTML = `Qué porcentaje de la cartera retiras cada año a partir de la fecha objetivo. Fija el capital objetivo: `
     + `<b>capital = retirada bruta ÷ ${tasaTxt(tr0)}</b>, es decir <b>${(1/tr0).toLocaleString('es-ES',{maximumFractionDigits:1})}×</b> el gasto anual bruto. `
-    + `El <b>3,5%</b> es la versión prudente de la regla del 4%: se queda por debajo de la rentabilidad real que asumes, así que la cartera no se agota y deja herencia. `
+    + `El <b>3,5%</b> es la versión prudente de la regla del 4%. Mientras la tasa se quede por debajo de tu rentabilidad real (ahora <b>${(rA * 100).toLocaleString('es-ES', { maximumFractionDigits: 1 })}%</b>) la cartera sigue creciendo aunque retires, y deja herencia; `
+    + `${tr0 >= rA ? 'con la tasa que tienes puesta ahora la estás consumiendo. ' : ''}`
     + `<b>Súbela</b> y necesitarás menos capital, pero asumes más riesgo de agotarla; <b>bájala</b> y pasa lo contrario.`;
 
   // Ayuda de la rentabilidad: su equivalente nominal con la inflación asumida, y en qué
@@ -1040,7 +1044,7 @@ function compute() {
   // que pagarlo aunque el gasto sea 0, así que por debajo de ese mínimo el capital que pides
   // no se puede traducir en ningún gasto y el plan usa el suelo. Se dice, en vez de callarlo.
   if (objetivoModo === 'capital' && Math.abs(capNeeded - val('capital_objetivo')) > 1) {
-    alerts += `<div class="alert warn">ℹ️ Con este convenio especial el plan necesita <b>${fmt.format(capNeeded)}</b> como mínimo (solo para pagarlo hasta los ${PA}), así que el objetivo que se usa es ese y no los ${fmt.format(val('capital_objetivo'))} que has puesto. Baja el coste del convenio o pide más capital.</div>`;
+    alerts += `<div class="alert warn">ℹ️ El plan necesita <b>${fmt.format(capNeeded)}</b> como mínimo, solo para pagar el convenio especial hasta los ${PA}, así que el objetivo que se usa es ese y no los ${fmt.format(val('capital_objetivo'))} que has puesto. Baja el coste del convenio o pide más capital.</div>`;
   }
   if (tasa > 1) alerts += `<div class="alert bad">🚫 Necesitarías más del 100% de tu neto: inviable. Retrasa la fecha objetivo o baja el gasto.</div>`;
   if (cobrarePension) {

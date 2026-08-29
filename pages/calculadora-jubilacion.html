@@ -1215,8 +1215,10 @@ function renderEsfuerzo() {
     : tasa > 0.6 ? 'var(--red)'
     : tasa > 0.4 ? 'var(--amber)'
     : 'var(--green)';
+  // El ✅ solo cuando no mover dinero es una buena noticia: en un tramo de consumo un 0
+  // suele significar que ya se acabó el margen, que no es lo mismo.
   set('kpiCuotaS', cuota === 0
-    ? (consumo ? '✅ este año ya no sacas nada' : '✅ este año no aportas nada')
+    ? (consumo ? 'este año no sacas nada' : '✅ este año no aportas nada')
     : (neto > 0 ? `<b>${(tasa * 100).toFixed(0)}%</b> de tu neto · ` : '')
       + `${fmt.format(Math.abs(nominal(cuota)))}/mes en € de ${anyo}`);
 
@@ -1230,7 +1232,7 @@ function renderEsfuerzo() {
   set('kpiRestante', fmtShort(restante));
   document.getElementById('kpiRestanteBar').style.width = pctPagado.toFixed(1) + '%';
   const totalAbs = Math.abs(totalAportar);
-  set('kpiRestanteS', totalAbs <= 1 ? (consumo ? '✅ el plan no da margen para gastar' : '✅ el plan no necesita aportaciones')
+  set('kpiRestanteS', totalAbs <= 1 ? (consumo ? 'el plan no da margen para gastar' : '✅ el plan no necesita aportaciones')
     : restante <= 1 ? `✅ ${consumo ? 'ya has sacado' : 'ya has aportado'} los ${fmtShort(totalAbs)} del plan`
     : `llevas ${fmtShort(Math.abs(pagado))} · ${aniosRestantes} ${aniosRestantes === 1 ? 'año' : 'años'} más`);
 

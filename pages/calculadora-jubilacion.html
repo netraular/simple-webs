@@ -54,6 +54,15 @@
   .proj-resumen { margin: 14px 0 0; font-size: .95rem; line-height: 1.55; color: var(--muted);
     border-top: 1px solid var(--border); padding-top: 14px; }
   .proj-resumen b { color: var(--text); }
+  /* Reparto tuyo / interés al final de la gráfica del plan: el mismo cierre, dibujado.
+     Los dos segmentos se separan con 2px de fondo para que se lean como dos piezas y no
+     como un degradado, y cada uno lleva su rótulo debajo. */
+  .split-bar { margin: 14px 0 0; border-top: 1px solid var(--border); padding-top: 14px; }
+  .split-bar-head { font-size: .92rem; color: var(--muted); margin-bottom: 9px; }
+  .split-bar-head b { color: var(--text); }
+  .split-bar-head .big { font: 600 1.3rem/1 "IBM Plex Mono", monospace; color: var(--text); }
+  .split-bar-track { display: flex; gap: 2px; height: 14px; background: #eef2f7; border-radius: 4px; }
+  .split-bar-track i { border-radius: 4px; min-width: 0; }
   .hint-collapsible { display: none; }
   .hint-collapsible.open { display: block; }
   input, select {
@@ -210,6 +219,10 @@
   .split-legend span{display:inline-flex; align-items:center; gap:5px; white-space:nowrap}
   .split-legend i{width:9px; height:9px; flex:none; border-radius:2px}
   .split-legend b{color:var(--text); font:600 .72rem "IBM Plex Mono",monospace}
+  /* Variante para rotular una barra de reparto: los rótulos van bajo su propio segmento,
+     así que se reparten a lo ancho en vez de agruparse en el centro. */
+  .split-legend.spread{justify-content:space-between; gap:4px 18px; margin-top:9px; font-size:.78rem}
+  .split-legend.spread b{font-size:.8rem}
   /* Extremos de la línea de tiempo. El punto en que dejas de aportar no se rotula: ya se
      ve en el color del raíl. */
   .route-flags{position:relative; height:16px; margin:7px 8px 0; font:500 .66rem "IBM Plex Mono",monospace; color:var(--muted)}
@@ -499,14 +512,14 @@
   <!-- LO QUE PONES TÚ vs LO QUE LLEGA A VALER (estilo investor.gov) -->
   <div class="card chart-card">
     <h2>Evolución de tu ahorro</h2>
-    <p class="subtitle" style="margin-bottom:14px">En <b>€ de hoy</b> y con un <span id="projR">—</span> real anual: la línea de arriba es lo que llega a valer la cartera y la de abajo lo que has puesto tú (tu capital inicial más las aportaciones acumuladas, menos lo que hayas sacado en un tramo de consumo). <b>La distancia entre las dos es el interés.</b> Elige hasta qué edad quieres mirar y <b>guarda ese tramo</b> para compararlo con otras configuraciones.</p>
+    <p class="subtitle" style="margin-bottom:14px">En <b>€ de hoy</b>, al <span id="projR">—</span> real anual. Toca la gráfica para ver cualquier año.</p>
 
     <!-- Rango visible + guardado. La edad final no tiene por qué ser la objetivo: sirve
          para mirar un trecho de la ruta y congelarlo. -->
     <div class="snap-bar">
       <span class="snap-range">Ver de <b id="verDesde">—</b> a
         <input type="number" id="verHasta" step="1" placeholder="—" aria-label="Edad hasta la que ver la evolución"> años</span>
-      <button type="button" class="tool" id="btnSnapSave">📌 Guardar este tramo</button>
+      <button type="button" class="tool" id="btnSnapSave" title="Congela el tramo que estás viendo para seguir componiendo la ruta desde ahí">📌 Guardar este tramo</button>
       <span class="snap-count" id="snapCount"></span>
     </div>
 
@@ -518,16 +531,28 @@
     <div class="legend">
       <span><i class="dot" style="background:#1463ff"></i> Valor total</span>
       <span><i class="dot" style="background:#0c9b76"></i> Lo que has puesto tú</span>
-      <span class="legend-nota">Cada tramo dibuja sus dos líneas; el activo va resaltado</span>
+      <span class="legend-nota" id="legendNota" hidden>El tramo activo va resaltado</span>
     </div>
     <canvas id="chart"></canvas>
-    <p class="proj-resumen" id="projResumen"></p>
+
+    <!-- Cierre de la gráfica. Antes era una frase; ahora es la misma lectura dibujada:
+         de todo lo que llegas a tener, qué parte has puesto tú y qué parte el interés
+         compuesto. Los dos segmentos van rotulados, así que el reparto no depende de
+         distinguir los colores. -->
+    <div class="split-bar" id="projReparto">
+      <div class="split-bar-head"><span id="repartoCuando">—</span> tendrías <span class="big" id="repartoTotal">—</span></div>
+      <div class="split-bar-track">
+        <i id="repartoSegTuyo" style="background:#0c9b76; width:0"></i>
+        <i id="repartoSegInteres" style="background:#1463ff; width:0"></i>
+      </div>
+      <div class="split-legend spread" id="repartoKeys"></div>
+    </div>
 
     <!-- Plan año a año: subsección plegable, no una tarjeta al mismo nivel que el resto -->
     <details class="expander">
     <summary>Plan año a año · la cuota mensual prevista</summary>
     <div class="expander-body">
-      <p class="expander-note">La cuota mensual prevista, año a año, en euros de hoy y en euros nominales. En un tramo de consumo la cuota es negativa: es lo que sacas de la cartera.</p>
+      <p class="expander-note">La cuota mensual de cada año, en € de hoy y en € nominales. Cada tramo cierra con lo que has puesto en él y con cuánto acaba la cartera. Una cuota negativa es una retirada.</p>
       <div id="tablaAporteWrap" style="margin-top:14px; overflow-x:auto"></div>
     </div>
     </details>
@@ -608,7 +633,7 @@
       </div>
       <canvas id="ciChart"></canvas>
       <!-- Cierre de la gráfica: es la conclusión, no una ayuda, así que va siempre visible
-           (mismo papel que #projResumen en la gráfica del plan). -->
+           (mismo papel que la barra de reparto en la gráfica del plan). -->
       <p class="proj-resumen" id="ci-graf-hint"></p>
   </div>
   </section>
@@ -1081,22 +1106,40 @@ function syncVerHasta(sc) {
   return isFinite(v) ? Math.max(sc.a0 + 1, Math.min(sc.E, v)) : sc.F;
 }
 
-// Frase de cierre de la gráfica: de todo lo que acumulas, cuánto has puesto tú y
-// cuánto lo ha puesto el interés compuesto. Es la lectura que la gráfica hace visible.
+// Cierre de la gráfica, dibujado: de todo lo que llegas a tener al final del tramo
+// visible, qué parte has puesto tú y qué parte el interés compuesto. Lee la ruta
+// compuesta, no solo el plan de ahora, para describir el mismo punto que se ve en el
+// extremo derecho de la gráfica.
 function renderPlanResumen() {
-  const el = document.getElementById('projResumen');
-  if (!el || !chartData || !chartData.length) return;
-  const f = chartData[chartData.length - 1];
+  const cont = document.getElementById('projReparto');
+  if (!cont) return;
+  const ruta = rutaCompuesta();
+  cont.hidden = !ruta.length;
+  if (!ruta.length) return;
+  const f = ruta[ruta.length - 1];
+  const tuyo = Math.max(0, f.aportado);
   const interes = Math.max(0, f.total - f.aportado);
-  const pct = f.total > 0 ? (interes / f.total) * 100 : 0;
-  const cuando = lastSc && f.edad === lastSc.F ? `Al llegar a tu fecha objetivo (<b>${f.edad} años</b>)` : `A los <b>${f.edad} años</b>`;
-  // Con un tramo de consumo "lo puesto por ti" baja e incluso puede quedar por debajo de
-  // lo que empezaste: entonces el reparto en porcentaje no dice nada y se cuenta al revés.
-  el.innerHTML = f.aportado < 0
-    ? `${cuando} tendrías <b>${fmt.format(f.total)}</b>, después de haber sacado de la cartera <b>${fmt.format(-f.aportado)}</b> más de lo que pusiste: todo lo que queda lo ha puesto el interés compuesto.`
-    : `${cuando} tendrías <b>${fmt.format(f.total)}</b>: `
-    + `<b>${fmt.format(f.aportado)}</b> los has puesto tú y <b>${fmt.format(interes)}</b> los ha puesto `
-    + `el interés compuesto — el <b>${pct.toFixed(0)}%</b> del total.`;
+  const suma = tuyo + interes;
+  const pct = v => suma > 0 ? (v / suma) * 100 : 0;
+  const set = (id, txt) => { document.getElementById(id).innerHTML = txt; };
+
+  set('repartoCuando', lastSc && f.edad === lastSc.F
+    ? `En tu <b>fecha objetivo</b> (${f.edad} años)`
+    : `A los <b>${f.edad} años</b>`);
+  set('repartoTotal', fmt.format(f.total));
+  document.getElementById('repartoSegTuyo').style.width = pct(tuyo).toFixed(1) + '%';
+  document.getElementById('repartoSegInteres').style.width = pct(interes).toFixed(1) + '%';
+  // Con un tramo de consumo "lo puesto por ti" puede acabar por debajo de cero: has sacado
+  // más de lo que pusiste, el saldo entero lo sostiene el interés y ya no hay reparto que
+  // repartir, así que se cuenta al revés y sin porcentajes.
+  const sacaste = f.aportado < 0;
+  set('repartoKeys', [
+    sacaste
+      ? { k: 'Has sacado, neto', v: -f.aportado, c: '#dce5ef' }
+      : { k: 'Lo pones tú', v: tuyo, c: '#0c9b76', p: pct(tuyo) },
+    { k: 'Lo pone el interés', v: interes, c: '#1463ff', p: sacaste ? null : pct(interes) },
+  ].map(o => `<span><i style="background:${o.c}"></i>${o.k} <b>${fmt.format(o.v)}</b>`
+    + `${o.p == null ? '' : ` · ${o.p.toFixed(0)}%`}</span>`).join(''));
 }
 
 // ---- Máquina del tiempo de la tarjeta del esfuerzo ----
@@ -1257,14 +1300,16 @@ function renderEsfuerzo() {
 // Tabla de movimientos año a año (€ de hoy y € nominales corregidos por inflación).
 // Recorre la MISMA ruta compuesta que la gráfica, así que lista también las cuotas de
 // cada tramo guardado y no solo las del plan de ahora. Cada fila dice a qué tramo
-// pertenece, y cada tramo cierra con su propio subtotal. Las cuotas negativas son
-// retiradas (tramos de consumo) y se listan igual, con su signo.
+// pertenece, y cada tramo cierra con su propio subtotal: lo que has puesto en él y con
+// cuánto acaba la cartera, que es el dato que enlaza la tabla con la gráfica. Las cuotas
+// negativas son retiradas (tramos de consumo) y se listan igual, con su signo.
 function renderTablaAporte(sc) {
   const { a0, F, base, infl } = sc;
   const wrap = document.getElementById('tablaAporteWrap');
   if (!wrap) return;
+  const ruta = rutaCompuesta();
   // Solo los años en los que de verdad se mueve dinero: el resto no es una cuota.
-  const anios = rutaCompuesta().filter(p => Math.abs(p.cuota) > 0.5);
+  const anios = ruta.filter(p => Math.abs(p.cuota) > 0.5);
   if (!anios.length) {
     wrap.innerHTML = F <= a0 || base === 0
       ? '<p class="hint">Con tu capital actual ya llegas sin aportar nada más: no hay cuotas que mostrar.</p>'
@@ -1274,14 +1319,19 @@ function renderTablaAporte(sc) {
   const hayRetiradas = anios.some(p => p.cuota < 0);
   const baseYear = new Date().getFullYear();
   const nombreDe = o => o ? `Tramo ${tramoTxt(o)}` : 'Plan de ahora';
-  const idDe = o => o ? o.id : '';
+  // El valor de la cartera al cerrar cada tramo sale de la ruta ENTERA, no de los años
+  // filtrados: un tramo puede dejar de aportar antes de acabar y seguir componiendo.
+  const cierres = cierresDeTramo(ruta);
   let rows = '', totHoy = 0, totNom = 0, subHoy = 0, subNom = 0, subN = 0, grupo = null;
   // Subtotal del tramo que se acaba de cerrar. Va como fila propia para que se pueda
   // leer el esfuerzo de cada etapa sin sumar a mano.
-  const cierra = () => subN
-    ? `<tr class="sub"><td colspan="2"><b>Subtotal ${nombreDe(grupo)}</b> · ${subN} ${subN === 1 ? 'año' : 'años'}</td>`
-      + `<td><b>${fmt.format(subHoy)}</b></td><td class="muted">${fmt.format(subNom)}</td></tr>`
-    : '';
+  const cierra = () => {
+    if (!subN) return '';
+    const c = cierres.get(idDe(grupo));
+    return `<tr class="sub"><td colspan="2"><b>Subtotal ${nombreDe(grupo)}</b> · ${subN} ${subN === 1 ? 'año' : 'años'}`
+      + (c ? `<br><span class="muted">Cartera a los ${c.edad}: <b>${fmt.format(c.total)}</b></span>` : '')
+      + `</td><td><b>${fmt.format(subHoy)}</b></td><td class="muted">${fmt.format(subNom)}</td></tr>`;
+  };
   anios.forEach((p, k) => {
     if (k === 0 || idDe(p.origen) !== idDe(grupo)) {
       if (k > 0) rows += cierra();
@@ -1303,7 +1353,7 @@ function renderTablaAporte(sc) {
   wrap.innerHTML = `<table class="comp">
     <thead><tr><th>Año</th><th>Edad</th><th>Cuota €/mes (€ de hoy)</th><th>Cuota €/mes (€ nominales)</th></tr></thead>
     <tbody>${rows}</tbody>
-    <tfoot><tr><td><b>Total ${hayRetiradas ? 'neto' : 'aportado'}</b></td><td class="muted">${anios.length} años</td><td><b>${fmt.format(totHoy)}</b></td><td class="muted">${fmt.format(totNom)}</td></tr></tfoot>
+    <tfoot><tr><td colspan="2"><b>Total ${hayRetiradas ? 'neto' : 'aportado'}</b> · ${anios.length} años<br><span class="muted">Cartera a los ${ruta[ruta.length - 1].edad}: <b>${fmt.format(ruta[ruta.length - 1].total)}</b></span></td><td><b>${fmt.format(totHoy)}</b></td><td class="muted">${fmt.format(totNom)}</td></tr></tfoot>
   </table>
   <div class="hint" style="margin-top:10px">El <b>total</b> es la suma de todas las cuotas del periodo, no tu patrimonio final (que incluye además la rentabilidad). En <b>€ de hoy</b> mide tu esfuerzo real acumulado; en <b>€ nominales</b>, la suma de lo que irías transfiriendo año a año subiendo con la inflación.${hayRetiradas ? ' Las cuotas <b>negativas</b> son retiradas: vienen de un tramo de consumo, y ahí el total es el saldo <b>neto</b> entre lo que pones y lo que sacas.' : ''}${variosTramos ? ' Con varios tramos guardados la tabla recorre la <b>ruta completa</b>, igual que la gráfica: si dos tramos se pisan en la misma edad, manda el plan de ahora y, entre los guardados, el que empieza más tarde.' : ''}</div>`;
 }
@@ -1387,29 +1437,92 @@ let snapActivo = null;
 
 /* Ruta compuesta: los tramos guardados y el plan de ahora, cosidos por edad en UNA sola
    serie. De ahí salen las dos únicas líneas de la gráfica y las filas de la tabla año a
-   año. Un salto vertical en un empalme significa que el capital inicial del tramo
-   siguiente no era el saldo con el que acabó el anterior; se dibuja tal cual, porque
-   esconderlo sería mentir sobre la ruta.
+   año. Un salto vertical de la línea de VALOR TOTAL en un empalme significa que el
+   capital inicial del tramo siguiente no era el saldo con el que acabó el anterior; se
+   dibuja tal cual, porque esconderlo sería mentir sobre la ruta.
 
-   Quién manda cuando dos se pisan: primero el plan de ahora, y entre los guardados el
-   que EMPIEZA más tarde. Ojo con esto último, que no es un capricho: dos tramos
-   consecutivos comparten siempre la edad del empalme —30→40 y 40→50 se tocan en el 40—
-   y ahí el punto del primero es su cierre, que ya no lleva cuota, mientras que el del
-   segundo abre su primer año. Ordenar por edad de inicio hace que gane el que abre, y
-   además vuelve el resultado independiente del orden en que se guardaron: componer la
-   ruta hacia atrás daba antes un año sin cuota en cada empalme. */
+   Quién manda cuando dos se pisan: manda el que ABRE sobre el que cierra, y en igualdad
+   de condiciones el plan de ahora y, entre los guardados, el que empieza más tarde. Lo de
+   abrir/cerrar no es un capricho: dos tramos consecutivos comparten siempre la edad del
+   empalme —30→40 y 40→50 se tocan en el 40— y ahí el punto del primero es su cierre, que
+   no dice nada del año que empieza en esa edad, mientras que el del segundo abre su primer
+   año. Ordenar por edad de inicio ya hacía ganar al que abre entre dos guardados, pero el
+   plan de ahora se colaba por encima igualmente: si terminaba justo donde arranca un tramo
+   guardado, el año del empalme se quedaba sin cuota en la tabla. El punto que pierde no se
+   tira: viaja como `previo`, porque es el cierre real del tramo que sale y hace falta tanto
+   para coser la otra línea como para decir con cuánto entrega el testigo. */
+const idDe = o => o ? o.id : '';
 function rutaCompuesta() {
   const porEdad = new Map();
-  const add = (puntos, origen) => { for (const p of puntos) porEdad.set(p.edad, { ...p, origen }); };
+  const add = (puntos, origen) => {
+    puntos.forEach((p, i) => {
+      const tapado = porEdad.get(p.edad);
+      const cierra = i === puntos.length - 1;      // último punto: no abre ningún año
+      if (cierra && tapado && !tapado.cierra) {
+        porEdad.set(p.edad, { ...tapado, previo: { ...p, origen, cierra } });
+        return;
+      }
+      porEdad.set(p.edad, { ...p, origen, cierra, previo: tapado || null });
+    });
+  };
   [...snaps].sort((a, b) => a.desde - b.desde)
     .forEach(s => add(s.puntos, { id: s.id, desde: s.desde, hasta: s.hasta }));
   if (chartData && chartData.length) add(chartData, null);
-  return [...porEdad.values()].sort((a, b) => a.edad - b.edad);
+  const ruta = [...porEdad.values()].sort((a, b) => a.edad - b.edad);
+
+  /* Coser "lo que has puesto tú". Cada tramo cuenta su `aportado` desde su propio capital
+     inicial, así que encadenados sin más la línea daba un salto en cada empalme: repetía
+     como dinero recién puesto todo el saldo con el que venías. Pero ese capital inicial
+     casi siempre es solo el saldo del tramo anterior escrito otra vez —sirve para que la
+     línea de valor total continúe—, no dinero nuevo.
+
+     Regla: dentro de un tramo se suma su propio incremento; al empalmar se suma solo lo
+     que de verdad entra o sale de tu bolsillo, que es la diferencia entre el capital con
+     el que arranca el tramo nuevo y el saldo con el que cerró el anterior. Si te limitas
+     a continuar, esa diferencia es 0 y la línea sigue donde estaba; si al empalmar metes
+     (o sacas) dinero de tu bolsillo, se ve, que es justo lo que tiene que verse. */
+  // Los incrementos se leen de `ruta`, que se queda con los valores CRUDOS de cada tramo;
+  // lo cosido se va escribiendo aparte. Reescribir la propia `ruta` sobre la marcha haría
+  // que el siguiente paso restara un valor ya cosido de uno crudo.
+  let puesto = ruta.length ? ruta[0].aportado : 0;
+  const cosida = [];
+  for (let k = 0; k < ruta.length; k++) {
+    const p = ruta[k], prev = ruta[k - 1];
+    if (k > 0) {
+      if (idDe(p.origen) === idDe(prev.origen)) {
+        puesto += p.aportado - prev.aportado;
+      } else {
+        // Cierre real del tramo que sale: su punto tapado en esta misma edad si el nuevo
+        // arranca donde acabó el otro, y si no (tramos con hueco) el último que dibujó.
+        const cierre = p.previo && idDe(p.previo.origen) === idDe(prev.origen) ? p.previo : prev;
+        puesto += (cierre.aportado - prev.aportado) + (p.total - cierre.total);
+      }
+    }
+    cosida.push({ ...p, aportado: puesto });
+  }
+  return cosida;
+}
+
+// Con cuánto entrega el testigo cada tramo: el saldo de su último punto de la ruta, o el
+// del punto que le tapó el siguiente si se solapan en la edad del empalme (ahí el punto
+// que se ve es la apertura del que entra, no el cierre del que sale).
+function cierresDeTramo(ruta) {
+  const cierres = new Map();
+  ruta.forEach((p, k) => {
+    const sig = ruta[k + 1];
+    if (sig && idDe(sig.origen) === idDe(p.origen)) return;      // el tramo sigue
+    const c = sig && sig.previo && idDe(sig.previo.origen) === idDe(p.origen) ? sig.previo : p;
+    cierres.set(idDe(p.origen), { edad: c.edad, total: c.total });
+  });
+  return cierres;
 }
 
 // Un tramo se llama por su rango de edades: es lo único que lo identifica, en el botón,
 // en la tabla año a año y en el tooltip.
 const tramoTxt = s => `${s.desde} → ${s.hasta}`;
+// Tramos ordenados por dónde empiezan, que es como se leen en la gráfica. El orden en que
+// se guardaron no dice nada: puedes guardar 40→50 y después 30→40.
+const snapsOrdenados = () => [...snaps].sort((a, b) => a.desde - b.desde || a.hasta - b.hasta);
 
 function renderSnaps() {
   const cont = document.getElementById('snapsList');
@@ -1417,11 +1530,13 @@ function renderSnaps() {
   if (!cont) return;
   cuenta.textContent = snaps.length ? `${snaps.length} de ${SNAP_MAX} guardados` : '';
   document.getElementById('btnSnapSave').disabled = snaps.length >= SNAP_MAX;
+  // La nota de la leyenda solo dice algo cuando hay un tramo resaltado.
+  document.getElementById('legendNota').hidden = !snaps.some(s => s.id === snapActivo);
   if (!snaps.length) {
-    cont.innerHTML = `<p class="snap-vacio">Aún no has guardado ningún tramo. Ajusta el plan, elige hasta qué edad quieres verlo y pulsa <b>Guardar este tramo</b>: la curva se congela y se queda dibujada aquí aunque después cambies los datos, para que puedas ir componiendo tu ruta a trozos.</p>`;
+    cont.innerHTML = `<p class="snap-vacio">Guarda el tramo que estás viendo y la curva se congela aquí, aunque luego cambies los datos: así compones tu ruta a trozos.</p>`;
     return;
   }
-  cont.innerHTML = snaps.map(s => {
+  cont.innerHTML = snapsOrdenados().map(s => {
     const on = snapActivo === s.id;
     // El ✕ va como botón hermano, no dentro del otro: un control dentro de otro control
     // es HTML inválido y deja el borrado fuera del alcance del teclado.
@@ -1519,9 +1634,17 @@ function bindTooltip(cv, serieDe, xDe, htmlDe, redibuja) {
     let best = 0, bestD = Infinity;
     serie.forEach((f, k) => { const d = Math.abs(xDe(f) - mx); if (d < bestD) { bestD = d; best = k; } });
     tip.innerHTML = htmlDe(serie[best]);
+    // El flotante se coloca DESPUÉS de escribirlo, midiéndolo: es `nowrap`, así que su
+    // ancho depende de las cifras que le toquen. Si no cabe a la derecha del dedo se pasa
+    // al otro lado — en móvil los puntos del final de la gráfica se salían de la pantalla
+    // y no había forma de leerlos. Lo mismo por abajo, con el borde inferior.
+    const m = 8, sep = 14;
+    const w = tip.offsetWidth, h = tip.offsetHeight;
+    const x = p.clientX + sep + w > window.innerWidth - m ? p.clientX - sep - w : p.clientX + sep;
+    const y = p.clientY + sep + h > window.innerHeight - m ? p.clientY - sep - h : p.clientY + sep;
+    tip.style.left = Math.max(m, x) + 'px';
+    tip.style.top = Math.max(m, y) + 'px';
     tip.style.opacity = 1;
-    tip.style.left = (p.clientX + 14) + 'px';
-    tip.style.top = (p.clientY + 14) + 'px';
     redibuja(best);
   };
   cv.addEventListener('mousemove', show);

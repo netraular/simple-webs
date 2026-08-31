@@ -25,7 +25,7 @@
     font-family:inherit; font-size:.85rem; font-weight:700; text-transform:uppercase; letter-spacing:.5px; box-shadow:4px 4px 0 var(--accent2); transition:transform .05s, box-shadow .05s, background .1s; }
   button.tool:hover{ background:var(--accent); color:#fff; border-color:var(--ink); box-shadow:2px 2px 0 var(--ink); transform:translate(2px,2px); }
   #saveState{ color:var(--accent); font-size:.8rem; font-weight:700; text-transform:uppercase; min-width:120px; text-align:left; letter-spacing:.5px; }
-  /* Gestor de escenarios (mismo sistema que la calculadora de jubilación) */
+  /* Gestor de escenarios (mismo sistema que la FIRE Calculator) */
   .tool-label{ font-size:.8rem; font-weight:800; text-transform:uppercase; letter-spacing:.5px; color:var(--mut); }
   .tool-sep{ width:3px; min-height:26px; align-self:stretch; background:var(--ink); }
   select.tool{ width:auto; max-width:240px; background:var(--chip); color:var(--ink); border:2px solid var(--ink); border-radius:0;
@@ -121,7 +121,7 @@
   </select>
   <button type="button" class="tool" id="btnSave" title="Guardar datos actuales" aria-label="Guardar datos actuales">💾</button>
   <button type="button" class="tool" id="btnDelete" title="Eliminar escenario guardado" aria-label="Eliminar escenario guardado">🗑️</button>
-  <button type="button" class="tool" id="btnJubi" title="Abre la calculadora de jubilación con este gasto ya puesto">📤 Enviar a jubilación</button>
+  <button type="button" class="tool" id="btnJubi" title="Abre la FIRE Calculator con este gasto ya puesto">📤 Enviar a FIRE Calculator</button>
   <span id="saveState"></span>
 </div>
 
@@ -160,7 +160,7 @@
 <script>
 "use strict";
 
-let lastTotal = 0; // total mensual actual (para enviar a la calculadora de jubilación)
+let lastTotal = 0; // total mensual actual (para enviar a la FIRE Calculator)
 
 /* ---- Frecuencias -> factor a MENSUAL ---- */
 const PERIODS = [
@@ -697,7 +697,7 @@ document.getElementById('btnJubi').addEventListener('click', ()=>{
   }
   // El traspaso viaja por la URL: la otra calculadora lee ?gasto= y no consulta
   // ningún dato guardado, así que no hay nada más que dejar por el camino.
-  window.open('calculadora-jubilacion.html?gasto=' + Math.round(lastTotal*12), '_blank');
+  window.open('fire-calculator.html?gasto=' + Math.round(lastTotal*12), '_blank');
 });
 
 /* ---- Init ---- */

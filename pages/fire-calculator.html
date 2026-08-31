@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Horizonte · Calcula tu fecha objetivo</title>
+<title>FIRE Calculator · Calcula tu fecha objetivo</title>
 <!-- Favicon en línea, como en index.html. Sin declararlo, el navegador lanza igualmente
      su petición automática, y abriendo la página con file:// eso choca con el origen
      único de ese esquema y ensucia la consola con un aviso de carga insegura. -->
@@ -12,7 +12,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&amp;family=Manrope:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
 <style>
-  /* Horizonte: panel técnico de planificación. */
+  /* FIRE Calculator: panel técnico de planificación. */
   :root{
     --bg:#e9eef4; --card:#ffffff; --accent:#1463ff; --accent-strong:#004bd1;
     --text:#17212b; --muted:#667382; --green:#0c9b76; --blue:#00a3c7;
@@ -276,7 +276,7 @@
 <body>
 <div class="wrap">
   <header class="hero">
-    <span class="eyebrow">Horizonte / Plan hasta tu fecha objetivo</span>
+    <span class="eyebrow">FIRE Calculator / Plan hasta tu fecha objetivo</span>
     <h1>¿Cuándo puedes dejar de trabajar?</h1>
     <p class="subtitle">Traza una ruta realista desde tu capital actual hasta la vida que quieres, siempre en euros de hoy. Fijas una <b>fecha objetivo</b> y lo que quieres tener en ella: la calculadora te dice qué ritmo hace falta para llegar.</p>
   </header>
@@ -1485,6 +1485,8 @@ function planSerie(curve, hasta) {
 // v2: los tramos guardados antes no llevaban la cuota de cada año ni identificaban el
 // tramo por su rango de edades. La página no arrastra formatos viejos, así que la clave
 // cambia y los guardados con el formato anterior simplemente se dejan de leer.
+// Las claves de localStorage de la página siguen diciendo "jubilacion", que era su nombre
+// antiguo: renombrarlas dejaría huérfano todo lo que ya hay guardado en el navegador.
 const LS_SNAPS = 'jubilacion-tramos-v2';
 /* Los tramos son trozos consecutivos de UNA ruta, así que se cosen en dos líneas
    continuas —valor total y lo que has puesto— en vez de dibujar un par por tramo. Esto

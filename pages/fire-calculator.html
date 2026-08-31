@@ -550,7 +550,7 @@
          de reparto de debajo. -->
     <div class="legend">
       <span><i class="dot" style="background:#1463ff"></i> Valor total de la cartera</span>
-      <span class="legend-nota">Pasa el ratón por la curva para ver cuánto has puesto tú y cuánto el interés</span>
+      <span class="legend-nota">Pasa el ratón por la curva para ver cuánto has puesto tú, cuánto el interés y qué cifra sería esa en € nominales de ese año</span>
       <span class="legend-nota" id="legendNota" hidden>El tramo activo va resaltado</span>
     </div>
     <canvas id="chart"></canvas>
@@ -1598,6 +1598,16 @@ function rutaCompuesta() {
 // en la tabla año a año y en el tooltip.
 const tramoTxt = s => `${s.desde} → ${s.hasta}`;
 
+/* Edad en la que arranca la ruta ENTERA, tramos guardados incluidos. Es el origen del reloj
+   de la inflación que traduce a € nominales las cifras del flotante, y por eso NO se lee del
+   encuadre: una ruta a trozos tiene que contar los años seguidos de punta a punta —no
+   reiniciarlos en cada tramo— y acercarse a uno solo cambia lo que se ve, no lo que vale. */
+function edadOrigenRuta() {
+  const edades = snaps.filter(s => s.puntos.length).map(s => s.puntos[0].edad);
+  if (chartData && chartData.length) edades.push(chartData[0].edad);
+  return edades.length ? Math.min(...edades) : 0;
+}
+
 // El tramo que se está mirando, si sigue guardado.
 const tramoActivo = () => snaps.find(s => s.id === snapActivo) || null;
 
@@ -1869,8 +1879,9 @@ function drawChart(hoverIdx = null) {
   const X = edad => x0 + ((edad - minAge) / spanAge) * (x1 - x0);
   const Y = v => yb - ((v - minY) / (maxY - minY)) * (yb - yt);
   // `ruta` viaja en `plot` porque el tooltip la necesita para buscar el punto más cercano
-  // en CUALQUIER tramo, no solo en el trecho que cubre el plan de ahora.
-  plot = { X, Y, x0, x1, yb, yt, minAge, maxAge, ruta };
+  // en CUALQUIER tramo, no solo en el trecho que cubre el plan de ahora. `edad0` es el
+  // arranque de la ruta entera (no el del encuadre): de ahí cuenta la inflación del flotante.
+  plot = { X, Y, x0, x1, yb, yt, minAge, maxAge, ruta, edad0: edadOrigenRuta() };
 
   // Rejilla horizontal (sin verticales, como en el resto de gráficas)
   ctx.font = '11px system-ui, sans-serif'; ctx.lineWidth = 1;
@@ -1939,8 +1950,18 @@ bindTooltip(canvas, () => plot && plot.ruta, f => plot.X(f.edad), f => {
   // tarjeta: una ruta a trozos puede llevar una distinta en cada tramo, y un único número
   // arriba solo podía describir uno de ellos.
   const r = tasaPct(tasaDeOrigen(f.origen));
+  /* Toda la gráfica va en € de hoy, así que la cifra de un punto lejano dice lo que ese
+     dinero COMPRA, no el número que verías en el extracto. Esta fila pone el otro: el mismo
+     valor arrastrado por la inflación asumida desde el arranque de la ruta hasta ese punto
+     —un solo reloj de punta a punta, aunque la ruta esté hecha de varios tramos—. Con la
+     inflación a 0 las dos cifras coinciden y la fila sobra. */
+  const infl = val('inflacion') / 100;
+  const t = f.edad - plot.edad0;      // hay `plot`: el flotante solo se abre sobre su ruta
+  const nominal = infl > 0
+    ? `<div class="t-row"><span class="muted">En € de ese año · ${tasaPct(infl * 100)} infl.</span><span>${fmt.format(f.total * Math.pow(1 + infl, t))}</span></div>`
+    : '';
   return `<div class="t-year">${f.edad} años · año ${f.anio} · € de hoy</div>
-    <div class="t-row"><span style="color:${CI_COL.interes}">Valor total</span><span>${fmt.format(f.total)}</span></div>
+    <div class="t-row"><span style="color:${CI_COL.interes}">Valor total</span><span>${fmt.format(f.total)}</span></div>${nominal}
     <div class="t-row"><span style="color:${CI_COL.aportado}">Lo que has puesto</span><span>${fmt.format(f.aportado)}</span></div>
     <div class="t-row"><span class="muted">Interés generado</span><span>${fmt.format(interes)}</span></div>${cuota}
     <div class="t-row"><span class="muted">Tramo</span><span>${cual}${r ? ` · ${r} real` : ''}</span></div>`;

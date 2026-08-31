@@ -366,7 +366,7 @@
             <li><b>Constante:</b> la misma cuota (en € de hoy) todos los años, hasta la fecha objetivo. La calculadora te dice cuánto es.</li>
             <li><b>Hasta 0 €:</b> la cuota baja en línea recta desde el primer año y llega a <b>0 €</b> justo en la fecha objetivo, así que el último año aún aportas algo. Es el reparto más front-cargado con esfuerzo repartido.</li>
             <li><b>Tope:</b> fijas cuánto es lo máximo que puedes aportar al mes y la calculadora busca <b>durante cuántos años</b> hay que pagar (bajando hasta 0 €) para llegar justo al objetivo. Si el tope no da para parar antes de la fecha objetivo, en vez de fallar <b>levanta el suelo</b>: la cuota baja del tope a la <b>mínima cuota</b> que aún llega, aportando todos los años. Y si ni pagando el tope entero todos los años se llega, te avisa y te dice cuánto faltaría.</li>
-            <li><b>Constante que fijas tú (<i>Coast FIRE</i>):</b> igual que el modo constante, pero el importe lo eliges tú y la incógnita es la otra: la calculadora busca <b>en qué año puedes parar del todo</b>. A partir de ahí no aportas ni un euro más y el interés compuesto hace el resto: la cartera "rueda sola" hasta el objetivo justo en la fecha objetivo, y tú solo necesitas ganar para tus gastos del día a día. Cuanto más alta pongas la cuota, antes podrás soltarla. <b>En negativo</b> el modo se da la vuelta y describe un <b>tramo de consumo</b> (un sabático, una excedencia, unos años viviendo de la cartera): la pregunta pasa a ser <b>cuántos años puedes gastar ese importe</b> sin bajarte del objetivo.</li>
+            <li><b>Constante que fijas tú (<i>Coast FIRE</i>):</b> igual que el modo constante, pero el importe lo eliges tú y la incógnita es la otra: la calculadora busca <b>en qué año puedes parar del todo</b>. A partir de ahí no aportas ni un euro más y el interés compuesto hace el resto: la cartera "rueda sola" hasta el objetivo justo en la fecha objetivo, y tú solo necesitas ganar para tus gastos del día a día. Cuanto más alta pongas la cuota, antes podrás soltarla. <b>En negativo</b> el modo se da la vuelta y describe un <b>tramo de consumo</b> (un sabático, una excedencia, unos años viviendo de la cartera): la pregunta pasa a ser <b>cuántos años puedes gastar ese importe</b>, sin bajarte del objetivo si aún está a tu alcance, o hasta vaciar la cartera si ya no lo está.</li>
           </ul>
         </div>
         <div id="perfilTopeWrap">
@@ -377,7 +377,7 @@
         <div id="perfilSprintWrap" style="display:none">
           <label for="sprint_ahorro">Importe constante mensual (€ de hoy) — en negativo, consumo</label>
           <input type="number" id="sprint_ahorro" value="2500" step="50">
-          <div class="hint">Cuánto mueves, <b>igual todos los meses</b>, hasta el año en que paras. <b>En positivo</b> es ahorro: súbelo para adelantar la fecha en que puedes soltar las aportaciones, bájalo para retrasarla. <b>En negativo</b> es consumo: pon <b>−2000</b> para vivir de la cartera con 2.000 €/mes y la calculadora te dirá <b>cuántos años puedes permitírtelo</b> sin dejar de llegar al objetivo en la fecha objetivo. Solo hay margen para gastar si tu capital actual ya va sobrado; si no, te lo dice. <b>Es en € de hoy:</b> el modelo asume que mantienes el importe en <b>términos reales</b>, es decir, <b>subiéndolo cada año con la inflación</b>. Si movieras siempre la misma cifra nominal, su valor real se erosionaría y los años que se muestran no cuadrarían.</div>
+          <div class="hint">Cuánto mueves, <b>igual todos los meses</b>, hasta el año en que paras. <b>En positivo</b> es ahorro: súbelo para adelantar la fecha en que puedes soltar las aportaciones, bájalo para retrasarla. <b>En negativo</b> es consumo: pon <b>−2000</b> para vivir de la cartera con 2.000 €/mes y la calculadora te dirá <b>cuántos años puedes permitírtelo</b>. Si tu capital ya va sobrado, el límite es <b>seguir llegando al objetivo</b> en la fecha objetivo. Si no llegas al objetivo ni sin gastar, el límite pasa a ser <b>el dinero</b>: te dice cuántos años aguantas hasta vaciar la cartera y cuánto te alejas del objetivo por el camino. <b>Es en € de hoy:</b> el modelo asume que mantienes el importe en <b>términos reales</b>, es decir, <b>subiéndolo cada año con la inflación</b>. Si movieras siempre la misma cifra nominal, su valor real se erosionaría y los años que se muestran no cuadrarían.</div>
         </div>
       </div>
       </div><!-- /col 1 -->
@@ -854,7 +854,10 @@ function scenario(F) {
   const fvPlano = fvOf(() => 1);
   const importeMinimo = fvPlano > 0 ? need / fvPlano : 0;
   const forma = PERFIL_VENTANA[perfil.modo];
-  let weight, base, ventana = M, ventanaCorta = false, suelo = 0;
+  // `agotaCartera`: el tramo de consumo se corta porque el dinero se acaba, no porque haya
+  // que preservar el objetivo. Distingue "puedes sacar 12 años y te quedas a cero" de
+  // "puedes sacar los 25 sin vaciarla, pero aun así no llegas al objetivo".
+  let weight, base, ventana = M, ventanaCorta = false, agotaCartera = false, suelo = 0;
   // Tramo de consumo: solo el modo "constante que fijas tú" admite importes negativos, y
   // ahí la incógnita se da la vuelta —cuántos años puedes GASTAR ese importe sin bajarte
   // del objetivo— en vez de cuántos tienes que aportar.
@@ -863,9 +866,18 @@ function scenario(F) {
     base = perfil.modo === 'tope' ? perfil.tope : perfil.sprint;
     const fvVentana = T => fvOf(age => forma(age - a0, T)) * base;
     if (consumo) {
-      // fvVentana DECRECE con T (cada año gastando resta capital), así que el conjunto de
-      // ventanas válidas es [0, T*] y se busca la MAYOR. Solo hay margen si el capital que
-      // ya tienes se pasa del objetivo: `sobra` es exactamente ese margen, medido en F.
+      /* Cuánto tiempo puedes gastar. El límite lo pone lo que esté más cerca, y cuál de los
+         dos manda depende de si el objetivo sigue en pie:
+
+         - Con margen (tu capital ya se pasa del objetivo) manda el OBJETIVO: gastas mientras
+           lo que quede siga componiendo hasta él. `fvVentana` decrece con T, así que las
+           ventanas válidas son [0, T*] y se busca la mayor.
+         - Sin margen el objetivo ya es inalcanzable con o sin retirada, así que dejar la
+           ventana en 0 solo servía para ignorar en silencio el importe escrito. Manda
+           entonces el DINERO: se gasta hasta que la cartera llega a cero. La pregunta
+           "¿cuántos años puedo permitírmelo?" pasa a tener respuesta siempre, y el aviso
+           dice aparte cuánto te alejas del objetivo — igual que ya hacía un tope demasiado
+           bajo, que tampoco se ignora: se dibuja y se cuenta lo que falta. */
       if (fvVentana(M) >= -sobra) ventana = M;      // aguantas gastando todo el tramo
       else if (sobra > 0) {
         let lo = 0, hi = M;
@@ -875,8 +887,27 @@ function scenario(F) {
         }
         ventana = lo;
       } else {
-        ventana = 0;                                // aún no llegas al objetivo: no hay nada que gastar
-        ventanaCorta = true;
+        // Saldo más bajo por el que pasa la cartera gastando durante T años. Se simula mes a
+        // mes con la misma regla que `buildCurve()` en vez de resolverlo con la fórmula
+        // cerrada: así la ventana que se elige aquí es exactamente la que luego se dibuja.
+        const saldoMin = T => {
+          let b = cap0, min = b;
+          for (let age = a0; age < F; age++) {
+            const x = base * forma(age - a0, T);
+            for (let k = 0; k < 12; k++) { b = b * (1 + i) + x; if (b < min) min = b; }
+          }
+          return min;
+        };
+        let lo = 0, hi = M;                         // saldoMin decrece con T → búsqueda binaria
+        for (let it = 0; it < 50; it++) {
+          const mid = (lo + hi) / 2;
+          if (saldoMin(mid) >= 0) lo = mid; else hi = mid;
+        }
+        ventana = lo;
+        ventanaCorta = true;                        // se puede gastar, pero no se llega al objetivo
+        // Si la búsqueda se ha comido el horizonte entero es que la cartera nunca llega a
+        // cero: la rentabilidad da para sostener la retirada, solo que no para el objetivo.
+        agotaCartera = ventana < M - 0.01;
       }
       weight = age => forma(age - a0, ventana);
     } else if (base > 0 && fvVentana(M) >= need) {
@@ -933,7 +964,7 @@ function scenario(F) {
   const stopAge = a0 + aniosAportando;
   const paraAntes = aniosAportando > 0 && stopAge < F;
 
-  return { F, a0, PA, E, cap0, S, P, rA, rate0, infl, i, M, capNeeded, capBase, pensionPV, cobrarePension, mensual, anual, tasa, tr, convenioActivo, convenioMes, convenioAnual, base, mensualIni, mensualFin, perfil, consumo, weight, ventana, ventanaCorta, suelo, importeMinimo, falta, aniosAportando, stopAge, paraAntes, objetivoModo };
+  return { F, a0, PA, E, cap0, S, P, rA, rate0, infl, i, M, capNeeded, capBase, pensionPV, cobrarePension, mensual, anual, tasa, tr, convenioActivo, convenioMes, convenioAnual, base, mensualIni, mensualFin, perfil, consumo, weight, ventana, ventanaCorta, suelo, agotaCartera, importeMinimo, falta, aniosAportando, stopAge, paraAntes, objetivoModo };
 }
 
 // Construye la curva determinista de patrimonio (€ de hoy) año a año a partir de
@@ -980,7 +1011,7 @@ function compute() {
   if (F <= a0 || E <= F) return;
 
   const sc = scenario(F);
-  const { PA, S, P, infl, M, capNeeded, capBase, pensionPV, cobrarePension, mensual, anual, tasa, rA, tr, convenioActivo, convenioMes, convenioAnual, base, mensualIni, mensualFin, perfil, consumo, ventanaCorta, suelo, importeMinimo, falta, aniosAportando, stopAge, objetivoModo } = sc;
+  const { cap0, PA, S, P, infl, M, capNeeded, capBase, pensionPV, cobrarePension, mensual, anual, tasa, rA, tr, convenioActivo, convenioMes, convenioAnual, base, mensualIni, mensualFin, perfil, consumo, ventanaCorta, suelo, agotaCartera, importeMinimo, falta, aniosAportando, stopAge, objetivoModo } = sc;
   const decreciente = mensualIni > mensualFin + 1;
   // Modo "tope" resuelto por suelo: la rampa hasta 0 € no llegaba al objetivo ni ocupando
   // todo el horizonte, así que baja solo hasta una cuota mínima y aportas hasta el final.
@@ -1063,7 +1094,7 @@ function compute() {
       ? `<div class="row"><span class="muted">Retirada anual del tramo de consumo</span><span>${fmt.format(-anual)}</span></div>`
       : `<div class="row"><span class="muted">Aportación anual necesaria${decreciente?' (primer→último año)':''}</span><span>${decreciente?`${fmt.format(anual)} → ${fmt.format(mensualFin*12)}`:fmt.format(anual)}</span></div>`}
     ${conSuelo ? `<div class="row"><span class="muted">Con ese tope aportas los ${M} años (no da para parar antes)</span><span>${fmt.format(base)} → ${fmt.format(mensualFin)}/mes</span></div>`
-      : PERFIL_VENTANA[perfil.modo] && !ventanaCorta ? `<div class="row"><span class="muted">${perfil.modo === 'tope' ? 'Años pagando con ese tope (hasta llegar a 0 €)' : consumo ? 'Años que puedes gastar ese importe' : 'Años pagando esa cuota (luego dejas de ahorrar)'}</span><span>${aniosAportando} de ${M} (${a0}→${stopAge})</span></div>` : ''}
+      : PERFIL_VENTANA[perfil.modo] && (!ventanaCorta || consumo) ? `<div class="row"><span class="muted">${perfil.modo === 'tope' ? 'Años pagando con ese tope (hasta llegar a 0 €)' : consumo ? (agotaCartera ? 'Años que puedes gastar ese importe (hasta vaciar la cartera)' : 'Años que puedes gastar ese importe') : 'Años pagando esa cuota (luego dejas de ahorrar)'}</span><span>${aniosAportando} de ${M} (${a0}→${stopAge})</span></div>` : ''}
     <div class="row"><span class="muted">${tasaRowLabel}</span><span>${tasaRowVal}</span></div>
   `;
 
@@ -1071,7 +1102,11 @@ function compute() {
   if (ventanaCorta) alerts += perfil.modo === 'tope'
     ? `<div class="alert bad">🚫 Con un tope de ${fmt.format(base)}/mes no llegas ni aportándolo <b>entero los ${M} años</b>: en la fecha objetivo te faltarían <b>${fmt.format(falta)}</b> de los ${fmt.format(capNeeded)}. Harían falta al menos <b>${fmt.format(importeMinimo)}/mes</b> (constantes, en € de hoy) — o retrasar la fecha objetivo o bajar el gasto.</div>`
     : consumo
-    ? `<div class="alert bad">🚫 Todavía no puedes gastar nada: con lo que tienes invertido hoy te faltan <b>${fmt.format(falta)}</b> para los ${fmt.format(capNeeded)} del objetivo, así que cualquier retirada te alejaría más. Pon un importe positivo, retrasa la fecha objetivo o baja el gasto.</div>`
+    ? (aniosAportando === 0
+      ? `<div class="alert bad">🚫 No hay de dónde sacar: con ${fmt.format(cap0)} invertidos, una retirada de <b>${fmt.format(-base)}/mes</b> vacía la cartera de inmediato. Sube el capital de partida o baja la retirada.</div>`
+      : agotaCartera
+      ? `<div class="alert bad">🏖️ Puedes sacar <b>${fmt.format(-base)}/mes</b> durante <b>${aniosAportando} ${aniosAportando === 1 ? 'año' : 'años'}</b> (de los ${a0} a los ${stopAge}), pero porque te la gastas entera: a los ${stopAge} la cartera se queda a cero. Y como ya no vuelves a aportar, a los ${F} te faltarían <b>${fmt.format(falta)}</b> de los ${fmt.format(capNeeded)} del objetivo. Baja la retirada, retrasa la fecha objetivo o baja el gasto.</div>`
+      : `<div class="alert bad">🏖️ Puedes sacar <b>${fmt.format(-base)}/mes</b> hasta los ${F} <b>sin vaciar la cartera</b>: la rentabilidad da para sostener esa retirada. Lo que no da es para el objetivo — a los ${F} te faltarían <b>${fmt.format(falta)}</b> de los ${fmt.format(capNeeded)}. Baja la retirada, retrasa la fecha objetivo o baja el gasto.</div>`)
     : `<div class="alert bad">🚫 Con una cuota de ${fmt.format(base)}/mes nunca llegas a poder parar: aun aportándolo los ${M} años completos te faltarían <b>${fmt.format(falta)}</b> de los ${fmt.format(capNeeded)}. Harían falta al menos <b>${fmt.format(importeMinimo)}/mes</b> — o retrasar la fecha objetivo o bajar el gasto.</div>`;
   else if (conSuelo) alerts += `<div class="alert warn">📉 Llegas al objetivo, pero aportando los ${M} años: de <b>${fmt.format(base)}</b> a <b>${fmt.format(mensualFin)}/mes</b>. Sube el tope para poder parar antes.</div>`;
   else if (consumo) alerts += aniosAportando >= M

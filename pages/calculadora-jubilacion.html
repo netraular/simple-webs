@@ -529,9 +529,12 @@
          También hacen de leyenda. -->
     <div id="snapsList"></div>
 
+    <!-- Una sola línea, así que la leyenda ya no reparte colores: dice qué se está mirando
+         y dónde encontrar el desglose, que vive en el flotante del puntero y en la barra
+         de reparto de debajo. -->
     <div class="legend">
-      <span><i class="dot" style="background:#1463ff"></i> Valor total</span>
-      <span><i class="dot" style="background:#0c9b76"></i> Lo que has puesto tú</span>
+      <span><i class="dot" style="background:#1463ff"></i> Valor total de la cartera</span>
+      <span class="legend-nota">Pasa el ratón por la curva para ver cuánto has puesto tú y cuánto el interés</span>
       <span class="legend-nota" id="legendNota" hidden>El tramo activo va resaltado</span>
     </div>
     <canvas id="chart"></canvas>
@@ -1692,8 +1695,11 @@ function bindTooltip(cv, serieDe, xDe, htmlDe, redibuja) {
   cv.addEventListener('mouseleave', () => { tip.style.opacity = 0; redibuja(); });
 }
 
-// Dos áreas apiladas, igual que la gráfica de interés compuesto: el valor total por
-// encima y lo aportado por debajo, con el interés como la franja que queda entre ambas.
+// Una sola línea: el valor total de la cartera a lo largo de la ruta. Lo que has puesto
+// tú y el interés generado siguen calculándose —los cuenta el tooltip y los dibuja la
+// barra de reparto de debajo—, pero ya no se trazan: la pregunta que se le hace a esta
+// gráfica es cómo evoluciona el patrimonio, y la segunda línea competía con la primera
+// por la lectura sin responder nada que no esté ya bajo el puntero.
 function drawChart(hoverIdx = null) {
   if (!chartData || !chartData.length) return;
   const medidas = setupCanvas(canvas);
@@ -1707,13 +1713,14 @@ function drawChart(hoverIdx = null) {
   const ruta = rutaVisible();
   if (!ruta.length) return;
   const minAge = ruta[0].edad, maxAge = ruta[ruta.length - 1].edad;
-  // La escala admite valores negativos: con un tramo de consumo puedes llegar a sacar más
-  // de lo que pusiste y "lo que has puesto tú" cruza el 0. Recortarlo a 0 dejaba la línea
-  // pegada al suelo fingiendo que no pasaba nada.
+  // La escala la fija solo la línea que se dibuja. Cuando también se trazaba lo aportado
+  // había que abarcar las dos, y un tramo de consumo que se lleva lo puesto muy por debajo
+  // de cero aplastaba la curva del patrimonio contra el techo. Sigue admitiendo negativos
+  // porque el valor total también puede cruzar el 0.
   let topY = 0, botY = 0;
   for (const p of ruta) {
-    topY = Math.max(topY, p.total, p.aportado);
-    botY = Math.min(botY, p.total, p.aportado);
+    topY = Math.max(topY, p.total);
+    botY = Math.min(botY, p.total);
   }
   const pd = { top: 16, right: 16, bottom: 30, left: 64 };
   const x0 = pd.left, x1 = cssW - pd.right, yb = cssH - pd.bottom, yt = pd.top;
@@ -1762,25 +1769,21 @@ function drawChart(hoverIdx = null) {
   }
   ctx.setLineDash([]);
 
-  // Solo líneas: rellenar por debajo tapaba la rejilla y dejaba la zona baja de la
-  // gráfica hecha un bloque de color en el que no se distinguía nada. Son DOS, cosidas
-  // a lo largo de toda la ruta: el color dice el papel de la línea, no el tramo.
-  const linea = (key, stroke) => {
-    ctx.beginPath();
-    ruta.forEach((f, k) => k ? ctx.lineTo(X(f.edad), Y(f[key])) : ctx.moveTo(X(f.edad), Y(f[key])));
-    ctx.strokeStyle = stroke; ctx.lineWidth = 2.4; ctx.stroke();
-  };
-  linea('total', CI_COL.interes);
-  linea('aportado', CI_COL.aportado);
+  // Solo línea: rellenar por debajo tapaba la rejilla y dejaba la zona baja de la gráfica
+  // hecha un bloque de color en el que no se distinguía nada. Es UNA, cosida a lo largo de
+  // toda la ruta: los tramos no se distinguen por color, sino por dónde caen en el eje de
+  // edades y por sus cortes marcados.
+  ctx.beginPath();
+  ruta.forEach((f, k) => k ? ctx.lineTo(X(f.edad), Y(f.total)) : ctx.moveTo(X(f.edad), Y(f.total)));
+  ctx.strokeStyle = CI_COL.interes; ctx.lineWidth = 2.4; ctx.stroke();
 
   // El hover recorre la ruta entera, no solo el plan de ahora.
   if (hoverIdx !== null && ruta[hoverIdx]) {
     const f = ruta[hoverIdx], xh = Math.round(X(f.edad)) + 0.5;
     ctx.setLineDash([3, 3]); ctx.strokeStyle = CHART.ref; ctx.lineWidth = 1;
     ctx.beginPath(); ctx.moveTo(xh, yt); ctx.lineTo(xh, yb); ctx.stroke(); ctx.setLineDash([]);
-    for (const [v, col] of [[f.total, CI_COL.interes], [f.aportado, CI_COL.aportado]]) {
-      ctx.beginPath(); ctx.arc(X(f.edad), Y(v), 4, 0, Math.PI * 2); ctx.fillStyle = col; ctx.fill();
-    }
+    ctx.beginPath(); ctx.arc(X(f.edad), Y(f.total), 4, 0, Math.PI * 2);
+    ctx.fillStyle = CI_COL.interes; ctx.fill();
   }
 }
 

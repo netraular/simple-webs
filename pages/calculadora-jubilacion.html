@@ -2133,12 +2133,28 @@ const PRESETS_SUELDO = {
 const PRESET_PREFIX = 'preset:';
 
 // ---- Escenarios con nombre: varios conjuntos de datos guardados en este navegador ----
-const LS_SCENARIOS = 'jubilacion-escenarios-v1';   // { "nombre": {datos...}, ... }
+// Un escenario es el ESTADO COMPLETO del plan: los datos del formulario y los tramos que
+// hubiera guardados. Antes solo llevaba los datos, y volver a un escenario dejaba en
+// pantalla los tramos del anterior, que describían otra ruta: la mitad de la gráfica
+// hablaba de un plan y la otra mitad de otro.
+const LS_SCENARIOS = 'jubilacion-escenarios-v1';   // { "nombre": {datos, tramos}, ... }
 const LS_CURRENT   = 'jubilacion-actual-v1';       // nombre del escenario cargado ahora
 const scenarioSel  = document.getElementById('scenarioSel');
 
 function readScenarios() {
-  return lsRead(LS_SCENARIOS, {}) || {};
+  const store = lsRead(LS_SCENARIOS, {}) || {};
+  // Los escenarios guardados con el formato anterior son el objeto de datos pelado. Se
+  // reconocen porque no traen `datos` (que no es el id de ningún campo) y se leen como un
+  // plan sin tramos, que es exactamente lo que eran. No se reescriben en disco: la
+  // conversión al vuelo basta y evita tocar lo guardado solo por abrir la página.
+  const out = {};
+  for (const k in store) {
+    const v = store[k];
+    if (!v || typeof v !== 'object') continue;
+    out[k] = v.datos ? { datos: v.datos, tramos: Array.isArray(v.tramos) ? v.tramos : [] }
+                     : { datos: v, tramos: [] };
+  }
+  return out;
 }
 function writeScenarios(obj) {
   lsWrite(LS_SCENARIOS, obj);
@@ -2156,6 +2172,42 @@ function applyData(data) {
     if (el.type === 'checkbox') el.checked = !!data[el.id];
     else el.value = data[el.id];
   });
+}
+
+/* Estado completo del plan: lo que se guarda con un nombre y lo que viaja en un enlace.
+   Los tramos se copian tal cual —con sus puntos congelados—, porque un tramo es una curva
+   ya calculada y no una configuración: recalcularlo al abrirlo lo dejaría a merced de
+   cualquier cambio futuro en el modelo, que es justo lo que un tramo promete que no pasa. */
+function currentState() {
+  return { _v: FORM_VERSION, datos: currentFormData(), tramos: snaps };
+}
+// Filtra los tramos con la misma vara que `readStoredSnaps()`: vengan de localStorage o de
+// un enlace, un tramo sin puntos no se puede dibujar.
+function sanearTramos(arr) {
+  if (!Array.isArray(arr)) return [];
+  return arr.filter(s => s && Array.isArray(s.puntos) && s.puntos.length)
+            .slice(0, SNAP_MAX)
+            .map(s => ({ ...s, id: s.id || 's' + Math.random().toString(36).slice(2, 9) }));
+}
+// Deja el plan en el estado dado y lo recalcula todo. No toca el desplegable ni el nombre
+// del escenario actual: de eso se encarga quien llama, que es el único que sabe si esto
+// viene de cargar un escenario, un ejemplo o un enlace.
+function applyState(est) {
+  if (!est) return;
+  applyData(est.datos || est);
+  writeSnaps(sanearTramos(est.tramos));
+  snapActivo = null;
+  compute();
+  saveForm();
+}
+// ¿Cargar este estado tiraría tramos que ahora mismo están en pantalla? Los tramos son
+// curvas congeladas que pueden costar un rato de componer, así que pisarlos sin avisar es
+// la única pérdida de esta página que no se puede deshacer.
+function confirmaPisarTramos(est, queEs) {
+  if (!snaps.length) return true;
+  const entran = sanearTramos(est && est.tramos).length;
+  return confirm(`Ahora tienes ${snaps.length} ${snaps.length === 1 ? 'tramo guardado' : 'tramos guardados'} en la gráfica.\n`
+    + `${queEs} ${entran ? `los sustituirá por sus ${entran}` : 'los quitará: no lleva tramos'}.\n\n¿Continuar?`);
 }
 function setCurrentName(name) {
   try { name ? localStorage.setItem(LS_CURRENT, name) : localStorage.removeItem(LS_CURRENT); } catch (e) {}
@@ -2177,16 +2229,18 @@ function refreshScenarioSel(selected) {
   scenarioSel.value = (selected && (esPreset || store[selected])) ? selected : '';
 }
 
-// Guardar los datos actuales bajo un nombre (nuevo o sobrescribiendo uno existente).
+// Guardar el plan actual bajo un nombre (nuevo o sobrescribiendo uno existente). Se guarda
+// el estado entero: los datos y los tramos que haya en la gráfica.
 document.getElementById('btnSave').addEventListener('click', () => {
   const store = readScenarios();
   // Un ejemplo de sueldo no es un nombre válido que proponer: se parte del ejemplo pero
   // se guarda con nombre propio.
   const actual = scenarioSel.value.startsWith(PRESET_PREFIX) ? '' : scenarioSel.value;
-  const name = (prompt('Nombre para este conjunto de datos:', actual) || '').trim();
+  const conTramos = snaps.length ? ` (con ${snaps.length} ${snaps.length === 1 ? 'tramo' : 'tramos'})` : '';
+  const name = (prompt(`Nombre para este escenario${conTramos}:`, actual) || '').trim();
   if (!name) return;
-  if (store[name] && !confirm(`Ya existe un escenario llamado "${name}". ¿Sobrescribirlo con los datos actuales?`)) return;
-  store[name] = currentFormData();
+  if (store[name] && !confirm(`Ya existe un escenario llamado "${name}". ¿Sobrescribirlo con el plan actual?`)) return;
+  store[name] = currentState();
   writeScenarios(store);
   setCurrentName(name);
   refreshScenarioSel(name);
@@ -2219,23 +2273,29 @@ scenarioSel.addEventListener('change', () => {
   }
   const store = readScenarios();
   if (!store[name]) return;
-  applyData(store[name]);
+  // Un escenario trae sus propios tramos, así que cargarlo se lleva por delante los que
+  // hubiera en pantalla. Si los hay, se avisa; al cancelar, el desplegable vuelve atrás.
+  if (!confirmaPisarTramos(store[name], `Cargar "${name}"`)) { scenarioSel.value = getCurrentName(); return; }
+  applyState(store[name]);
   setCurrentName(name);
-  compute();
-  saveForm();
 });
 
 // Carga un ejemplo de sueldo: sustituye los datos actuales (incluidos los ajustes avanzados).
+// Los ejemplos no traen tramos, así que arrancan la ruta de cero: dejar los del plan
+// anterior colgando de un ejemplo describiría una ruta que no es de nadie.
 function loadPresetSueldo(key) {
   const p = PRESETS_SUELDO[key];
   if (!p) return false;
   if (!confirm(`¿Cargar el ejemplo "${p.label}"? Sustituirá los valores actuales.`)) return false;
+  if (!confirmaPisarTramos(null, 'El ejemplo')) return false;
   for (const id in p.datos) {
     const el = document.getElementById(id);
     if (!el) continue;
     if (el.type === 'checkbox') el.checked = p.datos[id];
     else el.value = p.datos[id];
   }
+  writeSnaps([]);
+  snapActivo = null;
   compute(); saveForm();
   return true;
 }

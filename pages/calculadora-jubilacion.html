@@ -49,6 +49,11 @@
   .tool { font-size: .82rem; color: var(--text); background: #fff; border: 1px solid #b9c6d3; border-radius: 4px; padding: 7px 12px; cursor: pointer; -webkit-tap-highlight-color: transparent; }
   .save-state { font-size: .78rem; color: var(--green); opacity: 0; transition: opacity .3s; }
   .save-state.show { opacity: 1; }
+  /* Mismo hueco que "✓ Guardado", pero para avisos que no son un guardado (enlace copiado,
+     plan compartido cargado). En rojo cuando algo ha salido mal. */
+  .tool-note { font-size: .78rem; color: var(--muted); opacity: 0; transition: opacity .3s; }
+  .tool-note.show { opacity: 1; }
+  .tool-note.bad { color: var(--red); }
   /* Cierre de la gráfica del plan: es la conclusión, no una ayuda. Siempre visible,
      fuera del mecanismo de plegado del ⓘ y con cuerpo suficiente para leerse. */
   .proj-resumen { margin: 14px 0 0; font-size: .95rem; line-height: 1.55; color: var(--muted);
@@ -264,7 +269,8 @@
     .hero{margin-top:14px;padding:26px 20px 22px}.hero::after{display:none}
     .tab{padding:10px 13px; font-size:.66rem; letter-spacing:.04em}
     .toolbar{display:grid;grid-template-columns:auto 1fr auto auto;gap:8px}
-    .tool-label{grid-column:1}#scenarioSel{grid-column:2;min-width:0;width:100%}#btnSave{grid-column:3}#btnDelete{grid-column:4}.save-state{position:absolute;right:14px;bottom:-22px}
+    /* Compartir lleva texto y no cabe en la fila del selector: se pone debajo, a lo ancho. */
+    .tool-label{grid-column:1}#scenarioSel{grid-column:2;min-width:0;width:100%}#btnSave{grid-column:3}#btnDelete{grid-column:4}#btnShare{grid-column:1/-1}.save-state{position:absolute;right:14px;bottom:-22px}
     .primary-inputs{grid-template-columns:1fr}.card{padding:18px}.inputs-body{padding:18px}.cards-mini{grid-template-columns:1fr}.result-ring{width:220px}
   }
 </style>
@@ -292,7 +298,11 @@
     </select>
     <button type="button" class="tool" id="btnSave" title="Guardar datos actuales" aria-label="Guardar datos actuales">💾</button>
     <button type="button" class="tool" id="btnDelete" title="Eliminar escenario guardado" aria-label="Eliminar escenario guardado">🗑️</button>
+    <!-- El enlace lleva el plan entero dentro (datos y tramos), no un identificador: no hay
+         servidor donde guardarlo ni al que se envíe nada. Ver `enlaceCompartible()`. -->
+    <button type="button" class="tool" id="btnShare" title="Copiar un enlace con este plan dentro: datos y tramos. No se envía nada a ningún servidor.">🔗 Compartir</button>
     <span class="save-state" id="saveState">✓ Guardado</span>
+    <span class="tool-note" id="toolNote"></span>
   </div>
 
   <div class="planner-grid">
@@ -2181,13 +2191,33 @@ function applyData(data) {
 function currentState() {
   return { _v: FORM_VERSION, datos: currentFormData(), tramos: snaps };
 }
-// Filtra los tramos con la misma vara que `readStoredSnaps()`: vengan de localStorage o de
-// un enlace, un tramo sin puntos no se puede dibujar.
+/* Saneado de los tramos que ENTRAN de fuera: de un escenario guardado o, sobre todo, de un
+   enlace, que lo escribe quien quiera. `renderSnaps()` compone HTML con `desde`, `hasta` e
+   `id` (el rótulo del botón y su `data-id`), así que un tramo con una cadena por edad sería
+   una inyección de HTML servida en un enlace. Aquí todo lo que se dibuja se fuerza a número
+   —que además es lo que necesitan el orden y la escala de la gráfica— y el id se rehace: no
+   significa nada fuera de esta sesión (solo sirve para comparar tramos entre sí), así que
+   generarlo aquí quita de en medio tanto la inyección como los ids repetidos. */
+const num = (v, def = 0) => (typeof v === 'number' && isFinite(v)) ? v : def;
 function sanearTramos(arr) {
   if (!Array.isArray(arr)) return [];
-  return arr.filter(s => s && Array.isArray(s.puntos) && s.puntos.length)
-            .slice(0, SNAP_MAX)
-            .map(s => ({ ...s, id: s.id || 's' + Math.random().toString(36).slice(2, 9) }));
+  const sello = Date.now().toString(36);
+  return arr
+    .filter(s => s && typeof s === 'object' && Array.isArray(s.puntos) && s.puntos.length)
+    .slice(0, SNAP_MAX)
+    .map((s, i) => ({
+      id: 's' + sello + i,
+      desde: Math.round(num(s.desde)),
+      hasta: Math.round(num(s.hasta)),
+      // La configuración solo se vuelca en `.value`/`.checked` de los campos, nunca en HTML,
+      // así que basta con que sea un objeto; `applyData()` ignora las claves que no conoce.
+      datos: (s.datos && typeof s.datos === 'object') ? s.datos : null,
+      puntos: s.puntos.filter(p => p && typeof p === 'object').map((p, k) => ({
+        anio: Math.round(num(p.anio, k)), edad: num(p.edad),
+        aportado: num(p.aportado), total: num(p.total), cuota: num(p.cuota),
+      })),
+    }))
+    .filter(s => s.puntos.length);
 }
 // Deja el plan en el estado dado y lo recalcula todo. No toca el desplegable ni el nombre
 // del escenario actual: de eso se encarga quien llama, que es el único que sabe si esto
@@ -2300,9 +2330,139 @@ function loadPresetSueldo(key) {
   return true;
 }
 
+/* ================= Compartir el plan por enlace =================
+   El enlace lleva el plan ENTERO dentro —los datos del formulario y los tramos con sus
+   puntos congelados—, no un identificador contra un servidor. Esta página es HTML estático
+   sin backend, y lo que se comparte son sueldos, capital y pensión: que el dato no salga
+   nunca del navegador de quien lo escribe no es solo lo más simple, es lo correcto.
+
+   Va en el FRAGMENTO (#) y no en la query (?): el fragmento no se envía en la petición, así
+   que el plan no aparece en los logs del servidor ni viaja en la cabecera `Referer` si desde
+   aquí se pincha un enlace externo.
+
+   Formato: `#plan=<códec><base64url>`. El primer carácter dice cómo está empaquetado el
+   resto — `z` deflate-raw, `u` texto plano—, para que un navegador sin CompressionStream
+   pueda generar y leer enlaces igualmente, solo que más largos. */
+const HASH_KEY = 'plan';
+// El navegador acepta URLs mucho más largas, pero pasado este punto empiezan a romperse al
+// pegarlas en un chat o un correo, que es donde van a acabar. Solo se avisa, no se impide.
+const URL_AVISO = 7000;
+
+const b64urlEnc = bytes => {
+  let s = '';
+  for (let i = 0; i < bytes.length; i++) s += String.fromCharCode(bytes[i]);
+  return btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+};
+const b64urlDec = txt => {
+  const s = atob(txt.replace(/-/g, '+').replace(/_/g, '/'));
+  const out = new Uint8Array(s.length);
+  for (let i = 0; i < s.length; i++) out[i] = s.charCodeAt(i);
+  return out;
+};
+// Pasa los bytes por un stream de compresión. Devuelve null si el navegador no lo trae
+// (o si falla), y entonces el enlace se genera sin comprimir.
+async function pasaPorStream(bytes, Stream, formato) {
+  if (typeof Stream !== 'function') return null;
+  try {
+    const body = new Response(bytes).body.pipeThrough(new Stream(formato));
+    return new Uint8Array(await new Response(body).arrayBuffer());
+  } catch (e) { return null; }
+}
+
+async function empaqueta(estado) {
+  const crudo = new TextEncoder().encode(JSON.stringify(estado));
+  const z = await pasaPorStream(crudo, window.CompressionStream, 'deflate-raw');
+  return z ? 'z' + b64urlEnc(z) : 'u' + b64urlEnc(crudo);
+}
+async function desempaqueta(txt) {
+  try {
+    const bytes = b64urlDec(txt.slice(1));
+    let crudo = bytes;
+    if (txt[0] === 'z') {
+      crudo = await pasaPorStream(bytes, window.DecompressionStream, 'deflate-raw');
+      if (!crudo) return null;                 // enlace comprimido y navegador que no sabe
+    } else if (txt[0] !== 'u') return null;    // códec desconocido: de una versión posterior
+    const est = JSON.parse(new TextDecoder().decode(crudo));
+    if (!est || typeof est !== 'object' || !est.datos || typeof est.datos !== 'object') return null;
+    // El nombre solo se enseña como texto (confirm y aviso de la barra), pero viene de fuera:
+    // se recorta para que un enlace no pueda plantar una pared de texto en el diálogo.
+    est.nombre = typeof est.nombre === 'string' ? est.nombre.replace(/\s+/g, ' ').trim().slice(0, 60) : '';
+    return est;
+  } catch (e) { return null; }
+}
+
+async function enlaceCompartible() {
+  const est = currentState();
+  const nombre = scenarioSel.value.startsWith(PRESET_PREFIX) ? '' : scenarioSel.value;
+  if (nombre) est.nombre = nombre;             // solo para saludar a quien lo abra
+  const base = location.origin + location.pathname;
+  return base + '#' + HASH_KEY + '=' + await empaqueta(est);
+}
+
+// Aviso efímero en la barra, en el mismo hueco que "✓ Guardado".
+let avisoT = null;
+function aviso(txt, mal) {
+  const el = document.getElementById('toolNote');
+  if (!el) return;
+  el.textContent = txt;
+  el.classList.toggle('bad', !!mal);
+  el.classList.add('show');
+  clearTimeout(avisoT);
+  avisoT = setTimeout(() => el.classList.remove('show'), 4000);
+}
+
+document.getElementById('btnShare').addEventListener('click', async () => {
+  const btn = document.getElementById('btnShare');
+  btn.disabled = true;
+  try {
+    const url = await enlaceCompartible();
+    let copiado = false;
+    try {
+      await navigator.clipboard.writeText(url);
+      copiado = true;
+    } catch (e) {
+      // Sin permiso de portapapeles (o sin https): se enseña el enlace para copiarlo a mano.
+      // El prompt sale con el texto ya seleccionado, así que sigue siendo un Ctrl+C.
+      copiado = prompt('Copia este enlace (Ctrl+C):', url) !== null;
+    }
+    const tramos = snaps.length ? ` con ${snaps.length} ${snaps.length === 1 ? 'tramo' : 'tramos'}` : '';
+    if (url.length > URL_AVISO) aviso(`Enlace copiado${tramos}, pero es muy largo (${url.length} caracteres): puede que algún chat lo corte.`, true);
+    else if (copiado) aviso(`🔗 Enlace copiado${tramos}`);
+  } catch (e) {
+    aviso('No se ha podido crear el enlace.', true);
+  } finally {
+    btn.disabled = false;
+  }
+});
+
 // Restaurar los datos guardados ANTES de calcular, y reflejar el escenario cargado en la lista
 loadForm();
 refreshScenarioSel(getCurrentName());
+
+/* Abrir un enlace compartido. Corre después del `compute()` del final del script (la
+   decodificación es asíncrona), así que la página se pinta una vez con lo que hubiera aquí
+   y se repinta con el plan del enlace. Al terminar se limpia el fragmento: si no, recargar
+   —o volver atrás— desharía en silencio todo lo que hubieras tocado desde que lo abriste. */
+(async function abrirEnlaceCompartido() {
+  const m = new RegExp('[#&]' + HASH_KEY + '=([A-Za-z0-9_-]+)').exec(location.hash);
+  if (!m) return;
+  const est = await desempaqueta(m[1]);
+  if (!est) { aviso('Este enlace no se ha podido leer: puede estar cortado.', true); return; }
+
+  // Solo se pregunta si hay algo que perder: en un navegador que abre esta página por
+  // primera vez, el enlace se carga sin más.
+  const hayAlgo = lsRead(LS_FORM, null) || snaps.length;
+  const quien = est.nombre ? `un plan compartido («${est.nombre}»)` : 'un plan compartido';
+  const pierde = snaps.length ? ` y sus ${snaps.length} ${snaps.length === 1 ? 'tramo' : 'tramos'}` : '';
+  if (hayAlgo && !confirm(`Este enlace trae ${quien}.\n\n¿Cargarlo? Sustituirá el plan que tienes ahora en pantalla${pierde}.\nTus escenarios guardados no se tocan.`)) return;
+
+  applyState(est);
+  setCurrentName('');
+  refreshScenarioSel('');
+  history.replaceState(null, '', location.pathname + location.search);
+  aviso(est.nombre ? `Plan compartido «${est.nombre}» cargado · guárdalo con 💾 para conservarlo`
+                  : 'Plan compartido cargado · guárdalo con 💾 para conservarlo');
+})();
 
 // Recibir el gasto anual desde la calculadora de estilo de vida (por URL). Sobrescribe lo guardado.
 // El input es mensual, así que convertimos el anual entrante a mensual. Llega un gasto,

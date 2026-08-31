@@ -1313,62 +1313,82 @@ function renderEsfuerzo() {
     : `llevas el <b>${coastX > 0 ? Math.min(100, (patr / coastX) * 100).toFixed(0) : 100}%</b> de ese número`);
 }
 
-// Tabla de movimientos año a año (€ de hoy y € nominales corregidos por inflación).
-// Recorre la MISMA ruta compuesta que la gráfica, así que lista también las cuotas de
-// cada tramo guardado y no solo las del plan de ahora. Cada fila dice a qué tramo
-// pertenece, y cada tramo cierra con su propio subtotal: lo que has puesto en él y con
-// cuánto acaba la cartera, que es el dato que enlaza la tabla con la gráfica. Las cuotas
-// negativas son retiradas (tramos de consumo) y se listan igual, con su signo.
+/* Tabla de movimientos año a año (€ de hoy y € nominales corregidos por inflación).
+
+   Un bloque por tramo guardado más otro para el plan de ahora, ordenados por la edad en la
+   que ARRANCA cada uno, y cada bloque entero: sus años, su subtotal y con cuánto acaba su
+   cartera. No recorre la ruta cosida que dibuja la gráfica, y esa es toda la diferencia: al
+   coser, cada edad tiene un solo dueño y el plan de ahora se lleva las que comparte con un
+   tramo guardado, así que un tramo 30→40 desaparecía de la tabla entero mientras siguieras
+   con tu edad en 30. Aquí cada tramo cuenta lo suyo pase lo que pase con los demás.
+
+   La contrapartida es que dos tramos que se pisen listan los mismos años dos veces y el
+   total los suma dos veces. Es el precio de que la tabla sea el inventario de tus tramos y
+   no el relato de un único recorrido; para el recorrido está la gráfica, que sigue cosida.
+
+   Las cuotas negativas son retiradas (tramos de consumo) y se listan igual, con su signo. */
 function renderTablaAporte(sc) {
   const { a0, F, base, infl } = sc;
   const wrap = document.getElementById('tablaAporteWrap');
   if (!wrap) return;
-  const ruta = rutaCompuesta();
-  // Solo los años en los que de verdad se mueve dinero: el resto no es una cuota.
-  const anios = ruta.filter(p => Math.abs(p.cuota) > 0.5);
-  if (!anios.length) {
+
+  /* Los bloques, en orden de arranque. El último punto de una serie cierra el tramo y no
+     abre ningún año (`planSerie()` le pone la cuota a 0), así que se cae solo al filtrar.
+     En un empate de edad de inicio va antes el tramo guardado: es el que describe un trecho
+     ya decidido, y el plan de ahora es el que sigue estando en discusión. */
+  const bloques = snaps
+    .map(s => ({ origen: { id: s.id, desde: s.desde, hasta: s.hasta, r: tasaDeDatos(s.datos) }, puntos: s.puntos }))
+    .concat(chartData && chartData.length ? [{ origen: null, puntos: chartData }] : [])
+    .map(b => ({ ...b, inicio: b.puntos[0].edad, anios: b.puntos.filter(p => Math.abs(p.cuota) > 0.5) }))
+    .filter(b => b.anios.length)
+    .sort((x, y) => x.inicio - y.inicio || (x.origen ? 0 : 1) - (y.origen ? 0 : 1));
+
+  if (!bloques.length) {
     wrap.innerHTML = F <= a0 || base === 0
       ? '<p class="hint">Con tu capital actual ya llegas sin aportar nada más: no hay cuotas que mostrar.</p>'
       : '<p class="hint">No hay ninguna cuota que mostrar en el rango dibujado.</p>';
     return;
   }
-  const hayRetiradas = anios.some(p => p.cuota < 0);
+
   const baseYear = new Date().getFullYear();
-  const nombreDe = o => o ? `Tramo ${tramoTxt(o)}` : 'Plan de ahora';
-  // El valor de la cartera al cerrar cada tramo sale de la ruta ENTERA, no de los años
-  // filtrados: un tramo puede dejar de aportar antes de acabar y seguir componiendo.
-  const cierres = cierresDeTramo(ruta);
-  let rows = '', totHoy = 0, totNom = 0, subHoy = 0, subNom = 0, subN = 0, grupo = null;
-  // Subtotal del tramo que se acaba de cerrar. Va como fila propia para que se pueda
-  // leer el esfuerzo de cada etapa sin sumar a mano.
-  const cierra = () => {
-    if (!subN) return '';
-    const c = cierres.get(idDe(grupo));
-    return `<tr class="sub"><td colspan="2"><b>Subtotal ${nombreDe(grupo)}</b> · ${subN} ${subN === 1 ? 'año' : 'años'}`
-      + (c ? `<br><span class="muted">Cartera a los ${c.edad}: <b>${fmt.format(c.total)}</b></span>` : '')
-      + `</td><td><b>${fmt.format(subHoy)}</b></td><td class="muted">${fmt.format(subNom)}</td></tr>`;
+  const nombreDe = o => {
+    const r = tasaPct(tasaDeOrigen(o));
+    return (o ? `Tramo ${tramoTxt(o)}` : 'Plan de ahora') + (r ? ` · ${r} real` : '');
   };
-  anios.forEach((p, k) => {
-    if (k === 0 || idDe(p.origen) !== idDe(grupo)) {
-      if (k > 0) rows += cierra();
-      subHoy = subNom = subN = 0;
-      grupo = p.origen;
-      rows += `<tr class="grp"><td colspan="4">${nombreDe(grupo)}</td></tr>`;
+  let rows = '', totHoy = 0, totNom = 0, totN = 0, hayRetiradas = false;
+
+  for (const b of bloques) {
+    rows += `<tr class="grp"><td colspan="4">${nombreDe(b.origen)}</td></tr>`;
+    let subHoy = 0, subNom = 0;
+    for (const p of b.anios) {
+      // La inflación se cuenta desde la edad de hoy del plan, que es el origen común de
+      // todas las cifras "en € de hoy" de la página, también las de un tramo antiguo.
+      const t = p.edad - a0;
+      const mesNom = p.cuota * Math.pow(1 + infl, t);
+      subHoy += p.cuota * 12; subNom += mesNom * 12;
+      if (p.cuota < 0) hayRetiradas = true;
+      rows += `<tr><td>${baseYear + t}</td><td class="muted">${p.edad} → ${p.edad + 1}</td>`
+        + `<td><b>${fmt.format(p.cuota)}</b></td><td class="muted">${fmt.format(mesNom)}</td></tr>`;
     }
-    // La inflación se cuenta desde la edad de hoy del plan, que es el origen común de
-    // todas las cifras "en € de hoy" de la página.
-    const t = p.edad - a0;
-    const mesNom = p.cuota * Math.pow(1 + infl, t);
-    subHoy += p.cuota * 12; subNom += mesNom * 12; subN++;
-    totHoy += p.cuota * 12; totNom += mesNom * 12;
-    rows += `<tr><td>${baseYear + t}</td><td class="muted">${p.edad} → ${p.edad + 1}</td>`
-      + `<td><b>${fmt.format(p.cuota)}</b></td><td class="muted">${fmt.format(mesNom)}</td></tr>`;
-  });
-  rows += cierra();
+    // El cierre sale del ÚLTIMO punto del bloque, no del último con cuota: un tramo puede
+    // dejar de aportar antes de acabar y seguir componiendo hasta su edad final.
+    const fin = b.puntos[b.puntos.length - 1];
+    const n = b.anios.length;
+    totHoy += subHoy; totNom += subNom; totN += n;
+    rows += `<tr class="sub"><td colspan="2"><b>Subtotal ${nombreDe(b.origen)}</b> · ${n} ${n === 1 ? 'año' : 'años'}`
+      + `<br><span class="muted">Cartera a los ${fin.edad}: <b>${fmt.format(fin.total)}</b></span>`
+      + `</td><td><b>${fmt.format(subHoy)}</b></td><td class="muted">${fmt.format(subNom)}</td></tr>`;
+  }
+
+  // El cierre de la tabla es el del bloque que llega más lejos, que no tiene por qué ser el
+  // último listado: se ordena por dónde empieza cada tramo, no por dónde acaba.
+  const masLejos = bloques.reduce((a, b) =>
+    b.puntos[b.puntos.length - 1].edad > a.puntos[a.puntos.length - 1].edad ? b : a);
+  const fin = masLejos.puntos[masLejos.puntos.length - 1];
   wrap.innerHTML = `<table class="comp">
     <thead><tr><th>Año</th><th>Edad</th><th>Cuota €/mes (€ de hoy)</th><th>Cuota €/mes (€ nominales)</th></tr></thead>
     <tbody>${rows}</tbody>
-    <tfoot><tr><td colspan="2"><b>Total ${hayRetiradas ? 'neto' : 'aportado'}</b> · ${anios.length} años<br><span class="muted">Cartera a los ${ruta[ruta.length - 1].edad}: <b>${fmt.format(ruta[ruta.length - 1].total)}</b></span></td><td><b>${fmt.format(totHoy)}</b></td><td class="muted">${fmt.format(totNom)}</td></tr></tfoot>
+    <tfoot><tr><td colspan="2"><b>Total ${hayRetiradas ? 'neto' : 'aportado'}</b> · ${totN} años<br><span class="muted">Cartera a los ${fin.edad}: <b>${fmt.format(fin.total)}</b></span></td><td><b>${fmt.format(totHoy)}</b></td><td class="muted">${fmt.format(totNom)}</td></tr></tfoot>
   </table>`;
 }
 
@@ -1529,20 +1549,6 @@ function rutaCompuesta() {
     cosida.push({ ...p, aportado: puesto });
   }
   return cosida;
-}
-
-// Con cuánto entrega el testigo cada tramo: el saldo de su último punto de la ruta, o el
-// del punto que le tapó el siguiente si se solapan en la edad del empalme (ahí el punto
-// que se ve es la apertura del que entra, no el cierre del que sale).
-function cierresDeTramo(ruta) {
-  const cierres = new Map();
-  ruta.forEach((p, k) => {
-    const sig = ruta[k + 1];
-    if (sig && idDe(sig.origen) === idDe(p.origen)) return;      // el tramo sigue
-    const c = sig && sig.previo && idDe(sig.previo.origen) === idDe(p.origen) ? sig.previo : p;
-    cierres.set(idDe(p.origen), { edad: c.edad, total: c.total });
-  });
-  return cierres;
 }
 
 // Un tramo se llama por su rango de edades: es lo único que lo identifica, en el botón,

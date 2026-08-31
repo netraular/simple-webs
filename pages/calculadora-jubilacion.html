@@ -192,7 +192,6 @@
   .expander > summary::after{content:"+"; float:right; color:var(--accent); font:600 1rem "IBM Plex Mono",monospace}
   .expander[open] > summary::after{content:"−"}
   .expander-body{padding-top:18px}
-  .expander-note{margin:0; font-size:.78rem; color:var(--muted); line-height:1.5}
   .advanced-grid{display:grid; grid-template-columns:1fr 1fr; gap:24px; padding-top:18px}
   #aportarCard{position:sticky; top:18px; background:#fff; border:1px solid var(--border); border-top:4px solid var(--accent); padding:24px}
   #aportarCard h2{font-size:.78rem; font-family:"IBM Plex Mono",monospace; text-transform:uppercase; letter-spacing:.06em; color:var(--text)}
@@ -256,7 +255,6 @@
   .snap-btn.on .snap-apply{color:var(--accent)}
   .snap-del{padding:0 9px; color:var(--muted); font-size:.9rem; line-height:1}
   .snap-del:hover{color:var(--red)}
-  .snap-vacio{margin:0 0 14px; font-size:.78rem; color:var(--muted); line-height:1.5}
   .legend-nota{font-size:.72rem; color:var(--muted)}
   /* Barra de progreso del esfuerzo: cuánto del total que vas a aportar llevas ya pagado. */
   .mini-bar{height:4px; margin-top:8px; background:#dce5ef; border-radius:2px; overflow:hidden}
@@ -521,8 +519,10 @@
 
   <!-- LO QUE PONES TÚ vs LO QUE LLEGA A VALER (estilo investor.gov) -->
   <div class="card chart-card">
+    <!-- Sin subtítulo con la rentabilidad: anunciaba una sola tasa para una curva que, con
+         varios tramos, va a una distinta en cada uno. Ahora la dice el flotante del puntero,
+         junto al tramo al que pertenece, y con ella la unidad (€ de hoy). -->
     <h2>Evolución de tu ahorro</h2>
-    <p class="subtitle" style="margin-bottom:14px">En <b>€ de hoy</b>, al <span id="projR">—</span> real anual. Toca la gráfica para ver cualquier año.</p>
 
     <!-- Rango visible + guardado. La edad final no tiene por qué ser la objetivo: sirve
          para mirar un trecho de la ruta y congelarlo. -->
@@ -566,7 +566,6 @@
     <details class="expander">
     <summary>Plan año a año · la cuota mensual prevista</summary>
     <div class="expander-body">
-      <p class="expander-note">La cuota mensual de cada año, en € de hoy y en € nominales. Cada tramo cierra con lo que has puesto en él y con cuánto acaba la cartera. Una cuota negativa es una retirada.</p>
       <div id="tablaAporteWrap" style="margin-top:14px; overflow-x:auto"></div>
     </div>
     </details>
@@ -1098,8 +1097,6 @@ function compute() {
   lastSc = sc; lastCurve = curve;
   syncViewSlider(sc);
   renderEsfuerzo();
-  // Gráfica del plan: lo que pones tú frente a lo que llega a valer.
-  document.getElementById('projR').textContent = (sc.rA * 100).toLocaleString('es-ES', { maximumFractionDigits: 1 }) + '%';
   // `chartData` va ANTES que la tabla: las dos leen la misma ruta compuesta, y la tabla
   // se quedaría un ciclo por detrás si se pintara con el `chartData` del cálculo previo.
   chartData = planSerie(curve, syncVerHasta(sc));
@@ -1368,13 +1365,11 @@ function renderTablaAporte(sc) {
       + `<td><b>${fmt.format(p.cuota)}</b></td><td class="muted">${fmt.format(mesNom)}</td></tr>`;
   });
   rows += cierra();
-  const variosTramos = new Set(anios.map(p => idDe(p.origen))).size > 1;
   wrap.innerHTML = `<table class="comp">
     <thead><tr><th>Año</th><th>Edad</th><th>Cuota €/mes (€ de hoy)</th><th>Cuota €/mes (€ nominales)</th></tr></thead>
     <tbody>${rows}</tbody>
     <tfoot><tr><td colspan="2"><b>Total ${hayRetiradas ? 'neto' : 'aportado'}</b> · ${anios.length} años<br><span class="muted">Cartera a los ${ruta[ruta.length - 1].edad}: <b>${fmt.format(ruta[ruta.length - 1].total)}</b></span></td><td><b>${fmt.format(totHoy)}</b></td><td class="muted">${fmt.format(totNom)}</td></tr></tfoot>
-  </table>
-  <div class="hint" style="margin-top:10px">El <b>total</b> es la suma de todas las cuotas del periodo, no tu patrimonio final (que incluye además la rentabilidad). En <b>€ de hoy</b> mide tu esfuerzo real acumulado; en <b>€ nominales</b>, la suma de lo que irías transfiriendo año a año subiendo con la inflación.${hayRetiradas ? ' Las cuotas <b>negativas</b> son retiradas: vienen de un tramo de consumo, y ahí el total es el saldo <b>neto</b> entre lo que pones y lo que sacas.' : ''}${variosTramos ? ' Con varios tramos guardados la tabla recorre la <b>ruta completa</b>, igual que la gráfica: si dos tramos se pisan en la misma edad, manda el plan de ahora y, entre los guardados, el que empieza más tarde.' : ''}</div>`;
+  </table>`;
 }
 
 /* ---------- Gráfica ---------- */
@@ -1471,6 +1466,16 @@ let snapActivo = null;
    tira: viaja como `previo`, porque es el cierre real del tramo que sale y hace falta tanto
    para coser la otra línea como para decir con cuánto entrega el testigo. */
 const idDe = o => o ? o.id : '';
+// Rentabilidad real con la que se congeló un tramo, leída de su propia configuración. Es un
+// campo del formulario, así que llega como cadena; si el tramo no la trae, no se enseña.
+function tasaDeDatos(datos) {
+  const r = datos ? parseFloat(datos.r_acum) : NaN;
+  return isFinite(r) ? r : null;
+}
+// "6,5%" a partir de un porcentaje, o '' si no se sabe. El plan de ahora la tiene en `lastSc`
+// como fracción; un tramo, en su configuración como porcentaje.
+const tasaPct = r => r == null ? '' : r.toLocaleString('es-ES', { maximumFractionDigits: 1 }) + '%';
+const tasaDeOrigen = o => o ? o.r : (lastSc ? lastSc.rA * 100 : null);
 function rutaCompuesta() {
   const porEdad = new Map();
   const add = (puntos, origen) => {
@@ -1484,8 +1489,12 @@ function rutaCompuesta() {
       porEdad.set(p.edad, { ...p, origen, cierra, previo: tapado || null });
     });
   };
+  // La rentabilidad viaja con el origen porque cada tramo se congeló con la suya: una ruta
+  // a trozos puede ir al 6,5% en la juventud y al 3% cerca de la fecha objetivo, y sin esto
+  // no había dónde leerlo (el encabezado de la gráfica anunciaba una sola tasa, la del plan
+  // de ahora, para una curva que ya no iba toda a esa tasa).
   [...snaps].sort((a, b) => a.desde - b.desde)
-    .forEach(s => add(s.puntos, { id: s.id, desde: s.desde, hasta: s.hasta }));
+    .forEach(s => add(s.puntos, { id: s.id, desde: s.desde, hasta: s.hasta, r: tasaDeDatos(s.datos) }));
   if (chartData && chartData.length) add(chartData, null);
   const ruta = [...porEdad.values()].sort((a, b) => a.edad - b.edad);
 
@@ -1578,7 +1587,7 @@ function renderSnaps() {
   nota.hidden = !act;
   if (act) nota.innerHTML = `Viendo solo el tramo <b>${tramoTxt(act)}</b> · púlsalo otra vez para la ruta entera`;
   if (!snaps.length) {
-    cont.innerHTML = `<p class="snap-vacio">Guarda el tramo que estás viendo y la curva se congela aquí, aunque luego cambies los datos: así compones tu ruta a trozos.</p>`;
+    cont.innerHTML = '';
     return;
   }
   cont.innerHTML = snapsOrdenados().map(s => {
@@ -1855,11 +1864,15 @@ bindTooltip(canvas, () => plot && plot.ruta, f => plot.X(f.edad), f => {
   const cuota = f.cuota
     ? `<div class="t-row"><span class="muted">${f.cuota < 0 ? 'Sacas ese año' : 'Aportas ese año'}</span><span>${fmt.format(Math.abs(f.cuota))}/mes</span></div>`
     : '';
-  return `<div class="t-year">${f.edad} años · año ${f.anio}</div>
+  // La rentabilidad va aquí, junto al tramo al que pertenece, y no en un encabezado de la
+  // tarjeta: una ruta a trozos puede llevar una distinta en cada tramo, y un único número
+  // arriba solo podía describir uno de ellos.
+  const r = tasaPct(tasaDeOrigen(f.origen));
+  return `<div class="t-year">${f.edad} años · año ${f.anio} · € de hoy</div>
     <div class="t-row"><span style="color:${CI_COL.interes}">Valor total</span><span>${fmt.format(f.total)}</span></div>
     <div class="t-row"><span style="color:${CI_COL.aportado}">Lo que has puesto</span><span>${fmt.format(f.aportado)}</span></div>
     <div class="t-row"><span class="muted">Interés generado</span><span>${fmt.format(interes)}</span></div>${cuota}
-    <div class="t-row"><span class="muted">Tramo</span><span>${cual}</span></div>`;
+    <div class="t-row"><span class="muted">Tramo</span><span>${cual}${r ? ` · ${r} real` : ''}</span></div>`;
 }, drawChart);
 
 window.addEventListener('resize', () => {

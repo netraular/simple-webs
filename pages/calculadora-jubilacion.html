@@ -1723,6 +1723,7 @@ window.addEventListener('scroll', cierraTip, { passive: true, capture: true });
 
 function bindTooltip(cv, serieDe, xDe, htmlDe, redibuja) {
   if (!cv) return;
+  let anclaX = null;                // dónde quedó anclado el flotante, para el toque que cierra
   const show = e => {
     const serie = serieDe();
     if (!serie || !serie.length) return;
@@ -1741,6 +1742,7 @@ function bindTooltip(cv, serieDe, xDe, htmlDe, redibuja) {
     const y = p.clientY + sep + h > window.innerHeight - m ? p.clientY - sep - h : p.clientY + sep;
     tipEl.style.left = Math.max(m, x) + 'px';
     tipEl.style.top = Math.max(m, y) + 'px';
+    anclaX = p.clientX;
     abreTip(cv, redibuja);
     redibuja(best);
   };
@@ -1748,26 +1750,46 @@ function bindTooltip(cv, serieDe, xDe, htmlDe, redibuja) {
   cv.addEventListener('click', show);
   cv.addEventListener('mouseleave', cierraTip);
 
-  /* Con el dedo hay que distinguir dos gestos que empiezan igual: recorrer la curva y
-     desplazar la página. Si no, un barrido vertical que arranca sobre la gráfica va
-     reabriendo el flotante en cada `touchmove` mientras el `scroll` intenta cerrarlo, y el
-     resultado es un parpadeo. En cuanto el arrastre se declara vertical se deja de seguir
-     el dedo hasta que se levante; cerrar es cosa del `scroll`. */
+  /* Gestos del dedo. Los tres empiezan con el mismo `touchstart`, así que hay que separarlos
+     mirando cómo siguen:
+
+     - Recorrer la curva: el flotante va detrás del dedo.
+     - Desplazar la página: en cuanto el arrastre se declara vertical se deja de seguir. Sin
+       esto, cada `touchmove` reabría lo que el `scroll` acababa de cerrar, y parpadeaba.
+     - Cerrar: soltar el dedo FUERA del canvas, o volver a tocar donde el flotante ya estaba.
+
+     Las dos formas de cerrar no son un lujo. El canvas mide 360 px de alto y ocupa la tarjeta
+     entera, así que se come casi toda la pantalla del móvil: "tocar fuera" muchas veces no
+     tiene dónde caer, y el toque que pretendía descartar el flotante aterrizaba dentro y lo
+     reabría. Y sacar el dedo de la gráfica dejaba el flotante puesto, porque `mouseleave`
+     no existe con el dedo y el `scroll` no llega a dispararse si el arrastre fue horizontal. */
   let gesto = null;
+  const dentro = (x, y) => {
+    const r = cv.getBoundingClientRect();
+    return x >= r.left && x <= r.right && y >= r.top && y <= r.bottom;
+  };
   cv.addEventListener('touchstart', e => {
     const t = e.touches[0];
-    gesto = { x: t.clientX, y: t.clientY, leyendo: true };
+    // Si es un segundo toque donde ya estaba el flotante se decide AQUÍ, antes de que `show()`
+    // mueva el ancla. Tocar otro punto de la curva sigue significando "enséñame ese año".
+    const repite = !!tipAbierto && tipAbierto.cv === cv && anclaX !== null && Math.abs(t.clientX - anclaX) <= 24;
+    gesto = { x: t.clientX, y: t.clientY, ux: t.clientX, uy: t.clientY, leyendo: true, repite };
     show(e);
   }, { passive: true });
   cv.addEventListener('touchmove', e => {
     if (!gesto) return;
     const t = e.touches[0], dx = Math.abs(t.clientX - gesto.x), dy = Math.abs(t.clientY - gesto.y);
-    if (dy > 12 && dy > dx) gesto.leyendo = false;
+    gesto.ux = t.clientX; gesto.uy = t.clientY;
+    if (dx > 10 || dy > 10) gesto.repite = false;      // esto ya no es un toque, es un arrastre
+    if (dy > 12 && dy > dx) gesto.leyendo = false;     // y esto es la página desplazándose
     if (gesto.leyendo) show(e);
   }, { passive: true });
-  const finGesto = () => { gesto = null; };
-  cv.addEventListener('touchend', finGesto, { passive: true });
-  cv.addEventListener('touchcancel', finGesto, { passive: true });
+  cv.addEventListener('touchend', () => {
+    const g = gesto;
+    gesto = null;
+    if (g && (g.repite || !dentro(g.ux, g.uy))) cierraTip();
+  }, { passive: true });
+  cv.addEventListener('touchcancel', () => { gesto = null; }, { passive: true });
 }
 
 // Una sola línea: el valor total de la cartera a lo largo de la ruta. Lo que has puesto

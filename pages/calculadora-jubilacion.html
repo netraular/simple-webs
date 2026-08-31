@@ -1674,9 +1674,40 @@ function setupCanvas(cv) {
 // Une el puntero (o el dedo) con el punto más cercano de una serie y coloca el
 // flotante #tooltip a su lado. Lo comparten las dos gráficas: solo cambian de dónde
 // sale la serie, cómo se proyecta al eje X y qué se escribe dentro.
+/* Quién tiene abierto el flotante, y cómo se cierra. Vive fuera de `bindTooltip()` porque
+   el flotante es UNO solo para las dos gráficas: abrirlo en una tiene que cerrarlo en la
+   otra, y los gestos que lo cierran ocurren en toda la página, no dentro de un canvas.
+
+   En un móvil no hay `mouseleave`, que era lo único que lo cerraba: se quedaba clavado en
+   mitad de la pantalla —va en `position:fixed`, así que ni siquiera se iba al desplazar— y
+   como tiene `pointer-events:none` tocarlo no hacía nada. Para quitarlo de en medio había
+   que tocar la gráfica otra vez y luego fuera. Ahora se cierra con lo que de verdad quiere
+   decir "ya lo he leído": tocar fuera de la gráfica, desplazar la página o girar el móvil. */
+const tipEl = document.getElementById('tooltip');
+let tipAbierto = null;              // { cv, redibuja } de la gráfica que lo tiene abierto
+
+function abreTip(cv, redibuja) {
+  // Cambiar de gráfica sin pasar por el cierre dejaría el punto marcado en la anterior.
+  if (tipAbierto && tipAbierto.cv !== cv) tipAbierto.redibuja();
+  tipAbierto = { cv, redibuja };
+  tipEl.style.opacity = 1;
+}
+function cierraTip() {
+  if (!tipAbierto) return;
+  const { redibuja } = tipAbierto;
+  tipAbierto = null;
+  tipEl.style.opacity = 0;
+  redibuja();                       // borra también la línea vertical y el punto del hover
+}
+// En captura, para enterarse del toque aunque quien lo reciba lo pare, y del desplazamiento
+// de un contenedor con su propia barra (la tabla año a año) además del de la página.
+document.addEventListener('pointerdown', e => {
+  if (tipAbierto && !tipAbierto.cv.contains(e.target)) cierraTip();
+}, true);
+window.addEventListener('scroll', cierraTip, { passive: true, capture: true });
+
 function bindTooltip(cv, serieDe, xDe, htmlDe, redibuja) {
   if (!cv) return;
-  const tip = document.getElementById('tooltip');
   const show = e => {
     const serie = serieDe();
     if (!serie || !serie.length) return;
@@ -1684,25 +1715,44 @@ function bindTooltip(cv, serieDe, xDe, htmlDe, redibuja) {
     const mx = p.clientX - cv.getBoundingClientRect().left;
     let best = 0, bestD = Infinity;
     serie.forEach((f, k) => { const d = Math.abs(xDe(f) - mx); if (d < bestD) { bestD = d; best = k; } });
-    tip.innerHTML = htmlDe(serie[best]);
+    tipEl.innerHTML = htmlDe(serie[best]);
     // El flotante se coloca DESPUÉS de escribirlo, midiéndolo: es `nowrap`, así que su
     // ancho depende de las cifras que le toquen. Si no cabe a la derecha del dedo se pasa
     // al otro lado — en móvil los puntos del final de la gráfica se salían de la pantalla
     // y no había forma de leerlos. Lo mismo por abajo, con el borde inferior.
     const m = 8, sep = 14;
-    const w = tip.offsetWidth, h = tip.offsetHeight;
+    const w = tipEl.offsetWidth, h = tipEl.offsetHeight;
     const x = p.clientX + sep + w > window.innerWidth - m ? p.clientX - sep - w : p.clientX + sep;
     const y = p.clientY + sep + h > window.innerHeight - m ? p.clientY - sep - h : p.clientY + sep;
-    tip.style.left = Math.max(m, x) + 'px';
-    tip.style.top = Math.max(m, y) + 'px';
-    tip.style.opacity = 1;
+    tipEl.style.left = Math.max(m, x) + 'px';
+    tipEl.style.top = Math.max(m, y) + 'px';
+    abreTip(cv, redibuja);
     redibuja(best);
   };
   cv.addEventListener('mousemove', show);
   cv.addEventListener('click', show);
-  cv.addEventListener('touchstart', show, { passive: true });
-  cv.addEventListener('touchmove', show, { passive: true });
-  cv.addEventListener('mouseleave', () => { tip.style.opacity = 0; redibuja(); });
+  cv.addEventListener('mouseleave', cierraTip);
+
+  /* Con el dedo hay que distinguir dos gestos que empiezan igual: recorrer la curva y
+     desplazar la página. Si no, un barrido vertical que arranca sobre la gráfica va
+     reabriendo el flotante en cada `touchmove` mientras el `scroll` intenta cerrarlo, y el
+     resultado es un parpadeo. En cuanto el arrastre se declara vertical se deja de seguir
+     el dedo hasta que se levante; cerrar es cosa del `scroll`. */
+  let gesto = null;
+  cv.addEventListener('touchstart', e => {
+    const t = e.touches[0];
+    gesto = { x: t.clientX, y: t.clientY, leyendo: true };
+    show(e);
+  }, { passive: true });
+  cv.addEventListener('touchmove', e => {
+    if (!gesto) return;
+    const t = e.touches[0], dx = Math.abs(t.clientX - gesto.x), dy = Math.abs(t.clientY - gesto.y);
+    if (dy > 12 && dy > dx) gesto.leyendo = false;
+    if (gesto.leyendo) show(e);
+  }, { passive: true });
+  const finGesto = () => { gesto = null; };
+  cv.addEventListener('touchend', finGesto, { passive: true });
+  cv.addEventListener('touchcancel', finGesto, { passive: true });
 }
 
 // Una sola línea: el valor total de la cartera a lo largo de la ruta. Lo que has puesto
@@ -1813,6 +1863,9 @@ bindTooltip(canvas, () => plot && plot.ruta, f => plot.X(f.edad), f => {
 }, drawChart);
 
 window.addEventListener('resize', () => {
+  // Al redibujar se pierde el punto marcado, así que el flotante se iría con él: que se
+  // cierre entero. Cubre también el giro del móvil, que llega como un `resize`.
+  cierraTip();
   drawChart();
   drawCiChart();
 });

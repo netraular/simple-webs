@@ -355,18 +355,24 @@
       <div class="group span-cols">
         <div class="group-title">Perfil de aportación</div>
         <label for="perfil_modo">Cómo repartir el ahorro (o el consumo) en el tiempo</label>
+        <!-- Los cuatro perfiles son en realidad una matriz 2×2: la forma de la cuota
+             (constante o decreciente) por quién pone el importe (la calculadora o tú). Los
+             rótulos lo dicen en ese orden y se quedan en dos palabras: antes cada opción
+             era una frase entera y el desplegable se salía de la pantalla en el móvil. Lo
+             que hace cada uno se explica debajo, en la ayuda. El `value` no cambia: es lo
+             que hay guardado en los escenarios y en los enlaces compartidos. -->
         <select id="perfil_modo">
-          <option value="constante">Constante — lo mismo cada año, calculado por la web</option>
-          <option value="cero">Decreciente — hasta 0 € justo en la fecha objetivo</option>
-          <option value="tope" selected>Tope de aportación → cuota decreciente, sin pasar de él</option>
-          <option value="sprint">Constante que fijas tú → hasta el año en que puedes parar (o gastar, en negativo)</option>
+          <option value="constante">Constante · automática</option>
+          <option value="sprint">Constante · a elegir</option>
+          <option value="cero">Decreciente · automática</option>
+          <option value="tope" selected>Decreciente · con tope</option>
         </select>
         <div class="hint">Como el dinero aportado pronto crece más años, <b>front-cargar</b> el ahorro hace que el <b>total aportado sea menor</b> para el mismo objetivo, a cambio de más esfuerzo los primeros años.
           <ul style="margin:6px 0 0; padding-left:18px">
-            <li><b>Constante:</b> la misma cuota (en € de hoy) todos los años, hasta la fecha objetivo. La calculadora te dice cuánto es.</li>
-            <li><b>Hasta 0 €:</b> la cuota baja en línea recta desde el primer año y llega a <b>0 €</b> justo en la fecha objetivo, así que el último año aún aportas algo. Es el reparto más front-cargado con esfuerzo repartido.</li>
-            <li><b>Tope:</b> fijas cuánto es lo máximo que puedes aportar al mes y la calculadora busca <b>durante cuántos años</b> hay que pagar (bajando hasta 0 €) para llegar justo al objetivo. Si el tope no da para parar antes de la fecha objetivo, en vez de fallar <b>levanta el suelo</b>: la cuota baja del tope a la <b>mínima cuota</b> que aún llega, aportando todos los años. Y si ni pagando el tope entero todos los años se llega, te avisa y te dice cuánto faltaría.</li>
-            <li><b>Constante que fijas tú (<i>Coast FIRE</i>):</b> igual que el modo constante, pero el importe lo eliges tú y la incógnita es la otra: la calculadora busca <b>en qué año puedes parar del todo</b>. A partir de ahí no aportas ni un euro más y el interés compuesto hace el resto: la cartera "rueda sola" hasta el objetivo justo en la fecha objetivo, y tú solo necesitas ganar para tus gastos del día a día. Cuanto más alta pongas la cuota, antes podrás soltarla. <b>En negativo</b> el modo se da la vuelta y describe un <b>tramo de consumo</b> (un sabático, una excedencia, unos años viviendo de la cartera): la pregunta pasa a ser <b>cuántos años puedes gastar ese importe</b>, sin bajarte del objetivo si aún está a tu alcance, o hasta vaciar la cartera si ya no lo está.</li>
+            <li><b>Constante · automática:</b> la misma cuota (en € de hoy) todos los años, hasta la fecha objetivo. La calculadora te dice cuánto es.</li>
+            <li><b>Constante · a elegir (<i>Coast FIRE</i>):</b> igual que la anterior, pero el importe lo eliges tú y la incógnita es la otra: la calculadora busca <b>en qué año puedes parar del todo</b>. A partir de ahí no aportas ni un euro más y el interés compuesto hace el resto: la cartera "rueda sola" hasta el objetivo justo en la fecha objetivo, y tú solo necesitas ganar para tus gastos del día a día. Cuanto más alta pongas la cuota, antes podrás soltarla. <b>En negativo</b> el modo se da la vuelta y describe un <b>tramo de consumo</b> (un sabático, una excedencia, unos años viviendo de la cartera): la pregunta pasa a ser <b>cuántos años puedes gastar ese importe</b>, sin bajarte del objetivo si aún está a tu alcance, o hasta vaciar la cartera si ya no lo está.</li>
+            <li><b>Decreciente · automática:</b> la cuota baja en línea recta desde el primer año y llega a <b>0 €</b> justo en la fecha objetivo, así que el último año aún aportas algo. Es el reparto más front-cargado con esfuerzo repartido.</li>
+            <li><b>Decreciente · con tope:</b> fijas cuánto es lo máximo que puedes aportar al mes y la calculadora busca <b>durante cuántos años</b> hay que pagar (bajando hasta 0 €) para llegar justo al objetivo. Si el tope no da para parar antes de la fecha objetivo, en vez de fallar <b>levanta el suelo</b>: la cuota baja del tope a la <b>mínima cuota</b> que aún llega, aportando todos los años. Y si ni pagando el tope entero todos los años se llega, te avisa y te dice cuánto faltaría.</li>
           </ul>
         </div>
         <div id="perfilTopeWrap">

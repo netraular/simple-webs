@@ -1,0 +1,5 @@
+# Scratch de los scripts de datos: descargas crudas, shapefiles, node_modules.
+# Lo que se publica es pages/data/, que sí va versionado.
+data-src/_work/
+node_modules/
+.playwright-mcp/

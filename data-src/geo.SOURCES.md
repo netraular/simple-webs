@@ -7,7 +7,7 @@ llestos per a Leaflet.
 |---|---:|---:|---:|
 | `municipis.geojson` | 121 | 698 658 | 197 841 |
 | `bcn-barris.geojson` | 73 | 272 330 | 59 452 |
-| `bcn-barris-preus.json` | 73 | 13 916 | 2 237 |
+| `bcn-barris-preus.json` | 73 | 14 679 | 2 584 |
 
 Comprovacions: `python3 data-src/check_geo.py`
 Reconstrucció dels municipis: `python3 data-src/build_municipis.py` (baixa el WFS si cal) + mapshaper.
@@ -135,20 +135,30 @@ estimació del preu mitjà d'oferta de venda (€/m²) del portal Idealista.com 
   (les diferències de text són només de format: `Sants-Badal` vs `Sants - Badal`, sufixos AEI,
   crides de nota).
 
-### Lloguer: `lloguer_eur_mes` i `lloguer_eur_m2` — **no disponibles per barri → `null`**
+### Lloguer: `lloguer_eur_mes` i `lloguer_eur_m2` — **`null` en aquest fitxer**
 
-Open Data BCN **ja no publica** cap sèrie de preu de lloguer desagregada per barri. Comprovat
-exhaustivament amb `package_list` de la seva API CKAN: **555 datasets**, cap de lloguer
-residencial per barri (els antics `est-mercat-immobiliari-lloguer-*` retornen 404; l'únic
-dataset amb «lloguer» al nom i àmbit d'habitatge és `manteniment-lloguer`, que és un índex
-d'esforç econòmic, no un preu).
+El **catàleg CKAN d'Open Data BCN no publica** cap sèrie de preu de lloguer desagregada per
+barri. Comprovat exhaustivament amb `package_list` de la seva API: **555 datasets**, cap de
+lloguer residencial per barri (els antics `est-mercat-immobiliari-lloguer-*` retornen 404;
+l'únic dataset amb «lloguer» al nom i àmbit d'habitatge és `manteniment-lloguer`, que és un
+índex d'esforç econòmic, no un preu).
 
 El portal de dades obertes de la Generalitat tampoc no baixa de municipi: el dataset d'Incasòl
 *Preu mitjà del lloguer d'habitatges per municipi* (`qww9-bvhh`) té un únic
 `ambit_territorial = "Municipi"` (46.105 files).
 
-Per tant els dos camps queden a `null` a tots els barris. Com a **referència de ciutat**
-(no per barri, i marcada com a tal dins de `_meta`) s'hi ha desat la xifra real d'Incasòl:
+**Però l'Ajuntament sí que publica el lloguer per barri en un altre portal**, que no forma part
+del catàleg CKAN: **Portal Barcelona Dades**, indicador `b37xv8wcjh` («Preu mitjà (€) del
+lloguer d'habitatges», origen INCASÒL) —
+<https://portaldades.ajuntament.barcelona.cat/ca/estad%C3%ADstiques/b37xv8wcjh>.
+El seu endpoint d'export va respondre **HTTP 401 Unauthorized** en aquesta descàrrega, de manera
+que **aquí no s'hi ha posat cap valor per barri** (no s'inventen ni es copien dades sense
+verificar). Aquesta sèrie sí que està recollida al fitxer germà
+**`data-src/lloguer-bcn-barris.json`** d'aquest mateix directori; per a lloguer per barri,
+useu aquell fitxer i no els camps `null` d'aquest.
+
+Com a **referència de ciutat verificada** (no per barri, i marcada com a tal dins de `_meta`)
+s'hi ha desat la xifra real d'Incasòl:
 
 - **1.134,61 €/mes**, Barcelona municipi, any 2025 (període gener–desembre, 30.789 contractes).
 - <https://analisi.transparenciacatalunya.cat/resource/qww9-bvhh.json?codi_territorial=08019&any=2025>

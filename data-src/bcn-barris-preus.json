@@ -12,22 +12,29 @@
    "valor_ciutat_2015": 3392
   },
   "lloguer_eur_mes": {
-   "disponible_per_barri": false,
-   "nota": "Open Data BCN no publica actualment cap serie de preu de lloguer desagregada per barri (catalog CKAN revisat: 555 datasets, cap serie de lloguer per barri). Tampoc el portal de dades obertes de la Generalitat, que nomes arriba a nivell de municipi.",
-   "referencia_ciutat": {
+   "disponible_en_aquest_fitxer": false,
+   "nota": "El cataleg CKAN d'Open Data BCN (555 datasets revisats) no publica cap serie de preu de lloguer per barri, i el portal de la Generalitat (Incasol, qww9-bvhh) nomes arriba a nivell de municipi. L'Ajuntament SI que la publica, pero en un altre portal: Portal Barcelona Dades, indicador b37xv8wcjh. La seva API d'export va retornar HTTP 401 (Unauthorized) en aquesta descarrega, aixi que aqui no s'hi ha posat cap valor per barri: no s'inventen dades.",
+   "vegeu": "data-src/lloguer-bcn-barris.json — fitxer germa d'aquest mateix directori que si porta la serie de lloguer per barri i districte (font: Portal Barcelona Dades / INCASOL).",
+   "font_amb_dades_per_barri": {
+    "portal": "Portal Barcelona Dades (Ajuntament de Barcelona, Oficina Municipal de Dades)",
+    "indicador": "b37xv8wcjh",
+    "url": "https://portaldades.ajuntament.barcelona.cat/ca/estad%C3%ADstiques/b37xv8wcjh",
+    "origen": "Generalitat de Catalunya, fiances de lloguer dipositades a l'INCASOL"
+   },
+   "referencia_municipi_verificada": {
     "ambit": "municipi de Barcelona (NO per barri)",
     "any": 2025,
     "periode": "gener-desembre",
     "lloguer_mitja_eur_mes": 1134.61,
     "contractes": 30789,
-    "font": "Incasol / Generalitat de Catalunya - 'Preu mitja del lloguer d'habitatges per municipi'",
+    "font": "Incasol / Generalitat de Catalunya - Preu mitja del lloguer d'habitatges per municipi",
     "url": "https://analisi.transparenciacatalunya.cat/resource/qww9-bvhh.json?codi_territorial=08019&any=2025",
     "llicencia": "CC BY 4.0"
    }
   },
   "lloguer_eur_m2": {
-   "disponible_per_barri": false,
-   "nota": "Cap font publica oberta amb euros/m2 de lloguer per barri de Barcelona."
+   "disponible_en_aquest_fitxer": false,
+   "nota": "Cap de les fonts consultades publica euros/m2 de lloguer per barri de Barcelona."
   }
  },
  "barris": [

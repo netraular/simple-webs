@@ -3,3 +3,4 @@
 data-src/_work/
 node_modules/
 .playwright-mcp/
+data-src/.transit-cache.json

@@ -463,6 +463,7 @@ footer a{color:var(--focus)}
           <li><strong>No incluye la espera en casa antes de salir.</strong> Si tu tren pasa cada media hora, el tiempo que pierdes ajustándote a su horario no está en este número. Para eso está la métrica de <em>salidas en hora punta</em>: dice cuántas opciones distintas tienes entre las 7 y las 9.</li>
           <li><strong>Es horario teórico, no tiempo real.</strong> No hay incidencias, ni retrasos, ni la huelga del jueves.</li>
           <li><strong>Roche queda a 1,5 km de la estación de FGC de Sant Joan</strong>, que es la más cercana. Ese último tramo se hace en bus de baja frecuencia o en unos 20 minutos a pie, y va incluido en todos los tiempos hacia Roche. Es la parte menos fiable de la cifra: si el bus no te cuadra, el número real es peor.</li>
+          <li>En unos pocos municipios <strong>ningún trayecto llega a las 9:00</strong>. Ahí se muestra el mejor que llega antes de las 10:00, marcado con ⚠ en el tooltip: ese número no es comparable con el resto, porque responde a otra pregunta.</li>
           <li><strong>Solo hay tres destinos encaminados</strong> (Roche, Plaça de Catalunya y Sants). Encaminar uno nuevo son cientos de peticiones a un servidor ajeno, así que no se puede hacer al vuelo desde el navegador. Para el resto de puntos el eje cae a tiempo en coche.</li>
         </ul>
         <p>Dicho todo eso: la diferencia entre 35 y 80 minutos es real y la vas a vivir dos veces al día, unas 450 veces al año. Son entre 170 y 300 horas anuales según dónde vivas.</p>
@@ -1293,7 +1294,8 @@ function showTip(ine, ev) {
   const rows = [
     [M.short, m.value == null ? "—" : M.fmt(m.value)],
     [`En transporte público a ${ref.nom}`, tr?.min == null ? "—"
-      : fmtMin(tr.min) + (tr.transbords ? ` · ${tr.transbords} transbordo${tr.transbords > 1 ? "s" : ""}` : " · directo")],
+      : fmtMin(tr.min) + (tr.transbords ? ` · ${tr.transbords} transbordo${tr.transbords > 1 ? "s" : ""}` : " · directo")
+        + (tr.arriba_tard ? " ⚠" : "")],
     ["En coche, sin tráfico", tmin == null ? "—" : nf(0).format(tmin) + " min"],
     [`Línea recta a ${ref.nom}`, fmtKm(dist)],
     ["Compra", m.compra_eur_m2 == null ? "—" : fmtEur(m.compra_eur_m2) + "/m²"],
@@ -1328,7 +1330,7 @@ function showTip(ine, ev) {
     `<div class="t-name">${esc(m.nom)}${CASA && m.ine === CASA.ine ? " · tu casa" : ""}</div>` +
     `<div class="t-sub">${esc(m.comarca || "")}${m.tren ? " · " + esc(m.tren) : ""}</div>` +
     `<dl>${rows.map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join("")}</dl>` +
-    flag + vsCasa(m) + mostraAvis(m);
+    flag + avisTard(m, ref) + vsCasa(m) + mostraAvis(m);
   tip.classList.add("on");
   tip.setAttribute("aria-hidden", "false");
   moveTip(ev);
@@ -1358,6 +1360,17 @@ function vsCasa(m) {
 /** Aviso de muestra pequeña. En los municipios chicos la media se calcula sobre
  *  muy pocas operaciones y salta de un periodo a otro sin que el mercado se
  *  haya movido; quien mira el dato tiene que saberlo. */
+/** Aviso de destino inalcanzable a la hora de referencia. El resto de tiempos
+ *  son «llegar a las 9:00»; estos no llegan ni con esas, y el número que se
+ *  enseña es el mejor que llega antes de las 10. No es comparable con los demás
+ *  y por eso se dice, en vez de dejarlo pasar como un minuto más. */
+function avisTard(m, ref) {
+  const tr = m.tr ?? (!S.refCustom ? m.transit?.[ref.id] : null);
+  if (!tr?.arriba_tard) return "";
+  return `<div class="t-flag" style="color:${cssVar("--div-pos-2")}">` +
+         `⚠ Ningún trayecto llega a las 9:00. El mejor llega a las ${esc(tr.arribada_local || "—")}.</div>`;
+}
+
 function mostraAvis(m) {
   const av = [];
   if (m.lloguer_eur_mes != null && m.lloguer_contractes != null && m.lloguer_contractes < 50)

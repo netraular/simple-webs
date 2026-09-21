@@ -1,0 +1,844 @@
+{
+  "meta": {
+    "descripcio": "Preu de compra d'habitatge usat (segona mà) per districte i per barri de la ciutat de Barcelona.",
+    "camp_principal": "compra_eur_m2",
+    "metrica_principal": "preu mitjà de venda per m² construït d'habitatge USAT (segona mà), calculat sobre les compravendes efectivament registrades",
+    "periode": "gener 2025 - desembre 2025",
+    "any": 2025,
+    "font": "Generalitat de Catalunya, Secretaria d'Habitatge i Inclusió Social — Estadística de compravendes d'habitatge registrades (origen de les dades: Col·legi de Registradors de la Propietat)",
+    "font_url": "https://habitatge.gencat.cat/web/.content/home/dades/estadistiques/01_Estadistiques_de_construccio_i_mercat_immobiliari/02_Compravenda_i_preu_de_venda/02_Compravendes_d_habitatges_registrades_i_el_preu_de_venda/2025/BCN_usat_acum1any_2025.xlsx",
+    "codis": "«codi» és el codi oficial de districte (1-10) o de barri (1-73) de l'Ajuntament de Barcelona; NO és un codi INE.",
+    "nombre_districtes": 10,
+    "nombre_barris": 70,
+    "barris_totals_a_la_ciutat": 73,
+    "exclosos_sense_dada": [
+      {
+        "tipus": "barri",
+        "nom": "la Clota"
+      },
+      {
+        "tipus": "barri",
+        "nom": "Can Peguera"
+      },
+      {
+        "tipus": "barri",
+        "nom": "Baró de Viver"
+      }
+    ],
+    "avis": "Cap valor no està estimat. Els barris on la font publica «n.d.» o 0 (mostra insuficient) s'han exclòs i es llisten a exclosos_sense_dada. El total de la ciutat no és la suma dels districtes (vegeu la nota de la font)."
+  },
+  "ciutat": {
+    "codi_ine": "08019",
+    "nom": "Barcelona",
+    "compra_eur_m2": 4748.1,
+    "nombre_operacions": 14515,
+    "superficie_mitjana_m2": 79.31,
+    "compra_eur_total": 394980.7,
+    "compra_eur_m2_maxim": 23141.89,
+    "compra_eur_m2_minim": 198.02
+  },
+  "districtes": [
+    {
+      "codi": "1",
+      "nom": "Ciutat Vella",
+      "compra_eur_m2": 4394.8,
+      "nombre_operacions": 1390,
+      "superficie_mitjana_m2": 66.74,
+      "compra_eur_total": 281618.02,
+      "compra_eur_m2_maxim": 23125.0,
+      "compra_eur_m2_minim": 346.74
+    },
+    {
+      "codi": "2",
+      "nom": "Eixample",
+      "compra_eur_m2": 5804.1,
+      "nombre_operacions": 2070,
+      "superficie_mitjana_m2": 91.26,
+      "compra_eur_total": 536111.63,
+      "compra_eur_m2_maxim": 22033.9,
+      "compra_eur_m2_minim": 306.55
+    },
+    {
+      "codi": "3",
+      "nom": "Sants-Montjuïc",
+      "compra_eur_m2": 4532.5,
+      "nombre_operacions": 1773,
+      "superficie_mitjana_m2": 66.99,
+      "compra_eur_total": 295817.62,
+      "compra_eur_m2_maxim": 16896.55,
+      "compra_eur_m2_minim": 491.8
+    },
+    {
+      "codi": "4",
+      "nom": "Les Corts",
+      "compra_eur_m2": 5874.9,
+      "nombre_operacions": 646,
+      "superficie_mitjana_m2": 99.3,
+      "compra_eur_total": 622093.75,
+      "compra_eur_m2_maxim": 23141.89,
+      "compra_eur_m2_minim": 1088.71
+    },
+    {
+      "codi": "5",
+      "nom": "Sarrià-Sant Gervasi",
+      "compra_eur_m2": 6427.6,
+      "nombre_operacions": 1303,
+      "superficie_mitjana_m2": 128.25,
+      "compra_eur_total": 816277.61,
+      "compra_eur_m2_maxim": 19687.5,
+      "compra_eur_m2_minim": 198.02
+    },
+    {
+      "codi": "6",
+      "nom": "Gràcia",
+      "compra_eur_m2": 5313.7,
+      "nombre_operacions": 1011,
+      "superficie_mitjana_m2": 77.97,
+      "compra_eur_total": 407083.67,
+      "compra_eur_m2_maxim": 17428.57,
+      "compra_eur_m2_minim": 335.71
+    },
+    {
+      "codi": "7",
+      "nom": "Horta-Guinardó",
+      "compra_eur_m2": 3882.8,
+      "nombre_operacions": 1277,
+      "superficie_mitjana_m2": 68.84,
+      "compra_eur_total": 267626.19,
+      "compra_eur_m2_maxim": 12300.0,
+      "compra_eur_m2_minim": 215.51
+    },
+    {
+      "codi": "8",
+      "nom": "Nou Barris",
+      "compra_eur_m2": 3079.1,
+      "nombre_operacions": 1693,
+      "superficie_mitjana_m2": 63.65,
+      "compra_eur_total": 195679.03,
+      "compra_eur_m2_maxim": 9490.57,
+      "compra_eur_m2_minim": 350.0
+    },
+    {
+      "codi": "9",
+      "nom": "Sant Andreu",
+      "compra_eur_m2": 3701.0,
+      "nombre_operacions": 1218,
+      "superficie_mitjana_m2": 71.92,
+      "compra_eur_total": 264750.01,
+      "compra_eur_m2_maxim": 13906.25,
+      "compra_eur_m2_minim": 404.76
+    },
+    {
+      "codi": "10",
+      "nom": "Sant Martí",
+      "compra_eur_m2": 4582.8,
+      "nombre_operacions": 2049,
+      "superficie_mitjana_m2": 73.59,
+      "compra_eur_total": 343377.8,
+      "compra_eur_m2_maxim": 16300.0,
+      "compra_eur_m2_minim": 317.5
+    }
+  ],
+  "barris": [
+    {
+      "codi": "1",
+      "nom": "el Raval",
+      "compra_eur_m2": 3644.9,
+      "nombre_operacions": 610,
+      "superficie_mitjana_m2": 61.95,
+      "compra_eur_total": 219149.66,
+      "compra_eur_m2_maxim": 18269.23,
+      "compra_eur_m2_minim": 346.74
+    },
+    {
+      "codi": "2",
+      "nom": "el Barri Gòtic",
+      "compra_eur_m2": 4624.1,
+      "nombre_operacions": 253,
+      "superficie_mitjana_m2": 91.22,
+      "compra_eur_total": 402647.04,
+      "compra_eur_m2_maxim": 10244.19,
+      "compra_eur_m2_minim": 1369.86
+    },
+    {
+      "codi": "3",
+      "nom": "la Barceloneta",
+      "compra_eur_m2": 5685.6,
+      "nombre_operacions": 208,
+      "superficie_mitjana_m2": 45.33,
+      "compra_eur_total": 244826.16,
+      "compra_eur_m2_maxim": 23125.0,
+      "compra_eur_m2_minim": 2188.32
+    },
+    {
+      "codi": "4",
+      "nom": "Sant Pere, Santa Caterina i la Ribera",
+      "compra_eur_m2": 4859.1,
+      "nombre_operacions": 319,
+      "superficie_mitjana_m2": 70.53,
+      "compra_eur_total": 331168.05,
+      "compra_eur_m2_maxim": 20465.12,
+      "compra_eur_m2_minim": 742.42
+    },
+    {
+      "codi": "5",
+      "nom": "el Fort Pienc",
+      "compra_eur_m2": 5105.6,
+      "nombre_operacions": 211,
+      "superficie_mitjana_m2": 79.85,
+      "compra_eur_total": 400113.27,
+      "compra_eur_m2_maxim": 14603.96,
+      "compra_eur_m2_minim": 306.55
+    },
+    {
+      "codi": "6",
+      "nom": "la Sagrada Família",
+      "compra_eur_m2": 5130.4,
+      "nombre_operacions": 333,
+      "superficie_mitjana_m2": 71.88,
+      "compra_eur_total": 359889.87,
+      "compra_eur_m2_maxim": 12121.21,
+      "compra_eur_m2_minim": 968.74
+    },
+    {
+      "codi": "7",
+      "nom": "la Dreta de l'Eixample",
+      "compra_eur_m2": 6831.1,
+      "nombre_operacions": 458,
+      "superficie_mitjana_m2": 119.65,
+      "compra_eur_total": 809999.31,
+      "compra_eur_m2_maxim": 22033.9,
+      "compra_eur_m2_minim": 2040.82
+    },
+    {
+      "codi": "8",
+      "nom": "l'Antiga Esquerra de l'Eixample",
+      "compra_eur_m2": 6205.2,
+      "nombre_operacions": 410,
+      "superficie_mitjana_m2": 98.77,
+      "compra_eur_total": 607374.0,
+      "compra_eur_m2_maxim": 15093.02,
+      "compra_eur_m2_minim": 2044.31
+    },
+    {
+      "codi": "9",
+      "nom": "la Nova Esquerra de l'Eixample",
+      "compra_eur_m2": 5372.8,
+      "nombre_operacions": 373,
+      "superficie_mitjana_m2": 78.29,
+      "compra_eur_total": 413954.0,
+      "compra_eur_m2_maxim": 12619.05,
+      "compra_eur_m2_minim": 1506.02
+    },
+    {
+      "codi": "10",
+      "nom": "Sant Antoni",
+      "compra_eur_m2": 5282.7,
+      "nombre_operacions": 285,
+      "superficie_mitjana_m2": 81.19,
+      "compra_eur_total": 418903.72,
+      "compra_eur_m2_maxim": 14777.78,
+      "compra_eur_m2_minim": 2000.0
+    },
+    {
+      "codi": "11",
+      "nom": "el Poble Sec - Parc Montjuïc",
+      "compra_eur_m2": 4884.1,
+      "nombre_operacions": 490,
+      "superficie_mitjana_m2": 59.85,
+      "compra_eur_total": 289028.51,
+      "compra_eur_m2_maxim": 16896.55,
+      "compra_eur_m2_minim": 909.09
+    },
+    {
+      "codi": "12",
+      "nom": "la Marina del Prat Vermell - Zona Franca",
+      "compra_eur_m2": 3464.7,
+      "nombre_operacions": 14,
+      "superficie_mitjana_m2": 78.5,
+      "compra_eur_total": 315416.3,
+      "compra_eur_m2_maxim": 6627.91,
+      "compra_eur_m2_minim": 1956.52
+    },
+    {
+      "codi": "13",
+      "nom": "la Marina de Port",
+      "compra_eur_m2": 4355.8,
+      "nombre_operacions": 259,
+      "superficie_mitjana_m2": 71.21,
+      "compra_eur_total": 308141.46,
+      "compra_eur_m2_maxim": 11119.05,
+      "compra_eur_m2_minim": 1126.76
+    },
+    {
+      "codi": "14",
+      "nom": "la Font de la Guatlla",
+      "compra_eur_m2": 4161.8,
+      "nombre_operacions": 72,
+      "superficie_mitjana_m2": 74.02,
+      "compra_eur_total": 297450.9,
+      "compra_eur_m2_maxim": 8387.1,
+      "compra_eur_m2_minim": 1214.29
+    },
+    {
+      "codi": "15",
+      "nom": "Hostafrancs",
+      "compra_eur_m2": 4327.7,
+      "nombre_operacions": 104,
+      "superficie_mitjana_m2": 74.11,
+      "compra_eur_total": 305539.47,
+      "compra_eur_m2_maxim": 7661.54,
+      "compra_eur_m2_minim": 1619.05
+    },
+    {
+      "codi": "16",
+      "nom": "la Bordeta",
+      "compra_eur_m2": 4326.0,
+      "nombre_operacions": 182,
+      "superficie_mitjana_m2": 71.81,
+      "compra_eur_total": 304994.06,
+      "compra_eur_m2_maxim": 8189.66,
+      "compra_eur_m2_minim": 491.8
+    },
+    {
+      "codi": "17",
+      "nom": "Sants - Badal",
+      "compra_eur_m2": 4320.0,
+      "nombre_operacions": 233,
+      "superficie_mitjana_m2": 66.17,
+      "compra_eur_total": 279054.81,
+      "compra_eur_m2_maxim": 13904.11,
+      "compra_eur_m2_minim": 651.43
+    },
+    {
+      "codi": "18",
+      "nom": "Sants",
+      "compra_eur_m2": 4598.3,
+      "nombre_operacions": 419,
+      "superficie_mitjana_m2": 66.73,
+      "compra_eur_total": 299301.67,
+      "compra_eur_m2_maxim": 15873.02,
+      "compra_eur_m2_minim": 981.82
+    },
+    {
+      "codi": "19",
+      "nom": "les Corts",
+      "compra_eur_m2": 5810.8,
+      "nombre_operacions": 342,
+      "superficie_mitjana_m2": 89.08,
+      "compra_eur_total": 524037.83,
+      "compra_eur_m2_maxim": 14337.35,
+      "compra_eur_m2_minim": 1724.14
+    },
+    {
+      "codi": "20",
+      "nom": "la Maternitat i Sant Ramon",
+      "compra_eur_m2": 5008.5,
+      "nombre_operacions": 187,
+      "superficie_mitjana_m2": 82.33,
+      "compra_eur_total": 417538.43,
+      "compra_eur_m2_maxim": 13043.48,
+      "compra_eur_m2_minim": 1088.71
+    },
+    {
+      "codi": "21",
+      "nom": "Pedralbes",
+      "compra_eur_m2": 7491.4,
+      "nombre_operacions": 117,
+      "superficie_mitjana_m2": 164.3,
+      "compra_eur_total": 1283365.94,
+      "compra_eur_m2_maxim": 23141.89,
+      "compra_eur_m2_minim": 1497.7
+    },
+    {
+      "codi": "22",
+      "nom": "Vallvidrera, el Tibidabo i les Planes",
+      "compra_eur_m2": 4477.2,
+      "nombre_operacions": 39,
+      "superficie_mitjana_m2": 151.28,
+      "compra_eur_total": 506303.27,
+      "compra_eur_m2_maxim": 19687.5,
+      "compra_eur_m2_minim": 426.54
+    },
+    {
+      "codi": "23",
+      "nom": "Sarrià",
+      "compra_eur_m2": 6882.0,
+      "nombre_operacions": 180,
+      "superficie_mitjana_m2": 108.32,
+      "compra_eur_total": 734088.92,
+      "compra_eur_m2_maxim": 17083.33,
+      "compra_eur_m2_minim": 198.02
+    },
+    {
+      "codi": "24",
+      "nom": "les Tres Torres",
+      "compra_eur_m2": 7209.3,
+      "nombre_operacions": 138,
+      "superficie_mitjana_m2": 148.93,
+      "compra_eur_total": 1060171.6,
+      "compra_eur_m2_maxim": 13222.22,
+      "compra_eur_m2_minim": 3745.32
+    },
+    {
+      "codi": "25",
+      "nom": "Sant Gervasi - la Bonanova",
+      "compra_eur_m2": 6309.6,
+      "nombre_operacions": 219,
+      "superficie_mitjana_m2": 126.32,
+      "compra_eur_total": 799703.59,
+      "compra_eur_m2_maxim": 16814.16,
+      "compra_eur_m2_minim": 1258.92
+    },
+    {
+      "codi": "26",
+      "nom": "Sant Gervasi - Galvany",
+      "compra_eur_m2": 6629.1,
+      "nombre_operacions": 476,
+      "superficie_mitjana_m2": 140.7,
+      "compra_eur_total": 919957.45,
+      "compra_eur_m2_maxim": 19428.57,
+      "compra_eur_m2_minim": 207.63
+    },
+    {
+      "codi": "27",
+      "nom": "el Putxet i el Farró",
+      "compra_eur_m2": 5771.2,
+      "nombre_operacions": 251,
+      "superficie_mitjana_m2": 106.92,
+      "compra_eur_total": 610573.97,
+      "compra_eur_m2_maxim": 19000.0,
+      "compra_eur_m2_minim": 1200.0
+    },
+    {
+      "codi": "28",
+      "nom": "Vallcarca i els Penitents",
+      "compra_eur_m2": 4949.5,
+      "nombre_operacions": 97,
+      "superficie_mitjana_m2": 82.3,
+      "compra_eur_total": 382652.53,
+      "compra_eur_m2_maxim": 17428.57,
+      "compra_eur_m2_minim": 1303.12
+    },
+    {
+      "codi": "29",
+      "nom": "el Coll",
+      "compra_eur_m2": 3771.0,
+      "nombre_operacions": 49,
+      "superficie_mitjana_m2": 71.95,
+      "compra_eur_total": 272961.67,
+      "compra_eur_m2_maxim": 7352.94,
+      "compra_eur_m2_minim": 1698.11
+    },
+    {
+      "codi": "30",
+      "nom": "la Salut",
+      "compra_eur_m2": 4616.0,
+      "nombre_operacions": 94,
+      "superficie_mitjana_m2": 82.31,
+      "compra_eur_total": 384482.18,
+      "compra_eur_m2_maxim": 7180.85,
+      "compra_eur_m2_minim": 1436.78
+    },
+    {
+      "codi": "31",
+      "nom": "la Vila de Gràcia",
+      "compra_eur_m2": 5584.4,
+      "nombre_operacions": 487,
+      "superficie_mitjana_m2": 77.93,
+      "compra_eur_total": 429700.18,
+      "compra_eur_m2_maxim": 12326.09,
+      "compra_eur_m2_minim": 1324.84
+    },
+    {
+      "codi": "32",
+      "nom": "el Camp d'en Grassot i Gràcia Nova",
+      "compra_eur_m2": 5415.4,
+      "nombre_operacions": 284,
+      "superficie_mitjana_m2": 76.2,
+      "compra_eur_total": 402487.97,
+      "compra_eur_m2_maxim": 13679.98,
+      "compra_eur_m2_minim": 335.71
+    },
+    {
+      "codi": "33",
+      "nom": "el Baix Guinardó",
+      "compra_eur_m2": 4495.5,
+      "nombre_operacions": 207,
+      "superficie_mitjana_m2": 71.59,
+      "compra_eur_total": 318707.76,
+      "compra_eur_m2_maxim": 10869.57,
+      "compra_eur_m2_minim": 333.33
+    },
+    {
+      "codi": "34",
+      "nom": "Can Baró",
+      "compra_eur_m2": 3656.8,
+      "nombre_operacions": 72,
+      "superficie_mitjana_m2": 72.32,
+      "compra_eur_total": 259004.6,
+      "compra_eur_m2_maxim": 6696.43,
+      "compra_eur_m2_minim": 215.51
+    },
+    {
+      "codi": "35",
+      "nom": "el Guinardó",
+      "compra_eur_m2": 4270.2,
+      "nombre_operacions": 300,
+      "superficie_mitjana_m2": 71.96,
+      "compra_eur_total": 300851.19,
+      "compra_eur_m2_maxim": 9864.87,
+      "compra_eur_m2_minim": 512.3
+    },
+    {
+      "codi": "36",
+      "nom": "la Font d'en Fargues",
+      "compra_eur_m2": 4799.7,
+      "nombre_operacions": 65,
+      "superficie_mitjana_m2": 85.69,
+      "compra_eur_total": 413268.44,
+      "compra_eur_m2_maxim": 12300.0,
+      "compra_eur_m2_minim": 2019.61
+    },
+    {
+      "codi": "37",
+      "nom": "el Carmel",
+      "compra_eur_m2": 3071.4,
+      "nombre_operacions": 286,
+      "superficie_mitjana_m2": 61.74,
+      "compra_eur_total": 185436.84,
+      "compra_eur_m2_maxim": 6515.15,
+      "compra_eur_m2_minim": 285.71
+    },
+    {
+      "codi": "38",
+      "nom": "la Teixonera",
+      "compra_eur_m2": 3481.9,
+      "nombre_operacions": 100,
+      "superficie_mitjana_m2": 60.64,
+      "compra_eur_total": 210613.08,
+      "compra_eur_m2_maxim": 8700.0,
+      "compra_eur_m2_minim": 999.17
+    },
+    {
+      "codi": "39",
+      "nom": "Sant Genís dels Agudells",
+      "compra_eur_m2": 2840.5,
+      "nombre_operacions": 46,
+      "superficie_mitjana_m2": 78.74,
+      "compra_eur_total": 218316.71,
+      "compra_eur_m2_maxim": 6853.93,
+      "compra_eur_m2_minim": 634.15
+    },
+    {
+      "codi": "40",
+      "nom": "Montbau",
+      "compra_eur_m2": 3620.7,
+      "nombre_operacions": 24,
+      "superficie_mitjana_m2": 64.78,
+      "compra_eur_total": 225388.89,
+      "compra_eur_m2_maxim": 4666.67,
+      "compra_eur_m2_minim": 2602.74
+    },
+    {
+      "codi": "41",
+      "nom": "la Vall d'Hebron",
+      "compra_eur_m2": 5096.4,
+      "nombre_operacions": 19,
+      "superficie_mitjana_m2": 60.11,
+      "compra_eur_total": 299000.0,
+      "compra_eur_m2_maxim": 6734.69,
+      "compra_eur_m2_minim": 3688.53
+    },
+    {
+      "codi": "43",
+      "nom": "Horta",
+      "compra_eur_m2": 3964.7,
+      "nombre_operacions": 157,
+      "superficie_mitjana_m2": 67.34,
+      "compra_eur_total": 279463.16,
+      "compra_eur_m2_maxim": 9677.42,
+      "compra_eur_m2_minim": 1408.45
+    },
+    {
+      "codi": "44",
+      "nom": "Vilapicina i la Torre Llobeta",
+      "compra_eur_m2": 3884.1,
+      "nombre_operacions": 180,
+      "superficie_mitjana_m2": 72.35,
+      "compra_eur_total": 276545.11,
+      "compra_eur_m2_maxim": 7534.25,
+      "compra_eur_m2_minim": 1911.77
+    },
+    {
+      "codi": "45",
+      "nom": "Porta",
+      "compra_eur_m2": 3585.2,
+      "nombre_operacions": 192,
+      "superficie_mitjana_m2": 65.38,
+      "compra_eur_total": 233168.66,
+      "compra_eur_m2_maxim": 6975.0,
+      "compra_eur_m2_minim": 1320.76
+    },
+    {
+      "codi": "46",
+      "nom": "el Turó de la Peira",
+      "compra_eur_m2": 2935.7,
+      "nombre_operacions": 196,
+      "superficie_mitjana_m2": 61.76,
+      "compra_eur_total": 183800.44,
+      "compra_eur_m2_maxim": 5907.41,
+      "compra_eur_m2_minim": 764.29
+    },
+    {
+      "codi": "48",
+      "nom": "la Guineueta",
+      "compra_eur_m2": 3258.7,
+      "nombre_operacions": 113,
+      "superficie_mitjana_m2": 74.35,
+      "compra_eur_total": 235932.33,
+      "compra_eur_m2_maxim": 5285.71,
+      "compra_eur_m2_minim": 1622.64
+    },
+    {
+      "codi": "49",
+      "nom": "Canyelles",
+      "compra_eur_m2": 3035.4,
+      "nombre_operacions": 48,
+      "superficie_mitjana_m2": 70.47,
+      "compra_eur_total": 208444.44,
+      "compra_eur_m2_maxim": 4153.85,
+      "compra_eur_m2_minim": 1369.86
+    },
+    {
+      "codi": "50",
+      "nom": "les Roquetes",
+      "compra_eur_m2": 2566.2,
+      "nombre_operacions": 234,
+      "superficie_mitjana_m2": 58.72,
+      "compra_eur_total": 140494.9,
+      "compra_eur_m2_maxim": 7200.0,
+      "compra_eur_m2_minim": 467.35
+    },
+    {
+      "codi": "51",
+      "nom": "Verdun",
+      "compra_eur_m2": 3039.9,
+      "nombre_operacions": 158,
+      "superficie_mitjana_m2": 56.18,
+      "compra_eur_total": 168582.5,
+      "compra_eur_m2_maxim": 5694.44,
+      "compra_eur_m2_minim": 478.64
+    },
+    {
+      "codi": "52",
+      "nom": "la Prosperitat",
+      "compra_eur_m2": 3163.0,
+      "nombre_operacions": 241,
+      "superficie_mitjana_m2": 61.12,
+      "compra_eur_total": 190272.2,
+      "compra_eur_m2_maxim": 9490.57,
+      "compra_eur_m2_minim": 576.92
+    },
+    {
+      "codi": "53",
+      "nom": "la Trinitat Nova",
+      "compra_eur_m2": 2476.1,
+      "nombre_operacions": 102,
+      "superficie_mitjana_m2": 62.24,
+      "compra_eur_total": 148701.25,
+      "compra_eur_m2_maxim": 3821.57,
+      "compra_eur_m2_minim": 1020.41
+    },
+    {
+      "codi": "54",
+      "nom": "Torre Baró",
+      "compra_eur_m2": 1920.2,
+      "nombre_operacions": 20,
+      "superficie_mitjana_m2": 95.5,
+      "compra_eur_total": 153620.62,
+      "compra_eur_m2_maxim": 4393.94,
+      "compra_eur_m2_minim": 507.25
+    },
+    {
+      "codi": "55",
+      "nom": "Ciutat Meridiana",
+      "compra_eur_m2": 1896.0,
+      "nombre_operacions": 198,
+      "superficie_mitjana_m2": 59.36,
+      "compra_eur_total": 111975.11,
+      "compra_eur_m2_maxim": 3054.55,
+      "compra_eur_m2_minim": 350.0
+    },
+    {
+      "codi": "56",
+      "nom": "Vallbona",
+      "compra_eur_m2": 2631.0,
+      "nombre_operacions": 10,
+      "superficie_mitjana_m2": 76.86,
+      "compra_eur_total": 216875.0,
+      "compra_eur_m2_maxim": 3111.11,
+      "compra_eur_m2_minim": 2100.0
+    },
+    {
+      "codi": "57",
+      "nom": "la Trinitat Vella",
+      "compra_eur_m2": 2279.2,
+      "nombre_operacions": 153,
+      "superficie_mitjana_m2": 61.12,
+      "compra_eur_total": 135862.2,
+      "compra_eur_m2_maxim": 4479.17,
+      "compra_eur_m2_minim": 404.76
+    },
+    {
+      "codi": "59",
+      "nom": "el Bon Pastor",
+      "compra_eur_m2": 2741.9,
+      "nombre_operacions": 153,
+      "superficie_mitjana_m2": 67.64,
+      "compra_eur_total": 189305.07,
+      "compra_eur_m2_maxim": 5150.0,
+      "compra_eur_m2_minim": 972.6
+    },
+    {
+      "codi": "60",
+      "nom": "Sant Andreu",
+      "compra_eur_m2": 4119.7,
+      "nombre_operacions": 433,
+      "superficie_mitjana_m2": 75.81,
+      "compra_eur_total": 306554.99,
+      "compra_eur_m2_maxim": 9500.0,
+      "compra_eur_m2_minim": 850.0
+    },
+    {
+      "codi": "61",
+      "nom": "la Sagrera",
+      "compra_eur_m2": 4202.1,
+      "nombre_operacions": 193,
+      "superficie_mitjana_m2": 73.09,
+      "compra_eur_total": 297894.51,
+      "compra_eur_m2_maxim": 7745.1,
+      "compra_eur_m2_minim": 1028.6
+    },
+    {
+      "codi": "62",
+      "nom": "el Congrés i els Indians",
+      "compra_eur_m2": 3852.9,
+      "nombre_operacions": 121,
+      "superficie_mitjana_m2": 73.11,
+      "compra_eur_total": 278897.52,
+      "compra_eur_m2_maxim": 6000.0,
+      "compra_eur_m2_minim": 890.41
+    },
+    {
+      "codi": "63",
+      "nom": "Navas",
+      "compra_eur_m2": 4334.5,
+      "nombre_operacions": 142,
+      "superficie_mitjana_m2": 73.47,
+      "compra_eur_total": 307113.1,
+      "compra_eur_m2_maxim": 13906.25,
+      "compra_eur_m2_minim": 1565.67
+    },
+    {
+      "codi": "64",
+      "nom": "el Camp de l'Arpa del Clot",
+      "compra_eur_m2": 4644.6,
+      "nombre_operacions": 273,
+      "superficie_mitjana_m2": 71.87,
+      "compra_eur_total": 320638.62,
+      "compra_eur_m2_maxim": 14863.64,
+      "compra_eur_m2_minim": 841.58
+    },
+    {
+      "codi": "65",
+      "nom": "el Clot",
+      "compra_eur_m2": 4629.1,
+      "nombre_operacions": 190,
+      "superficie_mitjana_m2": 72.77,
+      "compra_eur_total": 331943.26,
+      "compra_eur_m2_maxim": 12820.51,
+      "compra_eur_m2_minim": 1428.57
+    },
+    {
+      "codi": "66",
+      "nom": "el Parc i la Llacuna del Poblenou",
+      "compra_eur_m2": 5192.3,
+      "nombre_operacions": 112,
+      "superficie_mitjana_m2": 73.5,
+      "compra_eur_total": 377379.63,
+      "compra_eur_m2_maxim": 8555.56,
+      "compra_eur_m2_minim": 2614.38
+    },
+    {
+      "codi": "67",
+      "nom": "la Vila Olímpica del Poblenou",
+      "compra_eur_m2": 5970.5,
+      "nombre_operacions": 67,
+      "superficie_mitjana_m2": 89.51,
+      "compra_eur_total": 526954.86,
+      "compra_eur_m2_maxim": 8671.88,
+      "compra_eur_m2_minim": 1570.89
+    },
+    {
+      "codi": "68",
+      "nom": "el Poblenou",
+      "compra_eur_m2": 5910.8,
+      "nombre_operacions": 285,
+      "superficie_mitjana_m2": 71.47,
+      "compra_eur_total": 418039.82,
+      "compra_eur_m2_maxim": 16300.0,
+      "compra_eur_m2_minim": 1406.59
+    },
+    {
+      "codi": "69",
+      "nom": "Diagonal Mar i el Front Marítim del Poblenou",
+      "compra_eur_m2": 6073.0,
+      "nombre_operacions": 143,
+      "superficie_mitjana_m2": 97.71,
+      "compra_eur_total": 618207.74,
+      "compra_eur_m2_maxim": 13230.77,
+      "compra_eur_m2_minim": 3084.51
+    },
+    {
+      "codi": "70",
+      "nom": "el Besòs i el Maresme",
+      "compra_eur_m2": 2724.8,
+      "nombre_operacions": 293,
+      "superficie_mitjana_m2": 61.88,
+      "compra_eur_total": 184110.63,
+      "compra_eur_m2_maxim": 7644.78,
+      "compra_eur_m2_minim": 317.5
+    },
+    {
+      "codi": "71",
+      "nom": "Provençals del Poblenou",
+      "compra_eur_m2": 4807.2,
+      "nombre_operacions": 150,
+      "superficie_mitjana_m2": 78.5,
+      "compra_eur_total": 376900.03,
+      "compra_eur_m2_maxim": 12741.94,
+      "compra_eur_m2_minim": 1571.43
+    },
+    {
+      "codi": "72",
+      "nom": "Sant Martí de Provençals",
+      "compra_eur_m2": 3541.8,
+      "nombre_operacions": 212,
+      "superficie_mitjana_m2": 71.82,
+      "compra_eur_total": 248960.81,
+      "compra_eur_m2_maxim": 5945.46,
+      "compra_eur_m2_minim": 833.33
+    },
+    {
+      "codi": "73",
+      "nom": "la Verneda i la Pau",
+      "compra_eur_m2": 3967.4,
+      "nombre_operacions": 324,
+      "superficie_mitjana_m2": 71.65,
+      "compra_eur_total": 280190.72,
+      "compra_eur_m2_maxim": 6935.48,
+      "compra_eur_m2_minim": 1375.0
+    }
+  ]
+}

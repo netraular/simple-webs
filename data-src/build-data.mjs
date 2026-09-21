@@ -31,7 +31,9 @@ function rowsOf(x) {
   for (const k of ["municipis", "dades", "data", "rows"]) if (Array.isArray(x[k])) return x[k];
   return null;
 }
-const lloguerRaw = readOpt("lloguer.json");
+// Se prefiere el acumulado anual al último trimestre: cuadruplica la muestra y
+// coincide con el periodo de los datos de compraventa (ver fetch-lloguer-anual.mjs).
+const lloguerRaw = readOpt("lloguer-anual.json") || readOpt("lloguer.json");
 const compraRaw  = readOpt("compra.json");
 const lloguer = rowsOf(lloguerRaw);
 const compra  = rowsOf(compraRaw);
@@ -127,7 +129,10 @@ const rows = municipis.map(m => {
   const ine = ine5(m.codi_ine);
   const L = idxLloguer.get(ine) || {};
   const C = idxCompra.get(ine) || {};
-  const nets = [...(perMuni.get(ine) || [])].sort((a, b) => NET_ORDER.indexOf(a) - NET_ORDER.indexOf(b));
+  // "Tren" es el cajón de sastre de la clasificación: si ya hay Rodalies, sobra.
+  const setNets = new Set(perMuni.get(ine) || []);
+  if (setNets.has("Rodalies")) setNets.delete("Tren");
+  const nets = [...setNets].sort((a, b) => NET_ORDER.indexOf(a) - NET_ORDER.indexOf(b));
 
   return {
     ine,
@@ -146,6 +151,7 @@ const rows = municipis.map(m => {
     lloguer_eur_mes:        num(L.lloguer_mitja_eur_mes ?? L.lloguer_eur_mes ?? L.renda_mitjana),
     lloguer_eur_m2:         num(L.lloguer_eur_m2_mes ?? L.lloguer_eur_m2),
     lloguer_contractes:     num(L.nombre_contractes ?? L.contractes),
+    lloguer_trimestre:      num(L.lloguer_darrer_trimestre_eur_mes),
 
     tren: nets.length ? nets.join(" · ") : null,
     estacions: countMuni.get(ine) || 0,
@@ -184,6 +190,7 @@ const payload = {
       compra: String(periodeCompra),
       lloguer: String(periodeLloguer),
       poblacio: String(municipis[0]?.poblacio_any ?? "—"),
+      lloguer_trimestre: String(lloguer?.[0]?.periode_darrer_trimestre ?? "—"),
     },
     nota_fonts:
       "Todas las cifras son de fuentes públicas oficiales. Ningún valor está estimado " +

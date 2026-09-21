@@ -239,9 +239,10 @@ footer a{color:var(--focus)}
     <span class="eyebrow">Àrea metropolitana de Barcelona</span>
     <h1>Cuánto cuesta el piso, según lo lejos que vivas</h1>
     <p class="lede">
-      Cada municipio a 30 km de Barcelona, situado por lo que cuesta la vivienda y por
-      lo lejos que está del punto que te importe. Elige el punto — el trabajo, la playa,
-      el aeropuerto o un sitio cualquiera del mapa — y todo se recalcula.
+      Los 92 municipios a 30 km de Barcelona, situados por lo que cuesta la vivienda y
+      por lo lejos que quedan del punto que te importe. Elige el punto — el trabajo, la
+      playa, el aeropuerto o un sitio cualquiera del mapa — y todo se recalcula. O baja
+      la escala a los 73 barrios de Barcelona, donde las diferencias son aún mayores.
     </p>
     <p class="stamp" id="stamp"></p>
   </header>
@@ -249,6 +250,13 @@ footer a{color:var(--focus)}
 
 <div class="filters">
   <div class="wrap filters-inner" id="filters" hidden>
+    <div class="field">
+      <label id="f-view-label">Escala</label>
+      <div class="btn-group" id="f-view" role="group" aria-labelledby="f-view-label">
+        <button class="btn" type="button" data-view="municipis" aria-pressed="true">Área de Barcelona</button>
+        <button class="btn" type="button" data-view="barris" aria-pressed="false">Barcelona por barrios</button>
+      </div>
+    </div>
     <div class="field">
       <label for="f-ref">Punto de referencia</label>
       <select id="f-ref"></select>
@@ -313,8 +321,9 @@ footer a{color:var(--focus)}
       <div class="map-box" id="map-box">
         <svg id="map" role="img" aria-labelledby="map-title" aria-describedby="map-desc"></svg>
         <desc id="map-desc" class="visually-hidden">
-          Mapa de los municipios del área de Barcelona coloreados por la métrica
-          seleccionada. Los mismos valores están en la tabla del final de la página.
+          Mapa de los municipios del área de Barcelona, o de los barrios de la ciudad
+          según la escala elegida, coloreados por la métrica seleccionada. Los mismos
+          valores están en la tabla del final de la página.
         </desc>
         <div class="map-zoom">
           <button class="btn" id="z-in" type="button" aria-label="Acercar">+</button>
@@ -361,9 +370,9 @@ footer a{color:var(--focus)}
     <div class="scatter-box">
       <svg id="scatter" role="img" aria-labelledby="sc-title" aria-describedby="sc-desc"></svg>
       <desc id="sc-desc" class="visually-hidden">
-        Diagrama de dispersión: cada punto es un municipio, situado por su distancia al
-        punto de referencia y por la métrica seleccionada. La línea gris es la tendencia
-        ajustada. Los mismos valores están en la tabla del final de la página.
+        Diagrama de dispersión: cada punto es un municipio o un barrio, situado por su
+        lejanía al punto de referencia y por la métrica seleccionada. La línea gris es la
+        tendencia ajustada. Los mismos valores están en la tabla del final de la página.
       </desc>
     </div>
 
@@ -374,10 +383,10 @@ footer a{color:var(--focus)}
   <section class="card">
     <div class="card-head">
       <div>
-        <h2>Todos los datos</h2>
+        <h2 id="tbl-title">Todos los datos</h2>
         <p class="sub">
           La misma información del mapa y del gráfico, en texto. Pulsa una columna
-          para ordenar; pulsa una fila para resaltar el municipio en los tres sitios.
+          para ordenar; pulsa una fila para resaltarla en el mapa y en el gráfico.
         </p>
       </div>
     </div>
@@ -423,7 +432,8 @@ footer a{color:var(--focus)}
     <details>
       <summary>Qué no te dice esta página</summary>
       <div class="prose">
-        <p>Son medias municipales. Dentro de un municipio la diferencia entre barrios puede ser mayor que la diferencia entre municipios, y en los pueblos pequeños la media se calcula sobre muy pocas operaciones, así que salta de un trimestre a otro sin que haya pasado nada.</p>
+        <p>Son medias de toda la unidad. Dentro de un municipio la diferencia entre barrios puede ser mayor que la diferencia entre municipios — en Barcelona se ve cambiando la escala arriba, donde Pedralbes cuadruplica a Ciutat Meridiana, pero en el resto de municipios no hay dato publicado a esa resolución y te quedas con la media.</p>
+        <p>En los municipios pequeños esa media se calcula sobre muy pocas operaciones. Cuando la muestra es escasa el tooltip lo avisa, y conviene hacerle caso: media docena de contratos mueven la cifra cientos de euros sin que el mercado se haya movido.</p>
         <p>Tampoco entran aquí el coste del transporte, la zona tarifaria, la calidad del aire, los colegios, el ruido ni el estado real de las viviendas — todo eso decide tanto como el precio.</p>
       </div>
     </details>
@@ -587,7 +597,26 @@ const METRICS = [
 /* ===========================================================================
    3. ESTADO
    =========================================================================== */
+/** Las dos escalas de lectura. Comparten estructura de datos exactamente, así
+ *  que el resto de la página no distingue entre una y otra: solo cambian los
+ *  ficheros, el sustantivo y el encabezado de la columna de agrupación. */
+const VIEWS = {
+  municipis: {
+    id: "municipis", label: "Área de Barcelona",
+    data: "data/pisos-bcn.json", geo: "data/municipis.geojson",
+    unitat: ["municipio", "municipios"], grup: "Comarca",
+    sub: "92 municipios con el núcleo urbano a 32 km o menos de Plaça de Catalunya.",
+  },
+  barris: {
+    id: "barris", label: "Barcelona por barrios",
+    data: "data/bcn-barris.json", geo: "data/bcn-barris.geojson",
+    unitat: ["barrio", "barrios"], grup: "Distrito",
+    sub: "Los 73 barrios de Barcelona. Dentro de la ciudad la diferencia de precio es mayor que entre municipios.",
+  },
+};
+
 const S = {
+  viewId: "municipis",
   refId: null, refCustom: null,      // punto de referencia: preset o {lat,lon} propio
   metricId: "compra_m2", xMode: "dist",
   maxDist: 30, minPop: 0, m2: 80, budget: null,
@@ -597,29 +626,44 @@ const S = {
   view: null,                        // viewBox del mapa
 };
 let DATA = null, GEO = null, PATHS = null, PROJ = null, TREND = null, ROWS = [];
+const vista = () => VIEWS[S.viewId];
+const cache = new Map();             // no se vuelve a descargar al alternar
 
 /* ===========================================================================
    4. CARGA
    =========================================================================== */
+async function fetchJSON(path) {
+  if (cache.has(path)) return cache.get(path);
+  const p = fetch(path, { cache: "no-cache" }).then(r => {
+    if (!r.ok) throw new Error(path.split("/").pop() + " " + r.status);
+    return r.json();
+  });
+  cache.set(path, p);
+  return p;
+}
+
+/** Carga (o recarga) la vista activa y redibuja de cero. */
+async function loadView(first = false) {
+  const V = vista();
+  const [d, g] = await Promise.all([fetchJSON(V.data), fetchJSON(V.geo)]);
+  DATA = d; GEO = g;
+  S.refId = DATA.pois[0].id;
+  S.refCustom = null;
+  S.maxDist = DATA.meta.radi_km;
+  S.minPop = 0;
+  S.selected = null;
+  S.sortKey = "dist"; S.sortDir = 1;
+  initProjection();
+  if (first) initUI(); else resetUIForView();
+  render();
+}
+
 async function boot() {
   try {
-    const [d, g] = await Promise.all([
-      fetch("data/pisos-bcn.json", { cache: "no-cache" }).then(r => {
-        if (!r.ok) throw new Error("pisos-bcn.json " + r.status); return r.json();
-      }),
-      fetch("data/municipis.geojson", { cache: "no-cache" }).then(r => {
-        if (!r.ok) throw new Error("municipis.geojson " + r.status); return r.json();
-      }),
-    ]);
-    DATA = d; GEO = g;
-    S.refId = DATA.pois[0].id;
-    S.maxDist = DATA.meta.radi_km;
-    initProjection();
-    initUI();
+    await loadView(true);
     $("#state").hidden = true;
     $("#filters").hidden = false;
     $("#main").hidden = false;
-    render();
   } catch (err) {
     $("#state").textContent = "No se han podido cargar los datos: " + err.message;
     console.error(err);
@@ -758,7 +802,7 @@ function valueRange() {
 
 /* ---------- 7a. stat tiles ---------- */
 function renderTiles() {
-  const M = metric(), ref = refPoint();
+  const M = metric(), ref = refPoint(), V = vista();
   const withVal = ROWS.filter(m => m.value != null);
   const med = median(withVal.map(m => m.value));
   const better = M.higherIsBetter ? (a, b) => a.value > b.value : (a, b) => a.value < b.value;
@@ -770,7 +814,7 @@ function renderTiles() {
     .reduce((acc, m) => (!acc || m.resid * surpriseSign > acc.resid * surpriseSign ? m : acc), null);
 
   const tiles = [
-    { k: "Municipios en el filtro", v: fmtInt(ROWS.length),
+    { k: `${V.unitat[1][0].toUpperCase() + V.unitat[1].slice(1)} en el filtro`, v: fmtInt(ROWS.length),
       n: `${withVal.length} con dato de ${M.short}` },
     { k: `Mediana · ${M.short}`, v: med == null ? "—" : M.fmt(med),
       n: `dentro de ${S.maxDist} km de Barcelona` },
@@ -935,7 +979,7 @@ function renderScatterLegend() {
 
 /* ---------- 7d. tabla ---------- */
 const COLS = [
-  { k: "nom",   t: "Municipio", num: false },
+  { k: "nom",   t: "Municipio", dynNom: true, num: false },
   { k: "dist",  t: "Recta ref.", fmt: (m) => fmtKm(m.dist) },
   { k: "tempsMin", t: "Coche ref.", fmt: (m) => m.tempsMin == null ? null : nf(0).format(m.tempsMin) + " min" },
   { k: "dist_bcn_km", t: "Dist. BCN", fmt: (m) => fmtKm(m.dist_bcn_km) },
@@ -946,13 +990,16 @@ const COLS = [
   { k: "lloguer_eur_m2", t: "Alq. €/m²", fmt: (m) => m.lloguer_eur_m2 == null ? null : fmtEur1(m.lloguer_eur_m2) },
   { k: "poblacio", t: "Población", fmt: (m) => m.poblacio == null ? null : fmtInt(m.poblacio) },
   { k: "tren", t: "Tren / metro", num: false, fmt: (m) => m.tren || null },
-  { k: "comarca", t: "Comarca", num: false, fmt: (m) => m.comarca },
+  { k: "comarca", t: "Comarca", dynGrup: true, num: false, fmt: (m) => m.comarca },
 ];
 
 function renderTable() {
   const M = metric(), [lo, hi] = valueRange();
   $("#thead").innerHTML = "<tr>" + COLS.map(c => {
-    const t = c.dyn ? M.short : c.t;
+    const t = c.dyn ? M.short
+            : c.dynGrup ? vista().grup
+            : c.dynNom ? vista().unitat[0][0].toUpperCase() + vista().unitat[0].slice(1)
+            : c.t;
     const on = S.sortKey === c.k;
     return `<th data-k="${c.k}" title="Ordenar por ${t}">${t}<span class="arrow">${on ? (S.sortDir > 0 ? "▲" : "▼") : "↕"}</span></th>`;
   }).join("") + "</tr>";
@@ -982,12 +1029,13 @@ function renderTable() {
 function renderTexts() {
   const M = metric(), ref = refPoint();
   $("#map-title").textContent = typeof M.axis === "function" ? M.axis(S) : M.axis;
+  const V = vista();
   $("#map-sub").textContent =
-    `${ROWS.length} municipios a ${S.maxDist} km o menos de Barcelona. ` +
-    `Más oscuro, más alto. Pasa el ratón o toca un municipio para ver sus cifras.`;
+    `${ROWS.length} ${V.unitat[1]} a ${S.maxDist} km o menos del centro de Barcelona. ` +
+    `Más oscuro, más alto. Pasa el ratón o toca ${V.id === "barris" ? "un barrio" : "un municipio"} para ver sus cifras.`;
   const lejania = xAxisMode() === "dist" ? "la distancia en línea recta" : "el tiempo en coche sin tráfico";
   $("#sc-sub").textContent =
-    `Cada punto es un municipio. Eje horizontal: ${lejania} hasta ${ref.nom}. ` +
+    `Cada punto es un ${vista().unitat[0]}. Eje horizontal: ${lejania} hasta ${ref.nom}. ` +
     `Lo que queda por debajo de la línea gris cuesta menos de lo que su lejanía haría esperar.`;
 }
 
@@ -1038,11 +1086,26 @@ function showTip(ine, ev) {
   tip.innerHTML =
     `<div class="t-name">${esc(m.nom)}</div>` +
     `<div class="t-sub">${esc(m.comarca || "")}${m.tren ? " · " + esc(m.tren) : ""}</div>` +
-    `<dl>${rows.map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join("")}</dl>` + flag;
+    `<dl>${rows.map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join("")}</dl>` +
+    flag + mostraAvis(m);
   tip.classList.add("on");
   tip.setAttribute("aria-hidden", "false");
   moveTip(ev);
 }
+/** Aviso de muestra pequeña. En los municipios chicos la media se calcula sobre
+ *  muy pocas operaciones y salta de un periodo a otro sin que el mercado se
+ *  haya movido; quien mira el dato tiene que saberlo. */
+function mostraAvis(m) {
+  const av = [];
+  if (m.lloguer_eur_mes != null && m.lloguer_contractes != null && m.lloguer_contractes < 50)
+    av.push(`${fmtInt(m.lloguer_contractes)} contratos de alquiler en todo el año`);
+  if (m.compra_eur_m2 != null && m.compra_operacions != null && m.compra_operacions < 30)
+    av.push(`${fmtInt(m.compra_operacions)} compraventas`);
+  if (!av.length) return "";
+  return `<div class="t-flag" style="color:var(--muted);font-weight:500">` +
+         `Muestra pequeña (${av.join(", ")}): la media baila de un periodo a otro.</div>`;
+}
+
 function moveTip(ev) {
   const b = tip.getBoundingClientRect();
   let x = ev.clientX + 16, y = ev.clientY + 16;
@@ -1056,8 +1119,60 @@ function hideTip() { tip.classList.remove("on"); tip.setAttribute("aria-hidden",
 /* ===========================================================================
    9. UI
    =========================================================================== */
+/** Deja los controles coherentes con la vista recién cargada. Se llama al
+ *  alternar entre municipios y barrios, donde cambian el radio, el universo de
+ *  métricas disponibles y los puntos de referencia. */
+function resetUIForView() {
+  renderSources();
+  const V = vista();
+  for (const b of $("#f-view").children) b.setAttribute("aria-pressed", String(b.dataset.view === S.viewId));
+
+  const sel = $("#f-ref");
+  sel.innerHTML = DATA.pois.map(p =>
+    `<option value="${esc(p.id)}">${esc(p.nom)}${p.tipus ? " · " + esc(p.tipus) : ""}</option>`).join("");
+  sel.value = S.refId;
+
+  syncMetricOptions();
+
+  const dist = $("#f-dist");
+  dist.max = DATA.meta.radi_km;
+  dist.value = S.maxDist;
+  $("#f-dist-v").textContent = S.maxDist + " km";
+
+  const pop = $("#f-pop");
+  const maxPop = Math.max(...DATA.municipis.map(m => m.poblacio || 0));
+  pop.max = Math.min(50000, Math.round(maxPop / 2 / 1000) * 1000) || 1000;
+  pop.value = 0;
+  $("#f-pop-v").textContent = "todos";
+
+  $("#tbl-title").textContent = `Todos los datos · ${V.unitat[1]}`;
+  setPicking(false);
+  syncM2();
+  syncXButtons();
+}
+
+/** Rellena el selector de métricas con las que tienen datos detrás en la vista
+ *  activa; si la métrica en curso no existe aquí, cae a la primera válida. */
+function syncMetricOptions() {
+  const avail = METRICS.filter(M => M.needs.every(f => DATA.municipis.some(m => m[f] != null)));
+  $("#f-metric").innerHTML = avail.map(M => `<option value="${M.id}">${esc(M.label)}</option>`).join("");
+  if (!avail.some(M => M.id === S.metricId)) S.metricId = avail[0].id;
+  $("#f-metric").value = S.metricId;
+}
+
 function initUI() {
   renderSources();
+
+  // --- escala: municipios o barrios ---
+  $("#f-view").onclick = async (e) => {
+    const b = e.target.closest("button[data-view]");
+    if (!b || b.dataset.view === S.viewId) return;
+    S.viewId = b.dataset.view;
+    $("#state").hidden = false;
+    $("#state").textContent = "Cargando…";
+    try { await loadView(); $("#state").hidden = true; }
+    catch (err) { $("#state").textContent = "No se ha podido cargar la vista: " + err.message; }
+  };
 
   // --- punto de referencia ---
   const sel = $("#f-ref");
@@ -1066,12 +1181,7 @@ function initUI() {
   sel.onchange = () => { S.refId = sel.value; S.refCustom = null; setPicking(false); syncXButtons(); render(); };
 
   // --- métrica: solo se ofrecen las que tienen datos detrás ---
-  const avail = METRICS.filter(M =>
-    M.needs.every(f => DATA.municipis.some(m => m[f] != null)));
-  $("#f-metric").innerHTML = avail.map(M =>
-    `<option value="${M.id}">${esc(M.label)}</option>`).join("");
-  if (!avail.some(M => M.id === S.metricId)) S.metricId = avail[0].id;
-  $("#f-metric").value = S.metricId;
+  syncMetricOptions();
   $("#f-metric").onchange = (e) => { S.metricId = e.target.value; syncM2(); render(); };
 
   // --- sliders ---
@@ -1081,6 +1191,7 @@ function initUI() {
   $("#f-dist-v").textContent = S.maxDist + " km";
 
   const pop = $("#f-pop");
+  pop.max = Math.min(50000, Math.round(Math.max(...DATA.municipis.map(m => m.poblacio || 0)) / 2 / 1000) * 1000) || 1000;
   pop.oninput = () => {
     S.minPop = +pop.value;
     $("#f-pop-v").textContent = S.minPop === 0 ? "todos" : fmtInt(S.minPop) + "+";

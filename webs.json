@@ -10,5 +10,9 @@
   "comparador-paises-v2.html": {
     "title": "Country Comparison v2 · Is Moving Worth It?",
     "description": "Compare real savings, tax progression and investment taxation across European cities against a 60k Barcelona baseline."
+  },
+  "pisos-vs-distancia.html": {
+    "title": "Housing Cost vs. Distance · Barcelona",
+    "description": "Map and plot housing prices across the 92 municipalities within 30 km of Barcelona — and the city's 73 neighbourhoods — against straight-line distance or driving time to any point you pick. Official data, nothing estimated."
   }
 }

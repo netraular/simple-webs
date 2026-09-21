@@ -64,6 +64,29 @@ sense servei matinal amb un bus del vespre anterior i una nit d'espera pel mig,
 i retorna coses com 727 min per a Olivella. Amb els filtres, aquests casos són
 `null`, que és la resposta honesta.
 
+### Segona passada: els que no hi arriben a les 09:00
+
+Hi ha municipis amb servei real que, simplement, **no et deixen a Barcelona
+abans de les 09:00**. Castellví de Rosanes, per exemple, té autobús, però el
+trajecte més matiner hi arriba a les 09:10. Marcar-los `null` seria tan fals com
+inventar-se un temps.
+
+Per a aquests casos es repeteix la consulta amb el límit a les **10:00 locals**
+i el resultat es marca explícitament:
+
+```json
+"pl-catalunya": {
+  "min": 108, "transbords": 1, "modes": ["Bus"],
+  "arriba_tard": true,
+  "arribada_local": "10:00",
+  "nota": "cap trajecte no hi arriba abans de les 09:00; ..."
+}
+```
+
+**Si compareu temps entre municipis, filtreu o marqueu els `arriba_tard: true`**:
+no són comparables amb la resta, perquè responen a una pregunta diferent.
+Afecta 3 municipis i cap barri.
+
 ### Què inclou el número `min`
 
 És el temps **de portal a portal**: caminar fins a la parada + viatge +
@@ -156,7 +179,31 @@ del número menys robusta de tot el fitxer.
 
 ---
 
-## 4. Comprovacions de cordura
+## 4. Cobertura
+
+| | amb dada | `arriba_tard` | `null` |
+|---|---|---|---|
+| 92 municipis → `roche-sant-cugat` | **91** | 2 | 1 |
+| 92 municipis → `pl-catalunya` | **91** | 1 | 1 |
+| 92 municipis → `sants` | **91** | 1 | 1 |
+| 92 municipis · `sortides_hora_punta` | **92** | — | 0 |
+| 73 barris → els tres destins | **73** | 0 | 0 |
+
+- **`null` (1 municipi): Olivella.** No hi ha cap combinació que hi arribi abans
+  de les 10:00; la primera opció que el router troba surt a les 10:12 i arriba a
+  les 12:31. `sortides_hora_punta: 0`. Coincideix amb la realitat: Olivella és un
+  disseminat sense estació i amb un servei de bus testimonial.
+- **`arriba_tard` (3 municipis):** Castellví de Rosanes (els tres destins),
+  Òrrius (només Roche, arriba 09:48).
+- Els altres dos casos que es temia que quedessin fora sí que tenen dada:
+  **Olesa de Bonesvalls** (119 min a pl. Catalunya, però `sortides_hora_punta: 0`
+  — hi ha un bus abans de les 07:00 i prou) i **Subirats** (118 min, 2 sortides).
+  Són números correctes i alhora la confirmació que allà no s'hi pot viure sense
+  cotxe.
+
+---
+
+## 5. Comprovacions de cordura
 
 | Trajecte | Esperat | Obtingut | |
 |---|---|---|---|
@@ -166,6 +213,7 @@ del número menys robusta de tot el fitxer.
 | Terrassa → pl. Catalunya | 45-60 min | **65 min**, FGC directe | ≈ una mica alt |
 | Sabadell → pl. Catalunya | 45-60 min | **48 min**, Rodalies directe | ✔ |
 | Olivella (sense estació) | dolentíssim o inexistent | **`null`**, `sortides_hora_punta: 0` | ✔ |
+| Castellví de Rosanes | dolentíssim o inexistent | 108 min i `arriba_tard` | ✔ |
 
 Sobre els dos que queden per sobre de la banda esperada: la banda que es
 recorda sol ser **d'estació a estació**, i aquí hi ha les dues caminades. A
@@ -180,7 +228,7 @@ els 58 min són fins a **Roche**, que és 1,5 km més enllà de la xarxa d'FGC
 
 ---
 
-## 5. Quan el número és poc fiable
+## 6. Quan el número és poc fiable
 
 Llegiu-ho abans de prendre cap decisió amb aquestes xifres.
 
@@ -215,11 +263,11 @@ Llegiu-ho abans de prendre cap decisió amb aquestes xifres.
 
 ---
 
-## 6. Reproduir-ho
+## 7. Reproduir-ho
 
 ```bash
 cd data-src
-python3 fetch-transit.py          # 660 consultes, ~25 min, reprenible
+python3 fetch-transit.py          # 660 consultes + 2a passada, ~45 min, reprenible
 python3 fetch-transit.py --test   # només les comprovacions de cordura
 ```
 
@@ -233,7 +281,7 @@ l'hora local és UTC+2 en horari d'estiu i UTC+1 a l'hivern).
 
 ---
 
-## 7. Llicència de les dades
+## 8. Llicència de les dades
 
 - Horaris: GTFS dels operadors (Renfe/Rodalies, FGC, TMB, TRAM, DGTM de la
   Generalitat), agregats per Transitous.

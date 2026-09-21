@@ -153,6 +153,14 @@ main{padding:28px 0 72px}
 .poi-ring{fill:none;stroke:var(--ink);stroke-width:1.5;stroke-opacity:.5;pointer-events:none}
 .poi-lbl{fill:var(--ink);font-size:11px;font-weight:700;paint-order:stroke;stroke:var(--surface);stroke-width:3;pointer-events:none}
 .map-zoom{position:absolute;right:10px;top:10px;display:flex;flex-direction:column;gap:6px}
+#btn-pick{display:inline-flex;align-items:center;gap:8px}
+.pin{width:11px;height:11px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);
+  background:var(--series-1);flex:none}
+.pin-x{border-radius:0;transform:none;background:none;position:relative;width:10px;height:10px}
+.pin-x::before,.pin-x::after{content:"";position:absolute;inset:50% 0 auto 0;height:1.6px;
+  background:currentColor;border-radius:2px}
+.pin-x::before{transform:rotate(45deg)} .pin-x::after{transform:rotate(-45deg)}
+#btn-pick[aria-pressed=true] .pin{background:#fff}
 .map-zoom button{width:32px;height:32px;padding:0;font-size:1.05rem;line-height:1}
 
 /* ---------- leyenda ---------- */
@@ -228,6 +236,14 @@ footer a{color:var(--focus)}
 .state{padding:56px 20px;text-align:center;color:var(--muted)}
 .visually-hidden{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 
+/* En pantallas estrechas los filtros se apilan y la barra pasa de 60 a ~570 px:
+   fijarla ahí dejaría el contenido reducido a una rendija. Se suelta. */
+@media (max-width:860px){
+  .filters{position:static;backdrop-filter:none}
+  .filters-inner{gap:12px 14px}
+  .field select{max-width:100%}
+  .slider-field{flex:1 1 100%}
+}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 @media print{.filters,.map-zoom{display:none}.card{break-inside:avoid}}
 </style>
@@ -313,7 +329,9 @@ footer a{color:var(--focus)}
         <p class="sub" id="map-sub"></p>
       </div>
       <div class="btn-group">
-        <button class="btn" id="btn-pick" type="button" aria-pressed="false">📍 Poner mi punto</button>
+        <button class="btn" id="btn-pick" type="button" aria-pressed="false">
+          <span class="pin" aria-hidden="true"></span> Poner mi punto
+        </button>
       </div>
     </div>
 
@@ -665,7 +683,21 @@ async function boot() {
     $("#filters").hidden = false;
     $("#main").hidden = false;
   } catch (err) {
-    $("#state").textContent = "No se han podido cargar los datos: " + err.message;
+    // El caso habitual no es que falten los datos, sino que la página se haya
+    // abierto con doble clic: sobre file:// el navegador trata cada fichero como
+    // un origen distinto y bloquea fetch() por CORS. Conviene decirlo, porque
+    // "Failed to fetch" no le sugiere a nadie que la solución es servirla.
+    const local = location.protocol === "file:";
+    $("#state").innerHTML = local
+      ? `<p><strong>Esta página necesita servirse por HTTP.</strong></p>
+         <p style="margin-top:10px;max-width:56ch;margin-inline:auto">
+           Abierta directamente desde el disco, el navegador bloquea la carga de los
+           datos por política de orígenes. En
+           <a href="https://webs.raular.com/pages/pisos-vs-distancia.html">webs.raular.com</a>
+           funciona. Para verla en local, sírvela desde la raíz del repositorio:</p>
+         <p style="margin-top:10px"><code>python3 -m http.server 8000</code></p>
+         <p style="margin-top:6px">y entra en <code>localhost:8000/pages/pisos-vs-distancia.html</code></p>`
+      : `No se han podido cargar los datos: ${esc(err.message)}`;
     console.error(err);
   }
 }
@@ -972,7 +1004,7 @@ function renderScatterLegend() {
       <div class="ramp-ticks"><span>${dir[0]}</span><span>en la tendencia</span><span>${dir[1]}</span></div>
       <p class="legend-note">
         El tamaño del punto es la población. La línea gris es la recta de mínimos cuadrados
-        entre distancia y ${M.short}${TREND ? ` (R² = ${nf(2).format(TREND.r2)}${TREND.r2 < 0.25 ? " — la distancia explica poco de esta métrica, léela con cautela" : ""})` : ""}.
+        entre ${xAxisMode() === "dist" ? "distancia" : "tiempo en coche"} y ${M.short}${TREND ? ` (R² = ${nf(2).format(TREND.r2)}${TREND.r2 < 0.25 ? " — la distancia explica poco de esta métrica, léela con cautela" : ""})` : ""}.
       </p>`;
   } else {
     const [lo, hi] = valueRange();
@@ -980,7 +1012,7 @@ function renderScatterLegend() {
       <h3>Color · ${M.short}</h3>
       <div class="ramp">${SEQ.map(c => `<span style="background:var(${c})"></span>`).join("")}</div>
       <div class="ramp-ticks"><span>${M.fmt(lo)}</span><span>${M.fmt(hi)}</span></div>
-      <p class="legend-note">El tamaño del punto es la población. La línea gris es la tendencia respecto a la distancia.</p>`;
+      <p class="legend-note">El tamaño del punto es la población. La línea gris es la tendencia respecto ${xAxisMode() === "dist" ? "a la distancia" : "al tiempo en coche"}.</p>`;
   }
 }
 
@@ -1002,7 +1034,13 @@ const COLS = [
 
 function renderTable() {
   const M = metric(), [lo, hi] = valueRange();
-  $("#thead").innerHTML = "<tr>" + COLS.map(c => {
+  // Una columna entera de guiones no informa de nada y estrecha a las demás:
+  // se omite la que no tenga ni un valor en la vista activa (el alquiler por m²,
+  // por ejemplo, no lo publica ninguna de las dos fuentes).
+  const cols = COLS.filter(c =>
+    c.k === "nom" || c.dyn || ROWS.some(m => (c.fmt ? c.fmt(m) : m[c.k]) != null));
+
+  $("#thead").innerHTML = "<tr>" + cols.map(c => {
     const t = c.dyn ? M.short
             : c.dynGrup ? vista().grup
             : c.dynNom ? vista().unitat[0][0].toUpperCase() + vista().unitat[0].slice(1)
@@ -1021,7 +1059,7 @@ function renderTable() {
   });
 
   $("#tbody").innerHTML = rows.map(m => {
-    const cells = COLS.map(c => {
+    const cells = cols.map(c => {
       if (c.k === "nom") {
         return `<td><span class="dot-inline" style="background:${seqColor(m.value, lo, hi)}"></span>${esc(m.nom)}</td>`;
       }
@@ -1335,7 +1373,9 @@ function select(ine) {
 function setPicking(on) {
   S.picking = on;
   $("#btn-pick").setAttribute("aria-pressed", String(on));
-  $("#btn-pick").textContent = on ? "✕ Cancelar" : "📍 Poner mi punto";
+  $("#btn-pick").innerHTML = on
+    ? '<span class="pin pin-x" aria-hidden="true"></span> Cancelar'
+    : '<span class="pin" aria-hidden="true"></span> Poner mi punto';
   $("#map").style.cursor = on ? "crosshair" : "";
 }
 

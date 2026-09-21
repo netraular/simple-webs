@@ -28,6 +28,8 @@ const municipis = read("municipis.json");
 const pois      = read("pois.json");
 const temps     = readOpt("temps.json") || {};
 const estacions = readOpt("estacions.json") || [];
+const transit   = readOpt("transit.json");
+const indicRaw  = readOpt("indicadors.json");
 /** Las fuentes vienen unas como array pelado y otras como {meta, municipis}.
  *  Se normaliza a array, guardando el meta aparte cuando lo traen. */
 function rowsOf(x) {
@@ -122,6 +124,35 @@ for (const st of estacions) {
 }
 
 /* ---------------------------------------------------------------------------
+   2b. Indicadores de zona (INE ADRH 2023 + Idescat EMEX).
+       Se publica un subconjunto: de las 25 columnas del fichero crudo se dejan
+       fuera las redundantes (renta bruta, que es la neta antes de impuestos) y
+       las que vienen en tramos y engañarían en una escala continua
+       —renda_uc_mediana_eur tiene 19 valores distintos y p80_p20 solo 11—.
+       Nombres cortos: esto viaja al navegador 92 (o 73) veces.
+   --------------------------------------------------------------------------- */
+const IND_CAMPS = [
+  "renda_llar_eur", "renda_persona_eur", "renda_uc_mitjana_eur", "gini",
+  "edat_mitjana", "pct_menors_18", "pct_65_mes", "mida_mitjana_llar",
+  "pct_llars_unipersonals", "pct_poblacio_espanyola",
+  "ist", "atur_taxa_pct", "pct_educacio_superior", "pct_habitatge_lloguer",
+  "pct_recollida_selectiva", "turismes_per_1000_hab", "rfdb_habitant_eur",
+];
+/** El fichero crudo viene como {meta, municipis:[{codi_ine, ...}]}. */
+const indicMap = new Map();
+for (const v of rowsOf(indicRaw) || []) {
+  const o = {};
+  for (const c of IND_CAMPS) if (v[c] != null) o[c] = v[c];
+  indicMap.set(ine5(v.codi_ine), Object.keys(o).length ? o : null);
+}
+if (!indicRaw) warn.push("falta indicadors.json — no habrá datos de renta ni de población");
+
+/** transit.json: {meta, municipis:{ine: {nom, sortides_hora_punta, destins}}} */
+const transitMap = new Map();
+for (const [k, v] of Object.entries(transit?.municipis || {})) transitMap.set(ine5(k), v);
+if (!transit) warn.push("falta transit.json — no habrá tiempos en transporte público");
+
+/* ---------------------------------------------------------------------------
    3. Fusión
    --------------------------------------------------------------------------- */
 const num = (v) => {
@@ -161,6 +192,9 @@ const rows = municipis.map(m => {
     tren: nets.length ? nets.join(" · ") : null,
     estacions: countMuni.get(ine) || 0,
     temps: temps[ine] || null,
+    transit: transitMap.get(ine)?.destins || null,
+    sortides: transitMap.get(ine)?.sortides_hora_punta ?? null,
+    ind: indicMap.get(ine) || null,
   };
 });
 
@@ -201,6 +235,16 @@ const payload = {
       "Todas las cifras son de fuentes públicas oficiales. Ningún valor está estimado " +
       "ni interpolado: cuando un municipio no tiene dato publicado, aparece en gris y " +
       "como «—» en la tabla.",
+    // Municipio de referencia contra el que la página compara todo lo demás.
+    // Es el punto de partida del usuario, no una recomendación.
+    casa: municipis.find(m => m.nom === "Castelldefels") ? ine5(municipis.find(m => m.nom === "Castelldefels").codi_ine) : null,
+    transit: transit ? {
+      hora: transit.meta?.hora_referencia || null,
+      destins: Object.keys(transit.meta?.destins || {}),
+      limitacions: transit.meta?.limitacions || null,
+      hora_punta: transit.meta?.hora_punta || null,
+    } : null,
+    indicadors_any: indicRaw?.meta?.any ?? indicRaw?.meta?.exercici ?? "2023",
     fonts: [],   // se rellena abajo
   },
   pois,
@@ -230,6 +274,20 @@ payload.meta.fonts = [
   { nom: "OSRM — tiempos en coche",
     detall: "Tiempo de conducción en flujo libre sobre la red de OpenStreetMap. No modela tráfico: en hora punta hacia Barcelona la cifra real es notablemente peor.",
     url: "https://project-osrm.org/" },
+  ...(transit ? [{
+    nom: "MOTIS / Transitous — tiempos en transporte público",
+    detall: transit.meta?.metode || "Encaminamiento multimodal sobre los GTFS oficiales.",
+    url: transit.meta?.font || "https://transitous.org/",
+  }] : []),
+  ...(indicRaw ? [{
+    nom: "INE — Atlas de distribución de renta de los hogares (ADRH)",
+    detall: "Renta neta media por hogar y por persona, índice de Gini y estructura de edad y de hogares. Ejercicio 2023, publicado en 2025. Es renta declarada, de fuentes tributarias.",
+    url: "https://www.ine.es/dyngs/INEbase/es/operacion.htm?c=Estadistica_C&cid=1254736177088",
+  }, {
+    nom: "Idescat — indicadors municipals (EMEX)",
+    detall: "Índice socioeconómico territorial (base 100 = Cataluña), paro registrado, nivel de estudios, régimen de tenencia, recogida selectiva y turismos por mil habitantes.",
+    url: "https://www.idescat.cat/emex/",
+  }] : []),
 ];
 
 /* ---------------------------------------------------------------------------
@@ -253,6 +311,8 @@ console.log(`  con alquiler €/mes    ${has("lloguer_eur_mes")}`);
 console.log(`  con alquiler €/m²     ${has("lloguer_eur_m2")}`);
 console.log(`  con tren/metro        ${has("tren")}`);
 console.log(`  con tiempos en coche  ${has("temps")}`);
+console.log(`  con transporte púb.   ${has("transit")}`);
+console.log(`  con renta/indicadores ${has("ind")}`);
 console.log(`  estaciones fuera de todo municipio: ${sinMunicipi} de ${estacions.length}`);
 console.log(`  tamaño                ${size("pisos-bcn.json")}`);
 console.log(`── municipis-geo.json ──────────────────────────`);

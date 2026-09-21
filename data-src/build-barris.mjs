@@ -29,6 +29,24 @@ const compra  = read("compra-bcn-barris.json");
 const lloguer = read("lloguer-bcn-barris.json");
 const pois    = read("pois.json");
 const poblacio = readOpt("bcn-barris-poblacio.json");
+const transit  = readOpt("transit.json");
+const indicRaw = readOpt("indicadors-barris.json");
+
+/** Mismo subconjunto que la vista municipal, menos lo que el INE no desagrega a
+ *  barrio (gini y p80_p20 vienen a null en el fichero crudo) y menos los
+ *  indicadores de Idescat, que solo existen por municipio. */
+const IND_CAMPS = [
+  "renda_llar_eur", "renda_persona_eur", "edat_mitjana", "pct_menors_18",
+  "pct_65_mes", "mida_mitjana_llar", "pct_llars_unipersonals", "pct_poblacio_espanyola",
+];
+const indicMap = new Map();
+for (const v of indicRaw?.barris || []) {
+  const o = {};
+  for (const c of IND_CAMPS) if (v[c] != null) o[c] = v[c];
+  indicMap.set(String(v.codi_barri).padStart(2, "0"), Object.keys(o).length ? o : null);
+}
+const transitMap = new Map();
+for (const [k, v] of Object.entries(transit?.barris || {})) transitMap.set(String(k).padStart(2, "0"), v);
 
 const pad2 = (v) => String(v ?? "").replace(/\D/g, "").padStart(2, "0").slice(-2);
 const num = (v) => {
@@ -101,6 +119,9 @@ const rows = geo.features.map(f => {
     lloguer_contractes: num(L.nombre_contractes),
     tren: null, estacions: 0,                    // se rellenan abajo
     temps: null,
+    transit: transitMap.get(codi)?.destins || null,
+    sortides: transitMap.get(codi)?.sortides_hora_punta ?? null,
+    ind: indicMap.get(codi) || null,
   };
 });
 
@@ -197,7 +218,23 @@ const payload = {
       { nom: "OpenStreetMap / OSRM",
         detall: "Estaciones y tiempos de conducción en flujo libre.",
         url: "https://www.openstreetmap.org/copyright" },
+      ...(transit ? [{
+        nom: "MOTIS / Transitous — tiempos en transporte público",
+        detall: transit.meta?.metode || "Encaminamiento multimodal sobre los GTFS oficiales.",
+        url: transit.meta?.font || "https://transitous.org/" }] : []),
+      ...(indicRaw ? [{
+        nom: "INE — Atlas de distribución de renta de los hogares (ADRH)",
+        detall: "Renta y estructura demográfica agregadas desde las secciones censales de cada barrio, ponderando por población. El INE no publica el índice de Gini a este nivel.",
+        url: "https://www.ine.es/dyngs/INEbase/es/operacion.htm?c=Estadistica_C&cid=1254736177088" }] : []),
     ],
+    casa: null,                 // Castelldefels no está en esta vista
+    transit: transit ? {
+      hora: transit.meta?.hora_referencia || null,
+      destins: Object.keys(transit.meta?.destins || {}),
+      limitacions: transit.meta?.limitacions || null,
+      hora_punta: transit.meta?.hora_punta || null,
+    } : null,
+    indicadors_any: indicRaw?.meta?.any ?? "2023",
   },
   pois,
   municipis: rows,

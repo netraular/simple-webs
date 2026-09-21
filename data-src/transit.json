@@ -1,0 +1,4895 @@
+{
+ "meta": {
+  "metode": "Encaminament multimodal porta a porta amb MOTIS sobre els GTFS oficials (Rodalies de Catalunya/Renfe, FGC, TMB metro i bus, TRAM, busos interurbans de la Generalitat), servit per la instancia publica de Transitous. Cami a peu a 4,5 km/h als dos extrems, maxim 30 min de cami abans de la primera parada i despres de l'ultima. Nomes horari programat, sense temps real.",
+  "font": "https://api.transitous.org/api/v1/plan (MOTIS / Transitous)",
+  "hora_referencia": "arribada a les 09:00 de dimarts 2026-09-22 (hora local CEST, UTC+2); dia feiner sense festius",
+  "hora_punta": "sortides_hora_punta = nombre de sortides diferents de transport public entre les 07:00 i les 09:00 locals que porten a placa de Catalunya en un trajecte optim de Pareto (sortir mes tard / arribar mes aviat). Mesura la frequencia util, no el total de circulacions.",
+  "destins": {
+   "roche-sant-cugat": {
+    "lat": 41.492364,
+    "lon": 2.058228
+   },
+   "pl-catalunya": {
+    "lat": 41.387,
+    "lon": 2.1701
+   },
+   "sants": {
+    "lat": 41.3792,
+    "lon": 2.14
+   }
+  },
+  "generat": "2026-09-21",
+  "limitacions": "Horari teoric, no temps real. El temps es de portal a portal amb l'espera als transbords inclosa, pero NO l'espera a casa abans de sortir. Les coordenades d'origen son el punt central del municipi o del barri, que en municipis grans o disseminats pot quedar lluny de l'estacio. null = el router no troba cap trajecte raonable en transport public."
+ },
+ "municipis": {
+  "08019": {
+   "nom": "Barcelona",
+   "sortides_hora_punta": 31,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 58,
+     "transbords": 2,
+     "modes": [
+      "Metro",
+      "FGC",
+      "Bus"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 11,
+     "transbords": 0,
+     "modes": [
+      "A peu"
+     ]
+    },
+    "sants": {
+     "min": 18,
+     "transbords": 1,
+     "modes": [
+      "Metro",
+      "Rodalies"
+     ]
+    }
+   }
+  },
+  "08194": {
+   "nom": "Sant Adrià de Besòs",
+   "sortides_hora_punta": 54,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 78,
+     "transbords": 3,
+     "modes": [
+      "Bus",
+      "Metro",
+      "FGC"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 30,
+     "transbords": 2,
+     "modes": [
+      "Bus",
+      "Metro",
+      "Rodalies"
+     ]
+    },
+    "sants": {
+     "min": 39,
+     "transbords": 2,
+     "modes": [
+      "Bus",
+      "Metro"
+     ]
+    }
+   }
+  },
+  "08101": {
+   "nom": "l'Hospitalet de Llobregat",
+   "sortides_hora_punta": 27,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 70,
+     "transbords": 4,
+     "modes": [
+      "Metro",
+      "Bus",
+      "FGC"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 28,
+     "transbords": 0,
+     "modes": [
+      "Metro"
+     ]
+    },
+    "sants": {
+     "min": 20,
+     "transbords": 0,
+     "modes": [
+      "Rodalies"
+     ]
+    }
+   }
+  },
+  "08077": {
+   "nom": "Esplugues de Llobregat",
+   "sortides_hora_punta": 54,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 64,
+     "transbords": 3,
+     "modes": [
+      "Bus",
+      "FGC"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 32,
+     "transbords": 2,
+     "modes": [
+      "Tren",
+      "Metro"
+     ]
+    },
+    "sants": {
+     "min": 21,
+     "transbords": 1,
+     "modes": [
+      "Tren",
+      "Metro"
+     ]
+    }
+   }
+  },
+  "08245": {
+   "nom": "Santa Coloma de Gramenet",
+   "sortides_hora_punta": 39,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 66,
+     "transbords": 3,
+     "modes": [
+      "Metro",
+      "Bus",
+      "FGC"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 27,
+     "transbords": 1,
+     "modes": [
+      "Metro",
+      "Rodalies"
+     ]
+    },
+    "sants": {
+     "min": 35,
+     "transbords": 1,
+     "modes": [
+      "Metro"
+     ]
+    }
+   }
+  },
+  "08221": {
+   "nom": "Sant Just Desvern",
+   "sortides_hora_punta": 36,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 73,
+     "transbords": 3,
+     "modes": [
+      "Bus",
+      "FGC"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 44,
+     "transbords": 1,
+     "modes": [
+      "Bus",
+      "Rodalies"
+     ]
+    },
+    "sants": {
+     "min": 39,
+     "transbords": 2,
+     "modes": [
+      "Bus",
+      "Tren",
+      "Metro"
+     ]
+    }
+   }
+  },
+  "08169": {
+   "nom": "el Prat de Llobregat",
+   "sortides_hora_punta": 31,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 74,
+     "transbords": 4,
+     "modes": [
+      "Bus",
+      "Metro",
+      "FGC"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 33,
+     "transbords": 0,
+     "modes": [
+      "Bus"
+     ]
+    },
+    "sants": {
+     "min": 25,
+     "transbords": 1,
+     "modes": [
+      "Bus",
+      "Rodalies"
+     ]
+    }
+   }
+  },
+  "08073": {
+   "nom": "Cornellà de Llobregat",
+   "sortides_hora_punta": 14,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 71,
+     "transbords": 2,
+     "modes": [
+      "Metro",
+      "FGC",
+      "Bus"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 21,
+     "transbords": 0,
+     "modes": [
+      "Rodalies"
+     ]
+    },
+    "sants": {
+     "min": 22,
+     "transbords": 0,
+     "modes": [
+      "Metro"
+     ]
+    }
+   }
+  },
+  "08015": {
+   "nom": "Badalona",
+   "sortides_hora_punta": 48,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 78,
+     "transbords": 4,
+     "modes": [
+      "Bus",
+      "Metro",
+      "FGC"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 31,
+     "transbords": 1,
+     "modes": [
+      "Bus",
+      "Rodalies"
+     ]
+    },
+    "sants": {
+     "min": 42,
+     "transbords": 1,
+     "modes": [
+      "Metro"
+     ]
+    }
+   }
+  },
+  "08217": {
+   "nom": "Sant Joan Despí",
+   "sortides_hora_punta": 7,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 76,
+     "transbords": 3,
+     "modes": [
+      "Rodalies",
+      "Bus",
+      "FGC"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 26,
+     "transbords": 0,
+     "modes": [
+      "Rodalies"
+     ]
+    },
+    "sants": {
+     "min": 24,
+     "transbords": 0,
+     "modes": [
+      "Rodalies"
+     ]
+    }
+   }
+  },
+  "08211": {
+   "nom": "Sant Feliu de Llobregat",
+   "sortides_hora_punta": 15,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 75,
+     "transbords": 3,
+     "modes": [
+      "Rodalies",
+      "Bus",
+      "FGC"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 34,
+     "transbords": 0,
+     "modes": [
+      "Rodalies"
+     ]
+    },
+    "sants": {
+     "min": 32,
+     "transbords": 0,
+     "modes": [
+      "Rodalies"
+     ]
+    }
+   }
+  },
+  "08125": {
+   "nom": "Montcada i Reixac",
+   "sortides_hora_punta": 22,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 64,
+     "transbords": 3,
+     "modes": [
+      "Rodalies",
+      "Bus",
+      "FGC"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 34,
+     "transbords": 0,
+     "modes": [
+      "Rodalies"
+     ]
+    },
+    "sants": {
+     "min": 33,
+     "transbords": 0,
+     "modes": [
+      "Rodalies"
+     ]
+    }
+   }
+  },
+  "08200": {
+   "nom": "Sant Boi de Llobregat",
+   "sortides_hora_punta": 30,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 81,
+     "transbords": 5,
+     "modes": [
+      "FGC",
+      "Bus",
+      "Metro"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 39,
+     "transbords": 1,
+     "modes": [
+      "FGC",
+      "Metro"
+     ]
+    },
+    "sants": {
+     "min": 31,
+     "transbords": 2,
+     "modes": [
+      "Bus",
+      "FGC",
+      "Rodalies"
+     ]
+    }
+   }
+  },
+  "08205": {
+   "nom": "Sant Cugat del Vallès",
+   "sortides_hora_punta": 52,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 31,
+     "transbords": 1,
+     "modes": [
+      "FGC",
+      "Bus"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 49,
+     "transbords": 0,
+     "modes": [
+      "FGC"
+     ]
+    },
+    "sants": {
+     "min": 50,
+     "transbords": 1,
+     "modes": [
+      "FGC",
+      "Metro"
+     ]
+    }
+   }
+  },
+  "08266": {
+   "nom": "Cerdanyola del Vallès",
+   "sortides_hora_punta": 18,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 47,
+     "transbords": 2,
+     "modes": [
+      "Bus",
+      "FGC"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 38,
+     "transbords": 0,
+     "modes": [
+      "Rodalies"
+     ]
+    },
+    "sants": {
+     "min": 46,
+     "transbords": 0,
+     "modes": [
+      "Rodalies"
+     ]
+    }
+   }
+  },
+  "08180": {
+   "nom": "Ripollet",
+   "sortides_hora_punta": 24,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 62,
+     "transbords": 2,
+     "modes": [
+      "Bus",
+      "FGC"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 43,
+     "transbords": 0,
+     "modes": [
+      "Rodalies"
+     ]
+    },
+    "sants": {
+     "min": 46,
+     "transbords": 1,
+     "modes": [
+      "Bus",
+      "Metro"
+     ]
+    }
+   }
+  },
+  "08126": {
+   "nom": "Montgat",
+   "sortides_hora_punta": 27,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 85,
+     "transbords": 3,
+     "modes": [
+      "Bus",
+      "Rodalies",
+      "FGC"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 29,
+     "transbords": 1,
+     "modes": [
+      "Bus",
+      "Rodalies"
+     ]
+    },
+    "sants": {
+     "min": 40,
+     "transbords": 1,
+     "modes": [
+      "Bus",
+      "Rodalies"
+     ]
+    }
+   }
+  },
+  "08244": {
+   "nom": "Santa Coloma de Cervelló",
+   "sortides_hora_punta": 21,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 89,
+     "transbords": 4,
+     "modes": [
+      "FGC",
+      "Bus"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 51,
+     "transbords": 1,
+     "modes": [
+      "FGC",
+      "Metro"
+     ]
+    },
+    "sants": {
+     "min": 40,
+     "transbords": 2,
+     "modes": [
+      "Bus",
+      "FGC",
+      "Rodalies"
+     ]
+    }
+   }
+  },
+  "08123": {
+   "nom": "Molins de Rei",
+   "sortides_hora_punta": 7,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 54,
+     "transbords": 2,
+     "modes": [
+      "Bus",
+      "FGC"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 43,
+     "transbords": 1,
+     "modes": [
+      "Bus",
+      "Rodalies"
+     ]
+    },
+    "sants": {
+     "min": 41,
+     "transbords": 1,
+     "modes": [
+      "Bus",
+      "Rodalies"
+     ]
+    }
+   }
+  },
+  "08263": {
+   "nom": "Sant Vicenç dels Horts",
+   "sortides_hora_punta": 29,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 80,
+     "transbords": 3,
+     "modes": [
+      "Bus",
+      "FGC"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 51,
+     "transbords": 2,
+     "modes": [
+      "Bus",
+      "FGC",
+      "Metro"
+     ]
+    },
+    "sants": {
+     "min": 41,
+     "transbords": 2,
+     "modes": [
+      "Bus",
+      "FGC",
+      "Rodalies"
+     ]
+    }
+   }
+  },
+  "08282": {
+   "nom": "Tiana",
+   "sortides_hora_punta": 9,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 99,
+     "transbords": 3,
+     "modes": [
+      "Bus",
+      "Rodalies",
+      "FGC"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 49,
+     "transbords": 1,
+     "modes": [
+      "Bus",
+      "Rodalies"
+     ]
+    },
+    "sants": {
+     "min": 57,
+     "transbords": 1,
+     "modes": [
+      "Bus",
+      "Rodalies"
+     ]
+    }
+   }
+  },
+  "08105": {
+   "nom": "la Llagosta",
+   "sortides_hora_punta": 18,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 78,
+     "transbords": 4,
+     "modes": [
+      "Rodalies",
+      "Metro",
+      "Bus",
+      "FGC"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 40,
+     "transbords": 0,
+     "modes": [
+      "Rodalies"
+     ]
+    },
+    "sants": {
+     "min": 39,
+     "transbords": 0,
+     "modes": [
+      "Rodalies"
+     ]
+    }
+   }
+  },
+  "08904": {
+   "nom": "Badia del Vallès",
+   "sortides_hora_punta": 17,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 44,
+     "transbords": 1,
+     "modes": [
+      "FGC",
+      "Bus"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 46,
+     "transbords": 0,
+     "modes": [
+      "Rodalies"
+     ]
+    },
+    "sants": {
+     "min": 54,
+     "transbords": 0,
+     "modes": [
+      "Rodalies"
+     ]
+    }
+   }
+  },
+  "08158": {
+   "nom": "el Papiol",
+   "sortides_hora_punta": 12,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 75,
+     "transbords": 3,
+     "modes": [
+      "Rodalies",
+      "Bus",
+      "FGC"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 42,
+     "transbords": 1,
+     "modes": [
+      "Bus",
+      "Rodalies"
+     ]
+    },
+    "sants": {
+     "min": 40,
+     "transbords": 1,
+     "modes": [
+      "Bus",
+      "Rodalies"
+     ]
+    }
+   }
+  },
+  "08301": {
+   "nom": "Viladecans",
+   "sortides_hora_punta": 34,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 71,
+     "transbords": 2,
+     "modes": [
+      "Bus",
+      "FGC"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 47,
+     "transbords": 1,
+     "modes": [
+      "Bus",
+      "Metro"
+     ]
+    },
+    "sants": {
+     "min": 32,
+     "transbords": 1,
+     "modes": [
+      "Bus",
+      "Rodalies"
+     ]
+    }
+   }
+  },
+  "08252": {
+   "nom": "Barberà del Vallès",
+   "sortides_hora_punta": 19,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 66,
+     "transbords": 2,
+     "modes": [
+      "Rodalies",
+      "FGC",
+      "Bus"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 41,
+     "transbords": 0,
+     "modes": [
+      "Rodalies"
+     ]
+    },
+    "sants": {
+     "min": 49,
+     "transbords": 0,
+     "modes": [
+      "Rodalies"
+     ]
+    }
+   }
+  },
+  "08157": {
+   "nom": "Pallejà",
+   "sortides_hora_punta": 17,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 74,
+     "transbords": 4,
+     "modes": [
+      "FGC",
+      "Bus"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 50,
+     "transbords": 1,
+     "modes": [
+      "FGC",
+      "Metro"
+     ]
+    },
+    "sants": {
+     "min": 49,
+     "transbords": 0,
+     "modes": [
+      "FGC"
+     ]
+    }
+   }
+  },
+  "08204": {
+   "nom": "Sant Climent de Llobregat",
+   "sortides_hora_punta": 4,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 105,
+     "transbords": 3,
+     "modes": [
+      "Bus",
+      "Rodalies",
+      "FGC"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 66,
+     "transbords": 1,
+     "modes": [
+      "Bus",
+      "Rodalies"
+     ]
+    },
+    "sants": {
+     "min": 72,
+     "transbords": 1,
+     "modes": [
+      "Bus",
+      "Rodalies"
+     ]
+    }
+   }
+  },
+  "08209": {
+   "nom": "Sant Fost de Campsentelles",
+   "sortides_hora_punta": 7,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 106,
+     "transbords": 3,
+     "modes": [
+      "Bus",
+      "FGC"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 58,
+     "transbords": 1,
+     "modes": [
+      "Bus",
+      "Rodalies"
+     ]
+    },
+    "sants": {
+     "min": 57,
+     "transbords": 1,
+     "modes": [
+      "Bus",
+      "Rodalies"
+     ]
+    }
+   }
+  },
+  "08003": {
+   "nom": "Alella",
+   "sortides_hora_punta": 12,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 89,
+     "transbords": 3,
+     "modes": [
+      "Bus",
+      "Metro",
+      "FGC"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 42,
+     "transbords": 1,
+     "modes": [
+      "Bus"
+     ]
+    },
+    "sants": {
+     "min": 45,
+     "transbords": 3,
+     "modes": [
+      "Bus",
+      "Metro",
+      "Rodalies"
+     ]
+    }
+   }
+  },
+  "08118": {
+   "nom": "el Masnou",
+   "sortides_hora_punta": 17,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 90,
+     "transbords": 2,
+     "modes": [
+      "Rodalies",
+      "FGC",
+      "Bus"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 37,
+     "transbords": 0,
+     "modes": [
+      "Rodalies"
+     ]
+    },
+    "sants": {
+     "min": 45,
+     "transbords": 0,
+     "modes": [
+      "Rodalies"
+     ]
+    }
+   }
+  },
+  "08289": {
+   "nom": "Torrelles de Llobregat",
+   "sortides_hora_punta": 8,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 93,
+     "transbords": 5,
+     "modes": [
+      "Bus",
+      "FGC"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 73,
+     "transbords": 2,
+     "modes": [
+      "Bus",
+      "FGC",
+      "Metro"
+     ]
+    },
+    "sants": {
+     "min": 56,
+     "transbords": 2,
+     "modes": [
+      "Bus",
+      "FGC",
+      "Rodalies"
+     ]
+    }
+   }
+  },
+  "08256": {
+   "nom": "Santa Maria de Martorelles",
+   "sortides_hora_punta": 3,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 123,
+     "transbords": 3,
+     "modes": [
+      "Bus",
+      "FGC"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 84,
+     "transbords": 1,
+     "modes": [
+      "Bus",
+      "Rodalies"
+     ]
+    },
+    "sants": {
+     "min": 83,
+     "transbords": 1,
+     "modes": [
+      "Bus",
+      "Rodalies"
+     ]
+    }
+   }
+  },
+  "08184": {
+   "nom": "Rubí",
+   "sortides_hora_punta": 25,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 35,
+     "transbords": 0,
+     "modes": [
+      "A peu"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 58,
+     "transbords": 0,
+     "modes": [
+      "FGC"
+     ]
+    },
+    "sants": {
+     "min": 62,
+     "transbords": 1,
+     "modes": [
+      "FGC",
+      "Metro"
+     ]
+    }
+   }
+  },
+  "08260": {
+   "nom": "Santa Perpètua de Mogoda",
+   "sortides_hora_punta": 14,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 79,
+     "transbords": 4,
+     "modes": [
+      "Bus",
+      "FGC"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 52,
+     "transbords": 2,
+     "modes": [
+      "Bus",
+      "Metro",
+      "Rodalies"
+     ]
+    },
+    "sants": {
+     "min": 59,
+     "transbords": 1,
+     "modes": [
+      "Bus",
+      "Metro"
+     ]
+    }
+   }
+  },
+  "08115": {
+   "nom": "Martorelles",
+   "sortides_hora_punta": 5,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 119,
+     "transbords": 3,
+     "modes": [
+      "Bus",
+      "Metro",
+      "FGC"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 64,
+     "transbords": 1,
+     "modes": [
+      "Bus",
+      "Rodalies"
+     ]
+    },
+    "sants": {
+     "min": 63,
+     "transbords": 1,
+     "modes": [
+      "Bus",
+      "Rodalies"
+     ]
+    }
+   }
+  },
+  "08089": {
+   "nom": "Gavà",
+   "sortides_hora_punta": 24,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 84,
+     "transbords": 3,
+     "modes": [
+      "Rodalies",
+      "Metro",
+      "FGC",
+      "Bus"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 44,
+     "transbords": 1,
+     "modes": [
+      "Bus",
+      "Rodalies"
+     ]
+    },
+    "sants": {
+     "min": 35,
+     "transbords": 0,
+     "modes": [
+      "Rodalies"
+     ]
+    }
+   }
+  },
+  "08905": {
+   "nom": "la Palma de Cervelló",
+   "sortides_hora_punta": 14,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 83,
+     "transbords": 3,
+     "modes": [
+      "Bus",
+      "FGC"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 59,
+     "transbords": 1,
+     "modes": [
+      "Bus"
+     ]
+    },
+    "sants": {
+     "min": 63,
+     "transbords": 1,
+     "modes": [
+      "Bus",
+      "Metro"
+     ]
+    }
+   }
+  },
+  "08124": {
+   "nom": "Mollet del Vallès",
+   "sortides_hora_punta": 17,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 70,
+     "transbords": 2,
+     "modes": [
+      "Bus",
+      "FGC"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 47,
+     "transbords": 1,
+     "modes": [
+      "Bus",
+      "Metro"
+     ]
+    },
+    "sants": {
+     "min": 47,
+     "transbords": 0,
+     "modes": [
+      "Rodalies"
+     ]
+    }
+   }
+  },
+  "08196": {
+   "nom": "Sant Andreu de la Barca",
+   "sortides_hora_punta": 17,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 79,
+     "transbords": 4,
+     "modes": [
+      "FGC",
+      "Bus"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 55,
+     "transbords": 1,
+     "modes": [
+      "FGC",
+      "Metro"
+     ]
+    },
+    "sants": {
+     "min": 43,
+     "transbords": 1,
+     "modes": [
+      "FGC",
+      "Rodalies"
+     ]
+    }
+   }
+  },
+  "08068": {
+   "nom": "Cervelló",
+   "sortides_hora_punta": 8,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 97,
+     "transbords": 3,
+     "modes": [
+      "Bus",
+      "FGC"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 55,
+     "transbords": 1,
+     "modes": [
+      "Bus",
+      "Rodalies"
+     ]
+    },
+    "sants": {
+     "min": 66,
+     "transbords": 1,
+     "modes": [
+      "Bus",
+      "Metro"
+     ]
+    }
+   }
+  },
+  "08281": {
+   "nom": "Teià",
+   "sortides_hora_punta": 13,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 115,
+     "transbords": 2,
+     "modes": [
+      "Bus",
+      "FGC"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 60,
+     "transbords": 1,
+     "modes": [
+      "Bus",
+      "Rodalies"
+     ]
+    },
+    "sants": {
+     "min": 66,
+     "transbords": 2,
+     "modes": [
+      "Bus",
+      "Metro",
+      "Rodalies"
+     ]
+    }
+   }
+  },
+  "08238": {
+   "nom": "Sant Quirze del Vallès",
+   "sortides_hora_punta": 25,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 35,
+     "transbords": 1,
+     "modes": [
+      "FGC",
+      "Bus"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 63,
+     "transbords": 0,
+     "modes": [
+      "FGC"
+     ]
+    },
+    "sants": {
+     "min": 64,
+     "transbords": 1,
+     "modes": [
+      "FGC",
+      "Metro"
+     ]
+    }
+   }
+  },
+  "08187": {
+   "nom": "Sabadell",
+   "sortides_hora_punta": 16,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 32,
+     "transbords": 1,
+     "modes": [
+      "FGC",
+      "Bus"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 48,
+     "transbords": 0,
+     "modes": [
+      "Rodalies"
+     ]
+    },
+    "sants": {
+     "min": 56,
+     "transbords": 0,
+     "modes": [
+      "Rodalies"
+     ]
+    }
+   }
+  },
+  "08054": {
+   "nom": "Castellbisbal",
+   "sortides_hora_punta": 11,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 67,
+     "transbords": 3,
+     "modes": [
+      "Bus",
+      "FGC"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 56,
+     "transbords": 1,
+     "modes": [
+      "Bus",
+      "Rodalies"
+     ]
+    },
+    "sants": {
+     "min": 54,
+     "transbords": 1,
+     "modes": [
+      "Bus",
+      "Rodalies"
+     ]
+    }
+   }
+  },
+  "08167": {
+   "nom": "Polinyà",
+   "sortides_hora_punta": 13,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 71,
+     "transbords": 3,
+     "modes": [
+      "Bus",
+      "FGC"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 65,
+     "transbords": 2,
+     "modes": [
+      "Bus",
+      "Metro",
+      "Rodalies"
+     ]
+    },
+    "sants": {
+     "min": 80,
+     "transbords": 1,
+     "modes": [
+      "Bus",
+      "Metro"
+     ]
+    }
+   }
+  },
+  "08296": {
+   "nom": "Vallromanes",
+   "sortides_hora_punta": 1,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 121,
+     "transbords": 2,
+     "modes": [
+      "Bus",
+      "FGC"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 64,
+     "transbords": 0,
+     "modes": [
+      "Bus"
+     ]
+    },
+    "sants": {
+     "min": 73,
+     "transbords": 1,
+     "modes": [
+      "Bus",
+      "Rodalies"
+     ]
+    }
+   }
+  },
+  "08136": {
+   "nom": "Montornès del Vallès",
+   "sortides_hora_punta": 10,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 88,
+     "transbords": 5,
+     "modes": [
+      "Bus",
+      "Rodalies",
+      "Metro",
+      "FGC"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 50,
+     "transbords": 1,
+     "modes": [
+      "Bus",
+      "Rodalies"
+     ]
+    },
+    "sants": {
+     "min": 49,
+     "transbords": 1,
+     "modes": [
+      "Bus",
+      "Rodalies"
+     ]
+    }
+   }
+  },
+  "08135": {
+   "nom": "Montmeló",
+   "sortides_hora_punta": 9,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 85,
+     "transbords": 5,
+     "modes": [
+      "Bus",
+      "Rodalies",
+      "Metro",
+      "FGC"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 52,
+     "transbords": 1,
+     "modes": [
+      "Bus",
+      "Rodalies"
+     ]
+    },
+    "sants": {
+     "min": 51,
+     "transbords": 1,
+     "modes": [
+      "Bus",
+      "Rodalies"
+     ]
+    }
+   }
+  },
+  "08172": {
+   "nom": "Premià de Mar",
+   "sortides_hora_punta": 15,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 95,
+     "transbords": 4,
+     "modes": [
+      "Bus",
+      "Metro",
+      "FGC"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 46,
+     "transbords": 0,
+     "modes": [
+      "Rodalies"
+     ]
+    },
+    "sants": {
+     "min": 54,
+     "transbords": 0,
+     "modes": [
+      "Rodalies"
+     ]
+    }
+   }
+  },
+  "08230": {
+   "nom": "Premià de Dalt",
+   "sortides_hora_punta": 17,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 109,
+     "transbords": 3,
+     "modes": [
+      "Bus",
+      "Metro",
+      "FGC"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 69,
+     "transbords": 0,
+     "modes": [
+      "Bus"
+     ]
+    },
+    "sants": {
+     "min": 75,
+     "transbords": 1,
+     "modes": [
+      "Bus",
+      "Rodalies"
+     ]
+    }
+   }
+  },
+  "08295": {
+   "nom": "Vallirana",
+   "sortides_hora_punta": 6,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 109,
+     "transbords": 3,
+     "modes": [
+      "Bus",
+      "FGC"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 67,
+     "transbords": 1,
+     "modes": [
+      "Bus",
+      "Rodalies"
+     ]
+    },
+    "sants": {
+     "min": 78,
+     "transbords": 1,
+     "modes": [
+      "Bus",
+      "Metro"
+     ]
+    }
+   }
+  },
+  "08056": {
+   "nom": "Castelldefels",
+   "sortides_hora_punta": 15,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 82,
+     "transbords": 3,
+     "modes": [
+      "Rodalies",
+      "Metro",
+      "FGC",
+      "Bus"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 43,
+     "transbords": 0,
+     "modes": [
+      "Rodalies"
+     ]
+    },
+    "sants": {
+     "min": 33,
+     "transbords": 0,
+     "modes": [
+      "Rodalies"
+     ]
+    }
+   }
+  },
+  "08072": {
+   "nom": "Corbera de Llobregat",
+   "sortides_hora_punta": 12,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 102,
+     "transbords": 3,
+     "modes": [
+      "Bus",
+      "FGC"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 71,
+     "transbords": 1,
+     "modes": [
+      "Bus",
+      "Rodalies"
+     ]
+    },
+    "sants": {
+     "min": 69,
+     "transbords": 1,
+     "modes": [
+      "Bus",
+      "Rodalies"
+     ]
+    }
+   }
+  },
+  "08902": {
+   "nom": "Vilanova del Vallès",
+   "sortides_hora_punta": 4,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 117,
+     "transbords": 2,
+     "modes": [
+      "Bus",
+      "Rodalies"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 61,
+     "transbords": 1,
+     "modes": [
+      "Bus",
+      "Rodalies"
+     ]
+    },
+    "sants": {
+     "min": 60,
+     "transbords": 1,
+     "modes": [
+      "Bus",
+      "Rodalies"
+     ]
+    }
+   }
+  },
+  "08214": {
+   "nom": "Vilassar de Dalt",
+   "sortides_hora_punta": 9,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 88,
+     "transbords": 3,
+     "modes": [
+      "Bus",
+      "Metro",
+      "FGC"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 51,
+     "transbords": 0,
+     "modes": [
+      "Bus"
+     ]
+    },
+    "sants": {
+     "min": 60,
+     "transbords": 1,
+     "modes": [
+      "Bus",
+      "Rodalies"
+     ]
+    }
+   }
+  },
+  "08159": {
+   "nom": "Parets del Vallès",
+   "sortides_hora_punta": 11,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 86,
+     "transbords": 2,
+     "modes": [
+      "Bus",
+      "FGC"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 49,
+     "transbords": 1,
+     "modes": [
+      "Bus",
+      "Metro"
+     ]
+    },
+    "sants": {
+     "min": 49,
+     "transbords": 1,
+     "modes": [
+      "Bus",
+      "Metro"
+     ]
+    }
+   }
+  },
+  "08020": {
+   "nom": "Begues",
+   "sortides_hora_punta": 5,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 105,
+     "transbords": 4,
+     "modes": [
+      "Bus",
+      "Rodalies",
+      "Metro",
+      "FGC"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 71,
+     "transbords": 2,
+     "modes": [
+      "Bus",
+      "Rodalies"
+     ]
+    },
+    "sants": {
+     "min": 77,
+     "transbords": 1,
+     "modes": [
+      "Bus",
+      "Rodalies"
+     ]
+    }
+   }
+  },
+  "08114": {
+   "nom": "Martorell",
+   "sortides_hora_punta": 14,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 81,
+     "transbords": 3,
+     "modes": [
+      "Rodalies",
+      "Bus",
+      "FGC"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 54,
+     "transbords": 1,
+     "modes": [
+      "Bus",
+      "Rodalies"
+     ]
+    },
+    "sants": {
+     "min": 57,
+     "transbords": 0,
+     "modes": [
+      "Rodalies"
+     ]
+    }
+   }
+  },
+  "08156": {
+   "nom": "Palau-solità i Plegamans",
+   "sortides_hora_punta": 11,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 94,
+     "transbords": 2,
+     "modes": [
+      "Bus",
+      "FGC"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 47,
+     "transbords": 1,
+     "modes": [
+      "Bus",
+      "Rodalies"
+     ]
+    },
+    "sants": {
+     "min": 65,
+     "transbords": 2,
+     "modes": [
+      "Bus",
+      "Metro"
+     ]
+    }
+   }
+  },
+  "08219": {
+   "nom": "Vilassar de Mar",
+   "sortides_hora_punta": 15,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 96,
+     "transbords": 2,
+     "modes": [
+      "Rodalies",
+      "FGC",
+      "Bus"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 43,
+     "transbords": 0,
+     "modes": [
+      "Rodalies"
+     ]
+    },
+    "sants": {
+     "min": 51,
+     "transbords": 0,
+     "modes": [
+      "Rodalies"
+     ]
+    }
+   }
+  },
+  "08030": {
+   "nom": "Cabrils",
+   "sortides_hora_punta": 10,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 91,
+     "transbords": 3,
+     "modes": [
+      "Bus",
+      "Metro",
+      "FGC"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 67,
+     "transbords": 0,
+     "modes": [
+      "Bus"
+     ]
+    },
+    "sants": {
+     "min": 64,
+     "transbords": 1,
+     "modes": [
+      "Bus",
+      "Rodalies"
+     ]
+    }
+   }
+  },
+  "08108": {
+   "nom": "Lliçà de Vall",
+   "sortides_hora_punta": 10,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 84,
+     "transbords": 2,
+     "modes": [
+      "Bus",
+      "FGC"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 52,
+     "transbords": 1,
+     "modes": [
+      "Bus",
+      "Metro"
+     ]
+    },
+    "sants": {
+     "min": 52,
+     "transbords": 1,
+     "modes": [
+      "Bus",
+      "Metro"
+     ]
+    }
+   }
+  },
+  "08066": {
+   "nom": "Castellví de Rosanes",
+   "sortides_hora_punta": 3,
+   "destins": {
+    "roche-sant-cugat": null,
+    "pl-catalunya": null,
+    "sants": null
+   }
+  },
+  "08290": {
+   "nom": "Ullastrell",
+   "sortides_hora_punta": 1,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 91,
+     "transbords": 3,
+     "modes": [
+      "Bus",
+      "FGC"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 86,
+     "transbords": 1,
+     "modes": [
+      "Bus",
+      "FGC"
+     ]
+    },
+    "sants": {
+     "min": 90,
+     "transbords": 2,
+     "modes": [
+      "Bus",
+      "FGC",
+      "Metro"
+     ]
+    }
+   }
+  },
+  "08279": {
+   "nom": "Terrassa",
+   "sortides_hora_punta": 29,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 49,
+     "transbords": 2,
+     "modes": [
+      "FGC",
+      "Bus"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 65,
+     "transbords": 0,
+     "modes": [
+      "FGC"
+     ]
+    },
+    "sants": {
+     "min": 69,
+     "transbords": 1,
+     "modes": [
+      "FGC",
+      "Metro"
+     ]
+    }
+   }
+  },
+  "08029": {
+   "nom": "Cabrera de Mar",
+   "sortides_hora_punta": 7,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 112,
+     "transbords": 3,
+     "modes": [
+      "Bus",
+      "Rodalies",
+      "FGC"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 52,
+     "transbords": 1,
+     "modes": [
+      "Bus",
+      "Rodalies"
+     ]
+    },
+    "sants": {
+     "min": 81,
+     "transbords": 1,
+     "modes": [
+      "Bus",
+      "Metro"
+     ]
+    }
+   }
+  },
+  "08153": {
+   "nom": "Òrrius",
+   "sortides_hora_punta": 2,
+   "destins": {
+    "roche-sant-cugat": null,
+    "pl-catalunya": {
+     "min": 98,
+     "transbords": 1,
+     "modes": [
+      "Bus"
+     ]
+    },
+    "sants": {
+     "min": 107,
+     "transbords": 2,
+     "modes": [
+      "Bus",
+      "Metro"
+     ]
+    }
+   }
+  },
+  "08267": {
+   "nom": "Sentmenat",
+   "sortides_hora_punta": 7,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 69,
+     "transbords": 3,
+     "modes": [
+      "Bus",
+      "FGC"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 72,
+     "transbords": 2,
+     "modes": [
+      "Bus",
+      "Rodalies"
+     ]
+    },
+    "sants": {
+     "min": 71,
+     "transbords": 2,
+     "modes": [
+      "Bus",
+      "Metro"
+     ]
+    }
+   }
+  },
+  "08107": {
+   "nom": "Lliçà d'Amunt",
+   "sortides_hora_punta": 11,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 91,
+     "transbords": 2,
+     "modes": [
+      "Bus",
+      "FGC"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 60,
+     "transbords": 1,
+     "modes": [
+      "Bus",
+      "Metro"
+     ]
+    },
+    "sants": {
+     "min": 60,
+     "transbords": 1,
+     "modes": [
+      "Bus",
+      "Metro"
+     ]
+    }
+   }
+  },
+  "08181": {
+   "nom": "la Roca del Vallès",
+   "sortides_hora_punta": 8,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 100,
+     "transbords": 2,
+     "modes": [
+      "Bus",
+      "Rodalies"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 69,
+     "transbords": 1,
+     "modes": [
+      "Bus",
+      "Rodalies"
+     ]
+    },
+    "sants": {
+     "min": 68,
+     "transbords": 1,
+     "modes": [
+      "Bus",
+      "Rodalies"
+     ]
+    }
+   }
+  },
+  "08300": {
+   "nom": "Viladecavalls",
+   "sortides_hora_punta": 7,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 67,
+     "transbords": 3,
+     "modes": [
+      "Bus",
+      "FGC"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 72,
+     "transbords": 0,
+     "modes": [
+      "Rodalies"
+     ]
+    },
+    "sants": {
+     "min": 80,
+     "transbords": 0,
+     "modes": [
+      "Rodalies"
+     ]
+    }
+   }
+  },
+  "08120": {
+   "nom": "Matadepera",
+   "sortides_hora_punta": 4,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 72,
+     "transbords": 3,
+     "modes": [
+      "Bus",
+      "FGC"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 91,
+     "transbords": 1,
+     "modes": [
+      "Bus",
+      "FGC"
+     ]
+    },
+    "sants": {
+     "min": 92,
+     "transbords": 1,
+     "modes": [
+      "Bus",
+      "Rodalies"
+     ]
+    }
+   }
+  },
+  "08091": {
+   "nom": "Gelida",
+   "sortides_hora_punta": 8,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 84,
+     "transbords": 2,
+     "modes": [
+      "Bus",
+      "FGC"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 65,
+     "transbords": 1,
+     "modes": [
+      "Bus",
+      "Rodalies"
+     ]
+    },
+    "sants": {
+     "min": 83,
+     "transbords": 1,
+     "modes": [
+      "Bus"
+     ]
+    }
+   }
+  },
+  "08096": {
+   "nom": "Granollers",
+   "sortides_hora_punta": 18,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 95,
+     "transbords": 2,
+     "modes": [
+      "Bus",
+      "Rodalies"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 55,
+     "transbords": 1,
+     "modes": [
+      "Bus",
+      "Rodalies"
+     ]
+    },
+    "sants": {
+     "min": 54,
+     "transbords": 1,
+     "modes": [
+      "Bus",
+      "Rodalies"
+     ]
+    }
+   }
+  },
+  "08001": {
+   "nom": "Abrera",
+   "sortides_hora_punta": 16,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 84,
+     "transbords": 2,
+     "modes": [
+      "Bus",
+      "FGC"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 68,
+     "transbords": 2,
+     "modes": [
+      "Bus",
+      "Metro"
+     ]
+    },
+    "sants": {
+     "min": 51,
+     "transbords": 2,
+     "modes": [
+      "Bus",
+      "Metro"
+     ]
+    }
+   }
+  },
+  "08051": {
+   "nom": "Castellar del Vallès",
+   "sortides_hora_punta": 9,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 70,
+     "transbords": 2,
+     "modes": [
+      "Bus",
+      "FGC"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 78,
+     "transbords": 1,
+     "modes": [
+      "Bus",
+      "Rodalies"
+     ]
+    },
+    "sants": {
+     "min": 86,
+     "transbords": 1,
+     "modes": [
+      "Bus",
+      "Rodalies"
+     ]
+    }
+   }
+  },
+  "08009": {
+   "nom": "Argentona",
+   "sortides_hora_punta": 9,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 107,
+     "transbords": 3,
+     "modes": [
+      "Bus",
+      "FGC"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 64,
+     "transbords": 1,
+     "modes": [
+      "Bus",
+      "Rodalies"
+     ]
+    },
+    "sants": {
+     "min": 73,
+     "transbords": 2,
+     "modes": [
+      "Bus",
+      "Rodalies"
+     ]
+    }
+   }
+  },
+  "08146": {
+   "nom": "Olesa de Bonesvalls",
+   "sortides_hora_punta": 0,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 128,
+     "transbords": 4,
+     "modes": [
+      "Bus",
+      "Rodalies",
+      "Metro",
+      "FGC"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 119,
+     "transbords": 1,
+     "modes": [
+      "Bus",
+      "Rodalies"
+     ]
+    },
+    "sants": {
+     "min": 125,
+     "transbords": 1,
+     "modes": [
+      "Bus",
+      "Rodalies"
+     ]
+    }
+   }
+  },
+  "08208": {
+   "nom": "Sant Esteve Sesrovires",
+   "sortides_hora_punta": 5,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 106,
+     "transbords": 4,
+     "modes": [
+      "FGC",
+      "Bus"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 86,
+     "transbords": 1,
+     "modes": [
+      "FGC",
+      "Metro"
+     ]
+    },
+    "sants": {
+     "min": 63,
+     "transbords": 1,
+     "modes": [
+      "FGC",
+      "Rodalies"
+     ]
+    }
+   }
+  },
+  "08033": {
+   "nom": "Caldes de Montbui",
+   "sortides_hora_punta": 10,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 85,
+     "transbords": 3,
+     "modes": [
+      "Bus",
+      "FGC"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 60,
+     "transbords": 1,
+     "modes": [
+      "Bus",
+      "Rodalies"
+     ]
+    },
+    "sants": {
+     "min": 59,
+     "transbords": 1,
+     "modes": [
+      "Bus",
+      "Metro"
+     ]
+    }
+   }
+  },
+  "08041": {
+   "nom": "Canovelles",
+   "sortides_hora_punta": 8,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 113,
+     "transbords": 2,
+     "modes": [
+      "Bus",
+      "Rodalies"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 75,
+     "transbords": 1,
+     "modes": [
+      "Bus",
+      "Rodalies"
+     ]
+    },
+    "sants": {
+     "min": 74,
+     "transbords": 1,
+     "modes": [
+      "Bus",
+      "Rodalies"
+     ]
+    }
+   }
+  },
+  "08121": {
+   "nom": "Mataró",
+   "sortides_hora_punta": 17,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 102,
+     "transbords": 2,
+     "modes": [
+      "Bus",
+      "FGC"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 61,
+     "transbords": 0,
+     "modes": [
+      "Rodalies"
+     ]
+    },
+    "sants": {
+     "min": 68,
+     "transbords": 1,
+     "modes": [
+      "Bus",
+      "Rodalies"
+     ]
+    }
+   }
+  },
+  "08147": {
+   "nom": "Olesa de Montserrat",
+   "sortides_hora_punta": 13,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 104,
+     "transbords": 4,
+     "modes": [
+      "FGC",
+      "Rodalies",
+      "Bus"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 80,
+     "transbords": 2,
+     "modes": [
+      "Bus",
+      "Metro"
+     ]
+    },
+    "sants": {
+     "min": 68,
+     "transbords": 2,
+     "modes": [
+      "Bus",
+      "Metro"
+     ]
+    }
+   }
+  },
+  "08086": {
+   "nom": "les Franqueses del Vallès",
+   "sortides_hora_punta": 5,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 107,
+     "transbords": 3,
+     "modes": [
+      "Bus",
+      "FGC"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 60,
+     "transbords": 1,
+     "modes": [
+      "Bus",
+      "Rodalies"
+     ]
+    },
+    "sants": {
+     "min": 59,
+     "transbords": 1,
+     "modes": [
+      "Bus",
+      "Rodalies"
+     ]
+    }
+   }
+  },
+  "08248": {
+   "nom": "Santa Eulàlia de Ronçana",
+   "sortides_hora_punta": 9,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 101,
+     "transbords": 2,
+     "modes": [
+      "Bus",
+      "FGC"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 77,
+     "transbords": 2,
+     "modes": [
+      "Bus",
+      "Metro"
+     ]
+    },
+    "sants": {
+     "min": 77,
+     "transbords": 2,
+     "modes": [
+      "Bus",
+      "Metro"
+     ]
+    }
+   }
+  },
+  "08076": {
+   "nom": "Esparreguera",
+   "sortides_hora_punta": 6,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 84,
+     "transbords": 2,
+     "modes": [
+      "Bus",
+      "FGC"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 69,
+     "transbords": 2,
+     "modes": [
+      "Bus",
+      "Metro"
+     ]
+    },
+    "sants": {
+     "min": 53,
+     "transbords": 1,
+     "modes": [
+      "Bus",
+      "Metro"
+     ]
+    }
+   }
+  },
+  "08222": {
+   "nom": "Sant Llorenç d'Hortons",
+   "sortides_hora_punta": 5,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 109,
+     "transbords": 4,
+     "modes": [
+      "Bus",
+      "Rodalies",
+      "FGC"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 91,
+     "transbords": 1,
+     "modes": [
+      "Bus"
+     ]
+    },
+    "sants": {
+     "min": 87,
+     "transbords": 0,
+     "modes": [
+      "Bus"
+     ]
+    }
+   }
+  },
+  "08075": {
+   "nom": "Dosrius",
+   "sortides_hora_punta": 2,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 121,
+     "transbords": 3,
+     "modes": [
+      "Bus",
+      "FGC"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 91,
+     "transbords": 1,
+     "modes": [
+      "Bus",
+      "Rodalies"
+     ]
+    },
+    "sants": {
+     "min": 87,
+     "transbords": 2,
+     "modes": [
+      "Bus",
+      "Rodalies"
+     ]
+    }
+   }
+  },
+  "08148": {
+   "nom": "Olivella",
+   "sortides_hora_punta": 0,
+   "destins": {
+    "roche-sant-cugat": null,
+    "pl-catalunya": null,
+    "sants": null
+   }
+  },
+  "08273": {
+   "nom": "Subirats",
+   "sortides_hora_punta": 2,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 144,
+     "transbords": 3,
+     "modes": [
+      "Bus",
+      "Rodalies",
+      "FGC"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 118,
+     "transbords": 1,
+     "modes": [
+      "Bus",
+      "Rodalies"
+     ]
+    },
+    "sants": {
+     "min": 136,
+     "transbords": 1,
+     "modes": [
+      "Bus"
+     ]
+    }
+   }
+  },
+  "08046": {
+   "nom": "Cardedeu",
+   "sortides_hora_punta": 8,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 105,
+     "transbords": 2,
+     "modes": [
+      "Rodalies",
+      "FGC",
+      "Bus"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 57,
+     "transbords": 0,
+     "modes": [
+      "Rodalies"
+     ]
+    },
+    "sants": {
+     "min": 56,
+     "transbords": 0,
+     "modes": [
+      "Rodalies"
+     ]
+    }
+   }
+  }
+ },
+ "barris": {
+  "01": {
+   "nom": "el Raval",
+   "sortides_hora_punta": 33,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 59,
+     "transbords": 2,
+     "modes": [
+      "Metro",
+      "FGC",
+      "Bus"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 15,
+     "transbords": 0,
+     "modes": [
+      "Metro"
+     ]
+    },
+    "sants": {
+     "min": 22,
+     "transbords": 1,
+     "modes": [
+      "Metro"
+     ]
+    }
+   }
+  },
+  "02": {
+   "nom": "el Barri Gòtic",
+   "sortides_hora_punta": 34,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 59,
+     "transbords": 2,
+     "modes": [
+      "Metro",
+      "FGC",
+      "Bus"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 13,
+     "transbords": 0,
+     "modes": [
+      "Metro"
+     ]
+    },
+    "sants": {
+     "min": 22,
+     "transbords": 1,
+     "modes": [
+      "Metro"
+     ]
+    }
+   }
+  },
+  "03": {
+   "nom": "la Barceloneta",
+   "sortides_hora_punta": 48,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 63,
+     "transbords": 3,
+     "modes": [
+      "Bus",
+      "Metro",
+      "FGC"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 16,
+     "transbords": 1,
+     "modes": [
+      "Bus",
+      "Metro"
+     ]
+    },
+    "sants": {
+     "min": 26,
+     "transbords": 2,
+     "modes": [
+      "Bus",
+      "Metro",
+      "Rodalies"
+     ]
+    }
+   }
+  },
+  "04": {
+   "nom": "Sant Pere, Santa Caterina i la Ribera",
+   "sortides_hora_punta": 50,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 62,
+     "transbords": 3,
+     "modes": [
+      "Bus",
+      "Metro",
+      "FGC"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 15,
+     "transbords": 0,
+     "modes": [
+      "Rodalies"
+     ]
+    },
+    "sants": {
+     "min": 23,
+     "transbords": 0,
+     "modes": [
+      "Rodalies"
+     ]
+    }
+   }
+  },
+  "05": {
+   "nom": "el Fort Pienc",
+   "sortides_hora_punta": 42,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 62,
+     "transbords": 2,
+     "modes": [
+      "Metro",
+      "FGC",
+      "Bus"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 14,
+     "transbords": 0,
+     "modes": [
+      "Rodalies"
+     ]
+    },
+    "sants": {
+     "min": 22,
+     "transbords": 0,
+     "modes": [
+      "Rodalies"
+     ]
+    }
+   }
+  },
+  "06": {
+   "nom": "la Sagrada Família",
+   "sortides_hora_punta": 40,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 56,
+     "transbords": 2,
+     "modes": [
+      "Metro",
+      "FGC",
+      "Bus"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 16,
+     "transbords": 0,
+     "modes": [
+      "Metro"
+     ]
+    },
+    "sants": {
+     "min": 17,
+     "transbords": 0,
+     "modes": [
+      "Metro"
+     ]
+    }
+   }
+  },
+  "07": {
+   "nom": "la Dreta de l'Eixample",
+   "sortides_hora_punta": 53,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 57,
+     "transbords": 3,
+     "modes": [
+      "Bus",
+      "Metro",
+      "FGC"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 14,
+     "transbords": 0,
+     "modes": [
+      "A peu"
+     ]
+    },
+    "sants": {
+     "min": 15,
+     "transbords": 0,
+     "modes": [
+      "Rodalies"
+     ]
+    }
+   }
+  },
+  "08": {
+   "nom": "l'Antiga Esquerra de l'Eixample",
+   "sortides_hora_punta": 37,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 53,
+     "transbords": 1,
+     "modes": [
+      "FGC",
+      "Bus"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 14,
+     "transbords": 0,
+     "modes": [
+      "Bus"
+     ]
+    },
+    "sants": {
+     "min": 14,
+     "transbords": 0,
+     "modes": [
+      "Metro"
+     ]
+    }
+   }
+  },
+  "09": {
+   "nom": "la Nova Esquerra de l'Eixample",
+   "sortides_hora_punta": 53,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 57,
+     "transbords": 2,
+     "modes": [
+      "Metro",
+      "FGC",
+      "Bus"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 19,
+     "transbords": 0,
+     "modes": [
+      "Metro"
+     ]
+    },
+    "sants": {
+     "min": 12,
+     "transbords": 0,
+     "modes": [
+      "Metro"
+     ]
+    }
+   }
+  },
+  "10": {
+   "nom": "Sant Antoni",
+   "sortides_hora_punta": 43,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 60,
+     "transbords": 2,
+     "modes": [
+      "Metro",
+      "FGC",
+      "Bus"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 15,
+     "transbords": 0,
+     "modes": [
+      "Bus"
+     ]
+    },
+    "sants": {
+     "min": 20,
+     "transbords": 1,
+     "modes": [
+      "Metro"
+     ]
+    }
+   }
+  },
+  "11": {
+   "nom": "el Poble-sec",
+   "sortides_hora_punta": 45,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 70,
+     "transbords": 4,
+     "modes": [
+      "Bus",
+      "Funicular",
+      "Metro",
+      "FGC"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 32,
+     "transbords": 1,
+     "modes": [
+      "Funicular",
+      "Metro"
+     ]
+    },
+    "sants": {
+     "min": 34,
+     "transbords": 1,
+     "modes": [
+      "Bus",
+      "Metro"
+     ]
+    }
+   }
+  },
+  "12": {
+   "nom": "la Marina del Prat Vermell",
+   "sortides_hora_punta": 23,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 82,
+     "transbords": 3,
+     "modes": [
+      "Metro",
+      "FGC",
+      "Bus"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 38,
+     "transbords": 1,
+     "modes": [
+      "Metro"
+     ]
+    },
+    "sants": {
+     "min": 38,
+     "transbords": 1,
+     "modes": [
+      "Metro"
+     ]
+    }
+   }
+  },
+  "13": {
+   "nom": "la Marina de Port",
+   "sortides_hora_punta": 53,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 72,
+     "transbords": 3,
+     "modes": [
+      "Metro",
+      "FGC",
+      "Bus"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 26,
+     "transbords": 2,
+     "modes": [
+      "Bus",
+      "FGC",
+      "Metro"
+     ]
+    },
+    "sants": {
+     "min": 24,
+     "transbords": 0,
+     "modes": [
+      "Bus"
+     ]
+    }
+   }
+  },
+  "14": {
+   "nom": "la Font de la Guatlla",
+   "sortides_hora_punta": 49,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 65,
+     "transbords": 3,
+     "modes": [
+      "Bus",
+      "Metro",
+      "FGC"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 20,
+     "transbords": 1,
+     "modes": [
+      "Bus",
+      "Metro"
+     ]
+    },
+    "sants": {
+     "min": 20,
+     "transbords": 0,
+     "modes": [
+      "Bus"
+     ]
+    }
+   }
+  },
+  "15": {
+   "nom": "Hostafrancs",
+   "sortides_hora_punta": 39,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 60,
+     "transbords": 2,
+     "modes": [
+      "Metro",
+      "FGC",
+      "Bus"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 15,
+     "transbords": 0,
+     "modes": [
+      "Metro"
+     ]
+    },
+    "sants": {
+     "min": 10,
+     "transbords": 0,
+     "modes": [
+      "Bus"
+     ]
+    }
+   }
+  },
+  "16": {
+   "nom": "la Bordeta",
+   "sortides_hora_punta": 60,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 66,
+     "transbords": 2,
+     "modes": [
+      "Bus",
+      "FGC"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 22,
+     "transbords": 1,
+     "modes": [
+      "FGC",
+      "Metro"
+     ]
+    },
+    "sants": {
+     "min": 14,
+     "transbords": 0,
+     "modes": [
+      "Bus"
+     ]
+    }
+   }
+  },
+  "17": {
+   "nom": "Sants - Badal",
+   "sortides_hora_punta": 53,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 60,
+     "transbords": 2,
+     "modes": [
+      "Metro",
+      "FGC",
+      "Bus"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 22,
+     "transbords": 1,
+     "modes": [
+      "Metro"
+     ]
+    },
+    "sants": {
+     "min": 12,
+     "transbords": 0,
+     "modes": [
+      "Metro"
+     ]
+    }
+   }
+  },
+  "18": {
+   "nom": "Sants",
+   "sortides_hora_punta": 47,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 59,
+     "transbords": 2,
+     "modes": [
+      "Metro",
+      "FGC",
+      "Bus"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 20,
+     "transbords": 0,
+     "modes": [
+      "Metro"
+     ]
+    },
+    "sants": {
+     "min": 7,
+     "transbords": 0,
+     "modes": [
+      "A peu"
+     ]
+    }
+   }
+  },
+  "19": {
+   "nom": "les Corts",
+   "sortides_hora_punta": 39,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 55,
+     "transbords": 2,
+     "modes": [
+      "Bus",
+      "FGC"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 24,
+     "transbords": 2,
+     "modes": [
+      "Bus",
+      "Metro"
+     ]
+    },
+    "sants": {
+     "min": 14,
+     "transbords": 0,
+     "modes": [
+      "Bus"
+     ]
+    }
+   }
+  },
+  "20": {
+   "nom": "la Maternitat i Sant Ramon",
+   "sortides_hora_punta": 51,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 56,
+     "transbords": 2,
+     "modes": [
+      "Bus",
+      "FGC"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 28,
+     "transbords": 2,
+     "modes": [
+      "Tren",
+      "Metro"
+     ]
+    },
+    "sants": {
+     "min": 16,
+     "transbords": 1,
+     "modes": [
+      "Bus",
+      "Metro"
+     ]
+    }
+   }
+  },
+  "21": {
+   "nom": "Pedralbes",
+   "sortides_hora_punta": 43,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 51,
+     "transbords": 2,
+     "modes": [
+      "Bus",
+      "FGC"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 36,
+     "transbords": 1,
+     "modes": [
+      "Metro"
+     ]
+    },
+    "sants": {
+     "min": 27,
+     "transbords": 1,
+     "modes": [
+      "Bus",
+      "Metro"
+     ]
+    }
+   }
+  },
+  "22": {
+   "nom": "Vallvidrera, el Tibidabo i les Planes",
+   "sortides_hora_punta": 46,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 34,
+     "transbords": 1,
+     "modes": [
+      "FGC",
+      "Bus"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 31,
+     "transbords": 0,
+     "modes": [
+      "FGC"
+     ]
+    },
+    "sants": {
+     "min": 32,
+     "transbords": 1,
+     "modes": [
+      "FGC",
+      "Metro"
+     ]
+    }
+   }
+  },
+  "23": {
+   "nom": "Sarrià",
+   "sortides_hora_punta": 61,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 44,
+     "transbords": 1,
+     "modes": [
+      "FGC",
+      "Bus"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 31,
+     "transbords": 1,
+     "modes": [
+      "Bus",
+      "FGC"
+     ]
+    },
+    "sants": {
+     "min": 32,
+     "transbords": 2,
+     "modes": [
+      "Bus",
+      "FGC",
+      "Metro"
+     ]
+    }
+   }
+  },
+  "24": {
+   "nom": "les Tres Torres",
+   "sortides_hora_punta": 46,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 40,
+     "transbords": 1,
+     "modes": [
+      "FGC",
+      "Bus"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 21,
+     "transbords": 0,
+     "modes": [
+      "FGC"
+     ]
+    },
+    "sants": {
+     "min": 22,
+     "transbords": 1,
+     "modes": [
+      "FGC",
+      "Metro"
+     ]
+    }
+   }
+  },
+  "25": {
+   "nom": "Sant Gervasi - la Bonanova",
+   "sortides_hora_punta": 19,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 57,
+     "transbords": 2,
+     "modes": [
+      "Bus",
+      "FGC"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 27,
+     "transbords": 0,
+     "modes": [
+      "Metro"
+     ]
+    },
+    "sants": {
+     "min": 30,
+     "transbords": 1,
+     "modes": [
+      "Metro"
+     ]
+    }
+   }
+  },
+  "26": {
+   "nom": "Sant Gervasi - Galvany",
+   "sortides_hora_punta": 45,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 43,
+     "transbords": 1,
+     "modes": [
+      "FGC",
+      "Bus"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 18,
+     "transbords": 0,
+     "modes": [
+      "FGC"
+     ]
+    },
+    "sants": {
+     "min": 19,
+     "transbords": 1,
+     "modes": [
+      "FGC",
+      "Metro"
+     ]
+    }
+   }
+  },
+  "27": {
+   "nom": "el Putxet i el Farró",
+   "sortides_hora_punta": 38,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 52,
+     "transbords": 2,
+     "modes": [
+      "Bus",
+      "FGC"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 22,
+     "transbords": 0,
+     "modes": [
+      "Metro"
+     ]
+    },
+    "sants": {
+     "min": 25,
+     "transbords": 1,
+     "modes": [
+      "Metro"
+     ]
+    }
+   }
+  },
+  "28": {
+   "nom": "Vallcarca i els Penitents",
+   "sortides_hora_punta": 32,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 58,
+     "transbords": 2,
+     "modes": [
+      "Metro",
+      "FGC",
+      "Bus"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 22,
+     "transbords": 0,
+     "modes": [
+      "Metro"
+     ]
+    },
+    "sants": {
+     "min": 24,
+     "transbords": 1,
+     "modes": [
+      "Metro"
+     ]
+    }
+   }
+  },
+  "29": {
+   "nom": "el Coll",
+   "sortides_hora_punta": 52,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 56,
+     "transbords": 2,
+     "modes": [
+      "Bus",
+      "FGC"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 21,
+     "transbords": 1,
+     "modes": [
+      "Bus",
+      "Metro"
+     ]
+    },
+    "sants": {
+     "min": 23,
+     "transbords": 2,
+     "modes": [
+      "Bus",
+      "Metro"
+     ]
+    }
+   }
+  },
+  "30": {
+   "nom": "la Salut",
+   "sortides_hora_punta": 55,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 60,
+     "transbords": 2,
+     "modes": [
+      "Bus",
+      "FGC"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 28,
+     "transbords": 1,
+     "modes": [
+      "Bus",
+      "Metro"
+     ]
+    },
+    "sants": {
+     "min": 30,
+     "transbords": 1,
+     "modes": [
+      "Metro"
+     ]
+    }
+   }
+  },
+  "31": {
+   "nom": "la Vila de Gràcia",
+   "sortides_hora_punta": 34,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 55,
+     "transbords": 1,
+     "modes": [
+      "FGC",
+      "Bus"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 18,
+     "transbords": 0,
+     "modes": [
+      "Metro"
+     ]
+    },
+    "sants": {
+     "min": 20,
+     "transbords": 1,
+     "modes": [
+      "Metro"
+     ]
+    }
+   }
+  },
+  "32": {
+   "nom": "el Camp d'en Grassot i Gràcia Nova",
+   "sortides_hora_punta": 30,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 60,
+     "transbords": 2,
+     "modes": [
+      "Metro",
+      "FGC",
+      "Bus"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 15,
+     "transbords": 0,
+     "modes": [
+      "Metro"
+     ]
+    },
+    "sants": {
+     "min": 19,
+     "transbords": 1,
+     "modes": [
+      "Metro"
+     ]
+    }
+   }
+  },
+  "33": {
+   "nom": "el Baix Guinardó",
+   "sortides_hora_punta": 29,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 63,
+     "transbords": 2,
+     "modes": [
+      "Metro",
+      "FGC",
+      "Bus"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 19,
+     "transbords": 0,
+     "modes": [
+      "Metro"
+     ]
+    },
+    "sants": {
+     "min": 23,
+     "transbords": 1,
+     "modes": [
+      "Metro"
+     ]
+    }
+   }
+  },
+  "34": {
+   "nom": "Can Baró",
+   "sortides_hora_punta": 32,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 67,
+     "transbords": 2,
+     "modes": [
+      "Bus",
+      "FGC"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 25,
+     "transbords": 0,
+     "modes": [
+      "Metro"
+     ]
+    },
+    "sants": {
+     "min": 29,
+     "transbords": 1,
+     "modes": [
+      "Metro"
+     ]
+    }
+   }
+  },
+  "35": {
+   "nom": "el Guinardó",
+   "sortides_hora_punta": 32,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 69,
+     "transbords": 2,
+     "modes": [
+      "Metro",
+      "FGC",
+      "Bus"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 25,
+     "transbords": 0,
+     "modes": [
+      "Metro"
+     ]
+    },
+    "sants": {
+     "min": 29,
+     "transbords": 1,
+     "modes": [
+      "Metro"
+     ]
+    }
+   }
+  },
+  "36": {
+   "nom": "la Font d'en Fargues",
+   "sortides_hora_punta": 53,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 72,
+     "transbords": 4,
+     "modes": [
+      "Bus",
+      "FGC"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 35,
+     "transbords": 1,
+     "modes": [
+      "Bus",
+      "Metro"
+     ]
+    },
+    "sants": {
+     "min": 35,
+     "transbords": 1,
+     "modes": [
+      "Bus",
+      "Metro"
+     ]
+    }
+   }
+  },
+  "37": {
+   "nom": "el Carmel",
+   "sortides_hora_punta": 68,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 64,
+     "transbords": 2,
+     "modes": [
+      "Bus",
+      "FGC"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 29,
+     "transbords": 1,
+     "modes": [
+      "Bus",
+      "Metro"
+     ]
+    },
+    "sants": {
+     "min": 31,
+     "transbords": 2,
+     "modes": [
+      "Bus",
+      "Metro"
+     ]
+    }
+   }
+  },
+  "38": {
+   "nom": "la Teixonera",
+   "sortides_hora_punta": 33,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 63,
+     "transbords": 2,
+     "modes": [
+      "Metro",
+      "FGC",
+      "Bus"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 28,
+     "transbords": 0,
+     "modes": [
+      "Metro"
+     ]
+    },
+    "sants": {
+     "min": 30,
+     "transbords": 1,
+     "modes": [
+      "Metro"
+     ]
+    }
+   }
+  },
+  "39": {
+   "nom": "Sant Genís dels Agudells",
+   "sortides_hora_punta": 38,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 74,
+     "transbords": 2,
+     "modes": [
+      "Metro",
+      "FGC",
+      "Bus"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 38,
+     "transbords": 1,
+     "modes": [
+      "Bus",
+      "Metro"
+     ]
+    },
+    "sants": {
+     "min": 40,
+     "transbords": 2,
+     "modes": [
+      "Bus",
+      "Metro"
+     ]
+    }
+   }
+  },
+  "40": {
+   "nom": "Montbau",
+   "sortides_hora_punta": 36,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 71,
+     "transbords": 2,
+     "modes": [
+      "Metro",
+      "FGC",
+      "Bus"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 36,
+     "transbords": 0,
+     "modes": [
+      "Metro"
+     ]
+    },
+    "sants": {
+     "min": 38,
+     "transbords": 1,
+     "modes": [
+      "Metro"
+     ]
+    }
+   }
+  },
+  "41": {
+   "nom": "la Vall d'Hebron",
+   "sortides_hora_punta": 32,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 61,
+     "transbords": 2,
+     "modes": [
+      "Metro",
+      "FGC",
+      "Bus"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 26,
+     "transbords": 0,
+     "modes": [
+      "Metro"
+     ]
+    },
+    "sants": {
+     "min": 28,
+     "transbords": 1,
+     "modes": [
+      "Metro"
+     ]
+    }
+   }
+  },
+  "42": {
+   "nom": "la Clota",
+   "sortides_hora_punta": 48,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 68,
+     "transbords": 2,
+     "modes": [
+      "Metro",
+      "FGC",
+      "Bus"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 33,
+     "transbords": 0,
+     "modes": [
+      "Metro"
+     ]
+    },
+    "sants": {
+     "min": 34,
+     "transbords": 2,
+     "modes": [
+      "Bus",
+      "Metro"
+     ]
+    }
+   }
+  },
+  "43": {
+   "nom": "Horta",
+   "sortides_hora_punta": 34,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 69,
+     "transbords": 2,
+     "modes": [
+      "Metro",
+      "FGC",
+      "Bus"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 34,
+     "transbords": 0,
+     "modes": [
+      "Metro"
+     ]
+    },
+    "sants": {
+     "min": 36,
+     "transbords": 1,
+     "modes": [
+      "Metro"
+     ]
+    }
+   }
+  },
+  "44": {
+   "nom": "Vilapicina i la Torre Llobeta",
+   "sortides_hora_punta": 48,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 63,
+     "transbords": 3,
+     "modes": [
+      "Bus",
+      "FGC"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 26,
+     "transbords": 1,
+     "modes": [
+      "Bus",
+      "Metro"
+     ]
+    },
+    "sants": {
+     "min": 27,
+     "transbords": 0,
+     "modes": [
+      "Metro"
+     ]
+    }
+   }
+  },
+  "45": {
+   "nom": "Porta",
+   "sortides_hora_punta": 24,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 59,
+     "transbords": 3,
+     "modes": [
+      "Bus",
+      "FGC"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 28,
+     "transbords": 1,
+     "modes": [
+      "Metro",
+      "Rodalies"
+     ]
+    },
+    "sants": {
+     "min": 32,
+     "transbords": 1,
+     "modes": [
+      "Bus",
+      "Metro"
+     ]
+    }
+   }
+  },
+  "46": {
+   "nom": "el Turó de la Peira",
+   "sortides_hora_punta": 45,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 66,
+     "transbords": 4,
+     "modes": [
+      "Metro",
+      "Bus",
+      "FGC"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 27,
+     "transbords": 2,
+     "modes": [
+      "Metro",
+      "Rodalies"
+     ]
+    },
+    "sants": {
+     "min": 29,
+     "transbords": 0,
+     "modes": [
+      "Metro"
+     ]
+    }
+   }
+  },
+  "47": {
+   "nom": "Can Peguera",
+   "sortides_hora_punta": 51,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 72,
+     "transbords": 4,
+     "modes": [
+      "Metro",
+      "Bus",
+      "FGC"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 33,
+     "transbords": 2,
+     "modes": [
+      "Metro",
+      "Rodalies"
+     ]
+    },
+    "sants": {
+     "min": 35,
+     "transbords": 0,
+     "modes": [
+      "Metro"
+     ]
+    }
+   }
+  },
+  "48": {
+   "nom": "la Guineueta",
+   "sortides_hora_punta": 52,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 70,
+     "transbords": 2,
+     "modes": [
+      "Metro",
+      "FGC",
+      "Bus"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 29,
+     "transbords": 1,
+     "modes": [
+      "Bus",
+      "Metro"
+     ]
+    },
+    "sants": {
+     "min": 32,
+     "transbords": 2,
+     "modes": [
+      "Bus",
+      "Metro"
+     ]
+    }
+   }
+  },
+  "49": {
+   "nom": "Canyelles",
+   "sortides_hora_punta": 35,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 73,
+     "transbords": 2,
+     "modes": [
+      "Metro",
+      "FGC",
+      "Bus"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 38,
+     "transbords": 0,
+     "modes": [
+      "Metro"
+     ]
+    },
+    "sants": {
+     "min": 39,
+     "transbords": 1,
+     "modes": [
+      "Bus",
+      "Metro"
+     ]
+    }
+   }
+  },
+  "50": {
+   "nom": "les Roquetes",
+   "sortides_hora_punta": 52,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 67,
+     "transbords": 2,
+     "modes": [
+      "Metro",
+      "FGC",
+      "Bus"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 30,
+     "transbords": 1,
+     "modes": [
+      "Bus",
+      "Metro"
+     ]
+    },
+    "sants": {
+     "min": 34,
+     "transbords": 1,
+     "modes": [
+      "Metro"
+     ]
+    }
+   }
+  },
+  "51": {
+   "nom": "Verdun",
+   "sortides_hora_punta": 38,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 65,
+     "transbords": 4,
+     "modes": [
+      "Bus",
+      "FGC"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 30,
+     "transbords": 0,
+     "modes": [
+      "Metro"
+     ]
+    },
+    "sants": {
+     "min": 34,
+     "transbords": 1,
+     "modes": [
+      "Metro"
+     ]
+    }
+   }
+  },
+  "52": {
+   "nom": "la Prosperitat",
+   "sortides_hora_punta": 42,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 63,
+     "transbords": 3,
+     "modes": [
+      "Bus",
+      "FGC"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 26,
+     "transbords": 2,
+     "modes": [
+      "Bus",
+      "Metro",
+      "Rodalies"
+     ]
+    },
+    "sants": {
+     "min": 30,
+     "transbords": 1,
+     "modes": [
+      "Bus",
+      "Metro"
+     ]
+    }
+   }
+  },
+  "53": {
+   "nom": "la Trinitat Nova",
+   "sortides_hora_punta": 39,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 68,
+     "transbords": 3,
+     "modes": [
+      "Bus",
+      "FGC"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 29,
+     "transbords": 0,
+     "modes": [
+      "Metro"
+     ]
+    },
+    "sants": {
+     "min": 33,
+     "transbords": 1,
+     "modes": [
+      "Metro"
+     ]
+    }
+   }
+  },
+  "54": {
+   "nom": "Torre Baró",
+   "sortides_hora_punta": 17,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 73,
+     "transbords": 4,
+     "modes": [
+      "Bus",
+      "Rodalies",
+      "FGC"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 34,
+     "transbords": 0,
+     "modes": [
+      "Rodalies"
+     ]
+    },
+    "sants": {
+     "min": 42,
+     "transbords": 0,
+     "modes": [
+      "Rodalies"
+     ]
+    }
+   }
+  },
+  "55": {
+   "nom": "Ciutat Meridiana",
+   "sortides_hora_punta": 19,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 67,
+     "transbords": 4,
+     "modes": [
+      "Metro",
+      "Rodalies",
+      "Bus",
+      "FGC"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 26,
+     "transbords": 0,
+     "modes": [
+      "Rodalies"
+     ]
+    },
+    "sants": {
+     "min": 32,
+     "transbords": 1,
+     "modes": [
+      "Metro",
+      "Rodalies"
+     ]
+    }
+   }
+  },
+  "56": {
+   "nom": "Vallbona",
+   "sortides_hora_punta": 21,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 68,
+     "transbords": 3,
+     "modes": [
+      "Rodalies",
+      "Bus",
+      "FGC"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 26,
+     "transbords": 0,
+     "modes": [
+      "Rodalies"
+     ]
+    },
+    "sants": {
+     "min": 34,
+     "transbords": 0,
+     "modes": [
+      "Rodalies"
+     ]
+    }
+   }
+  },
+  "57": {
+   "nom": "la Trinitat Vella",
+   "sortides_hora_punta": 39,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 67,
+     "transbords": 3,
+     "modes": [
+      "Metro",
+      "Bus",
+      "FGC"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 28,
+     "transbords": 1,
+     "modes": [
+      "Metro",
+      "Rodalies"
+     ]
+    },
+    "sants": {
+     "min": 36,
+     "transbords": 1,
+     "modes": [
+      "Metro"
+     ]
+    }
+   }
+  },
+  "58": {
+   "nom": "Baró de Viver",
+   "sortides_hora_punta": 58,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 67,
+     "transbords": 4,
+     "modes": [
+      "Bus",
+      "Metro",
+      "FGC"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 30,
+     "transbords": 1,
+     "modes": [
+      "Bus",
+      "Metro"
+     ]
+    },
+    "sants": {
+     "min": 35,
+     "transbords": 1,
+     "modes": [
+      "Bus",
+      "Rodalies"
+     ]
+    }
+   }
+  },
+  "59": {
+   "nom": "el Bon Pastor",
+   "sortides_hora_punta": 45,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 68,
+     "transbords": 4,
+     "modes": [
+      "Metro",
+      "Bus",
+      "FGC"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 25,
+     "transbords": 2,
+     "modes": [
+      "Metro",
+      "Rodalies"
+     ]
+    },
+    "sants": {
+     "min": 30,
+     "transbords": 1,
+     "modes": [
+      "Metro"
+     ]
+    }
+   }
+  },
+  "60": {
+   "nom": "Sant Andreu",
+   "sortides_hora_punta": 39,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 60,
+     "transbords": 3,
+     "modes": [
+      "Metro",
+      "Bus",
+      "FGC"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 21,
+     "transbords": 1,
+     "modes": [
+      "Metro",
+      "Rodalies"
+     ]
+    },
+    "sants": {
+     "min": 27,
+     "transbords": 0,
+     "modes": [
+      "Rodalies"
+     ]
+    }
+   }
+  },
+  "61": {
+   "nom": "la Sagrera",
+   "sortides_hora_punta": 30,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 64,
+     "transbords": 3,
+     "modes": [
+      "Bus",
+      "FGC"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 17,
+     "transbords": 0,
+     "modes": [
+      "Rodalies"
+     ]
+    },
+    "sants": {
+     "min": 25,
+     "transbords": 1,
+     "modes": [
+      "Bus",
+      "Metro"
+     ]
+    }
+   }
+  },
+  "62": {
+   "nom": "el Congrés i els Indians",
+   "sortides_hora_punta": 34,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 65,
+     "transbords": 3,
+     "modes": [
+      "Bus",
+      "FGC"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 25,
+     "transbords": 1,
+     "modes": [
+      "Bus",
+      "Metro"
+     ]
+    },
+    "sants": {
+     "min": 25,
+     "transbords": 1,
+     "modes": [
+      "Bus",
+      "Metro"
+     ]
+    }
+   }
+  },
+  "63": {
+   "nom": "Navas",
+   "sortides_hora_punta": 50,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 62,
+     "transbords": 3,
+     "modes": [
+      "Metro",
+      "Bus",
+      "FGC"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 17,
+     "transbords": 1,
+     "modes": [
+      "Metro",
+      "Rodalies"
+     ]
+    },
+    "sants": {
+     "min": 24,
+     "transbords": 0,
+     "modes": [
+      "Metro"
+     ]
+    }
+   }
+  },
+  "64": {
+   "nom": "el Camp de l'Arpa del Clot",
+   "sortides_hora_punta": 37,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 63,
+     "transbords": 2,
+     "modes": [
+      "Metro",
+      "FGC",
+      "Bus"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 17,
+     "transbords": 0,
+     "modes": [
+      "Rodalies"
+     ]
+    },
+    "sants": {
+     "min": 23,
+     "transbords": 0,
+     "modes": [
+      "Metro"
+     ]
+    }
+   }
+  },
+  "65": {
+   "nom": "el Clot",
+   "sortides_hora_punta": 38,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 62,
+     "transbords": 3,
+     "modes": [
+      "Metro",
+      "FGC",
+      "Bus"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 13,
+     "transbords": 0,
+     "modes": [
+      "Rodalies"
+     ]
+    },
+    "sants": {
+     "min": 20,
+     "transbords": 0,
+     "modes": [
+      "Rodalies"
+     ]
+    }
+   }
+  },
+  "66": {
+   "nom": "el Parc i la Llacuna del Poblenou",
+   "sortides_hora_punta": 41,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 64,
+     "transbords": 2,
+     "modes": [
+      "Metro",
+      "FGC",
+      "Bus"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 18,
+     "transbords": 0,
+     "modes": [
+      "Metro"
+     ]
+    },
+    "sants": {
+     "min": 28,
+     "transbords": 1,
+     "modes": [
+      "Tram",
+      "Metro"
+     ]
+    }
+   }
+  },
+  "67": {
+   "nom": "la Vila Olímpica del Poblenou",
+   "sortides_hora_punta": 43,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 65,
+     "transbords": 3,
+     "modes": [
+      "Bus",
+      "Metro",
+      "FGC"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 20,
+     "transbords": 0,
+     "modes": [
+      "Metro"
+     ]
+    },
+    "sants": {
+     "min": 27,
+     "transbords": 1,
+     "modes": [
+      "Metro",
+      "Rodalies"
+     ]
+    }
+   }
+  },
+  "68": {
+   "nom": "el Poblenou",
+   "sortides_hora_punta": 42,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 70,
+     "transbords": 3,
+     "modes": [
+      "Bus",
+      "Metro",
+      "FGC"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 23,
+     "transbords": 1,
+     "modes": [
+      "Bus",
+      "Metro"
+     ]
+    },
+    "sants": {
+     "min": 30,
+     "transbords": 2,
+     "modes": [
+      "Bus",
+      "Metro",
+      "Rodalies"
+     ]
+    }
+   }
+  },
+  "69": {
+   "nom": "Diagonal Mar i el Front Marítim del Poblenou",
+   "sortides_hora_punta": 31,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 73,
+     "transbords": 2,
+     "modes": [
+      "Metro",
+      "FGC",
+      "Bus"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 27,
+     "transbords": 0,
+     "modes": [
+      "Metro"
+     ]
+    },
+    "sants": {
+     "min": 34,
+     "transbords": 1,
+     "modes": [
+      "Metro",
+      "Rodalies"
+     ]
+    }
+   }
+  },
+  "70": {
+   "nom": "el Besòs i el Maresme",
+   "sortides_hora_punta": 34,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 70,
+     "transbords": 2,
+     "modes": [
+      "Metro",
+      "FGC",
+      "Bus"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 24,
+     "transbords": 0,
+     "modes": [
+      "Metro"
+     ]
+    },
+    "sants": {
+     "min": 31,
+     "transbords": 1,
+     "modes": [
+      "Metro",
+      "Rodalies"
+     ]
+    }
+   }
+  },
+  "71": {
+   "nom": "Provençals del Poblenou",
+   "sortides_hora_punta": 62,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 71,
+     "transbords": 3,
+     "modes": [
+      "Bus",
+      "Metro",
+      "FGC"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 24,
+     "transbords": 1,
+     "modes": [
+      "Tram",
+      "Metro"
+     ]
+    },
+    "sants": {
+     "min": 31,
+     "transbords": 1,
+     "modes": [
+      "Bus",
+      "Metro"
+     ]
+    }
+   }
+  },
+  "72": {
+   "nom": "Sant Martí de Provençals",
+   "sortides_hora_punta": 35,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 63,
+     "transbords": 3,
+     "modes": [
+      "Metro",
+      "FGC",
+      "Bus"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 17,
+     "transbords": 1,
+     "modes": [
+      "Metro",
+      "Rodalies"
+     ]
+    },
+    "sants": {
+     "min": 27,
+     "transbords": 1,
+     "modes": [
+      "Metro"
+     ]
+    }
+   }
+  },
+  "73": {
+   "nom": "la Verneda i la Pau",
+   "sortides_hora_punta": 53,
+   "destins": {
+    "roche-sant-cugat": {
+     "min": 67,
+     "transbords": 3,
+     "modes": [
+      "Metro",
+      "FGC",
+      "Bus"
+     ]
+    },
+    "pl-catalunya": {
+     "min": 22,
+     "transbords": 1,
+     "modes": [
+      "Metro",
+      "Rodalies"
+     ]
+    },
+    "sants": {
+     "min": 31,
+     "transbords": 1,
+     "modes": [
+      "Metro"
+     ]
+    }
+   }
+  }
+ }
+}

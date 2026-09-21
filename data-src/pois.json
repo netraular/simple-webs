@@ -1,4 +1,6 @@
 [
+  { "id": "roche-sant-cugat", "nom": "Roche · Sant Cugat",      "tipus": "oficina",               "lat": 41.4924, "lon": 2.0582,
+    "nota": "Complex farmacèutic Roche, av. de la Generalitat 171-173. Queda a 1,5 km de l'estació d'FGC de Sant Joan: hi arribes amb bus o amb ~20 min a peu." },
   { "id": "pl-catalunya",  "nom": "Plaça de Catalunya",      "tipus": "centro de Barcelona",   "lat": 41.3870, "lon": 2.1701 },
   { "id": "sants",         "nom": "Estació de Sants",        "tipus": "tren de larga distancia", "lat": 41.3792, "lon": 2.1400 },
   { "id": "diagonal-zu",   "nom": "Diagonal · Zona Universitària", "tipus": "oficinas y campus", "lat": 41.3839, "lon": 2.1163 },

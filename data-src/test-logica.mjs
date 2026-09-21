@@ -39,6 +39,10 @@ const S = { m2: 80 };
 let fallos = 0;
 const check = (ok, msg) => { console.log((ok ? "  ✓ " : "  ✗ ") + msg); if (!ok) fallos++; };
 
+// Métricas que pueden valer cero legítimamente: un municipio sin estación ni
+// bus útil tiene cero salidas en hora punta, y eso es el dato, no un fallo.
+const ZERO_OK = new Set(["transit_freq"]);
+
 console.log("── métricas sobre los 92 municipios ────────────");
 for (const M of METRICS) {
   const vals = data.municipis.map(m => M.get(m, S)).filter(v => v != null);
@@ -48,7 +52,8 @@ for (const M of METRICS) {
   console.log(`  ${M.label}`);
   console.log(`      n=${vals.length}  min=${M.fmt(lo)}  mediana=${M.fmt(median(vals))}  max=${M.fmt(hi)}`);
   check(vals.length > 50, `    cobertura suficiente (${vals.length})`);
-  check(vals.every(v => Number.isFinite(v) && v > 0), "    todos los valores finitos y positivos");
+  const suelo = ZERO_OK.has(M.id) ? 0 : Number.MIN_VALUE;
+  check(vals.every(v => Number.isFinite(v) && v >= suelo), "    todos los valores finitos y no negativos");
 }
 
 console.log("\n── rangos esperados ────────────────────────────");
@@ -68,21 +73,56 @@ const c = cuota(200000, 0.03, 30);
 check(Math.abs(c - 843.21) < 1, `cuota de 200.000 € al 3 % a 30 años = ${c.toFixed(2)} €/mes (esperado ≈843,21)`);
 
 console.log("\n── geometría y distancias ──────────────────────");
-const ref = data.pois[0];
+/** Por id, nunca por posición: el orden de pois.json cambia cuando se añade un
+ *  punto y un test que dependa de él miente sin fallar. */
+const poi = (id) => {
+  const p = data.pois.find(x => x.id === id);
+  if (!p) throw new Error(`no existe el punto de referencia ${id}`);
+  return p;
+};
+const cat = poi("pl-catalunya");
 check(Math.abs(haversine(41.3870, 2.1701, 41.3870, 2.1701)) < 1e-9, "distancia de un punto a sí mismo = 0");
 // Barcelona–Mataró en línea recta son ~28 km
 const mat = data.municipis.find(m => m.nom === "Mataró");
-const d = haversine(ref.lat, ref.lon, mat.lat, mat.lon);
+const d = haversine(cat.lat, cat.lon, mat.lat, mat.lon);
 check(d > 26 && d < 31, `Plaça Catalunya → Mataró = ${d.toFixed(1)} km (esperado 26-31)`);
+// Castelldefels es el punto de partida contra el que compara la página.
+check(data.meta.casa && data.municipis.some(m => m.ine === data.meta.casa),
+  `meta.casa (${data.meta.casa}) apunta a un municipio que existe`);
+check(poi("roche-sant-cugat") != null, "el punto de Roche Sant Cugat está publicado");
 
 console.log("\n── tendencia precio vs distancia ───────────────");
-for (const poi of data.pois.slice(0, 3)) {
+// Solo los puntos del centro de Barcelona tienen gradiente de precio: es la
+// ciudad la que lo genera, no un punto cualquiera del mapa.
+for (const p of ["pl-catalunya", "sants", "diagonal-zu"].map(poi)) {
   const pts = data.municipis
     .filter(m => m.compra_eur_m2 != null)
-    .map(m => [haversine(poi.lat, poi.lon, m.lat, m.lon), m.compra_eur_m2]);
+    .map(m => [haversine(p.lat, p.lon, m.lat, m.lon), m.compra_eur_m2]);
   const t = ols(pts);
-  console.log(`  ${poi.nom.padEnd(34)} pendiente ${t.b.toFixed(1)} €/m² por km · R²=${t.r2.toFixed(2)}`);
-  check(t.b < 0, `    el precio baja al alejarse de ${poi.nom}`);
+  console.log(`  ${p.nom.padEnd(34)} pendiente ${t.b.toFixed(1)} €/m² por km · R²=${t.r2.toFixed(2)}`);
+  check(t.b < 0, `    el precio baja al alejarse de ${p.nom}`);
+}
+// Roche no lo tiene, y es un resultado, no un fallo: alejarse de Sant Cugat
+// lleva tanto al Vallès barato como a Barcelona cara, así que la recta se
+// queda plana. La página lo avisa sola cuando R² < 0,25.
+{
+  const p = poi("roche-sant-cugat");
+  const t = ols(data.municipis.filter(m => m.compra_eur_m2 != null)
+    .map(m => [haversine(p.lat, p.lon, m.lat, m.lon), m.compra_eur_m2]));
+  console.log(`  ${p.nom.padEnd(34)} pendiente ${t.b.toFixed(1)} €/m² por km · R²=${t.r2.toFixed(2)}`);
+  check(t.r2 < 0.25, `    sin gradiente de precio por distancia (R²=${t.r2.toFixed(2)}), la página lo avisa`);
+}
+
+console.log("\n── tendencia precio vs transporte público ──────");
+for (const id of ["roche-sant-cugat", "pl-catalunya"]) {
+  const p = poi(id);
+  const pts = data.municipis
+    .filter(m => m.compra_eur_m2 != null && m.transit?.[id]?.min != null)
+    .map(m => [m.transit[id].min, m.compra_eur_m2]);
+  if (pts.length < 20) { console.log(`  ${p.nom.padEnd(34)} solo ${pts.length} rutas, aún encaminando`); continue; }
+  const t = ols(pts);
+  console.log(`  ${p.nom.padEnd(34)} pendiente ${t.b.toFixed(1)} €/m² por min · R²=${t.r2.toFixed(2)} · n=${pts.length}`);
+  check(t.b < 0, `    el precio baja cuanto peor comunicado está con ${p.nom}`);
 }
 
 console.log("\n── tiempos en coche ────────────────────────────");

@@ -40,6 +40,7 @@ SORTIDA_MINIMA_UTC = f"{DIA}T03:30:00Z"  # 05:30 local: ningu no surt de casa ab
 PUNTA_INICI_UTC = f"{DIA}T05:00:00Z"  # 07:00 local
 PUNTA_FINESTRA = 7200                 # 2 h -> fins a les 09:00 local
 MAX_MIN = 240                         # mes de 4 h porta a porta = no es un commute
+LIMIT_TARD = f"{DIA}T08:00:00Z"       # 10:00 local: segona oportunitat
 
 DESTINS = {
     # Complex Farmaceutic Roche, Av. de la Generalitat 171-173, Sant Cugat.
@@ -149,22 +150,24 @@ def resumeix(it):
     }
 
 
-def millor_itinerari(origen, desti_ll):
+def millor_itinerari(origen, desti_ll, limit=None):
     """Millor trajecte que arriba a temps (arriveBy 09:00 local d'un dimarts)."""
+    limit = limit or ARRIBADA_UTC
     p = dict(COMU)
     p.update({
         "fromPlace": f"{origen[0]},{origen[1]}",
         "toPlace": f"{desti_ll[0]},{desti_ll[1]}",
-        "time": ARRIBADA_UTC,
+        "time": limit,
         "arriveBy": "true",
         "timetableView": "false",
     })
     d = api(p)
+    ARRIBADA_UTC_L = limit  # noqa: N806
     # Nomes valen els trajectes que arriben a temps I que surten de casa el
     # mateix mati. Sense aixo el router "resol" els pobles sense servei amb un
     # bus del vespre anterior i una nit d'espera, que dona xifres absurdes.
     cands = [it for it in d.get("itineraries", [])
-             if it["endTime"] <= ARRIBADA_UTC
+             if it["endTime"] <= ARRIBADA_UTC_L
              and it["startTime"] >= SORTIDA_MINIMA_UTC
              and it["duration"] <= MAX_MIN * 60]
     # un barri cèntric pot tenir-ho més a prop a peu que amb metro
@@ -220,6 +223,12 @@ def feina(item):
         if dest == "__punta__":
             n, tot = sortides_punta((lat, lon))
             val = {"sortides_hora_punta": n, "_n_itin": tot}
+        elif dest.endswith("@tard"):
+            # Segona oportunitat per als que no arriben a les 09:00: mirem si hi
+            # ha res que arribi abans de les 10:00. Es marca com a tard.
+            val = millor_itinerari((lat, lon), DESTINS[dest[:-5]], limit=LIMIT_TARD)
+            if val and "_cap" not in val:
+                val["tard"] = True
         else:
             val = millor_itinerari((lat, lon), DESTINS[dest])
     except Exception as e:  # noqa: BLE001
@@ -274,6 +283,25 @@ def main():
         list(ex.map(feina, pend))
     save_cache()
 
+    # --- Segona passada: els que no arriben a les 09:00 ------------------
+    # Hi ha municipis amb servei real que, simplement, no et deixen a temps
+    # (Castellvi de Rosanes arriba a les 09:10 com a molt aviat). Dir-ne "null"
+    # seria tan fals com inventar-se un temps: es torna a demanar amb limit a
+    # les 10:00 i es marca el resultat com a tard.
+    rescat = []
+    for t in tasques:
+        kind, key, lat, lon, dest = t
+        if dest == "__punta__":
+            continue
+        v = _cache.get(f"{kind}|{key}|{dest}")
+        if v and "_cap" in v and f"{kind}|{key}|{dest}@tard" not in _cache:
+            rescat.append((kind, key, lat, lon, dest + "@tard"))
+    if rescat:
+        print(f"segona passada: {len(rescat)} consultes", file=sys.stderr)
+        with cf.ThreadPoolExecutor(max_workers=args.jobs) as ex:
+            list(ex.map(feina, rescat))
+        save_cache()
+
     # --- Muntatge de transit.json ---------------------------------------
     def bloc(items, idkey):
         out = {}
@@ -284,15 +312,26 @@ def main():
             if pv and "sortides_hora_punta" in pv:
                 entrada["sortides_hora_punta"] = pv["sortides_hora_punta"]
             for d in DESTINS:
-                v = _cache.get(f"{'mun' if idkey == 'codi_ine' else 'bar'}|{k}|{d}")
+                pre = "mun" if idkey == "codi_ine" else "bar"
+                v = _cache.get(f"{pre}|{k}|{d}")
+                if not v or "_error" in v or "_cap" in v:
+                    v = _cache.get(f"{pre}|{k}|{d}@tard")
                 if not v or "_error" in v or "_cap" in v or v.get("min") is None:
                     entrada["destins"][d] = None
                 else:
-                    entrada["destins"][d] = {
+                    e = {
                         "min": v["min"],
                         "transbords": v["transbords"],
                         "modes": v["modes"],
                     }
+                    if v.get("tard"):
+                        arr = (v.get("arribada") or "")[11:16]
+                        hh = int(arr[:2]) + 2 if arr else None
+                        e["arriba_tard"] = True
+                        e["arribada_local"] = f"{hh:02d}{arr[2:]}" if arr else None
+                        e["nota"] = ("cap trajecte no hi arriba abans de les 09:00; "
+                                     "aquest es el millor que hi arriba abans de les 10:00")
+                    entrada["destins"][d] = e
             out[k] = entrada
         return out
 

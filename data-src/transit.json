@@ -1918,9 +1918,37 @@
    "nom": "Castellví de Rosanes",
    "sortides_hora_punta": 3,
    "destins": {
-    "roche-sant-cugat": null,
-    "pl-catalunya": null,
-    "sants": null
+    "roche-sant-cugat": {
+     "min": 105,
+     "transbords": 3,
+     "modes": [
+      "Bus",
+      "FGC"
+     ],
+     "arriba_tard": true,
+     "arribada_local": "09:57",
+     "nota": "cap trajecte no hi arriba abans de les 09:00; aquest es el millor que hi arriba abans de les 10:00"
+    },
+    "pl-catalunya": {
+     "min": 108,
+     "transbords": 1,
+     "modes": [
+      "Bus"
+     ],
+     "arriba_tard": true,
+     "arribada_local": "10:00",
+     "nota": "cap trajecte no hi arriba abans de les 09:00; aquest es el millor que hi arriba abans de les 10:00"
+    },
+    "sants": {
+     "min": 67,
+     "transbords": 0,
+     "modes": [
+      "Bus"
+     ],
+     "arriba_tard": true,
+     "arribada_local": "09:19",
+     "nota": "cap trajecte no hi arriba abans de les 09:00; aquest es el millor que hi arriba abans de les 10:00"
+    }
    }
   },
   "08290": {
@@ -2018,7 +2046,17 @@
    "nom": "Òrrius",
    "sortides_hora_punta": 2,
    "destins": {
-    "roche-sant-cugat": null,
+    "roche-sant-cugat": {
+     "min": 156,
+     "transbords": 3,
+     "modes": [
+      "Bus",
+      "FGC"
+     ],
+     "arriba_tard": true,
+     "arribada_local": "09:48",
+     "nota": "cap trajecte no hi arriba abans de les 09:00; aquest es el millor que hi arriba abans de les 10:00"
+    },
     "pl-catalunya": {
      "min": 98,
      "transbords": 1,

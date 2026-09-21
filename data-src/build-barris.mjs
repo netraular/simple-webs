@@ -11,7 +11,10 @@
  * mayor (no la media de vértices, que se desvía hacia donde el contorno tiene
  * más detalle). Sobre él se piden los tiempos en coche a OSRM.
  *
- * Salida: pages/data/bcn-barris.json  y  pages/data/bcn-barris.geojson
+ * Salida: pages/data/bcn-barris.json  y  pages/data/bcn-barris-geo.json
+ *
+ * La geometría va con extensión .json para que nginx le ponga application/json
+ * y Cloudflare la comprima; ver la nota en build-data.mjs.
  */
 import { readFileSync, writeFileSync, existsSync, statSync } from "node:fs";
 import { gzipSync } from "node:zlib";
@@ -201,7 +204,7 @@ const payload = {
 };
 
 writeFileSync(out("bcn-barris.json"), JSON.stringify(payload));
-writeFileSync(out("bcn-barris.geojson"), JSON.stringify(geoOut));
+writeFileSync(out("bcn-barris-geo.json"), JSON.stringify(geoOut));
 
 const sz = (f) => `${(statSync(out(f)).size / 1024).toFixed(0)} KB ` +
                   `(${(gzipSync(readFileSync(out(f))).length / 1024).toFixed(0)} KB gzip)`;
@@ -214,7 +217,7 @@ console.log(`  con población         ${has("poblacio")}`);
 console.log(`  con tren/metro        ${has("tren")}`);
 console.log(`  con tiempos           ${has("temps")}`);
 console.log(`  bcn-barris.json       ${sz("bcn-barris.json")}`);
-console.log(`  bcn-barris.geojson    ${sz("bcn-barris.geojson")}`);
+console.log(`  bcn-barris-geo.json   ${sz("bcn-barris-geo.json")}`);
 const ord = rows.filter(r => r.compra_eur_m2).sort((a, b) => b.compra_eur_m2 - a.compra_eur_m2);
 console.log(`  más caro              ${ord[0].nom} ${ord[0].compra_eur_m2} €/m²`);
 console.log(`  más barato            ${ord.at(-1).nom} ${ord.at(-1).compra_eur_m2} €/m²`);

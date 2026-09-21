@@ -2,8 +2,13 @@
  * Integra todas las fuentes crudas de data-src/ en los dos ficheros que la
  * página consume:
  *
- *   pages/data/pisos-bcn.json     municipios + precios + tiempos + estaciones
- *   pages/data/municipis.geojson  contornos, recortados a esos municipios
+ *   pages/data/pisos-bcn.json      municipios + precios + tiempos + estaciones
+ *   pages/data/municipis-geo.json  contornos, recortados a esos municipios
+ *
+ * La geometría se publica con extensión .json, no .geojson, a propósito: nginx
+ * no conoce .geojson y la sirve como application/octet-stream, un tipo que
+ * Cloudflare no comprime — serían 480 KB por visita en vez de 134 KB. El
+ * contenido sigue siendo GeoJSON válido, que es JSON.
  *
  * Principio rector: un municipio sin dato publicado queda a null. Nunca se
  * rellena un hueco con una interpolación ni con la media de la comarca — la
@@ -232,7 +237,7 @@ payload.meta.fonts = [
    --------------------------------------------------------------------------- */
 mkdirSync(new URL("../pages/data/", import.meta.url), { recursive: true });
 writeFileSync(out("pisos-bcn.json"), JSON.stringify(payload));
-writeFileSync(out("municipis.geojson"), JSON.stringify(geoOut));
+writeFileSync(out("municipis-geo.json"), JSON.stringify(geoOut));
 
 const size = (f) => {
   const b = statSync(out(f)).size;
@@ -250,9 +255,9 @@ console.log(`  con tren/metro        ${has("tren")}`);
 console.log(`  con tiempos en coche  ${has("temps")}`);
 console.log(`  estaciones fuera de todo municipio: ${sinMunicipi} de ${estacions.length}`);
 console.log(`  tamaño                ${size("pisos-bcn.json")}`);
-console.log(`── municipis.geojson ───────────────────────────`);
+console.log(`── municipis-geo.json ──────────────────────────`);
 console.log(`  features              ${geoOut.features.length} de ${geo.features.length}`);
-console.log(`  tamaño                ${size("municipis.geojson")}`);
+console.log(`  tamaño                ${size("municipis-geo.json")}`);
 const faltanGeo = rows.filter(r => !keep.has(r.ine) || !geoOut.features.some(f => f.properties.codi_ine === r.ine));
 if (faltanGeo.length) console.log(`  ⚠ sin contorno: ${faltanGeo.map(r => r.nom).join(", ")}`);
 for (const w of warn) console.log("  ⚠ " + w);

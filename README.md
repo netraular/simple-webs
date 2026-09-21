@@ -53,8 +53,8 @@ straight into `pages/data/`:
 
 ```sh
 cd data-src
-node build-data.mjs     # pisos-bcn.json + municipis.geojson
-node build-barris.mjs   # bcn-barris.json + bcn-barris.geojson
+node build-data.mjs     # pisos-bcn.json + municipis-geo.json
+node build-barris.mjs   # bcn-barris.json + bcn-barris-geo.json
 node test-logica.mjs    # sanity checks against the built data
 node test-vistas.mjs
 ```

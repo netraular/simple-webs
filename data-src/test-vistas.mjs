@@ -32,8 +32,8 @@ const { METRICS, haversine, ols, eachRing } = new Function(`
 const load = (f) => JSON.parse(readFileSync(new URL("../pages/data/" + f, import.meta.url), "utf8"));
 
 const VISTAS = [
-  { id: "municipis", data: "pisos-bcn.json", geo: "municipis.geojson", n: 92 },
-  { id: "barris",    data: "bcn-barris.json", geo: "bcn-barris.geojson", n: 73 },
+  { id: "municipis", data: "pisos-bcn.json", geo: "municipis-geo.json", n: 92 },
+  { id: "barris",    data: "bcn-barris.json", geo: "bcn-barris-geo.json", n: 73 },
 ];
 
 const CLAUS = ["ine", "nom", "comarca", "lat", "lon", "dist_bcn_km", "poblacio",

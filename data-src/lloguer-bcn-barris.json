@@ -1,0 +1,744 @@
+{
+  "meta": {
+    "descripcio": "Renda mitjana mensual de lloguer d'habitatge per districte i per barri de la ciutat de Barcelona.",
+    "camp_principal": "lloguer_mitja_eur_mes",
+    "metrica_principal": "renda mitjana mensual, en euros, dels contractes de lloguer d'habitatge amb fiança dipositada a l'INCASÒL durant el trimestre",
+    "periode": "2026T1 (gener-març de 2026)",
+    "any": 2026,
+    "font": "Ajuntament de Barcelona, Oficina Municipal de Dades — Portal Barcelona Dades, indicador b37xv8wcjh «Preu mitjà (€) del lloguer d'habitatges». Origen: Generalitat de Catalunya, Secretaria d'Habitatge, a partir de les fiances de lloguer dipositades a l'INCASÒL.",
+    "font_url": "https://portaldades.ajuntament.barcelona.cat/services/backend/rest/statistic/export?id=b37xv8wcjh&fileformat=CSV&lang=ca",
+    "indicador_id": "b37xv8wcjh",
+    "font_portal": "https://portaldades.ajuntament.barcelona.cat/ca/estad%C3%ADstiques/b37xv8wcjh",
+    "codis": "«codi» és el codi oficial de districte (1-10) o de barri (1-73) de l'Ajuntament de Barcelona; NO és un codi INE. Prové de la columna «Dim-01:TERRITORI (order)» de la font.",
+    "lloguer_eur_m2_mes": "null a tots els registres: la font no publica el preu per m² de lloguer.",
+    "nombre_contractes": "null a districtes i barris: la font no publica la mida de la mostra a aquesta escala. El valor de ciutat prové de l'INCASÒL (dataset qww9-bvhh, 2026T1).",
+    "nombre_districtes": 10,
+    "nombre_barris": 69,
+    "barris_totals_a_la_ciutat": 73,
+    "exclosos_sense_dada": [
+      {
+        "tipus": "barri",
+        "codi": "42",
+        "nom": "la Clota"
+      },
+      {
+        "tipus": "barri",
+        "codi": "54",
+        "nom": "Torre Baró"
+      },
+      {
+        "tipus": "barri",
+        "codi": "56",
+        "nom": "Vallbona"
+      },
+      {
+        "tipus": "barri",
+        "codi": "58",
+        "nom": "Baró de Viver"
+      }
+    ],
+    "avis": "Cap valor no està estimat. Els barris sense dada publicada al trimestre (secret estadístic / mostra insuficient) s'han exclòs i es llisten a exclosos_sense_dada. El valor de ciutat coincideix exactament amb el de Barcelona a lloguer.json (INCASÒL, qww9-bvhh), cosa que confirma que és la mateixa font."
+  },
+  "ciutat": {
+    "codi_ine": "08019",
+    "nom": "Barcelona",
+    "lloguer_mitja_eur_mes": 1137.35,
+    "lloguer_eur_m2_mes": null,
+    "nombre_contractes": 8156
+  },
+  "districtes": [
+    {
+      "codi": "1",
+      "nom": "Ciutat Vella",
+      "lloguer_mitja_eur_mes": 1011.41,
+      "lloguer_eur_m2_mes": null,
+      "nombre_contractes": null
+    },
+    {
+      "codi": "2",
+      "nom": "Eixample",
+      "lloguer_mitja_eur_mes": 1250.44,
+      "lloguer_eur_m2_mes": null,
+      "nombre_contractes": null
+    },
+    {
+      "codi": "3",
+      "nom": "Sants-Montjuïc",
+      "lloguer_mitja_eur_mes": 1007.64,
+      "lloguer_eur_m2_mes": null,
+      "nombre_contractes": null
+    },
+    {
+      "codi": "4",
+      "nom": "Les Corts",
+      "lloguer_mitja_eur_mes": 1289.35,
+      "lloguer_eur_m2_mes": null,
+      "nombre_contractes": null
+    },
+    {
+      "codi": "5",
+      "nom": "Sarrià-Sant Gervasi",
+      "lloguer_mitja_eur_mes": 1599.89,
+      "lloguer_eur_m2_mes": null,
+      "nombre_contractes": null
+    },
+    {
+      "codi": "6",
+      "nom": "Gràcia",
+      "lloguer_mitja_eur_mes": 1081.25,
+      "lloguer_eur_m2_mes": null,
+      "nombre_contractes": null
+    },
+    {
+      "codi": "7",
+      "nom": "Horta-Guinardó",
+      "lloguer_mitja_eur_mes": 929.6,
+      "lloguer_eur_m2_mes": null,
+      "nombre_contractes": null
+    },
+    {
+      "codi": "8",
+      "nom": "Nou Barris",
+      "lloguer_mitja_eur_mes": 816.57,
+      "lloguer_eur_m2_mes": null,
+      "nombre_contractes": null
+    },
+    {
+      "codi": "9",
+      "nom": "Sant Andreu",
+      "lloguer_mitja_eur_mes": 934.5,
+      "lloguer_eur_m2_mes": null,
+      "nombre_contractes": null
+    },
+    {
+      "codi": "10",
+      "nom": "Sant Martí",
+      "lloguer_mitja_eur_mes": 1100.03,
+      "lloguer_eur_m2_mes": null,
+      "nombre_contractes": null
+    }
+  ],
+  "barris": [
+    {
+      "codi": "1",
+      "nom": "el Raval",
+      "codi_districte": "1",
+      "districte": "Ciutat Vella",
+      "lloguer_mitja_eur_mes": 898.77,
+      "lloguer_eur_m2_mes": null,
+      "nombre_contractes": null
+    },
+    {
+      "codi": "2",
+      "nom": "el Barri Gòtic",
+      "codi_districte": "1",
+      "districte": "Ciutat Vella",
+      "lloguer_mitja_eur_mes": 1195.25,
+      "lloguer_eur_m2_mes": null,
+      "nombre_contractes": null
+    },
+    {
+      "codi": "3",
+      "nom": "la Barceloneta",
+      "codi_districte": "1",
+      "districte": "Ciutat Vella",
+      "lloguer_mitja_eur_mes": 862.47,
+      "lloguer_eur_m2_mes": null,
+      "nombre_contractes": null
+    },
+    {
+      "codi": "4",
+      "nom": "Sant Pere, Santa Caterina i la Ribera",
+      "codi_districte": "1",
+      "districte": "Ciutat Vella",
+      "lloguer_mitja_eur_mes": 1172.62,
+      "lloguer_eur_m2_mes": null,
+      "nombre_contractes": null
+    },
+    {
+      "codi": "5",
+      "nom": "el Fort Pienc",
+      "codi_districte": "2",
+      "districte": "Eixample",
+      "lloguer_mitja_eur_mes": 1019.62,
+      "lloguer_eur_m2_mes": null,
+      "nombre_contractes": null
+    },
+    {
+      "codi": "6",
+      "nom": "la Sagrada Família",
+      "codi_districte": "2",
+      "districte": "Eixample",
+      "lloguer_mitja_eur_mes": 1107.85,
+      "lloguer_eur_m2_mes": null,
+      "nombre_contractes": null
+    },
+    {
+      "codi": "7",
+      "nom": "la Dreta de l'Eixample",
+      "codi_districte": "2",
+      "districte": "Eixample",
+      "lloguer_mitja_eur_mes": 1595.41,
+      "lloguer_eur_m2_mes": null,
+      "nombre_contractes": null
+    },
+    {
+      "codi": "8",
+      "nom": "l'Antiga Esquerra de l'Eixample",
+      "codi_districte": "2",
+      "districte": "Eixample",
+      "lloguer_mitja_eur_mes": 1319.47,
+      "lloguer_eur_m2_mes": null,
+      "nombre_contractes": null
+    },
+    {
+      "codi": "9",
+      "nom": "la Nova Esquerra de l'Eixample",
+      "codi_districte": "2",
+      "districte": "Eixample",
+      "lloguer_mitja_eur_mes": 1167.67,
+      "lloguer_eur_m2_mes": null,
+      "nombre_contractes": null
+    },
+    {
+      "codi": "10",
+      "nom": "Sant Antoni",
+      "codi_districte": "2",
+      "districte": "Eixample",
+      "lloguer_mitja_eur_mes": 1128.17,
+      "lloguer_eur_m2_mes": null,
+      "nombre_contractes": null
+    },
+    {
+      "codi": "11",
+      "nom": "el Poble Sec - AEI Parc Montjuïc",
+      "codi_districte": "3",
+      "districte": "Sants-Montjuïc",
+      "lloguer_mitja_eur_mes": 951.45,
+      "lloguer_eur_m2_mes": null,
+      "nombre_contractes": null
+    },
+    {
+      "codi": "12",
+      "nom": "la Marina del Prat Vermell - AEI Zona Franca",
+      "codi_districte": "3",
+      "districte": "Sants-Montjuïc",
+      "lloguer_mitja_eur_mes": 1387.89,
+      "lloguer_eur_m2_mes": null,
+      "nombre_contractes": null
+    },
+    {
+      "codi": "13",
+      "nom": "la Marina de Port",
+      "codi_districte": "3",
+      "districte": "Sants-Montjuïc",
+      "lloguer_mitja_eur_mes": 948.9,
+      "lloguer_eur_m2_mes": null,
+      "nombre_contractes": null
+    },
+    {
+      "codi": "14",
+      "nom": "la Font de la Guatlla",
+      "codi_districte": "3",
+      "districte": "Sants-Montjuïc",
+      "lloguer_mitja_eur_mes": 1011.66,
+      "lloguer_eur_m2_mes": null,
+      "nombre_contractes": null
+    },
+    {
+      "codi": "15",
+      "nom": "Hostafrancs",
+      "codi_districte": "3",
+      "districte": "Sants-Montjuïc",
+      "lloguer_mitja_eur_mes": 948.76,
+      "lloguer_eur_m2_mes": null,
+      "nombre_contractes": null
+    },
+    {
+      "codi": "16",
+      "nom": "la Bordeta",
+      "codi_districte": "3",
+      "districte": "Sants-Montjuïc",
+      "lloguer_mitja_eur_mes": 1233.72,
+      "lloguer_eur_m2_mes": null,
+      "nombre_contractes": null
+    },
+    {
+      "codi": "17",
+      "nom": "Sants - Badal",
+      "codi_districte": "3",
+      "districte": "Sants-Montjuïc",
+      "lloguer_mitja_eur_mes": 984.79,
+      "lloguer_eur_m2_mes": null,
+      "nombre_contractes": null
+    },
+    {
+      "codi": "18",
+      "nom": "Sants",
+      "codi_districte": "3",
+      "districte": "Sants-Montjuïc",
+      "lloguer_mitja_eur_mes": 1002.8,
+      "lloguer_eur_m2_mes": null,
+      "nombre_contractes": null
+    },
+    {
+      "codi": "19",
+      "nom": "les Corts",
+      "codi_districte": "4",
+      "districte": "Les Corts",
+      "lloguer_mitja_eur_mes": 1202.3,
+      "lloguer_eur_m2_mes": null,
+      "nombre_contractes": null
+    },
+    {
+      "codi": "20",
+      "nom": "la Maternitat i Sant Ramon",
+      "codi_districte": "4",
+      "districte": "Les Corts",
+      "lloguer_mitja_eur_mes": 1176.33,
+      "lloguer_eur_m2_mes": null,
+      "nombre_contractes": null
+    },
+    {
+      "codi": "21",
+      "nom": "Pedralbes",
+      "codi_districte": "4",
+      "districte": "Les Corts",
+      "lloguer_mitja_eur_mes": 2209.45,
+      "lloguer_eur_m2_mes": null,
+      "nombre_contractes": null
+    },
+    {
+      "codi": "22",
+      "nom": "Vallvidrera, el Tibidabo i les Planes",
+      "codi_districte": "5",
+      "districte": "Sarrià-Sant Gervasi",
+      "lloguer_mitja_eur_mes": 1683.14,
+      "lloguer_eur_m2_mes": null,
+      "nombre_contractes": null
+    },
+    {
+      "codi": "23",
+      "nom": "Sarrià",
+      "codi_districte": "5",
+      "districte": "Sarrià-Sant Gervasi",
+      "lloguer_mitja_eur_mes": 1637.63,
+      "lloguer_eur_m2_mes": null,
+      "nombre_contractes": null
+    },
+    {
+      "codi": "24",
+      "nom": "les Tres Torres",
+      "codi_districte": "5",
+      "districte": "Sarrià-Sant Gervasi",
+      "lloguer_mitja_eur_mes": 2089.5,
+      "lloguer_eur_m2_mes": null,
+      "nombre_contractes": null
+    },
+    {
+      "codi": "25",
+      "nom": "Sant Gervasi - la Bonanova",
+      "codi_districte": "5",
+      "districte": "Sarrià-Sant Gervasi",
+      "lloguer_mitja_eur_mes": 1546.65,
+      "lloguer_eur_m2_mes": null,
+      "nombre_contractes": null
+    },
+    {
+      "codi": "26",
+      "nom": "Sant Gervasi - Galvany",
+      "codi_districte": "5",
+      "districte": "Sarrià-Sant Gervasi",
+      "lloguer_mitja_eur_mes": 1721.84,
+      "lloguer_eur_m2_mes": null,
+      "nombre_contractes": null
+    },
+    {
+      "codi": "27",
+      "nom": "el Putxet i el Farró",
+      "codi_districte": "5",
+      "districte": "Sarrià-Sant Gervasi",
+      "lloguer_mitja_eur_mes": 1275.32,
+      "lloguer_eur_m2_mes": null,
+      "nombre_contractes": null
+    },
+    {
+      "codi": "28",
+      "nom": "Vallcarca i els Penitents",
+      "codi_districte": "6",
+      "districte": "Gràcia",
+      "lloguer_mitja_eur_mes": 1061.75,
+      "lloguer_eur_m2_mes": null,
+      "nombre_contractes": null
+    },
+    {
+      "codi": "29",
+      "nom": "el Coll",
+      "codi_districte": "6",
+      "districte": "Gràcia",
+      "lloguer_mitja_eur_mes": 1001.04,
+      "lloguer_eur_m2_mes": null,
+      "nombre_contractes": null
+    },
+    {
+      "codi": "30",
+      "nom": "la Salut",
+      "codi_districte": "6",
+      "districte": "Gràcia",
+      "lloguer_mitja_eur_mes": 1054.9,
+      "lloguer_eur_m2_mes": null,
+      "nombre_contractes": null
+    },
+    {
+      "codi": "31",
+      "nom": "la Vila de Gràcia",
+      "codi_districte": "6",
+      "districte": "Gràcia",
+      "lloguer_mitja_eur_mes": 1103.27,
+      "lloguer_eur_m2_mes": null,
+      "nombre_contractes": null
+    },
+    {
+      "codi": "32",
+      "nom": "el Camp d'en Grassot i Gràcia Nova",
+      "codi_districte": "6",
+      "districte": "Gràcia",
+      "lloguer_mitja_eur_mes": 1067.73,
+      "lloguer_eur_m2_mes": null,
+      "nombre_contractes": null
+    },
+    {
+      "codi": "33",
+      "nom": "el Baix Guinardó",
+      "codi_districte": "7",
+      "districte": "Horta-Guinardó",
+      "lloguer_mitja_eur_mes": 1012.98,
+      "lloguer_eur_m2_mes": null,
+      "nombre_contractes": null
+    },
+    {
+      "codi": "34",
+      "nom": "Can Baró",
+      "codi_districte": "7",
+      "districte": "Horta-Guinardó",
+      "lloguer_mitja_eur_mes": 900.92,
+      "lloguer_eur_m2_mes": null,
+      "nombre_contractes": null
+    },
+    {
+      "codi": "35",
+      "nom": "el Guinardó",
+      "codi_districte": "7",
+      "districte": "Horta-Guinardó",
+      "lloguer_mitja_eur_mes": 954.66,
+      "lloguer_eur_m2_mes": null,
+      "nombre_contractes": null
+    },
+    {
+      "codi": "36",
+      "nom": "la Font d'en Fargues",
+      "codi_districte": "7",
+      "districte": "Horta-Guinardó",
+      "lloguer_mitja_eur_mes": 1203.6,
+      "lloguer_eur_m2_mes": null,
+      "nombre_contractes": null
+    },
+    {
+      "codi": "37",
+      "nom": "el Carmel",
+      "codi_districte": "7",
+      "districte": "Horta-Guinardó",
+      "lloguer_mitja_eur_mes": 808.55,
+      "lloguer_eur_m2_mes": null,
+      "nombre_contractes": null
+    },
+    {
+      "codi": "38",
+      "nom": "la Teixonera",
+      "codi_districte": "7",
+      "districte": "Horta-Guinardó",
+      "lloguer_mitja_eur_mes": 905.87,
+      "lloguer_eur_m2_mes": null,
+      "nombre_contractes": null
+    },
+    {
+      "codi": "39",
+      "nom": "Sant Genís dels Agudells",
+      "codi_districte": "7",
+      "districte": "Horta-Guinardó",
+      "lloguer_mitja_eur_mes": 832.58,
+      "lloguer_eur_m2_mes": null,
+      "nombre_contractes": null
+    },
+    {
+      "codi": "40",
+      "nom": "Montbau",
+      "codi_districte": "7",
+      "districte": "Horta-Guinardó",
+      "lloguer_mitja_eur_mes": 881.15,
+      "lloguer_eur_m2_mes": null,
+      "nombre_contractes": null
+    },
+    {
+      "codi": "41",
+      "nom": "la Vall d'Hebron",
+      "codi_districte": "7",
+      "districte": "Horta-Guinardó",
+      "lloguer_mitja_eur_mes": 984.87,
+      "lloguer_eur_m2_mes": null,
+      "nombre_contractes": null
+    },
+    {
+      "codi": "43",
+      "nom": "Horta",
+      "codi_districte": "7",
+      "districte": "Horta-Guinardó",
+      "lloguer_mitja_eur_mes": 928.99,
+      "lloguer_eur_m2_mes": null,
+      "nombre_contractes": null
+    },
+    {
+      "codi": "44",
+      "nom": "Vilapicina i la Torre Llobeta",
+      "codi_districte": "8",
+      "districte": "Nou Barris",
+      "lloguer_mitja_eur_mes": 903.11,
+      "lloguer_eur_m2_mes": null,
+      "nombre_contractes": null
+    },
+    {
+      "codi": "45",
+      "nom": "Porta",
+      "codi_districte": "8",
+      "districte": "Nou Barris",
+      "lloguer_mitja_eur_mes": 920.16,
+      "lloguer_eur_m2_mes": null,
+      "nombre_contractes": null
+    },
+    {
+      "codi": "46",
+      "nom": "el Turó de la Peira",
+      "codi_districte": "8",
+      "districte": "Nou Barris",
+      "lloguer_mitja_eur_mes": 725.91,
+      "lloguer_eur_m2_mes": null,
+      "nombre_contractes": null
+    },
+    {
+      "codi": "47",
+      "nom": "Can Peguera",
+      "codi_districte": "8",
+      "districte": "Nou Barris",
+      "lloguer_mitja_eur_mes": 398.55,
+      "lloguer_eur_m2_mes": null,
+      "nombre_contractes": null
+    },
+    {
+      "codi": "48",
+      "nom": "la Guineueta",
+      "codi_districte": "8",
+      "districte": "Nou Barris",
+      "lloguer_mitja_eur_mes": 829.26,
+      "lloguer_eur_m2_mes": null,
+      "nombre_contractes": null
+    },
+    {
+      "codi": "49",
+      "nom": "Canyelles",
+      "codi_districte": "8",
+      "districte": "Nou Barris",
+      "lloguer_mitja_eur_mes": 857.38,
+      "lloguer_eur_m2_mes": null,
+      "nombre_contractes": null
+    },
+    {
+      "codi": "50",
+      "nom": "les Roquetes",
+      "codi_districte": "8",
+      "districte": "Nou Barris",
+      "lloguer_mitja_eur_mes": 678.35,
+      "lloguer_eur_m2_mes": null,
+      "nombre_contractes": null
+    },
+    {
+      "codi": "51",
+      "nom": "Verdun",
+      "codi_districte": "8",
+      "districte": "Nou Barris",
+      "lloguer_mitja_eur_mes": 763.46,
+      "lloguer_eur_m2_mes": null,
+      "nombre_contractes": null
+    },
+    {
+      "codi": "52",
+      "nom": "la Prosperitat",
+      "codi_districte": "8",
+      "districte": "Nou Barris",
+      "lloguer_mitja_eur_mes": 879.61,
+      "lloguer_eur_m2_mes": null,
+      "nombre_contractes": null
+    },
+    {
+      "codi": "53",
+      "nom": "la Trinitat Nova",
+      "codi_districte": "8",
+      "districte": "Nou Barris",
+      "lloguer_mitja_eur_mes": 641.34,
+      "lloguer_eur_m2_mes": null,
+      "nombre_contractes": null
+    },
+    {
+      "codi": "55",
+      "nom": "Ciutat Meridiana",
+      "codi_districte": "8",
+      "districte": "Nou Barris",
+      "lloguer_mitja_eur_mes": 515.59,
+      "lloguer_eur_m2_mes": null,
+      "nombre_contractes": null
+    },
+    {
+      "codi": "57",
+      "nom": "la Trinitat Vella",
+      "codi_districte": "9",
+      "districte": "Sant Andreu",
+      "lloguer_mitja_eur_mes": 844.47,
+      "lloguer_eur_m2_mes": null,
+      "nombre_contractes": null
+    },
+    {
+      "codi": "59",
+      "nom": "el Bon Pastor",
+      "codi_districte": "9",
+      "districte": "Sant Andreu",
+      "lloguer_mitja_eur_mes": 734.76,
+      "lloguer_eur_m2_mes": null,
+      "nombre_contractes": null
+    },
+    {
+      "codi": "60",
+      "nom": "Sant Andreu",
+      "codi_districte": "9",
+      "districte": "Sant Andreu",
+      "lloguer_mitja_eur_mes": 916.81,
+      "lloguer_eur_m2_mes": null,
+      "nombre_contractes": null
+    },
+    {
+      "codi": "61",
+      "nom": "la Sagrera",
+      "codi_districte": "9",
+      "districte": "Sant Andreu",
+      "lloguer_mitja_eur_mes": 953.35,
+      "lloguer_eur_m2_mes": null,
+      "nombre_contractes": null
+    },
+    {
+      "codi": "62",
+      "nom": "el Congrés i els Indians",
+      "codi_districte": "9",
+      "districte": "Sant Andreu",
+      "lloguer_mitja_eur_mes": 974.58,
+      "lloguer_eur_m2_mes": null,
+      "nombre_contractes": null
+    },
+    {
+      "codi": "63",
+      "nom": "Navas",
+      "codi_districte": "10",
+      "districte": "Sant Martí",
+      "lloguer_mitja_eur_mes": 997.34,
+      "lloguer_eur_m2_mes": null,
+      "nombre_contractes": null
+    },
+    {
+      "codi": "64",
+      "nom": "el Camp de l'Arpa del Clot",
+      "codi_districte": "10",
+      "districte": "Sant Martí",
+      "lloguer_mitja_eur_mes": 957.19,
+      "lloguer_eur_m2_mes": null,
+      "nombre_contractes": null
+    },
+    {
+      "codi": "65",
+      "nom": "el Clot",
+      "codi_districte": "10",
+      "districte": "Sant Martí",
+      "lloguer_mitja_eur_mes": 994.4,
+      "lloguer_eur_m2_mes": null,
+      "nombre_contractes": null
+    },
+    {
+      "codi": "66",
+      "nom": "el Parc i la Llacuna del Poblenou",
+      "codi_districte": "10",
+      "districte": "Sant Martí",
+      "lloguer_mitja_eur_mes": 1178.76,
+      "lloguer_eur_m2_mes": null,
+      "nombre_contractes": null
+    },
+    {
+      "codi": "67",
+      "nom": "la Vila Olímpica del Poblenou",
+      "codi_districte": "10",
+      "districte": "Sant Martí",
+      "lloguer_mitja_eur_mes": 1663.51,
+      "lloguer_eur_m2_mes": null,
+      "nombre_contractes": null
+    },
+    {
+      "codi": "68",
+      "nom": "el Poblenou",
+      "codi_districte": "10",
+      "districte": "Sant Martí",
+      "lloguer_mitja_eur_mes": 1191.9,
+      "lloguer_eur_m2_mes": null,
+      "nombre_contractes": null
+    },
+    {
+      "codi": "69",
+      "nom": "Diagonal Mar i el Front Marítim del Poblenou",
+      "codi_districte": "10",
+      "districte": "Sant Martí",
+      "lloguer_mitja_eur_mes": 1538.67,
+      "lloguer_eur_m2_mes": null,
+      "nombre_contractes": null
+    },
+    {
+      "codi": "70",
+      "nom": "el Besòs i el Maresme",
+      "codi_districte": "10",
+      "districte": "Sant Martí",
+      "lloguer_mitja_eur_mes": 889.27,
+      "lloguer_eur_m2_mes": null,
+      "nombre_contractes": null
+    },
+    {
+      "codi": "71",
+      "nom": "Provençals del Poblenou",
+      "codi_districte": "10",
+      "districte": "Sant Martí",
+      "lloguer_mitja_eur_mes": 1176.02,
+      "lloguer_eur_m2_mes": null,
+      "nombre_contractes": null
+    },
+    {
+      "codi": "72",
+      "nom": "Sant Martí de Provençals",
+      "codi_districte": "10",
+      "districte": "Sant Martí",
+      "lloguer_mitja_eur_mes": 928.37,
+      "lloguer_eur_m2_mes": null,
+      "nombre_contractes": null
+    },
+    {
+      "codi": "73",
+      "nom": "la Verneda i la Pau",
+      "codi_districte": "10",
+      "districte": "Sant Martí",
+      "lloguer_mitja_eur_mes": 1007.17,
+      "lloguer_eur_m2_mes": null,
+      "nombre_contractes": null
+    }
+  ]
+}

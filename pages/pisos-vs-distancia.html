@@ -871,10 +871,13 @@ function renderMap() {
 
 function renderLegend() {
   const M = metric(), [lo, hi] = valueRange();
+  const buit = !ROWS.some(m => m.value != null);
   $("#legend-title").textContent = M.short;
   $("#legend-ramp").innerHTML = SEQ.map(c => `<span style="background:var(${c})"></span>`).join("");
-  $("#legend-lo").textContent = M.fmt(lo);
-  $("#legend-hi").textContent = M.fmt(hi);
+  // Con el filtro vacío, valueRange() devuelve un [0,1] de relleno: anunciarlo
+  // como si fuera el rango real sería mentir sobre datos que no hay.
+  $("#legend-lo").textContent = buit ? "—" : M.fmt(lo);
+  $("#legend-hi").textContent = buit ? "—" : M.fmt(hi);
   $("#legend-note").textContent = typeof M.note === "function" ? M.note(S) : M.note;
 }
 
@@ -1255,6 +1258,7 @@ function initUI() {
       S.refCustom = { lat: PROJ.invLat(pt.y), lon: PROJ.invLon(pt.x) };
       setPicking(false); syncXButtons(); render(); return;
     }
+    if (mapDrag > 6) { mapDrag = 0; return; }   // ha sido un arrastre, no una selección
     const p = ev.target.closest("path[data-ine]");
     select(p ? p.dataset.ine : null);
   });
@@ -1357,6 +1361,11 @@ function zoom(k, cx, cy) {
   renderMap();
 }
 
+/** Cuánto se ha arrastrado el último gesto sobre el mapa. El clic de selección
+ *  lo consulta: sin esto, mover el mapa para encuadrar acaba seleccionando el
+ *  municipio que quede debajo del dedo al soltar. */
+let mapDrag = 0;
+
 function enablePan(svg) {
   let drag = null, moved = 0;
   svg.addEventListener("pointerdown", (ev) => {
@@ -1377,7 +1386,11 @@ function enablePan(svg) {
     };
     renderMap();
   });
-  const end = (ev) => { if (drag) { try { svg.releasePointerCapture(ev.pointerId); } catch {} } drag = null; };
+  const end = (ev) => {
+    if (drag) { try { svg.releasePointerCapture(ev.pointerId); } catch {} }
+    mapDrag = moved;                 // lo lee el manejador de clic, que va después
+    drag = null;
+  };
   svg.addEventListener("pointerup", end);
   svg.addEventListener("pointercancel", end);
   svg.addEventListener("wheel", (ev) => {

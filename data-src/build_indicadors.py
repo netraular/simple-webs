@@ -386,12 +386,15 @@ def main():
                "https://www.idescat.cat/pub/?id=ist",
                "Índex sintètic d'Idescat que combina renda, nivell educatiu, ocupació i "
                "categoria professional. >100 = per damunt de la mitjana catalana."),
-        f_emex("atur_taxa_pct", "Taxa d'atur (%)", "f222",
-               "https://www.idescat.cat/pub/?id=censph",
-               "CALCULAT: població desocupada (f222) / població activa (f223) × 100. "
-               "Els dos numeradors són xifres publicades d'Idescat del mateix any i la "
-               "mateixa font (Cens de població anual de l'INE). És la taxa d'atur censal, "
-               "no la taxa d'atur registral ni la de l'EPA."),
+        {"camp": "atur_taxa_pct", "nom": "Taxa d'atur (%)",
+         "font": "Idescat, API EMEX (indicadors f222 i f223); font primària Cens de població anual de l'INE",
+         "url": "https://api.idescat.cat/emex/v1/dades.json?i=f222,f223&tipus=mun&lang=ca",
+         "any": emex_any("f222"),
+         "publicacio": "https://www.idescat.cat/pub/?id=censph",
+         "nota": "CALCULAT: població desocupada (f222) / població activa (f223) × 100. "
+                 "Numerador i denominador són xifres publicades d'Idescat del mateix any "
+                 "(%s) i la mateixa font. És la taxa d'atur censal, no la taxa d'atur "
+                 "registral del SOC ni la de l'EPA." % emex_any("f222")},
         f_emex("atur_registrat", "Atur registrat (mitjana anual, persones)", "f308",
                "https://www.idescat.cat/pub/?id=atureg",
                "Xifra absoluta del Departament d'Empresa i Treball. Mitjana dels dotze mesos."),

@@ -186,11 +186,11 @@
    {
     "camp": "atur_taxa_pct",
     "nom": "Taxa d'atur (%)",
-    "font": "Idescat, API EMEX (indicador f222)",
-    "url": "https://api.idescat.cat/emex/v1/dades.json?i=f222&tipus=mun&lang=ca",
+    "font": "Idescat, API EMEX (indicadors f222 i f223); font primària Cens de població anual de l'INE",
+    "url": "https://api.idescat.cat/emex/v1/dades.json?i=f222,f223&tipus=mun&lang=ca",
     "any": "2024",
     "publicacio": "https://www.idescat.cat/pub/?id=censph",
-    "nota": "CALCULAT: població desocupada (f222) / població activa (f223) × 100. Els dos numeradors són xifres publicades d'Idescat del mateix any i la mateixa font (Cens de població anual de l'INE). És la taxa d'atur censal, no la taxa d'atur registral ni la de l'EPA."
+    "nota": "CALCULAT: població desocupada (f222) / població activa (f223) × 100. Numerador i denominador són xifres publicades d'Idescat del mateix any (2024) i la mateixa font. És la taxa d'atur censal, no la taxa d'atur registral del SOC ni la de l'EPA."
    },
    {
     "camp": "atur_registrat",

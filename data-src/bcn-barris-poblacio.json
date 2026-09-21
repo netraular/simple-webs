@@ -1,0 +1,440 @@
+[
+  {
+    "codi_barri": "01",
+    "nom_barri": "el Raval",
+    "poblacio": 50863,
+    "any": 2026
+  },
+  {
+    "codi_barri": "02",
+    "nom_barri": "el Barri Gòtic",
+    "poblacio": 27312,
+    "any": 2026
+  },
+  {
+    "codi_barri": "03",
+    "nom_barri": "la Barceloneta",
+    "poblacio": 14665,
+    "any": 2026
+  },
+  {
+    "codi_barri": "04",
+    "nom_barri": "Sant Pere, Santa Caterina i la Ribera",
+    "poblacio": 22989,
+    "any": 2026
+  },
+  {
+    "codi_barri": "05",
+    "nom_barri": "el Fort Pienc",
+    "poblacio": 37672,
+    "any": 2026
+  },
+  {
+    "codi_barri": "06",
+    "nom_barri": "la Sagrada Família",
+    "poblacio": 53201,
+    "any": 2026
+  },
+  {
+    "codi_barri": "07",
+    "nom_barri": "la Dreta de l'Eixample",
+    "poblacio": 45464,
+    "any": 2026
+  },
+  {
+    "codi_barri": "08",
+    "nom_barri": "l'Antiga Esquerra de l'Eixample",
+    "poblacio": 42921,
+    "any": 2026
+  },
+  {
+    "codi_barri": "09",
+    "nom_barri": "la Nova Esquerra de l'Eixample",
+    "poblacio": 59117,
+    "any": 2026
+  },
+  {
+    "codi_barri": "10",
+    "nom_barri": "Sant Antoni",
+    "poblacio": 38978,
+    "any": 2026
+  },
+  {
+    "codi_barri": "11",
+    "nom_barri": "el Poble-sec",
+    "poblacio": 40136,
+    "any": 2026
+  },
+  {
+    "codi_barri": "12",
+    "nom_barri": "la Marina del Prat Vermell",
+    "poblacio": 3174,
+    "any": 2026
+  },
+  {
+    "codi_barri": "13",
+    "nom_barri": "la Marina de Port",
+    "poblacio": 31768,
+    "any": 2026
+  },
+  {
+    "codi_barri": "14",
+    "nom_barri": "la Font de la Guatlla",
+    "poblacio": 10869,
+    "any": 2026
+  },
+  {
+    "codi_barri": "15",
+    "nom_barri": "Hostafrancs",
+    "poblacio": 17021,
+    "any": 2026
+  },
+  {
+    "codi_barri": "16",
+    "nom_barri": "la Bordeta",
+    "poblacio": 21153,
+    "any": 2026
+  },
+  {
+    "codi_barri": "17",
+    "nom_barri": "Sants - Badal",
+    "poblacio": 25243,
+    "any": 2026
+  },
+  {
+    "codi_barri": "18",
+    "nom_barri": "Sants",
+    "poblacio": 46676,
+    "any": 2026
+  },
+  {
+    "codi_barri": "19",
+    "nom_barri": "les Corts",
+    "poblacio": 46672,
+    "any": 2026
+  },
+  {
+    "codi_barri": "20",
+    "nom_barri": "la Maternitat i Sant Ramon",
+    "poblacio": 24622,
+    "any": 2026
+  },
+  {
+    "codi_barri": "21",
+    "nom_barri": "Pedralbes",
+    "poblacio": 12479,
+    "any": 2026
+  },
+  {
+    "codi_barri": "22",
+    "nom_barri": "Vallvidrera, el Tibidabo i les Planes",
+    "poblacio": 4867,
+    "any": 2026
+  },
+  {
+    "codi_barri": "23",
+    "nom_barri": "Sarrià",
+    "poblacio": 24937,
+    "any": 2026
+  },
+  {
+    "codi_barri": "24",
+    "nom_barri": "les Tres Torres",
+    "poblacio": 16341,
+    "any": 2026
+  },
+  {
+    "codi_barri": "25",
+    "nom_barri": "Sant Gervasi - la Bonanova",
+    "poblacio": 26801,
+    "any": 2026
+  },
+  {
+    "codi_barri": "26",
+    "nom_barri": "Sant Gervasi - Galvany",
+    "poblacio": 49202,
+    "any": 2026
+  },
+  {
+    "codi_barri": "27",
+    "nom_barri": "el Putxet i el Farró",
+    "poblacio": 30795,
+    "any": 2026
+  },
+  {
+    "codi_barri": "28",
+    "nom_barri": "Vallcarca i els Penitents",
+    "poblacio": 16928,
+    "any": 2026
+  },
+  {
+    "codi_barri": "29",
+    "nom_barri": "el Coll",
+    "poblacio": 8056,
+    "any": 2026
+  },
+  {
+    "codi_barri": "30",
+    "nom_barri": "la Salut",
+    "poblacio": 13947,
+    "any": 2026
+  },
+  {
+    "codi_barri": "31",
+    "nom_barri": "la Vila de Gràcia",
+    "poblacio": 51477,
+    "any": 2026
+  },
+  {
+    "codi_barri": "32",
+    "nom_barri": "el Camp d'en Grassot i Gràcia Nova",
+    "poblacio": 36422,
+    "any": 2026
+  },
+  {
+    "codi_barri": "33",
+    "nom_barri": "el Baix Guinardó",
+    "poblacio": 26277,
+    "any": 2026
+  },
+  {
+    "codi_barri": "34",
+    "nom_barri": "Can Baró",
+    "poblacio": 9645,
+    "any": 2026
+  },
+  {
+    "codi_barri": "35",
+    "nom_barri": "el Guinardó",
+    "poblacio": 39144,
+    "any": 2026
+  },
+  {
+    "codi_barri": "36",
+    "nom_barri": "la Font d'en Fargues",
+    "poblacio": 9845,
+    "any": 2026
+  },
+  {
+    "codi_barri": "37",
+    "nom_barri": "el Carmel",
+    "poblacio": 33799,
+    "any": 2026
+  },
+  {
+    "codi_barri": "38",
+    "nom_barri": "la Teixonera",
+    "poblacio": 12727,
+    "any": 2026
+  },
+  {
+    "codi_barri": "39",
+    "nom_barri": "Sant Genís dels Agudells",
+    "poblacio": 7890,
+    "any": 2026
+  },
+  {
+    "codi_barri": "40",
+    "nom_barri": "Montbau",
+    "poblacio": 5353,
+    "any": 2026
+  },
+  {
+    "codi_barri": "41",
+    "nom_barri": "la Vall d'Hebron",
+    "poblacio": 6087,
+    "any": 2026
+  },
+  {
+    "codi_barri": "42",
+    "nom_barri": "la Clota",
+    "poblacio": 1123,
+    "any": 2026
+  },
+  {
+    "codi_barri": "43",
+    "nom_barri": "Horta",
+    "poblacio": 31116,
+    "any": 2026
+  },
+  {
+    "codi_barri": "44",
+    "nom_barri": "Vilapicina i la Torre Llobeta",
+    "poblacio": 26478,
+    "any": 2026
+  },
+  {
+    "codi_barri": "45",
+    "nom_barri": "Porta",
+    "poblacio": 31199,
+    "any": 2026
+  },
+  {
+    "codi_barri": "46",
+    "nom_barri": "el Turó de la Peira",
+    "poblacio": 17378,
+    "any": 2026
+  },
+  {
+    "codi_barri": "47",
+    "nom_barri": "Can Peguera",
+    "poblacio": 2122,
+    "any": 2026
+  },
+  {
+    "codi_barri": "48",
+    "nom_barri": "la Guineueta",
+    "poblacio": 15624,
+    "any": 2026
+  },
+  {
+    "codi_barri": "49",
+    "nom_barri": "Canyelles",
+    "poblacio": 6906,
+    "any": 2026
+  },
+  {
+    "codi_barri": "50",
+    "nom_barri": "les Roquetes",
+    "poblacio": 17595,
+    "any": 2026
+  },
+  {
+    "codi_barri": "51",
+    "nom_barri": "Verdun",
+    "poblacio": 13507,
+    "any": 2026
+  },
+  {
+    "codi_barri": "52",
+    "nom_barri": "la Prosperitat",
+    "poblacio": 28174,
+    "any": 2026
+  },
+  {
+    "codi_barri": "53",
+    "nom_barri": "la Trinitat Nova",
+    "poblacio": 8128,
+    "any": 2026
+  },
+  {
+    "codi_barri": "54",
+    "nom_barri": "Torre Baró",
+    "poblacio": 3236,
+    "any": 2026
+  },
+  {
+    "codi_barri": "55",
+    "nom_barri": "Ciutat Meridiana",
+    "poblacio": 11493,
+    "any": 2026
+  },
+  {
+    "codi_barri": "56",
+    "nom_barri": "Vallbona",
+    "poblacio": 1440,
+    "any": 2026
+  },
+  {
+    "codi_barri": "57",
+    "nom_barri": "la Trinitat Vella",
+    "poblacio": 11307,
+    "any": 2026
+  },
+  {
+    "codi_barri": "58",
+    "nom_barri": "Baró de Viver",
+    "poblacio": 2668,
+    "any": 2026
+  },
+  {
+    "codi_barri": "59",
+    "nom_barri": "el Bon Pastor",
+    "poblacio": 15871,
+    "any": 2026
+  },
+  {
+    "codi_barri": "60",
+    "nom_barri": "Sant Andreu",
+    "poblacio": 59330,
+    "any": 2026
+  },
+  {
+    "codi_barri": "61",
+    "nom_barri": "la Sagrera",
+    "poblacio": 31247,
+    "any": 2026
+  },
+  {
+    "codi_barri": "62",
+    "nom_barri": "el Congrés i els Indians",
+    "poblacio": 15254,
+    "any": 2026
+  },
+  {
+    "codi_barri": "63",
+    "nom_barri": "Navas",
+    "poblacio": 22607,
+    "any": 2026
+  },
+  {
+    "codi_barri": "64",
+    "nom_barri": "el Camp de l'Arpa del Clot",
+    "poblacio": 39535,
+    "any": 2026
+  },
+  {
+    "codi_barri": "65",
+    "nom_barri": "el Clot",
+    "poblacio": 26907,
+    "any": 2026
+  },
+  {
+    "codi_barri": "66",
+    "nom_barri": "el Parc i la Llacuna del Poblenou",
+    "poblacio": 17639,
+    "any": 2026
+  },
+  {
+    "codi_barri": "67",
+    "nom_barri": "la Vila Olímpica del Poblenou",
+    "poblacio": 9293,
+    "any": 2026
+  },
+  {
+    "codi_barri": "68",
+    "nom_barri": "el Poblenou",
+    "poblacio": 34736,
+    "any": 2026
+  },
+  {
+    "codi_barri": "69",
+    "nom_barri": "Diagonal Mar i el Front Marítim del Poblenou",
+    "poblacio": 13771,
+    "any": 2026
+  },
+  {
+    "codi_barri": "70",
+    "nom_barri": "el Besòs i el Maresme",
+    "poblacio": 30695,
+    "any": 2026
+  },
+  {
+    "codi_barri": "71",
+    "nom_barri": "Provençals del Poblenou",
+    "poblacio": 22076,
+    "any": 2026
+  },
+  {
+    "codi_barri": "72",
+    "nom_barri": "Sant Martí de Provençals",
+    "poblacio": 27035,
+    "any": 2026
+  },
+  {
+    "codi_barri": "73",
+    "nom_barri": "la Verneda i la Pau",
+    "poblacio": 30938,
+    "any": 2026
+  }
+]

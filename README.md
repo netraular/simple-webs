@@ -12,7 +12,12 @@ index.html      showcase landing (auto-discovers pages/)
 webs.json       optional per-page title & description
 favicon.ico     default tab icon for pages that define none
 pages/          the published pages — one .html each
+pages/data/     data files a page fetches at runtime (JSON/GeoJSON)
+data-src/       build scripts + raw sources that generate pages/data/
 ```
+
+The landing page lists only `.html` files sitting directly in `pages/`, so
+`pages/data/` is served but never shows up as a card.
 
 ## Add a page
 
@@ -39,6 +44,23 @@ Add an entry to `webs.json` (falls back to the filename if missing):
   }
 }
 ```
+
+## Pages with data
+
+A page that needs more than it can inline fetches from `pages/data/`. Regenerate
+those files from the scripts in `data-src/` — they hit the public APIs and write
+straight into `pages/data/`:
+
+```sh
+cd data-src
+node build-data.mjs     # pisos-bcn.json + municipis.geojson
+node build-barris.mjs   # bcn-barris.json + bcn-barris.geojson
+node test-logica.mjs    # sanity checks against the built data
+node test-vistas.mjs
+```
+
+Some scripts call HTTPS APIs; behind a TLS-intercepting proxy, prefix them with
+`NODE_EXTRA_CA_CERTS=/etc/ssl/certs/ca-certificates.crt`.
 
 ---
 

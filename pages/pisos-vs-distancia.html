@@ -846,9 +846,13 @@ function renderMap() {
     const cls = "muni" + (inFilter.has(m.ine) ? "" : " is-dim") + (S.selected === m.ine ? " is-sel" : "");
     s += `<path class="${cls}" d="${d}" fill="${fill}" data-ine="${m.ine}"><title>${esc(m.nom)}</title></path>`;
   }
-  // Puntos de referencia: el activo, destacado; el resto, discretos.
+  // Puntos de referencia: el activo, destacado; el resto, discretos. En la vista
+  // de barrios varios caen fuera del encuadre (Sabadell, la playa); no se pintan,
+  // pero siguen sirviendo como referencia para las distancias del eje.
+  const enLlenc = (x, y) => x >= 0 && x <= MAP_W && y >= 0 && y <= MAP_H;
   for (const p of DATA.pois) {
     const x = PROJ.x(p.lon), y = PROJ.y(p.lat);
+    if (!enLlenc(x, y)) continue;
     const active = !S.refCustom && p.id === S.refId;
     s += `<circle class="poi-dot" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${active ? 5.5 : 3}" opacity="${active ? 1 : .45}"/>`;
     if (active) s += `<text class="poi-lbl" x="${(x + 9).toFixed(1)}" y="${(y + 4).toFixed(1)}">${esc(p.nom)}</text>`;
@@ -1030,9 +1034,12 @@ function renderTexts() {
   const M = metric(), ref = refPoint();
   $("#map-title").textContent = typeof M.axis === "function" ? M.axis(S) : M.axis;
   const V = vista();
+  const rx = PROJ.x(ref.lon), ry = PROJ.y(ref.lat);
+  const refFora = rx < 0 || rx > MAP_W || ry < 0 || ry > MAP_H;
   $("#map-sub").textContent =
     `${ROWS.length} ${V.unitat[1]} a ${S.maxDist} km o menos del centro de Barcelona. ` +
-    `Más oscuro, más alto. Pasa el ratón o toca ${V.id === "barris" ? "un barrio" : "un municipio"} para ver sus cifras.`;
+    `Más oscuro, más alto. Pasa el ratón o toca ${V.id === "barris" ? "un barrio" : "un municipio"} para ver sus cifras.` +
+    (refFora ? ` ${ref.nom} queda fuera de este encuadre, pero las distancias del gráfico se miden igualmente hasta allí.` : "");
   const lejania = xAxisMode() === "dist" ? "la distancia en línea recta" : "el tiempo en coche sin tráfico";
   $("#sc-sub").textContent =
     `Cada punto es un ${vista().unitat[0]}. Eje horizontal: ${lejania} hasta ${ref.nom}. ` +

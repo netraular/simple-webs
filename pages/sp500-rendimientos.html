@@ -183,6 +183,9 @@ section{margin-bottom:34px;scroll-margin-top:80px}
 .legend .it{display:flex;align-items:center;gap:0}
 .legend .key{display:inline-block;width:14px;height:3px;border-radius:2px;margin-right:7px}
 .legend .key.dash{background:none;border-top:2px dashed var(--ref);height:0}
+/* La paleta tiene ocho tonos validados y no se inventa un noveno: los dos
+   índices "mundo" comparten tono y se distinguen por el trazo discontinuo. */
+.legend .key.rayada{background:none;border-top:3px dashed var(--c);height:0;border-radius:0}
 
 /* ---------- selector de activos ---------- */
 .picks{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px}
@@ -192,6 +195,7 @@ section{margin-bottom:34px;scroll-margin-top:80px}
   border-radius:999px;padding:6px 12px;cursor:pointer;min-height:34px;
 }
 .pick .key{width:10px;height:10px;border-radius:50%;flex:none;background:var(--c)}
+.pick .key.rayada{background:none;border:2px dashed var(--c)}
 .pick[aria-pressed=true]{color:var(--ink);border-color:var(--ink-2);background:var(--surface-2);font-weight:600}
 .pick[aria-pressed=false] .key{opacity:.28}
 
@@ -322,7 +326,8 @@ footer a{color:var(--muted-txt)}
     <h2>Lo que importa no es la media: es cuándo entraste y cuándo saliste</h2>
     <p>Aquí no se elige un periodo bonito. Se calculan <b>todas</b> las ventanas posibles de la
       duración que marques, mes a mes, y se muestran todas a la vez. Cada punto es un inversor que
-      entró ese mes y aguantó exactamente ese tiempo.</p>
+      empezó ese mes y aguantó exactamente ese tiempo, ya pusiera el dinero <b>de golpe</b> o
+      <b>aportando cada mes</b>.</p>
   </div>
   <section id="ventanas">
     <div class="card">
@@ -330,6 +335,13 @@ footer a{color:var(--muted-txt)}
         <div>
           <h3>Rentabilidad anualizada según el mes de entrada</h3>
           <p class="sub" id="s-vent"></p>
+        </div>
+        <div class="field">
+          <span class="lbl" id="lbl-modo-vent">Forma de invertir</span>
+          <div class="btn-group" role="group" aria-labelledby="lbl-modo-vent">
+            <button class="btn btn-sm" id="vt-unico" aria-pressed="true">Todo de golpe</button>
+            <button class="btn btn-sm" id="vt-dca" aria-pressed="false">Aportación mensual</button>
+          </div>
         </div>
         <div class="field">
           <label for="horizonte">Años aguantando</label>
@@ -421,6 +433,16 @@ footer a{color:var(--muted-txt)}
       <div class="note warn" id="nota-comp"></div>
       <details class="tbl" open><summary>Ver los datos en tabla</summary>
         <div class="table-scroll" id="tb-comp"></div>
+      </details>
+    </div>
+    <div class="card">
+      <h3>Los mismos activos, aportando 100&nbsp;$ cada mes</h3>
+      <p class="sub" id="s-cmp-dca"></p>
+      <div class="chart" id="ch-cmp-dca"></div>
+      <div class="legend" id="lg-cmp-dca"></div>
+      <div class="note" id="nota-cmp-dca"></div>
+      <details class="tbl" open><summary>Ver los datos en tabla</summary>
+        <div class="table-scroll" id="tb-cmp-dca"></div>
       </details>
     </div>
   </section>
@@ -650,7 +672,12 @@ const ACTIVOS = [
   { id: "vivienda_us",c: "var(--series-4)", corto: "Vivienda EE. UU.", nota: "solo precio" },
   { id: "nikkei",     c: "var(--series-5)", corto: "Nikkei 225", nota: "solo precio, en yenes" },
   { id: "letras3m",   c: "var(--series-6)", corto: "Letras 3m", nota: "el “no invertir”" },
+  // MSCI World y MSCI EAFE son el mismo tono a propósito: la paleta tiene ocho
+  // ranuras validadas para daltonismo y un noveno tono inventado no lo estaría.
+  // Se distinguen por el trazo (continuo / discontinuo), que es codificación
+  // compuesta y no depende del color.
   { id: "mundo_exus", c: "var(--series-7)", corto: "Mundo sin EE. UU.", nota: "con dividendos" },
+  { id: "mundo",      c: "var(--series-7)", rayada: true, corto: "Mundo (MSCI World)", nota: "con dividendos" },
   { id: "ibex",       c: "var(--series-8)", corto: "IBEX 35", nota: "solo precio, en euros" },
 ];
 const META = (id) => D.series[id];
@@ -851,7 +878,11 @@ function hoverMarca(g, nodo, html) {
 /** Leyenda: siempre presente con dos o más series. */
 function leyenda(host, items) {
   host.innerHTML = items
-    .map((it) => `<span class="it"><i class="key${it.dash ? " dash" : ""}"${it.dash ? "" : ` style="background:${it.color}"`}></i>${esc(it.nombre)}</span>`)
+    .map((it) => {
+      const clase = it.dash ? " dash" : it.rayada ? " rayada" : "";
+      const estilo = it.dash ? "" : it.rayada ? ` style="--c:${it.color}"` : ` style="background:${it.color}"`;
+      return `<span class="it"><i class="key${clase}"${estilo}></i>${esc(it.nombre)}</span>`;
+    })
     .join("");
 }
 
@@ -1141,41 +1172,147 @@ const mediana = (xs) => {
   return s.length % 2 ? s[(s.length - 1) / 2] : (s[s.length / 2 - 1] + s[s.length / 2]) / 2;
 };
 
+/**
+ * TIR anual de un plan de aportación mensual, en forma cerrada.
+ *
+ * Se aporta 1 al principio de cada uno de los `m` meses y se liquida `F` al
+ * final del último. La TIR mensual r cumple  F·q^m = Σ_{k<m} q^k  con
+ * q = 1/(1+r), y esa suma es una progresión geométrica: cada evaluación cuesta
+ * O(1) en vez de O(m). Sin eso, rehacer las ~1.700 ventanas cada vez que se
+ * mueve el mando serían decenas de millones de operaciones por repintado.
+ *
+ * `faltan` son las posiciones (0…m−1) en las que no se pudo comprar porque la
+ * serie no tiene dato ese mes; se descuentan de la suma. Pasa de verdad: en
+ * modo real, octubre de 2025 no tiene IPC publicado.
+ *
+ * El intervalo de búsqueda y el porqué son los mismos que en `tir()`.
+ */
+function tirDca(F, m, faltan = []) {
+  const vp = (r) => {
+    const q = 1 / (1 + r);
+    // En r≈0 la fórmula de la progresión es 0/0; ahí la suma vale exactamente m.
+    let s = Math.abs(r) < 1e-9 ? m : (1 - Math.pow(q, m)) / (1 - q);
+    for (const k of faltan) s -= Math.pow(q, k);
+    return F * Math.pow(q, m) - s;
+  };
+  let lo = -0.05, hi = 0.05;
+  let vLo = vp(lo);
+  const vHi = vp(hi);
+  if (!Number.isFinite(vLo) || !Number.isFinite(vHi) || vLo * vHi > 0) return null;
+  for (let k = 0; k < 60; k++) { // 0,1 / 2^60 está muy por debajo de la precisión doble
+    const mid = (lo + hi) / 2, vMid = vp(mid);
+    if (!Number.isFinite(vMid)) break;
+    if (vLo * vMid <= 0) hi = mid; else { lo = mid; vLo = vMid; }
+  }
+  return (Math.pow(1 + (lo + hi) / 2, 12) - 1) * 100;
+}
+
+/**
+ * Todas las ventanas de aportación mensual de `meses` meses: se pone la misma
+ * cantidad cada mes y se liquida al final del tramo. Devuelve, por cada mes de
+ * arranque, la TIR anual (`r`) y las veces que se multiplicó lo aportado (`x`).
+ *
+ * En modo real la aportación es constante en poder de compra, no en dólares:
+ * la serie ya va deflactada, así que aportar "1" cada mes equivale a un recibo
+ * que sube con el IPC. Es la única forma de que la TIR salga en términos reales
+ * sin mezclar dólares de años distintos.
+ */
+const cacheDca = new Map();
+function ventanasDca(id, meses) {
+  const clave = `${id}|${meses}|${S.real}|${S.coste}`;
+  if (cacheDca.has(clave)) return cacheDca.get(clave);
+  const v = serie(id);
+  const [vmin, vmax] = rango(v);
+  const out = [];
+  if (vmin < 0 || vmax - vmin < meses) { cacheDca.set(clave, out); return out; }
+  // Sumas acumuladas de 1/precio: el valor final de un tramo es
+  // v[fin]·Σ(1/v[j]), así que cada ventana se resuelve con dos restas.
+  const inv = new Float64Array(N + 1), cnt = new Int32Array(N + 1);
+  for (let j = 0; j < N; j++) {
+    const hay = v[j] != null;
+    inv[j + 1] = inv[j] + (hay ? 1 / v[j] : 0);
+    cnt[j + 1] = cnt[j] + (hay ? 1 : 0);
+  }
+  const huecos = [];
+  for (let j = vmin; j <= vmax; j++) if (v[j] == null) huecos.push(j);
+  for (let i = vmin; i + meses <= vmax; i++) {
+    if (v[i + meses] == null) continue; // sin precio de liquidación no hay ventana
+    const aportes = cnt[i + meses] - cnt[i];
+    if (!aportes) continue;
+    const F = v[i + meses] * (inv[i + meses] - inv[i]);
+    const r = tirDca(F, meses, huecos.filter((j) => j >= i && j < i + meses).map((j) => j - i));
+    if (r != null) out.push({ i, r, x: F / aportes });
+  }
+  if (cacheDca.size > 200) cacheDca.clear(); // el mando puede generar muchas combinaciones
+  cacheDca.set(clave, out);
+  return out;
+}
+
+const VENT = { modo: "unico" };
+
 registra(function rolling() {
   const años = +$("#horizonte").value;
   const etiquetaAños = `${años} ${años === 1 ? "año" : "años"}`;
   $("#horizonte-val").textContent = etiquetaAños;
   $("#horizonte").setAttribute("aria-valuetext", etiquetaAños);
-  const vs = ventanas("sp500_tr", años * 12);
+  const dca = VENT.modo === "dca";
+  const meses = años * 12;
+  const vs = dca ? ventanasDca("sp500_tr", meses) : ventanas("sp500_tr", meses);
+  // El otro modo, calculado siempre: es la referencia contra la que se compara.
+  const otras = dca ? ventanas("sp500_tr", meses) : ventanasDca("sp500_tr", meses);
+  if (!vs.length) {
+    $("#s-vent").textContent = "";
+    $("#tiles-vent").innerHTML = "";
+    $("#ch-rolling").innerHTML =
+      `<p class="note" style="margin-top:0">No hay ninguna ventana de ${etiquetaAños} que se pueda
+       calcular con los datos disponibles en este modo.</p>`;
+    $("#lg-rolling").innerHTML = ""; $("#nota-vent").innerHTML = "";
+    return;
+  }
   const rs = vs.map((d) => d.r);
   const peor = vs.reduce((p, c) => (c.r < p.r ? c : p));
   const mejor = vs.reduce((p, c) => (c.r > p.r ? c : p));
   const negativas = vs.filter((d) => d.r < 0).length;
+  const empezar = dca ? "Empezando a aportar en" : "Entrando en";
 
   $("#s-vent").innerHTML =
     `${new Intl.NumberFormat("es-ES").format(vs.length)} ventanas de ${años} ${años === 1 ? "año" : "años"}, ` +
-    `una por cada mes de entrada entre ${mesLargo(M[vs[0].i])} y ${mesLargo(M[vs.at(-1).i])}, ` +
+    (dca
+      ? `una por cada mes en que se pudo empezar a aportar, entre ${mesLargo(M[vs[0].i])} y ${mesLargo(M[vs.at(-1).i])}, `
+      : `una por cada mes de entrada entre ${mesLargo(M[vs[0].i])} y ${mesLargo(M[vs.at(-1).i])}, `) +
     `${S.real ? "con la inflación descontada" : "en dólares corrientes"}.`;
 
   $("#tiles-vent").innerHTML = `
-    <div class="tile"><div class="k">Peor entrada</div>
+    <div class="tile"><div class="k">Peor ${dca ? "arranque" : "entrada"}</div>
       <div class="v ${peor.r < 0 ? "neg" : ""}">${pctS(peor.r)}</div>
-      <div class="s">Entrando en ${mesLargo(M[peor.i])}.</div></div>
+      <div class="s">${empezar} ${mesLargo(M[peor.i])}.</div></div>
     <div class="tile"><div class="k">Mediana</div>
       <div class="v">${pctS(mediana(rs))}</div>
-      <div class="s">La mitad de las entradas lo hizo mejor; la otra mitad, peor.</div></div>
-    <div class="tile"><div class="k">Mejor entrada</div>
+      <div class="s">La mitad de ${dca ? "los planes" : "las entradas"} lo hizo mejor; la otra mitad, peor.</div></div>
+    <div class="tile"><div class="k">Mejor ${dca ? "arranque" : "entrada"}</div>
       <div class="v">${pctS(mejor.r)}</div>
-      <div class="s">Entrando en ${mesLargo(M[mejor.i])}.</div></div>
+      <div class="s">${empezar} ${mesLargo(M[mejor.i])}.</div></div>
     <div class="tile"><div class="k">Acabaron perdiendo</div>
       <div class="v ${negativas ? "neg" : ""}">${nf(negativas / vs.length >= 0.1 ? 0 : 1).format((negativas / vs.length) * 100)} %</div>
       <div class="s">${new Intl.NumberFormat("es-ES").format(negativas)} de ${new Intl.NumberFormat("es-ES").format(vs.length)} ventanas
-        terminaron por debajo de lo invertido.</div></div>`;
+        terminaron por debajo de lo ${dca ? "aportado" : "invertido"}.</div></div>
+    ${dca ? `<div class="tile"><div class="k">Sobre lo aportado</div>
+      <div class="v">${mult(mediana(vs.map((d) => d.x)))}</div>
+      <div class="s">La ventana mediana, sin anualizar: por cada ${S.real ? "dólar de poder de compra" : "dólar"} puesto.</div></div>` : ""}`;
 
   const host = $("#ch-rolling");
-  const g = marco(host, { h: 300, ml: 46, mb: 30, mt: 14, titulo: `Rentabilidad anualizada a ${años} años según el mes de entrada` });
-  const min = Math.min(...rs, -2), max = Math.max(...rs, 12);
-  const a = vs[0].i, b = vs.at(-1).i;
+  const g = marco(host, {
+    h: 300, ml: 46, mb: 30, mt: 14,
+    titulo: dca
+      ? `TIR anualizada de aportar cada mes durante ${años} años, según el mes de arranque, comparada con poner todo de golpe`
+      : `Rentabilidad anualizada a ${años} años según el mes de entrada`,
+  });
+  // Las dos curvas comparten eje: son la misma pregunta con dos formas de poner
+  // el dinero. Aquí el color no distingue activos (solo hay uno), sino modos.
+  const rsOtras = otras.map((d) => d.r);
+  const min = Math.min(...rs, ...rsOtras, -2), max = Math.max(...rs, ...rsOtras, 12);
+  const a = Math.min(vs[0].i, otras.length ? otras[0].i : vs[0].i);
+  const b = Math.max(vs.at(-1).i, otras.length ? otras.at(-1).i : vs.at(-1).i);
   const x = (i) => g.x0 + ((i - a) / Math.max(1, b - a)) * (g.x1 - g.x0);
   const y = (r) => g.y1 - ((r - min) / (max - min)) * (g.y1 - g.y0);
   ejeY(g, ticksLineal(min, max, 6), y, (v) => pctS(v, 0), { cero: 0 });
@@ -1191,6 +1328,14 @@ registra(function rolling() {
   }
   const serieV = new Array(N).fill(null);
   vs.forEach((d) => (serieV[d.i] = d.r));
+  const serieO = new Array(N).fill(null);
+  otras.forEach((d) => (serieO[d.i] = d.r));
+  // El modo que no está activo se dibuja detrás y más fino: está para comparar,
+  // no para leerlo punto a punto.
+  g.add(el("path", {
+    d: camino(serieO, a, b, x, y), class: "ln", stroke: "var(--series-2)",
+    "stroke-width": 1.4, opacity: 0.75,
+  }));
   g.add(el("path", { d: camino(serieV, a, b, x, y), class: "ln", stroke: "var(--series-1)" }));
   g.add(el("line", { x1: g.x0, x2: g.x1, y1: y(0), y2: y(0), class: "ax" }));
   const hayRef = max > 10 && min < 10;
@@ -1200,57 +1345,107 @@ registra(function rolling() {
   }
   ejeX(g, ticksTiempo(a, b, x, nEtiquetas(g)));
   g.add(el("text", { x: (g.x0 + g.x1) / 2, y: g.y1 + 30, "text-anchor": "middle", class: "lbl" }))
-    .textContent = "mes de entrada";
+    .textContent = dca ? "mes de la primera aportación" : "mes de entrada";
+  const salida = (v, i) =>
+    `${pctS(v)} <span style="color:var(--muted-txt);font-weight:400">→ ${mesCorto(M[Math.min(N - 1, i + meses)])}</span>`;
+  const nomActivo = dca ? `Aportando cada mes ${etiquetaAños}` : `De golpe, ${etiquetaAños}`;
+  const nomOtro = dca ? `De golpe, ${etiquetaAños}` : `Aportando cada mes ${etiquetaAños}`;
   hoverLineas(g, {
-    a, b, x, y, titulo: `Rentabilidad anualizada a ${años} años según el mes de entrada`,
-    series: [{
-      nombre: `Anualizado a ${años} ${años === 1 ? "año" : "años"}`, color: "var(--series-1)", v: serieV,
-      fmt: (v, i) => `${pctS(v)} <span style="color:var(--muted-txt);font-weight:400">→ ${mesCorto(M[Math.min(N - 1, i + años * 12)])}</span>`,
-    }],
+    a, b, x, y,
+    titulo: dca
+      ? `TIR de aportar cada mes durante ${años} años, según el mes de arranque`
+      : `Rentabilidad anualizada a ${años} años según el mes de entrada`,
+    series: [
+      { nombre: nomActivo, color: "var(--series-1)", v: serieV, fmt: salida },
+      { nombre: nomOtro, color: "var(--series-2)", v: serieO, fmt: salida },
+    ],
   });
   leyenda($("#lg-rolling"), [
-    { nombre: `Rentabilidad anualizada del S&P 500 a ${años} años`, color: "var(--series-1)" },
+    { nombre: `${nomActivo} (S&P 500 con dividendos)`, color: "var(--series-1)" },
+    { nombre: `${nomOtro}, para comparar`, color: "var(--series-2)" },
     ...(hayRef ? [{ nombre: "El 10 % de la frase", dash: true }] : []),
   ]);
 
   const dif = mejor.r - peor.r;
+  const peorOtro = otras.length ? otras.reduce((p, c) => (c.r < p.r ? c : p)) : null;
+  const difOtro = otras.length ? Math.max(...rsOtras) - Math.min(...rsOtras) : null;
   const huecoIpc = S.real && D.ipc.indexOf(null, i0("2000-01")) > 0;
   $("#nota-vent").innerHTML =
     (huecoIpc
       ? `<b>Un aviso de los datos:</b> no hay IPC publicado para octubre de 2025, así que las series
          reales llevan ahí un hueco de un mes; no se rellena con una estimación. `
       : "") +
-    `Entre la mejor y la peor entrada hay <b>${nf(1).format(dif)} puntos</b> de diferencia anual, y el
-     inversor no eligió: le tocó. Aguantando ${años} ${años === 1 ? "año" : "años"}, la peor racha empezó en
-     <b>${mesLargo(M[peor.i])}</b> y terminó en ${mesLargo(M[peor.i + años * 12])} con ${pctS(peor.r)} anual
-     (${mult(Math.pow(1 + peor.r / 100, años))} el dinero). Mueve el mando y mira cuándo desaparece el rojo.`;
+    `Entre ${dca ? "el mejor y el peor arranque" : "la mejor y la peor entrada"} hay
+     <b>${nf(1).format(dif)} puntos</b> de diferencia anual` +
+    (difOtro != null
+      ? ` (${dca ? "poniéndolo de golpe" : "aportando cada mes"} eran ${nf(1).format(difOtro)})`
+      : "") +
+    `, y el inversor no eligió: le tocó. ` +
+    (dca
+      ? `Aguantando ${etiquetaAños}, el peor plan empezó a aportar en <b>${mesLargo(M[peor.i])}</b> y
+         liquidó en ${mesLargo(M[peor.i + meses])} con ${pctS(peor.r)} anual (${mult(peor.x)} lo aportado)` +
+        (peorOtro ? `; de golpe, el peor mes de entrada fue ${mesLargo(M[peorOtro.i])}, con ${pctS(peorOtro.r)} anual` : "") +
+        `. ` +
+        (difOtro != null && dif > difOtro
+          ? `Aquí conviene desmontar un tópico: aportar cada mes quita el riesgo de <b>acertar el mes
+             de entrada</b>, pero a este plazo <b>no</b> estrecha el resultado, lo ensancha. Como la
+             mayor parte del dinero lleva poco tiempo invertido, lo que manda es dónde esté el mercado
+             el día de liquidar. `
+          : `A este plazo, aportar cada mes sí estrecha el abanico: ninguna aportación concentra todo
+             el riesgo en un único precio de entrada. `) +
+        `La <b>TIR</b> es la rentabilidad que iguala todas las aportaciones con el valor final, y no
+         es la del índice. `
+      : `Aguantando ${etiquetaAños}, la peor racha empezó en <b>${mesLargo(M[peor.i])}</b> y terminó en
+         ${mesLargo(M[peor.i + meses])} con ${pctS(peor.r)} anual (${mult(Math.pow(1 + peor.r / 100, años))} el dinero)` +
+        (peorOtro ? `; aportando cada mes, el peor arranque dio ${pctS(peorOtro.r)} anual` : "") +
+        `. `) +
+    (S.real
+      ? `Todas estas cifras van <b>con la inflación descontada</b>: son poder de compra, no dólares.`
+      : `Estas cifras son <b>nominales</b>: pulsa <b>Real</b> arriba para descontar la inflación.`);
 
   histograma($("#ch-hist-vent"), rs, {
     paso: años <= 3 ? 5 : 2, etiqueta: "ventanas",
-    titulo: `Reparto de las ventanas de ${años} años`, tabla: $("#tb-hist-vent"),
+    titulo: dca
+      ? `Reparto de las ventanas de aportación mensual de ${años} años`
+      : `Reparto de las ventanas de ${años} años`,
+    tabla: $("#tb-hist-vent"),
   });
   $("#s-hist-vent").innerHTML =
-    `Las mismas ${new Intl.NumberFormat("es-ES").format(vs.length)} ventanas, contadas por tramos. ` +
+    `Las mismas ${new Intl.NumberFormat("es-ES").format(vs.length)} ventanas ` +
+    `${dca ? "de aportación mensual" : "de entrada única"}, contadas por tramos. ` +
     `Cuanto más largo el plazo, más se estrecha el montón: eso, y no la media, es lo que de verdad
      mejora con el tiempo.`;
 
-  // Tabla resumen de todos los horizontes, que es la vista accesible del mando.
-  const filas = [1, 2, 3, 5, 10, 15, 20, 25, 30, 40].map((h) => {
-    const ws = ventanas("sp500_tr", h * 12);
-    if (!ws.length) return [`${h} años`, "—", "—", "—", "—"];
+  // Tabla resumen de todos los horizontes, que es la vista accesible del mando:
+  // enseña los dos modos a la vez, que es justo lo que el gráfico compara.
+  const resumen = (ws) => {
+    if (!ws.length) return ["—", "—", "—"];
     const r2 = ws.map((d) => d.r);
     const neg = ws.filter((d) => d.r < 0).length;
-    return [
-      `${h} ${h === 1 ? "año" : "años"}`,
-      pctS(Math.min(...r2)), pctS(mediana(r2)), pctS(Math.max(...r2)),
-      `${nf(1).format((neg / ws.length) * 100)} %`,
-    ];
+    return [pctS(Math.min(...r2)), pctS(mediana(r2)), `${nf(1).format((neg / ws.length) * 100)} %`];
+  };
+  const filas = [1, 2, 3, 5, 10, 15, 20, 25, 30, 40].map((h) => {
+    const u = resumen(ventanas("sp500_tr", h * 12));
+    const d = resumen(ventanasDca("sp500_tr", h * 12));
+    return [`${h} ${h === 1 ? "año" : "años"}`, u[0], d[0], u[1], d[1], u[2], d[2]];
   });
-  tabla($("#tb-horizontes"), ["Plazo", "Peor", "Mediana", "Mejor", "Ventanas en pérdidas"], filas,
-    "Resumen de todas las ventanas de entrada para cada plazo");
+  tabla($("#tb-horizontes"),
+    ["Plazo", "Peor de golpe", "Peor aportando", "Mediana de golpe", "Mediana aportando",
+      "En pérdidas de golpe", "En pérdidas aportando"],
+    filas,
+    `Resumen de todas las ventanas para cada plazo, poniendo el dinero de golpe o aportando cada mes` +
+    ` (${S.real ? "con la inflación descontada" : "en dólares corrientes"})`);
 });
 
 $("#horizonte").addEventListener("input", () => pintarTodo());
+for (const [id, modo] of [["vt-unico", "unico"], ["vt-dca", "dca"]]) {
+  $(`#${id}`).addEventListener("click", () => {
+    VENT.modo = modo;
+    $("#vt-unico").setAttribute("aria-pressed", String(modo === "unico"));
+    $("#vt-dca").setAttribute("aria-pressed", String(modo === "dca"));
+    pintarTodo();
+  });
+}
 
 /* ------------------------------------------------------- 4 · simulador --- */
 
@@ -1484,7 +1679,10 @@ const CMP = {
   mes: "1971-01",
   activos: new Set(["sp500_tr", "bonos10", "oro", "letras3m"]),
 };
-const CMP_PRESETS = [["1871-01", "1871"], ["1928-01", "1928"], ["1971-01", "1971"], ["2000-01", "2000"], ["2010-01", "2010"]];
+// 2012 no es una fecha redonda cualquiera: es el primer mes de MSCI World en
+// estos datos, así que es el único tramo en el que se le puede comparar.
+const CMP_PRESETS = [["1871-01", "1871"], ["1928-01", "1928"], ["1971-01", "1971"],
+  ["2000-01", "2000"], ["2012-01", "2012 (MSCI World)"]];
 
 registra(function comparativa() {
   const sel = $("#cmp-mes");
@@ -1508,7 +1706,7 @@ registra(function comparativa() {
     return `<button class="pick" data-id="${act.id}" aria-pressed="${on}" ${ok ? "" : "disabled"}
       style="--c:${act.c}${ok ? "" : ";opacity:.4;cursor:not-allowed"}"
       title="${ok ? esc(META(act.id).nombre) : esc(porQue(act))}">
-      <i class="key"></i>${esc(act.corto)}</button>`;
+      <i class="key${act.rayada ? " rayada" : ""}"></i>${esc(act.corto)}</button>`;
   }).join("");
   $$("#cmp-picks .pick").forEach((b) => b.addEventListener("click", () => {
     const id = b.dataset.id;
@@ -1523,7 +1721,10 @@ registra(function comparativa() {
   const puestos = disponibles.filter((act) => CMP.activos.has(act.id));
   const lineas = puestos.map((act) => {
     const v = serie(act.id);
-    return { id: act.id, nombre: act.corto, color: act.c, v: v.map((x) => (x == null ? null : (x / v[i]) * 100)) };
+    return {
+      id: act.id, nombre: act.corto, color: act.c, rayada: !!act.rayada,
+      v: v.map((x) => (x == null ? null : (x / v[i]) * 100)),
+    };
   });
   // La inflación no es una serie más: es la referencia contra la que se mide todo.
   const ipc = serie("ipc");
@@ -1553,7 +1754,12 @@ registra(function comparativa() {
   g.add(el("text", { x: g.x0 - 8, y: g.y0 - 4, "text-anchor": "end", class: "lbl" })).textContent = "×veces";
 
   if (!S.real) g.add(el("path", { d: camino(refIpc, i, fin, x, y), class: "ln-ref" }));
-  for (const L of lineas) g.add(el("path", { d: camino(L.v, i, fin, x, y), class: "ln", stroke: L.color }));
+  for (const L of lineas) {
+    g.add(el("path", {
+      d: camino(L.v, i, fin, x, y), class: "ln", stroke: L.color,
+      ...(L.rayada ? { "stroke-dasharray": "7 4" } : {}),
+    }));
+  }
 
   // Etiqueta directa en el extremo derecho, y solo donde no se pisan: si dos
   // líneas llegan juntas, la de abajo se queda sin etiqueta y lo cuentan la
@@ -1566,7 +1772,9 @@ registra(function comparativa() {
   let ultimaY = -Infinity;
   for (const o of finales) {
     const py = y(o.L.v[o.j]);
-    g.add(el("circle", { cx: x(o.j), cy: py, r: 4, class: "dot", fill: o.L.color }));
+    g.add(el("circle", o.L.rayada
+      ? { cx: x(o.j), cy: py, r: 4, class: "dot", fill: "var(--surface)", stroke: o.L.color, "stroke-width": 2 }
+      : { cx: x(o.j), cy: py, r: 4, class: "dot", fill: o.L.color }));
     if (Math.abs(py - ultimaY) > 13) {
       g.add(el("text", { x: x(o.j) + 7, y: py + 4, class: "lbl" })).textContent = mult(o.L.v[o.j] / 100);
       ultimaY = py;
@@ -1581,7 +1789,7 @@ registra(function comparativa() {
     ],
   });
   leyenda($("#lg-comp"), [
-    ...lineas.map((L) => ({ nombre: L.nombre, color: L.color })),
+    ...lineas.map((L) => ({ nombre: L.nombre, color: L.color, rayada: L.rayada })),
     ...(S.real ? [] : [{ nombre: "Inflación EE. UU. (referencia)", dash: true }]),
   ]);
 
@@ -1612,15 +1820,15 @@ registra(function comparativa() {
 
   // Cada fila se cierra en el último mes con dato de SU serie (la vivienda
   // acaba dos meses antes que el resto), y la tabla lo dice en vez de callarlo.
-  const fila = (nombre, color, v, nota, moneda) => {
+  const fila = (nombre, color, v, nota, moneda, rayada = false) => {
     const j = ultimoCon(v, i, fin) ?? fin;
     return [
-      `<i class="dot-inline" style="background:${color}"></i>${esc(nombre)}`,
+      `<i class="dot-inline" style="${rayada ? `border:2px dashed ${color}` : `background:${color}`}"></i>${esc(nombre)}`,
       pctS(cagr(v, i, j)), mult(raz(v, i, j)), mesCorto(M[j]), esc(nota), moneda,
     ];
   };
   const filas = [
-    ...puestos.map((act) => fila(act.corto, act.c, serie(act.id), act.nota, META(act.id).moneda)),
+    ...puestos.map((act) => fila(act.corto, act.c, serie(act.id), act.nota, META(act.id).moneda, act.rayada)),
     fila("Inflación EE. UU.", "var(--ref)", ipc, "IPC, no es un activo", "USD"),
   ];
   tabla($("#tb-comp"),
@@ -1634,6 +1842,142 @@ $$("#cmp-presets .btn").forEach((b) => b.addEventListener("click", () => {
   $("#cmp-mes").value = b.dataset.mes;
   pintarTodo();
 }));
+
+/**
+ * Aportando 1 al principio de cada mes desde `i`: en cada mes posterior, cuánto
+ * vale la cartera por cada unidad puesta hasta entonces. Devuelve también el
+ * cierre del plan (TIR anual y multiplicador), o null si no llegó a comprarse
+ * nada. El valor de un mes se mide ANTES de la aportación de ese mes, que es la
+ * misma convención que usan las ventanas móviles y el simulador.
+ */
+function dcaCamino(v, i, fin) {
+  const ratio = new Array(N).fill(null);
+  const huecos = [];
+  let part = 0, aportes = 0, ult = null, F = null, n = 0;
+  for (let j = i; j <= fin; j++) {
+    if (v[j] == null) { huecos.push(j - i); continue; }
+    if (aportes > 0) { F = part * v[j]; n = aportes; ult = j; ratio[j] = F / n; }
+    part += 1 / v[j];
+    aportes += 1;
+  }
+  if (ult == null) return null;
+  const m = ult - i;
+  return { ratio, fin: ult, x: F / n, aportes: n, tir: tirDca(F, m, huecos.filter((k) => k < m)) };
+}
+
+const CUOTA = 100; // $ al mes: solo para poner cifras en euros a la tabla
+
+registra(function comparativaDca() {
+  const i = i0($("#cmp-mes").value);
+  const fin = rango(serie("sp500_tr"))[1];
+  const puestos = ACTIVOS.filter((act) => CMP.activos.has(act.id) && serie(act.id)[i] != null);
+  const planes = puestos
+    .map((act) => ({ act, p: dcaCamino(serie(act.id), i, fin) }))
+    .filter((o) => o.p);
+  // La inflación entra como un "activo" más: aportar al IPC es exactamente
+  // mantener el poder de compra. En modo real esa línea sería plana en ×1, así
+  // que ahí se dibuja como base y no como serie.
+  const planIpc = S.real ? null : dcaCamino(serie("ipc"), i, fin);
+
+  if (!planes.length) {
+    $("#s-cmp-dca").textContent = "";
+    $("#ch-cmp-dca").innerHTML =
+      `<p class="note" style="margin-top:0">No hay ningún activo elegido con datos desde
+       ${mesLargo(M[i])} que se pueda mostrar en este modo.</p>`;
+    $("#lg-cmp-dca").innerHTML = ""; $("#nota-cmp-dca").innerHTML = ""; $("#tb-cmp-dca").innerHTML = "";
+    return;
+  }
+
+  $("#s-cmp-dca").innerHTML =
+    `En vez de poner el dinero de golpe, se aportan ${CUOTA}&nbsp;$ el primer día de cada mes desde
+     ${mesLargo(M[i])}. La línea dice <b>cuánto vale la cartera por cada dólar aportado</b> hasta ese
+     momento: ×1 es no haber ganado ni perdido nada sobre lo puesto. ` +
+    (S.real
+      ? `Con la inflación descontada, así que ×1 es <b>conservar el poder de compra</b>.`
+      : `En dólares corrientes; la línea gris es lo que haría falta solo para <b>seguir a la inflación</b>.`);
+
+  const g = marco($("#ch-cmp-dca"), {
+    h: 340, ml: 58, mb: 34,
+    titulo: `Valor por cada dólar aportado, aportando cada mes desde ${mesLargo(M[i])}`,
+  });
+  let lo = Infinity, hi = -Infinity;
+  for (const L of [...planes.map((o) => o.p.ratio), planIpc?.ratio].filter(Boolean)) {
+    for (let j = i; j <= fin; j++) if (L[j] != null) { lo = Math.min(lo, L[j]); hi = Math.max(hi, L[j]); }
+  }
+  lo = Math.max(1e-4, Math.min(lo, 1) * 0.85); hi = Math.max(hi, 1) * 1.15;
+  const x = (j) => g.x0 + ((j - i) / Math.max(1, fin - i)) * (g.x1 - g.x0);
+  const y = (val) => g.y1 - ((Math.log10(val) - Math.log10(lo)) / (Math.log10(hi) - Math.log10(lo))) * (g.y1 - g.y0);
+  ejeY(g, ticksLog(lo, hi), y, (val) => mult(val));
+  g.add(el("text", { x: g.x0 - 8, y: g.y0 - 4, "text-anchor": "end", class: "lbl" })).textContent = "×veces";
+
+  // La base: el dinero aportado, que no es cero sino ×1.
+  g.add(el("line", { x1: g.x0, x2: g.x1, y1: y(1), y2: y(1), class: "ax" }));
+  g.add(el("text", { x: g.x1 - 4, y: y(1) - 6, "text-anchor": "end", class: "lbl" }))
+    .textContent = S.real ? "lo aportado (poder de compra)" : "lo aportado";
+  if (planIpc) g.add(el("path", { d: camino(planIpc.ratio, i, fin, x, y), class: "ln-ref" }));
+  for (const o of planes) {
+    g.add(el("path", {
+      d: camino(o.p.ratio, i, fin, x, y), class: "ln", stroke: o.act.c,
+      ...(o.act.rayada ? { "stroke-dasharray": "7 4" } : {}),
+    }));
+  }
+  const finales = planes.slice().sort((a, b) => b.p.x - a.p.x);
+  let ultimaY = -Infinity;
+  for (const o of finales) {
+    const py = y(o.p.x);
+    g.add(el("circle", o.act.rayada
+      ? { cx: x(o.p.fin), cy: py, r: 4, class: "dot", fill: "var(--surface)", stroke: o.act.c, "stroke-width": 2 }
+      : { cx: x(o.p.fin), cy: py, r: 4, class: "dot", fill: o.act.c }));
+    if (Math.abs(py - ultimaY) > 13) {
+      g.add(el("text", { x: x(o.p.fin) + 7, y: py + 4, class: "lbl" })).textContent = mult(o.p.x);
+      ultimaY = py;
+    }
+  }
+  ejeX(g, ticksTiempo(i, fin, x, nEtiquetas(g)));
+  hoverLineas(g, {
+    a: i, b: fin, x, y, titulo: "Aportando cada mes",
+    series: [
+      ...planes.map((o) => ({ nombre: o.act.corto, color: o.act.c, v: o.p.ratio, fmt: (val) => mult(val) })),
+      ...(planIpc ? [{ nombre: "Seguir a la inflación", color: "var(--ref)", v: planIpc.ratio, fmt: (val) => mult(val) }] : []),
+    ],
+  });
+  leyenda($("#lg-cmp-dca"), [
+    ...planes.map((o) => ({ nombre: o.act.corto, color: o.act.c, rayada: o.act.rayada })),
+    ...(planIpc ? [{ nombre: "Seguir a la inflación (referencia)", dash: true }] : []),
+  ]);
+
+  const mejor = finales[0];
+  const meses = mejor.p.aportes;
+  $("#nota-cmp-dca").innerHTML =
+    `Aportando ${CUOTA}&nbsp;$ al mes durante ${nf(0).format(meses)} meses se ponen
+     ${dinero(meses * CUOTA)}&nbsp;$ en total. La <b>TIR</b> de la tabla es la rentabilidad anual que
+     iguala todas esas aportaciones con el valor final: no es la rentabilidad del índice, porque cada
+     aportación estuvo invertida un tiempo distinto y las últimas casi no dieron tiempo a nada. ` +
+    (S.real
+      ? `Todo va <b>con la inflación descontada</b> y la aportación es constante en poder de compra,
+         es decir, un recibo que sube cada año con el IPC.`
+      : `Todo va en <b>dólares corrientes</b>: pulsa <b>Real</b> arriba para descontar la inflación y
+         ver el poder de compra.`);
+
+  const fila = (nombre, color, p, nota, rayada = false) => [
+    `<i class="dot-inline" style="${rayada ? `border:2px dashed ${color}` : `background:${color}`}"></i>${esc(nombre)}`,
+    p.tir == null ? "—" : pctS(p.tir),
+    mult(p.x),
+    `${dinero(p.aportes * CUOTA)} $`,
+    `${dinero(p.x * p.aportes * CUOTA)} $`,
+    mesCorto(M[p.fin]),
+    esc(nota),
+  ];
+  tabla($("#tb-cmp-dca"),
+    [`Aportando ${CUOTA} $/mes desde ${mesLargo(M[i])}`, "TIR anual", "Veces lo aportado",
+      "Total aportado", "Valor final", "Hasta", "Qué mide"],
+    [
+      ...planes.map((o) => fila(o.act.corto, o.act.c, o.p, o.act.nota, o.act.rayada)),
+      ...(planIpc ? [fila("Seguir a la inflación", "var(--ref)", planIpc, "IPC, no es un activo")] : []),
+    ],
+    `Resultado de aportar ${CUOTA} $ al mes en cada activo desde ${mesLargo(M[i])}` +
+    ` (${S.real ? "con la inflación descontada" : "en dólares corrientes"})`);
+});
 
 /* ----------------------------------------------------------- 6 · sesgo --- */
 
@@ -1838,7 +2182,14 @@ $("#prosa-metodo").innerHTML = `
       St. Louis, y el IPC armonizado de España de Eurostat para la parte en euros.</li>
     <li><b>Letras a 3 meses, vivienda (Case-Shiller) y tipo de cambio</b>: FRED.
       <b>Oro</b>: precio en dólares por onza (fijado por el patrón oro hasta 1968, mercado libre después).
-      <b>Nikkei 225, IBEX 35, MSCI EAFE y bitcoin</b>: Yahoo Finance.</li>
+      <b>Nikkei 225, IBEX 35, MSCI World, MSCI EAFE y bitcoin</b>: Yahoo Finance.</li>
+    <li><b>Aportación mensual (DCA).</b> Se pone la misma cantidad el primer día de cada mes y se
+      liquida al final del tramo. La cifra anual que se enseña es la <b>TIR</b>: el tipo
+      <code>r</code> que cumple <code>V = Σ c·(1+r)^(m−k)</code> sobre todas las aportaciones, resuelto
+      por bisección. No es la rentabilidad del índice y no se puede comparar con ella sin más: cada
+      aportación estuvo invertida un tiempo distinto, y las últimas casi no dieron tiempo a nada. En
+      modo real la aportación es constante <b>en poder de compra</b> (un recibo que sube con el IPC),
+      que es la única forma de sumar dinero de años distintos sin mezclar peras con manzanas.</li>
   </ul>
   <p>Todo el detalle, con las URL exactas y las comprobaciones de empalme, está en
     <code>data-src/mercados.SOURCES.md</code> del repositorio. El fichero que lee esta página es

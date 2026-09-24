@@ -110,7 +110,7 @@ function yahooMap(chart, { ajustado = false } = {}) {
 /* ------------------------------------------------------------------ descarga */
 
 console.log("Descargando fuentes…");
-const [shillerCsv, cpiCsv, cpiEsCsv, gs10Csv, tb3Csv, casaCsv, eurusdCsv, oroCsv, sptr, n225, ibex, eafe, btc] =
+const [shillerCsv, cpiCsv, cpiEsCsv, gs10Csv, tb3Csv, casaCsv, eurusdCsv, oroCsv, sptr, n225, ibex, eafe, world, btc] =
   await Promise.all([
     // Serie de Robert Shiller (Yale), mantenida en CSV por el proyecto
     // `datasets/s-and-p-500`: precio medio mensual del S&P 500 desde 1871-01,
@@ -127,6 +127,7 @@ const [shillerCsv, cpiCsv, cpiEsCsv, gs10Csv, tb3Csv, casaCsv, eurusdCsv, oroCsv
     yahoo("^N225", "yahoo-n225.json"), // Nikkei 225 (precio, sin dividendos)
     yahoo("^IBEX", "yahoo-ibex.json"), // IBEX 35 (precio, sin dividendos)
     yahoo("EFA", "yahoo-efa.json"), // iShares MSCI EAFE: desarrollados sin EE. UU., con dividendos
+    yahoo("URTH", "yahoo-urth.json"), // iShares MSCI World: desarrollados CON EE. UU., con dividendos
     yahoo("BTC-USD", "yahoo-btc.json"),
   ]);
 
@@ -371,6 +372,14 @@ const series = {
     moneda: "USD",
     dividendos: false,
     v: base100(vivienda),
+  },
+  mundo: {
+    nombre: "Mundo desarrollado (MSCI World, con dividendos)",
+    corto: "Mundo",
+    clase: "bolsa",
+    moneda: "USD",
+    dividendos: true,
+    v: base100(yahooMap(world, { ajustado: true })),
   },
   mundo_exus: {
     nombre: "Desarrollados sin EE. UU. (MSCI EAFE, con dividendos)",

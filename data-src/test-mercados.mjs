@@ -109,6 +109,41 @@ console.log("\nHechos comprobables de las series secundarias");
   ok(nk[pico] > maxPrevio, "diciembre de 1989 es el máximo del Nikkei hasta esa fecha (alineación de meses correcta)");
 }
 {
+  // MSCI World contiene EE. UU. con peso mayoritario (≈70 %) y el resto de
+  // desarrollados es, grosso modo, el EAFE. Así que en el tramo que comparten
+  // los tres su rentabilidad tiene que quedar *entre* las otras dos: no es una
+  // tolerancia ajustada a mano, es aritmética de una media ponderada.
+  const mu = D.series.mundo;
+  ok(mu.desde === "2012-01", "MSCI World empieza en 2012-01, que es donde arranca el ETF URTH", `→ ${mu.desde}`);
+  ok(mu.v[I.get("2011-12")] === null, "MSCI World no tiene dato antes de su primer mes publicado");
+  const d = I.get(mu.desde), h = I.get(mu.hasta);
+  const cWorld = cagr(mu.v, d, h), cSp = cagr(tr, d, h), cEafe = cagr(D.series.mundo_exus.v, d, h);
+  ok(
+    cEafe < cWorld && cWorld < cSp,
+    `${mu.desde}→${mu.hasta}: MSCI World queda entre EAFE y S&P 500`,
+    `→ EAFE ${cEafe.toFixed(2)} < World ${cWorld.toFixed(2)} < S&P 500 ${cSp.toFixed(2)} %/año`,
+  );
+
+  /** Correlación de Pearson de los rendimientos mensuales entre dos posiciones. */
+  const rends = (v, a, b) => Array.from({ length: b - a }, (_, i) => v[a + i + 1] / v[a + i] - 1);
+  const media = (x) => x.reduce((p, c) => p + c, 0) / x.length;
+  const corr = (x, y) => {
+    const mx = media(x), my = media(y);
+    let n = 0, dx = 0, dy = 0;
+    for (let i = 0; i < x.length; i++) { n += (x[i] - mx) * (y[i] - my); dx += (x[i] - mx) ** 2; dy += (y[i] - my) ** 2; }
+    return n / Math.sqrt(dx * dy);
+  };
+  // Solo desde el empalme: antes de 2023-07 el nivel del S&P 500 es la media
+  // mensual de Shiller y no el cierre de fin de mes, y esa diferencia de
+  // convención hunde cualquier correlación mensual (0,61 en vez de 0,98) sin
+  // que ninguna de las dos series tenga nada malo. Ver mercados.SOURCES.md.
+  const e = I.get(D.meta.empalme_sp500.indice_oficial_desde);
+  const rWorld = rends(mu.v, e, h), rSp = rends(tr, e, h), rEafe = rends(D.series.mundo_exus.v, e, h);
+  const cwSp = corr(rWorld, rSp), cwEafe = corr(rWorld, rEafe);
+  ok(cwSp > 0.95, "mes a mes, MSCI World se mueve casi como el S&P 500 (es ~70 % EE. UU.)", `→ r = ${cwSp.toFixed(3)}`);
+  ok(cwSp > cwEafe, "y se parece más al S&P 500 que al EAFE", `→ ${cwSp.toFixed(3)} vs ${cwEafe.toFixed(3)}`);
+}
+{
   const btc = D.series.bitcoin.v;
   ok(D.series.bitcoin.desde === "2014-09", "bitcoin empieza en 2014-09", `→ ${D.series.bitcoin.desde}`);
   ok(btc[I.get("2014-08")] === null, "bitcoin no tiene dato antes de su primer mes publicado");

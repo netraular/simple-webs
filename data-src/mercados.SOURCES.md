@@ -25,6 +25,7 @@ calculadas** son la rentabilidad total del S&P 500 antes de 1988 y la del bono a
 | `letras3m` | Letras del Tesoro EE. UU. 3 meses ("efectivo") | FRED `TB3MS` | 1934-01 | 3,47 |
 | `oro` | Oro, dólares por onza troy | LBMA / precio oficial | 1871-01 | 3,57 |
 | `vivienda_us` | Vivienda en EE. UU., Case-Shiller nacional | FRED `CSUSHPINSA` | 1987-01 | 4,31 |
+| `mundo` | Mundo desarrollado **con** EE. UU., con dividendos (ETF MSCI World) | Yahoo `URTH` | 2012-01 | 12,15 |
 | `mundo_exus` | Desarrollados sin EE. UU., con dividendos (ETF MSCI EAFE) | Yahoo `EFA` | 2001-08 | 6,70 |
 | `nikkei` | Nikkei 225, solo precio | Yahoo `^N225` | 1985-01 | 4,20 |
 | `ibex` | IBEX 35, solo precio | Yahoo `^IBEX` | 1993-07 | 5,92 |
@@ -142,6 +143,7 @@ comparaciones.
 |---|---|---|
 | `oro` | `https://raw.githubusercontent.com/datasets/gold-prices/main/data/monthly.csv` | Precio en USD/onza troy. **Hasta 1968 no es un mercado libre**: es el precio fijado por el patrón oro (20,67 $ y 35 $ desde 1934). Leerlo como rentabilidad de mercado en ese tramo no tiene sentido y la página lo advierte. |
 | `vivienda_us` | FRED `CSUSHPINSA` | Case-Shiller nacional, ventas repetidas, sin desestacionalizar. Es **solo precio**: no incluye alquileres cobrados ni descuenta IBI, reformas, seguros ni derramas. No es comparable con un índice con dividendos. |
+| `mundo` | Yahoo `URTH` | ETF iShares MSCI World en dólares, **cierre ajustado** (dividendos reinvertidos) y **neto del 0,24 % anual de comisión** del fondo. Mide la bolsa de los 23 mercados **desarrollados, EE. UU. incluido** y con peso mayoritario (≈73 % del fondo en septiembre de 2026); no lleva emergentes ni small caps. Empieza en **2012-01**, el mes en que se lanzó el fondo (10 de enero de 2012), así que la primera vela es un mes incompleto y por eso se usa solo como base 100. **Aviso de rango**: son catorce años y medio, contra siglo y medio de Shiller — cubren un tramo excepcionalmente bueno para la renta variable y para EE. UU. en particular, y no dicen nada sobre el largo plazo. Para eso están `sp500_tr` y las ventanas móviles. |
 | `mundo_exus` | Yahoo `EFA` | ETF iShares MSCI EAFE (Europa, Australasia y Extremo Oriente) en dólares, **cierre ajustado**, o sea con dividendos reinvertidos y **neto de un 0,33 % anual de comisión** del propio fondo. Empieza en 2001-08. Se usa como contrapeso a "la bolsa sube": es la bolsa desarrollada que no es EE. UU. |
 | `nikkei` | Yahoo `^N225` | **Solo precio, sin dividendos**, en yenes. Está para el caso que rompe la regla: el máximo de diciembre de 1989 no se recuperó hasta 2024. |
 | `ibex` | Yahoo `^IBEX` | **Solo precio, sin dividendos**, en euros, desde 1993-07. Comparar el IBEX 35 con un S&P 500 *con* dividendos es tramposo: la página lo enfrenta al S&P 500 sin dividendos y lo dice. El IBEX con dividendos (IBEX 35 TR) no está disponible en fuentes abiertas. |
@@ -216,6 +218,29 @@ que caben en la serie, **una sola** acabó en pérdidas reales, y por −0,22 %
 anual. Con treinta años no queda ninguna. Eso es cierto **de este mercado y de
 este siglo y medio**, que es exactamente la advertencia de la última sección.
 
+### Coherencia interna de las tres series de bolsa mundial
+
+`mundo` (MSCI World) es, por construcción, una media ponderada de EE. UU. y del
+resto de desarrollados, así que en el tramo que comparten los tres
+(**2012-01 → 2026-08**) tiene que quedar *entre* las otras dos, y queda:
+
+| Serie | Nominal %/año, 2012-01 → 2026-08 |
+|---|---|
+| S&P 500 con dividendos | 14,76 |
+| **MSCI World** | **12,15** |
+| MSCI EAFE (sin EE. UU.) | 8,28 |
+
+No es una tolerancia puesta a ojo: es aritmética de una media ponderada, y
+`test-mercados.mjs` la comprueba como desigualdad estricta.
+
+Un detalle que despista al mirar correlaciones: los rendimientos mensuales de
+`mundo` y de `sp500_tr` correlacionan **0,98** desde 2023-07, pero solo 0,61
+antes. No le pasa nada a ninguna de las dos series — es que hasta 2023-06 el
+nivel del S&P 500 es la **media mensual** de Shiller y no el cierre de fin de
+mes (ver B.1), y esa diferencia de convención descuadra la comparación mes a
+mes aunque no afecte a las rentabilidades de varios años. La comprobación de
+correlación del test se limita, por eso, al tramo posterior al empalme.
+
 ---
 
 ## Lo que estos datos NO son
@@ -244,5 +269,5 @@ node build-mercados.mjs          # usa la caché de _work/
 node build-mercados.mjs --fresh  # fuerza la redescarga de todas las fuentes
 ```
 
-Escribe `pages/data/mercados.json` (~170 KB) e imprime las comprobaciones de
+Escribe `pages/data/mercados.json` (~180 KB) e imprime las comprobaciones de
 empalme y el CAGR nominal de cada serie. Si un empalme no cuadra, aborta.

@@ -23,6 +23,7 @@
  * .gitignore: volver a lanzarlo no vuelve a descargar. Usa --fresh para forzar.
  */
 import { writeFileSync, readFileSync, existsSync, mkdirSync } from "node:fs";
+import { simplifica } from "./geom.mjs";
 
 const HERE = new URL("./", import.meta.url);
 const WORK = new URL("./_work/", HERE);
@@ -140,37 +141,9 @@ function encadena(members) {
   return segs.filter(s => s.length >= 2);
 }
 
-/** Douglas-Peucker con la longitud corregida por el coseno de la latitud, para
-    que la tolerancia sea métrica de verdad y no "grados", que en longitud valen
-    un 25 % menos que en latitud a esta altura del mundo. */
-function simplifica(pts, tolM) {
-  if (pts.length <= 2) return pts;
-  const kx = Math.cos(41.45 * Math.PI / 180);
-  const tol = tolM / 111320;                       // grados de latitud
-  const d2 = (p, a, b) => {
-    let [px, py] = [(p[0] - a[0]) * kx, p[1] - a[1]];
-    const [bx, by] = [(b[0] - a[0]) * kx, b[1] - a[1]];
-    const ll = bx * bx + by * by;
-    if (ll > 0) {
-      const t = Math.max(0, Math.min(1, (px * bx + py * by) / ll));
-      px -= bx * t; py -= by * t;
-    }
-    return px * px + py * py;
-  };
-  const keep = new Uint8Array(pts.length);
-  keep[0] = keep[pts.length - 1] = 1;
-  const pila = [[0, pts.length - 1]];
-  while (pila.length) {
-    const [i, j] = pila.pop();
-    let best = -1, bd = tol * tol;
-    for (let k = i + 1; k < j; k++) {
-      const d = d2(pts[k], pts[i], pts[j]);
-      if (d > bd) { bd = d; best = k; }
-    }
-    if (best > 0) { keep[best] = 1; pila.push([i, best], [best, j]); }
-  }
-  return pts.filter((_, i) => keep[i]);
-}
+/* `simplifica` (Douglas-Peucker con la longitud corregida por el coseno de la
+   latitud) vive ahora en geom.mjs: la comparte con build-transport.mjs, que
+   aligera con ella los polígonos de las zonas. Se importa arriba. */
 
 const dins = ([lon, lat]) =>
   lat >= BBOX[0] && lat <= BBOX[2] && lon >= BBOX[1] && lon <= BBOX[3];

@@ -291,6 +291,27 @@ if (iso) {
    Escritura
    -------------------------------------------------------------------------- */
 
+/** Buses que aparecen en algún itinerario óptimo, y cuántos de ellos tienen
+    trazado dibujable. La diferencia no es un fallo del cálculo: el tiempo de
+    viaje los cuenta todos; lo que falta es la geometría, porque el código con
+    el que el horario oficial nombra la línea no coincide con el de
+    OpenStreetMap y no hay forma fiable de casarlos por cadena de texto. */
+function comptaBus() {
+  const usats = new Set();
+  for (const perDesti of Object.values(rutes))
+    for (const r of Object.values(perDesti))
+      for (const l of r.linies || [])
+        if (l.xarxa === "Bus" && l.ref) usats.add(String(l.ref).toUpperCase());
+  const dibuixats = new Set((linies?.linies || [])
+    .filter(l => l.xarxa === "Bus" && l.ref).map(l => String(l.ref).toUpperCase()));
+  return {
+    usats: usats.size,
+    dibuixats: [...usats].filter(r => dibuixats.has(r)).length,
+    ferroviaries: (linies?.linies || []).filter(l => l.xarxa !== "Bus").length,
+    parades: linies?.parades?.length ?? 0,
+  };
+}
+
 const meta = {
   generat: new Date().toISOString().slice(0, 10),
   escala: "zones",
@@ -314,6 +335,11 @@ const meta = {
   },
   iso: iso ? { hora: iso.hora, metode: iso.metode, font: iso.font,
                limit_min: iso.limit_min, cella_m: iso.cella_m } : null,
+  // Cuántos de los buses que salen en algún itinerario llegan a dibujarse. Se
+  // cuenta aquí porque la página ya no tiene los itinerarios en la carga
+  // inicial —se fueron a rutas.json— y la frase de la metodología no puede
+  // quedar escrita a mano: se desfasaría en cuanto cambiara el etiquetado.
+  bus: comptaBus(),
   geo: { tolerancia_m: TOL_GEO_M,
          nota: `Polígonos simplificados con Douglas-Peucker a ${TOL_GEO_M} m. `
              + "Las fronteras son las oficiales, redibujadas con menos vértices; "

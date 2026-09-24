@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>¿Dónde puedo vivir? · Transporte público del área de Barcelona</title>
-<meta name="description" content="Pon tus condiciones de viaje —cuánto quieres caminar, a dónde tienes que llegar y en cuánto tiempo— y mira qué municipios del área de Barcelona las cumplen, con la red de tren, metro y bus dibujada y el precio de la vivienda al lado.">
+<meta name="description" content="Di cuánto estás dispuesto a caminar, a dónde tienes que llegar y en cuánto tiempo. El mapa deja encendidas las 164 zonas del área de Barcelona que lo cumplen —91 municipios y los 73 barrios de la ciudad— ordenadas de más barata a más cara.">
 <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f9f9f7">
 <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0d0d0d">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='88'>🚆</text></svg>">
@@ -12,13 +12,15 @@
 /* ===========================================================================
    ¿Dónde puedo vivir? — página autocontenida, sin librerías externas.
 
-   Hermana de pisos-vs-distancia.html, con la que comparte paleta, proyección y
-   maquetación. La pregunta es la inversa: allí eliges un punto y ves el precio
-   contra el tiempo; aquí pones las condiciones de tu viaje y la página te deja
-   encendidos los sitios donde podrías vivir cumpliéndolas.
+   Una sola pregunta: pones las condiciones de tu viaje y la página te devuelve
+   las zonas más baratas donde podrías vivir cumpliéndolas. Un solo mapa del
+   área de Barcelona, con la ciudad desglosada en sus 73 barrios.
 
    El mapa es SVG generado a mano desde GeoJSON (proyección equirectangular con
    corrección de coseno): no hay tiles, ni peticiones a terceros, ni seguimiento.
+
+   Hermana de pisos-vs-distancia.html, con la que comparte paleta y proyección.
+   Allí eliges un punto y ves el precio contra el tiempo; aquí es al revés.
    =========================================================================== */
 
 :root{
@@ -30,7 +32,11 @@
   --grid:#e1e0d9;   --axis:#c3c2b7;     --hairline:rgba(11,11,11,.10);
   --focus:#2a78d6;
 
-  /* --- rampa secuencial (azul 100→700), para el tiempo de viaje --- */
+  /* --- rampa secuencial (azul 100→700) ---
+     Una sola rampa para las dos magnitudes que se pueden pintar, precio y
+     tiempo, y en las dos el claro es lo bueno: barato y rápido. Que el sentido
+     no cambie al cambiar de capa es lo que permite mirar el mapa sin releer la
+     leyenda cada vez. */
   --seq-100:#cde2fb; --seq-200:#9ec5f4; --seq-300:#6da7ec; --seq-400:#3987e5;
   --seq-500:#256abf; --seq-600:#184f95; --seq-700:#0d366b;
   --seq-null:#e6e5e0;               /* sin dato — gris, nunca un tono de la rampa */
@@ -79,7 +85,7 @@ h1{font-size:clamp(2rem,4.4vw,3.1rem);font-weight:700;letter-spacing:-.02em;line
 .lede{margin:16px 0 0;max-width:62ch;color:var(--ink-2);font-size:1.02rem}
 .stamp{margin:18px 0 0;font-size:.78rem;color:var(--muted)}
 
-/* ---------- barra de filtros ---------- */
+/* ---------- barra de condiciones ---------- */
 .filters{
   position:sticky; top:0; z-index:40;
   background:color-mix(in srgb,var(--plane) 92%,transparent);
@@ -87,21 +93,19 @@ h1{font-size:clamp(2rem,4.4vw,3.1rem);font-weight:700;letter-spacing:-.02em;line
   border-bottom:1px solid var(--hairline);
   margin-top:28px; padding:14px 0;
 }
-.filters-inner{display:flex;flex-wrap:wrap;gap:14px 20px;align-items:flex-start}
+.filters-inner{display:flex;flex-wrap:wrap;gap:14px 24px;align-items:flex-start}
 .field{display:flex;flex-direction:column;gap:5px;min-width:0}
 .field > label,.field > .lbl{font-size:.7rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
-.field select,.field input[type=number]{
+.field input[type=number]{
   font:inherit;font-size:.9rem;background:var(--surface);color:var(--ink);
   border:1px solid var(--axis);border-radius:6px;padding:7px 9px;min-height:36px;
+  width:78px;text-align:right;font-variant-numeric:tabular-nums;
 }
-.field input[type=number]{width:78px;text-align:right;font-variant-numeric:tabular-nums}
-.field select:focus-visible,.field input:focus-visible,button:focus-visible{
-  outline:2px solid var(--focus);outline-offset:2px
-}
-.slider-field{min-width:210px}
+.field input:focus-visible,button:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.slider-field{min-width:230px;flex:0 1 260px}
 .slider-row{display:flex;align-items:center;gap:10px}
 .slider-row input[type=range]{flex:1;accent-color:var(--series-1);min-height:36px}
-.slider-val{font-variant-numeric:tabular-nums;font-weight:700;font-size:.9rem;min-width:70px;text-align:right}
+.slider-val{font-variant-numeric:tabular-nums;font-weight:700;font-size:.9rem;min-width:74px;text-align:right}
 .btn{
   font:inherit;font-size:.85rem;font-weight:600;background:var(--surface);color:var(--ink);
   border:1px solid var(--axis);border-radius:6px;padding:8px 13px;cursor:pointer;min-height:36px;
@@ -111,20 +115,35 @@ h1{font-size:clamp(2rem,4.4vw,3.1rem);font-weight:700;letter-spacing:-.02em;line
 .btn-sm{padding:5px 9px;font-size:.78rem;min-height:30px}
 .btn-group{display:flex;gap:6px;flex-wrap:wrap}
 
-/* ---------- condiciones de viaje: el corazón de la página ---------- */
-.cond-field{flex:1 1 430px;min-width:300px}
+/* ---------- «tengo que llegar a…»: el corazón de la página ---------- */
+.cond-field{flex:1 1 440px;min-width:300px}
 .conds{display:flex;flex-direction:column;gap:5px;margin-top:2px}
 .cond{
   display:flex;align-items:center;gap:9px;font-size:.86rem;
   background:var(--surface);border:1px solid var(--hairline);border-radius:7px;padding:5px 9px;
 }
 .cond.is-on{border-color:var(--series-1)}
+.cond.is-off{opacity:.6}
 .cond input[type=checkbox]{width:16px;height:16px;accent-color:var(--series-1);flex:none;cursor:pointer}
 .cond .cn{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer}
 .cond .ct{display:flex;align-items:center;gap:5px;color:var(--ink-2);font-size:.8rem;flex:none}
-.cond input[type=number]{width:66px;padding:4px 6px;min-height:28px}
-.cond.is-off{opacity:.55}
+.cond input[type=number]{
+  width:66px;padding:4px 6px;min-height:28px;font:inherit;font-size:.85rem;text-align:right;
+  background:var(--surface);color:var(--ink);border:1px solid var(--axis);border-radius:6px;
+  font-variant-numeric:tabular-nums;
+}
 .cond .est{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+.cond.is-pick{border-style:dashed;border-color:var(--axis)}
+.cond .pick-btn{
+  flex:1;text-align:left;font:inherit;font-size:.86rem;background:none;border:0;
+  color:var(--series-1);cursor:pointer;padding:0;min-width:0;
+}
+.cond .pick-btn:hover{text-decoration:underline}
+.cond .clear{
+  flex:none;font:inherit;font-size:1rem;line-height:1;background:none;border:0;
+  color:var(--muted);cursor:pointer;padding:0 2px;
+}
+.cond .clear:hover{color:var(--ink)}
 
 /* ---------- tarjetas ---------- */
 main{padding:28px 0 72px}
@@ -136,27 +155,57 @@ main{padding:28px 0 72px}
 .card > .sub{margin-top:5px;font-size:.84rem;color:var(--ink-2);max-width:74ch}
 .card-head{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:flex-start;justify-content:space-between}
 
-/* ---------- stat tiles ---------- */
-.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(178px,1fr));gap:14px;margin-bottom:22px}
-.tile{background:var(--surface);border:1px solid var(--hairline);border-radius:12px;padding:16px 18px}
-.tile .k{font-size:.7rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
-.tile .v{font-size:1.72rem;font-weight:700;letter-spacing:-.02em;margin-top:7px;line-height:1.1}
-.tile .n{font-size:.78rem;color:var(--ink-2);margin-top:3px}
-.tile.is-hero{border-color:var(--ok);border-width:2px;padding:15px 17px}
-.tile.is-hero .v{color:var(--ok)}
+/* ---------- el titular: la respuesta, antes que nada ---------- */
+.verdict{
+  font-size:clamp(1.15rem,2.5vw,1.6rem);font-weight:700;letter-spacing:-.015em;
+  line-height:1.3;max-width:34ch;
+}
+.verdict .n{color:var(--ok)}
+.verdict .cheap{color:var(--series-1)}
+.verdict-sub{margin-top:8px;font-size:.85rem;color:var(--ink-2);max-width:62ch}
+
+/* ---------- ranking ---------- */
+.rank{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(228px,1fr));
+  gap:11px;margin-top:20px;
+}
+.rk{
+  display:block;width:100%;text-align:left;font:inherit;cursor:pointer;
+  background:var(--surface);border:1px solid var(--hairline);border-radius:10px;
+  padding:12px 13px 11px;color:var(--ink);
+}
+.rk:hover{border-color:var(--ink-2)}
+.rk[aria-pressed=true]{border-color:var(--series-1);box-shadow:inset 0 0 0 1px var(--series-1)}
+.rk-top{display:flex;align-items:baseline;gap:7px}
+.rk-pos{
+  font-size:.68rem;font-weight:700;color:var(--muted);font-variant-numeric:tabular-nums;
+  flex:none;min-width:1.3em;
+}
+.rk-nom{font-weight:700;font-size:.93rem;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rk-sub{font-size:.72rem;color:var(--muted);margin-top:1px;margin-left:calc(1.3em + 7px)}
+.rk-preu{font-size:1.32rem;font-weight:700;letter-spacing:-.02em;margin-top:9px;font-variant-numeric:tabular-nums}
+.rk-preu small{font-size:.7rem;font-weight:600;color:var(--ink-2);letter-spacing:0}
+/* La barra es lo que hace el ranking comparable de un vistazo: los números
+   solos obligan a restar mentalmente, la longitud no. */
+.rk-bar{display:block;height:5px;border-radius:3px;background:var(--surface-2);margin-top:7px;overflow:hidden}
+.rk-bar i{display:block;height:100%;background:var(--series-1);border-radius:3px}
+.rk-meta{margin-top:8px;font-size:.76rem;color:var(--ink-2);line-height:1.35}
+.rk-meta .mn{font-weight:700;font-variant-numeric:tabular-nums;color:var(--ink)}
+.rank-more{margin-top:12px;font-size:.8rem;color:var(--muted)}
+.rank-empty{margin-top:16px;font-size:.88rem;color:var(--ink-2);max-width:60ch}
 
 /* ---------- mapa ---------- */
 .map-layout{display:grid;grid-template-columns:minmax(0,1fr) 262px;gap:22px;margin-top:18px;align-items:start}
 @media (max-width:900px){.map-layout{grid-template-columns:minmax(0,1fr)}}
 .map-box{position:relative;background:var(--surface-2);border-radius:10px;overflow:hidden;touch-action:none}
 .map-box svg{display:block;width:100%;height:auto;cursor:crosshair}
-.muni{stroke:var(--surface);stroke-width:.9;vector-effect:non-scaling-stroke;transition:fill .18s ease}
-.muni:hover{stroke:var(--ink);stroke-width:1.8}
-.muni.is-dim{opacity:.16}
-.muni.is-sel{stroke:var(--ink);stroke-width:2.4}
-/* Contorno verde de los que cumplen: el color de relleno ya codifica el tiempo,
-   así que "cumple" no puede ser otro relleno. Va al borde. */
-.muni.is-ok{stroke:var(--ok);stroke-width:1.6}
+.zona{stroke:var(--surface);stroke-width:.6;vector-effect:non-scaling-stroke;transition:fill .18s ease}
+.zona:hover{stroke:var(--ink);stroke-width:1.8}
+.zona.is-dim{opacity:.16}
+.zona.is-sel{stroke:var(--ink);stroke-width:2.4}
+/* Contorno verde de las que cumplen: el relleno ya codifica el precio (o el
+   tiempo), así que «cumple» no puede ser otro relleno. Va al borde. */
+.zona.is-ok{stroke:var(--ok);stroke-width:1.6}
 
 .linia{fill:none;vector-effect:non-scaling-stroke;pointer-events:none;stroke-linejoin:round;stroke-linecap:round}
 .l-Rodalies{stroke:var(--net-rodalies);stroke-width:2.1}
@@ -167,7 +216,7 @@ main{padding:28px 0 72px}
 .parada{fill:var(--surface);stroke:var(--ink-2);stroke-width:.9;vector-effect:non-scaling-stroke;pointer-events:none}
 .parada-lbl{fill:var(--ink-2);font-size:8.5px;paint-order:stroke;stroke:var(--plane);stroke-width:2.6;pointer-events:none}
 
-/* El itinerario del municipio seleccionado, por encima de todo. */
+/* El itinerario de la zona seleccionada, por encima de todo. */
 .ruta{fill:none;stroke:var(--ink);stroke-width:3.4;vector-effect:non-scaling-stroke;
       stroke-linecap:round;pointer-events:none;stroke-opacity:.85}
 .ruta-peu{stroke-dasharray:1 5}
@@ -178,9 +227,7 @@ main{padding:28px 0 72px}
 .poi-lbl{fill:var(--ink);font-size:11px;font-weight:700;paint-order:stroke;stroke:var(--surface);stroke-width:3;pointer-events:none}
 .map-zoom{position:absolute;right:10px;top:10px;display:flex;flex-direction:column;gap:6px}
 .map-zoom button{width:32px;height:32px;padding:0;font-size:1.05rem;line-height:1}
-#btn-pick{display:inline-flex;align-items:center;gap:8px}
 .pin{width:11px;height:11px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:var(--series-1);flex:none}
-#btn-pick[aria-pressed=true] .pin{background:#fff}
 
 /* ---------- leyenda y panel lateral ---------- */
 .legend h3{font-size:.7rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);margin-bottom:9px}
@@ -193,6 +240,11 @@ main{padding:28px 0 72px}
 .swatch{width:13px;height:13px;border-radius:3px;flex:none;border:1px solid var(--hairline)}
 .net-row{display:flex;align-items:center;gap:8px;font-size:.78rem;color:var(--ink-2);margin-top:6px}
 .net-line{width:22px;height:0;border-top-width:3px;border-top-style:solid;flex:none;border-radius:2px}
+.net-row button{
+  margin-left:auto;font:inherit;font-size:.72rem;font-weight:600;background:none;border:0;
+  color:var(--series-1);cursor:pointer;padding:0;
+}
+.net-row button:hover{text-decoration:underline}
 
 /* ---------- itinerario ---------- */
 .itin{margin-top:10px;font-size:.8rem}
@@ -244,6 +296,11 @@ tbody tr.no-ok{opacity:.45}
 td.na{color:var(--muted)}
 .ok-dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:7px;background:var(--ok)}
 .ok-dot.off{background:transparent;border:1px solid var(--axis)}
+.tag{
+  display:inline-block;font-size:.62rem;font-weight:700;text-transform:uppercase;
+  letter-spacing:.05em;color:var(--muted);border:1px solid var(--hairline);
+  border-radius:3px;padding:0 4px;margin-left:6px;vertical-align:1px;
+}
 
 /* ---------- pie / metodología ---------- */
 details{border-top:1px solid var(--hairline);padding-top:16px;margin-top:8px}
@@ -256,8 +313,6 @@ summary:focus-visible{outline:2px solid var(--focus);outline-offset:3px;border-r
 .prose li{margin-bottom:5px}
 .prose a{color:var(--focus)}
 .prose code{background:var(--surface-2);padding:1px 5px;border-radius:4px;font-size:.92em}
-.prose table{font-size:.82rem;margin:4px 0 12px}
-.prose th,.prose td{padding:5px 9px}
 footer{border-top:1px solid var(--hairline);padding:22px 0 44px;font-size:.8rem;color:var(--muted)}
 footer a{color:var(--focus)}
 .state{padding:56px 20px;text-align:center;color:var(--muted)}
@@ -280,13 +335,13 @@ footer a{color:var(--focus)}
     <span class="eyebrow">Àrea metropolitana de Barcelona</span>
     <h1>¿Dónde puedo vivir, si tengo que ir ahí cada día?</h1>
     <p class="lede">
-      Pon tus condiciones —cuánto estás dispuesto a caminar, a qué sitios tienes que
-      llegar y en cuánto tiempo— y el mapa deja encendidos los municipios que las
-      cumplen, con la red de tren, metro, tranvía y bus dibujada encima. Los tiempos
-      son trayectos reales <strong>puerta a puerta</strong>, encaminados sobre los
-      horarios oficiales: incluyen lo que caminas hasta la parada, los transbordos y
-      la espera. Pincha un municipio y verás su itinerario tramo a tramo; pincha un
-      punto cualquiera del mapa y tendrás una estimación hasta ahí.
+      Di cuánto estás dispuesto a caminar, a qué sitios tienes que llegar y en
+      cuánto tiempo. La página te devuelve <strong>las zonas más baratas que lo
+      cumplen</strong>, ordenadas por precio, sobre un mapa del área de Barcelona
+      con la ciudad desglosada en sus barrios. Los tiempos son trayectos reales
+      <strong>puerta a puerta</strong> en transporte público, encaminados sobre los
+      horarios oficiales: incluyen lo que caminas hasta la parada, los transbordos
+      y la espera.
     </p>
     <p class="stamp" id="stamp"></p>
   </header>
@@ -294,14 +349,6 @@ footer a{color:var(--focus)}
 
 <div class="filters">
   <div class="wrap filters-inner" id="filters" hidden>
-
-    <div class="field">
-      <span class="lbl" id="f-view-label">Escala</span>
-      <div class="btn-group" role="group" aria-labelledby="f-view-label" id="f-view">
-        <button class="btn" type="button" data-view="municipis" aria-pressed="true">Área de Barcelona</button>
-        <button class="btn" type="button" data-view="barris" aria-pressed="false">Barcelona por barrios</button>
-      </div>
-    </div>
 
     <div class="field cond-field">
       <span class="lbl" id="f-cond-label">Tengo que llegar a… (minutos como mucho)</span>
@@ -318,28 +365,7 @@ footer a{color:var(--focus)}
         <input type="range" id="f-peu" min="0" max="60" step="1" value="30">
         <span class="slider-val" id="f-peu-v">30 min</span>
       </div>
-    </div>
-
-    <div class="field slider-field">
-      <label for="f-tr">Transbordos como mucho</label>
-      <div class="slider-row">
-        <input type="range" id="f-tr" min="0" max="5" step="1" value="5">
-        <span class="slider-val" id="f-tr-v">los que sea</span>
-      </div>
-    </div>
-
-    <div class="field">
-      <span class="lbl" id="f-capes-label">Dibujar</span>
-      <div class="btn-group" role="group" aria-labelledby="f-capes-label" id="f-capes">
-        <button class="btn btn-sm" type="button" data-capa="ferro" aria-pressed="true">Tren y metro</button>
-        <button class="btn btn-sm" type="button" data-capa="bus" aria-pressed="false">Bus</button>
-        <button class="btn btn-sm" type="button" data-capa="parades" aria-pressed="true">Paradas</button>
-      </div>
-    </div>
-
-    <div class="field">
-      <span class="lbl">&nbsp;</span>
-      <button class="btn" id="f-reset" type="button">Reiniciar</button>
+      <button class="btn btn-sm" id="f-reset" type="button" style="margin-top:6px;align-self:flex-start">Reiniciar</button>
     </div>
   </div>
 </div>
@@ -349,7 +375,13 @@ footer a{color:var(--focus)}
 <main id="main" hidden>
   <div class="wrap">
 
-    <div class="tiles" id="tiles"></div>
+    <!-- ===================== LA RESPUESTA ===================== -->
+    <section class="card">
+      <p class="verdict" id="verdict"></p>
+      <p class="verdict-sub" id="verdict-sub"></p>
+      <div class="rank" id="rank"></div>
+      <p class="rank-more" id="rank-more"></p>
+    </section>
 
     <!-- ===================== MAPA ===================== -->
     <section class="card">
@@ -359,9 +391,11 @@ footer a{color:var(--focus)}
           <p class="sub" id="map-sub"></p>
         </div>
         <div class="btn-group">
-          <button class="btn" id="btn-pick" type="button" aria-pressed="false">
-            <span class="pin" aria-hidden="true"></span> Poner mi punto
-          </button>
+          <div class="btn-group" role="group" aria-label="Colorear el mapa por" id="f-color">
+            <button class="btn btn-sm" type="button" data-color="preu" aria-pressed="true">Precio</button>
+            <button class="btn btn-sm" type="button" data-color="temps" aria-pressed="false">Tiempo</button>
+          </div>
+          <button class="btn btn-sm" id="f-xarxa" type="button" aria-pressed="true">Ver la red</button>
         </div>
       </div>
 
@@ -369,10 +403,11 @@ footer a{color:var(--focus)}
         <div class="map-box" id="map-box">
           <svg id="map" role="img" aria-labelledby="map-title" aria-describedby="map-desc"></svg>
           <desc id="map-desc" class="visually-hidden">
-            Mapa del área de Barcelona con la red de cercanías, metro, tranvía y bus.
-            Los municipios que cumplen las condiciones de viaje elegidas aparecen
-            resaltados y coloreados por el tiempo de trayecto. Los mismos valores
-            están en la tabla del final de la página.
+            Mapa del área de Barcelona dividido en 164 zonas —91 municipios y los 73
+            barrios de la ciudad— con la red de cercanías, metro, tranvía y bus.
+            Las zonas que cumplen las condiciones de viaje elegidas aparecen
+            resaltadas, coloreadas por precio de la vivienda o por tiempo de
+            trayecto. Los mismos valores están en la tabla del final de la página.
           </desc>
           <div class="map-zoom">
             <button class="btn" id="z-in" type="button" aria-label="Acercar">+</button>
@@ -383,12 +418,12 @@ footer a{color:var(--focus)}
 
         <aside>
           <div class="legend">
-            <h3 id="legend-title">Tiempo de viaje</h3>
+            <h3 id="legend-title">Precio de compra</h3>
             <div class="ramp" id="legend-ramp"></div>
             <div class="ramp-ticks"><span id="legend-lo"></span><span id="legend-hi"></span></div>
             <p class="legend-note" id="legend-note"></p>
             <div class="swatch-row">
-              <span class="swatch" style="background:var(--seq-null)"></span> Sin ruta viable
+              <span class="swatch" style="background:var(--seq-null)"></span> <span id="legend-null">Sin dato</span>
             </div>
             <div class="swatch-row">
               <span class="swatch" style="background:transparent;border:2px solid var(--ok)"></span> Cumple tus condiciones
@@ -411,11 +446,11 @@ footer a{color:var(--focus)}
     <section class="card">
       <div class="card-head">
         <div>
-          <h2>Todos los datos</h2>
+          <h2>Todas las zonas</h2>
           <p class="sub" id="tbl-sub"></p>
         </div>
         <div class="btn-group">
-          <button class="btn btn-sm" id="f-nomes" type="button" aria-pressed="false">Solo los que cumplen</button>
+          <button class="btn btn-sm" id="f-nomes" type="button" aria-pressed="false">Solo las que cumplen</button>
         </div>
       </div>
       <div class="table-scroll">
@@ -459,12 +494,32 @@ footer a{color:var(--focus)}
       </details>
 
       <details>
+        <summary>Por qué Barcelona va por barrios y el resto no</summary>
+        <div class="prose">
+          <p id="m-gra"></p>
+          <p>
+            La consecuencia práctica: <strong>las zonas no son comparables en tamaño</strong>.
+            Un barrio de Barcelona tiene unos pocos miles de habitantes y un kilómetro
+            cuadrado; Terrassa tiene 225.000 y setenta. El precio de un barrio describe
+            bastante bien lo que pagarías allí; el de Terrassa es una media de sitios muy
+            distintos entre sí.
+          </p>
+          <p>
+            Por lo mismo, el tiempo de viaje de un municipio grande es el de
+            <strong>un único punto</strong>, su núcleo urbano, no el de donde vivirías.
+            Está en la lista de avisos de abajo, pero conviene decirlo aquí también:
+            cuanto más grande o más disperso es el municipio, menos dice su número.
+          </p>
+        </div>
+      </details>
+
+      <details>
         <summary>El punto libre: esto sí es una estimación</summary>
         <div class="prose">
           <p id="m-iso"></p>
           <p>
             Para un punto cualquiera <em>P</em> el tiempo se calcula así: de cada
-            municipio conocemos, gracias a una consulta de alcance, el tiempo hasta
+            zona conocemos, gracias a una consulta de alcance, el tiempo hasta
             <strong>todas</strong> las paradas a su alcance. El tiempo hasta <em>P</em> es
             el menor de <em>(llegar a una parada cercana a P) + (caminar de esa parada a
             P)</em>. Lo único estimado es ese último tramo a pie, en línea recta con un
@@ -476,7 +531,7 @@ footer a{color:var(--focus)}
             5 minutos de error en la caminata final. Segundo, si no hay ninguna parada a
             menos de 2,5 km del punto, no se da número: decir algo sería inventárselo.
             Y tercero, el alcance se calcula <strong>saliendo a una hora fija</strong>
-            (07:15), mientras que los seis destinos exactos son «llegar a las 09:00»; un
+            (07:15), mientras que los destinos exactos son «llegar a las 09:00»; un
             pueblo con un único autobús justo antes de esa hora sale peor parado de lo
             que le corresponde.
           </p>
@@ -509,6 +564,7 @@ footer a{color:var(--focus)}
             no se distinguen entre sí con daltonismo. El código de la línea va escrito en
             el itinerario, que es lo que de verdad la identifica.
           </p>
+          <p id="m-geo"></p>
         </div>
       </details>
 
@@ -516,12 +572,11 @@ footer a{color:var(--focus)}
         <summary>Cuándo el número es poco fiable</summary>
         <div class="prose">
           <ul>
-            <li><strong>El origen es un solo punto por municipio</strong>: el núcleo
-              urbano, no donde vivirías. En municipios grandes o diseminados (Terrassa,
-              Sant Cugat, Cerdanyola, Sant Boi, el Papiol) el tiempo real puede variar
-              ±15 min según el barrio. Cuanto más grande o más disperso el municipio,
-              menos informativo es el número. En la escala de barrios, el punto es el
-              centroide, que en Vallvidrera o Torre Baró queda lejos de donde hay gente.</li>
+            <li><strong>El origen es un solo punto por zona</strong>: el núcleo urbano del
+              municipio, o el centroide del barrio. En municipios grandes o diseminados
+              (Terrassa, Sant Cugat, Cerdanyola, Sant Boi, el Papiol) el tiempo real puede
+              variar ±15 min según dónde vivas. En barrios como Vallvidrera o Torre Baró el
+              centroide queda lejos de donde hay gente.</li>
             <li><strong>Horario teórico.</strong> Ni retrasos, ni averías, ni obras. En la
               práctica R1, R2 y R4 acumulan incidencias con regularidad.</li>
             <li><strong>Un solo día y una sola hora.</strong> Otro día u otra hora dan
@@ -535,9 +590,12 @@ footer a{color:var(--focus)}
               frecuencia limitada: el complejo queda a 1,5 km de la estación de FGC más
               cercana. Por eso está también, aparte, la estación de Sant Cugat: son dos
               preguntas distintas y se llevan una diferencia sistemática.</li>
-            <li><strong>Un destino dentro de tu propio municipio</strong> (Castelldefels
-              a Castelldefels) da dos minutos andando. Es cierto y no informa de nada;
+            <li><strong>Un destino dentro de la propia zona</strong> (Castelldefels a
+              Castelldefels) da dos minutos andando. Es cierto y no informa de nada;
               aparece marcado para que no se cuele en una comparación.</li>
+            <li><strong>El precio no está en todas.</strong> <span id="m-sensepreu"></span>
+              Una zona sin precio publicado puede cumplir tus condiciones y no salir en el
+              ranking: el ranking es de precio, y sin precio no hay puesto.</li>
           </ul>
           <p>
             Y lo que no está aquí y decide tanto como esto: el coste del transporte y la
@@ -602,6 +660,7 @@ function fmtMin(v) {
   const m = Math.round(v);
   return m < 60 ? `${m} min` : `${Math.floor(m / 60)} h ${String(m % 60).padStart(2, "0")}`;
 }
+const fmtMinOrNull = (v) => v == null ? null : fmtMin(v);
 
 function median(xs) {
   const a = xs.filter(v => v != null).sort((x, y) => x - y);
@@ -621,45 +680,33 @@ const XARXES = ["Rodalies", "FGC", "Metro", "Tram", "Bus"];
 /* ===========================================================================
    2. ESTADO
    =========================================================================== */
-const VIEWS = {
-  municipis: {
-    id: "municipis", label: "Área de Barcelona",
-    data: "data/transporte-muni.json", geo: "data/municipis-geo.json",
-    iso: "data/iso-muni.json",
-    unitat: ["municipio", "municipios"],
-    sub: "92 municipios con el núcleo urbano a 32 km o menos de Plaça de Catalunya.",
-  },
-  barris: {
-    id: "barris", label: "Barcelona por barrios",
-    data: "data/transporte-barris.json", geo: "data/bcn-barris-geo.json",
-    iso: "data/iso-barris.json",
-    unitat: ["barrio", "barrios"],
-    sub: "Los 73 barrios de Barcelona.",
-  },
-};
-
 const S = {
-  viewId: "municipis",
   conds: {},                 // id destino -> {on, max}
   combinar: "algun",         // "algun" | "tots"
   maxPeu: 30,
-  maxTransbords: 5,
-  capes: { ferro: true, bus: false, parades: true },
+  color: "preu",             // "preu" | "temps" — qué magnitud pinta el mapa
+  xarxa: true,               // dibujar la red ferroviaria
+  bus: false,                // …y los buses (se activa desde la leyenda)
   puntLliure: null,          // {lat, lon} elegido en el mapa
   picking: false,
   nomesOk: false,
   selected: null,
-  sortKey: "temps", sortDir: 1,
+  sortKey: "compra_eur_m2", sortDir: 1,
   view: null,                // viewBox del mapa
 };
 
 let DATA = null, GEO = null, PATHS = null, PROJ = null, ROWS = [];
-let LINIES = null, ANCORES = null, ISO = null;   // ISO: {ids, bytes, fila(ine)}
-const vista = () => VIEWS[S.viewId];
+let LINIES = null, ANCORES = null, ISO = null, RUTES = null;
 const cache = new Map();
+
+/** Cuántas tarjetas de ranking se enseñan. Nueve llenan tres filas de tres en
+    pantalla ancha y siguen cabiendo de un vistazo; el resto está en la tabla. */
+const RANK_N = 9;
 
 /* ===========================================================================
    3. CARGA
+   La carga inicial son tres ficheros y ~500 kB. Lo pesado —los itinerarios
+   tramo a tramo y la matriz de isócronas— solo baja cuando alguien lo usa.
    =========================================================================== */
 async function fetchJSON(path) {
   if (cache.has(path)) return cache.get(path);
@@ -671,21 +718,28 @@ async function fetchJSON(path) {
   return p;
 }
 
-/** La red y la matriz de isócronas no bloquean la primera pintada: la página
-    es útil sin ellas y pesan lo suyo. Entran cuando llegan. */
+/** La red no bloquea la primera pintada: la página es útil sin ella. */
 async function carregaLinies() {
   if (LINIES) return;
   try { LINIES = await fetchJSON("data/linies.json"); render(); }
   catch (e) { console.warn("sin linies.json:", e.message); }
 }
 
+/** Los itinerarios, solo al abrir una zona. */
+async function carregaRutes() {
+  if (RUTES) return RUTES;
+  const d = await fetchJSON("data/rutas.json");
+  RUTES = d.rutes || {};
+  return RUTES;
+}
+const ruta = (id, dest) => RUTES?.[id]?.[dest] || null;
+
 /** La matriz solo hace falta si el usuario pone su punto. Hasta entonces, nada. */
 async function carregaIso() {
-  const V = vista();
-  if (ISO && ISO.vista === V.id) return ISO;
+  if (ISO) return ISO;
   const [anc, mat] = await Promise.all([
-    ANCORES ? Promise.resolve(ANCORES) : fetchJSON("data/iso-ancores.json"),
-    fetchJSON(V.iso),
+    fetchJSON("data/iso-ancores.json"),
+    fetchJSON("data/iso-zonas.json"),
   ]);
   ANCORES = anc;
   // base64 -> bytes. Un byte por (origen, anclaje): minutos, 255 = fuera de alcance.
@@ -695,33 +749,26 @@ async function carregaIso() {
   const n = anc.ancores.length;
   const pos = new Map(mat.ids.map((id, i) => [String(id), i]));
   ISO = {
-    vista: V.id, n, bytes, pos,
-    fila: (ine) => {
-      const i = pos.get(String(ine));
+    n, bytes, pos,
+    fila: (id) => {
+      const i = pos.get(String(id));
       return i == null ? null : bytes.subarray(i * n, (i + 1) * n);
     },
   };
   return ISO;
 }
 
-async function loadView(first = false) {
-  const V = vista();
-  const [d, g] = await Promise.all([fetchJSON(V.data), fetchJSON(V.geo)]);
-  DATA = d; GEO = g;
-  ISO = null;                       // la matriz es por escala
-  S.selected = null;
-  S.puntLliure = null;
-  S.picking = false;
-  initConds(first);
-  initProjection();
-  if (first) initUI(); else resetUIForView();
-  render();
-  carregaLinies();
-}
-
 async function boot() {
   try {
-    await loadView(true);
+    const [d, g] = await Promise.all([
+      fetchJSON("data/zonas.json"), fetchJSON("data/zonas-geo.json"),
+    ]);
+    DATA = d; GEO = g;
+    initConds(true);
+    initProjection();
+    initUI();
+    render();
+    carregaLinies();
     $("#state").hidden = true;
     $("#filters").hidden = false;
     $("#main").hidden = false;
@@ -788,7 +835,7 @@ function initProjection() {
       d += "M" + ring.map(([lon, lat]) =>
         PROJ.x(lon).toFixed(1) + "," + PROJ.y(lat).toFixed(1)).join("L") + "Z";
     });
-    if (d) PATHS.set(f.properties.codi_ine, d);
+    if (d) PATHS.set(f.properties.id, d);
   }
 }
 
@@ -813,7 +860,7 @@ const condsActives = () =>
   Object.entries(S.conds).filter(([, c]) => c.on).map(([id]) => id);
 
 /** Los anclajes cercanos al punto libre, con su caminata ya calculada. Se hace
-    una sola vez por punto, no una por municipio. */
+    una sola vez por punto, no una por zona. */
 let LLIURE = null;    // {lat, lon, prop:[{i, peu}], sensePar:bool}
 const RADI_ANCORA = 2.5;         // km — más lejos, caminar deja de ser una opción
 const MAX_PEU_DIRECTE = 60;      // min — tope para el «vete andando y ya está»
@@ -834,10 +881,10 @@ function preparaLliure() {
   LLIURE = { lat, lon, prop, sensePar: prop.length === 0 };
 }
 
-/** Tiempo estimado de un origen hasta el punto libre. null si no hay forma. */
+/** Tiempo estimado de una zona hasta el punto libre. null si no hay forma. */
 function minsLliure(m) {
   if (!LLIURE || LLIURE.sensePar || !ISO) return null;
-  const fila = ISO.fila(m.ine);
+  const fila = ISO.fila(m.id);
   if (!fila) return null;
   let best = Infinity;
   for (const { i, peu } of LLIURE.prop) {
@@ -846,39 +893,36 @@ function minsLliure(m) {
     const tot = t + peu;
     if (tot < best) best = tot;
   }
-  // Si el punto cae en el propio pueblo, ir andando puede ganar a cualquier
-  // ruta. Pero solo cuenta si es una caminata que alguien haría: sin este tope,
-  // un municipio sin ninguna parada a la que llegar «resolvía» el trayecto
-  // andando 50 km y devolvía 757 minutos, que es peor que no decir nada.
+  // Si el punto cae en la propia zona, ir andando puede ganar a cualquier ruta.
+  // Pero solo cuenta si es una caminata que alguien haría: sin este tope, una
+  // zona sin ninguna parada a la que llegar «resolvía» el trayecto andando
+  // 50 km y devolvía 757 minutos, que es peor que no decir nada.
   const aPeu = caminarMin(m.lat, m.lon, LLIURE.lat, LLIURE.lon);
   if (aPeu <= MAX_PEU_DIRECTE && aPeu < best) best = aPeu;
   return best === Infinity ? null : Math.round(best);
 }
 
-/** Datos de un origen hacia una condición. Unifica destinos exactos y punto
+/** Datos de una zona hacia una condición. Unifica destinos exactos y punto
     libre para que el resto del código no tenga que distinguirlos. */
 function viatge(m, id) {
   if (id === "__lliure") {
     const min = minsLliure(m);
-    return min == null ? null : { min, estimat: true, a_peu: null, transbords: null };
+    return min == null ? null : { min, estimat: true, a_peu: null };
   }
   const v = m.destins[id];
   return v ? { ...v, estimat: false } : null;
 }
 
-/** ¿Este origen cumple la condición? Caminata y transbordos se exigen sobre la
-    misma ruta que cumple el tiempo: no vale mezclar la caminata de una ruta con
-    el tiempo de otra. En el punto libre no hay desglose, así que esas dos
-    condiciones no se pueden aplicar y no se aplican — se dice en el tooltip. */
+/** ¿Esta zona cumple la condición? La caminata se exige sobre la misma ruta que
+    cumple el tiempo: no vale mezclar la caminata de una ruta con el tiempo de
+    otra. En el punto libre no hay desglose, así que ahí no se puede aplicar y
+    no se aplica — se dice en el tooltip y en la metodología. */
 function compleixCond(m, id) {
   const c = S.conds[id];
   const v = viatge(m, id);
   if (!v || v.min == null) return false;
   if (v.min > c.max) return false;
-  if (!v.estimat) {
-    if (v.a_peu != null && v.a_peu > S.maxPeu) return false;
-    if (v.transbords != null && v.transbords > S.maxTransbords) return false;
-  }
+  if (!v.estimat && v.a_peu != null && v.a_peu > S.maxPeu) return false;
   return true;
 }
 
@@ -886,16 +930,14 @@ function recompute() {
   preparaLliure();
   const actives = condsActives();
 
-  ROWS = DATA.files.map(m => {
+  ROWS = DATA.zones.map(m => {
     const compleixen = actives.filter(id => compleixCond(m, id));
     const ok = actives.length === 0 ? false
              : S.combinar === "tots" ? compleixen.length === actives.length
                                      : compleixen.length > 0;
-    // El color: con "los quiero todos", el que más aprieta (el peor); con "me
-    // basta uno", el que te salva (el mejor). Es el tiempo que decide.
-    const temps = actives
-      .map(id => viatge(m, id)?.min)
-      .filter(v => v != null);
+    // El tiempo que representa a la zona: con «los quiero todos», el que más
+    // aprieta (el peor); con «me basta uno», el que te salva (el mejor).
+    const temps = actives.map(id => viatge(m, id)?.min).filter(v => v != null);
     const valor = !temps.length ? null
                 : S.combinar === "tots" ? Math.max(...temps) : Math.min(...temps);
     const peus = actives.map(id => viatge(m, id)?.a_peu).filter(v => v != null);
@@ -903,12 +945,34 @@ function recompute() {
   });
 }
 
-function valueRange() {
+/** Las que cumplen y tienen precio, de más barata a más cara. Es la respuesta
+    de la página, y la usan el titular, el ranking y la barra de comparación. */
+const ranking = () => ROWS
+  .filter(m => m.ok && m.compra_eur_m2 != null)
+  .sort((a, b) => a.compra_eur_m2 - b.compra_eur_m2);
+
+/* --- rangos de color ---------------------------------------------------- */
+
+/* El precio se escala sobre TODAS las zonas, no solo sobre las que cumplen: así
+   el mapa no se recolorea entero cada vez que mueves un filtro, y «azul oscuro»
+   significa siempre lo mismo. El tiempo sí depende de los destinos marcados,
+   porque sin destinos no hay tiempo que pintar. */
+let PREU_RANG = null;
+function preuRange() {
+  if (!PREU_RANG) {
+    const vs = DATA.zones.map(m => m.compra_eur_m2).filter(v => v != null);
+    PREU_RANG = vs.length ? [Math.min(...vs), Math.max(...vs)] : [0, 1];
+  }
+  return PREU_RANG;
+}
+function tempsRange() {
   const vs = ROWS.map(m => m.valor).filter(v => v != null);
   if (!vs.length) return [0, 1];
   const lo = Math.min(...vs), hi = Math.max(...vs);
   return hi > lo ? [lo, hi] : [lo, lo + 1];
 }
+const rangActual = () => S.color === "preu" ? preuRange() : tempsRange();
+const valorColor = (m) => S.color === "preu" ? m.compra_eur_m2 : m.valor;
 
 function seqColor(v, lo, hi) {
   if (v == null) return cssVar("--seq-null");
@@ -922,7 +986,7 @@ function seqColor(v, lo, hi) {
 function render() {
   recompute();
   renderConds();
-  renderTiles();
+  renderVerdict();
   renderMap();
   renderLegend();
   renderItin();
@@ -932,13 +996,21 @@ function render() {
 
 function renderConds() {
   const box = $("#f-conds");
-  const files = DATA.meta.destins.map(d => ({
-    id: d.id, nom: d.nom, sub: d.tipus, est: false,
-  }));
-  if (S.puntLliure) files.push({ id: "__lliure", nom: "Tu punto en el mapa", sub: null, est: true });
+  const files = DATA.meta.destins.map(d => ({ id: d.id, nom: d.nom, est: false }));
+  // El punto libre es una fila más, esté elegido o no: si solo apareciera
+  // después de pincharlo, nadie descubriría que se puede pinchar.
+  files.push({ id: "__lliure", nom: "Otro punto del mapa", est: true });
 
   box.innerHTML = files.map(f => {
     const c = S.conds[f.id] || { on: false, max: 90 };
+    const sensePunt = f.id === "__lliure" && !S.puntLliure;
+    if (sensePunt) {
+      return `<div class="cond is-off is-pick">
+        <span class="pin" aria-hidden="true"></span>
+        <button type="button" class="pick-btn" id="c-pick">${
+          S.picking ? "Pincha en el mapa…" : "Otro punto del mapa…"}</button>
+      </div>`;
+    }
     return `<div class="cond ${c.on ? "is-on" : "is-off"}">
       <input type="checkbox" id="c-${esc(f.id)}" data-cond="${esc(f.id)}" ${c.on ? "checked" : ""}>
       <label class="cn" for="c-${esc(f.id)}" title="${esc(f.nom)}">${esc(f.nom)}${
@@ -947,6 +1019,9 @@ function renderConds() {
         <input type="number" data-max="${esc(f.id)}" min="5" max="240" step="5" value="${c.max}"
                aria-label="Minutos como mucho hasta ${esc(f.nom)}">min
       </span>
+      ${f.id === "__lliure"
+        ? `<button type="button" class="clear" id="c-clear" aria-label="Quitar mi punto" title="Quitar mi punto">×</button>`
+        : ""}
     </div>`;
   }).join("");
 
@@ -959,73 +1034,117 @@ function renderConds() {
       if (Number.isFinite(v)) { S.conds[el.dataset.max].max = clamp(v, 5, 240); render(); }
     };
   });
+  const pick = box.querySelector("#c-pick");
+  if (pick) pick.onclick = () => setPicking(!S.picking);
+  const clear = box.querySelector("#c-clear");
+  if (clear) clear.onclick = () => {
+    S.puntLliure = null; delete S.conds.__lliure; setPicking(false); render();
+  };
 }
 
-function renderTiles() {
-  const U = vista().unitat;
+/** El titular. Es lo primero que se lee y tiene que contestar la pregunta sin
+    que haya que interpretar nada: cuántas cumplen y cuál es la más barata. */
+function renderVerdict() {
   const actives = condsActives();
   const ok = ROWS.filter(m => m.ok);
-  const preus = ok.map(m => m.compra_eur_m2).filter(v => v != null);
-  const barat = ok.filter(m => m.compra_eur_m2 != null)
-                  .sort((a, b) => a.compra_eur_m2 - b.compra_eur_m2)[0];
-  const rapid = ok.filter(m => m.valor != null).sort((a, b) => a.valor - b.valor)[0];
-  const totPreus = ROWS.map(m => m.compra_eur_m2).filter(v => v != null);
-  const medTot = median(totPreus), medOk = median(preus);
+  const rk = ranking();
+  const v = $("#verdict"), vs = $("#verdict-sub");
 
-  const t = [];
-  t.push(`<div class="tile is-hero"><div class="k">Cumplen</div>
-    <div class="v">${ok.length}<span style="font-size:1rem;color:var(--ink-2)"> de ${ROWS.length}</span></div>
-    <div class="n">${actives.length
-      ? `${U[1]} donde se cumple ${S.combinar === "tots" ? "todo lo que pides" : "al menos una condición"}`
-      : "marca algún destino arriba"}</div></div>`);
+  if (!actives.length) {
+    v.innerHTML = "Marca algún destino para empezar.";
+    vs.textContent = "Arriba, en «tengo que llegar a…», elige a dónde tienes que ir cada "
+                   + "día y en cuántos minutos como mucho.";
+    $("#rank").innerHTML = "";
+    $("#rank-more").textContent = "";
+    return;
+  }
+  if (!ok.length) {
+    v.innerHTML = `<span class="n">Ninguna zona</span> cumple lo que pides.`;
+    vs.textContent = "Prueba a subir los minutos, a caminar un poco más, o a pasar a "
+                   + "«con uno me basta» si tenías marcados varios destinos.";
+    $("#rank").innerHTML = "";
+    $("#rank-more").textContent = "";
+    return;
+  }
 
-  t.push(`<div class="tile"><div class="k">Precio mediano</div>
-    <div class="v">${medOk == null ? "—" : fmtEur(medOk)}</div>
-    <div class="n">€/m² de los que cumplen${
-      medOk != null && medTot != null
-        ? ` · ${medOk <= medTot ? "−" : "+"}${fmtInt(Math.abs(100 * (medOk / medTot - 1)))} % frente al conjunto`
-        : ""}</div></div>`);
+  const primera = rk[0];
+  const medOk = median(ok.map(m => m.compra_eur_m2));
+  const medTot = median(DATA.zones.map(m => m.compra_eur_m2));
 
-  t.push(`<div class="tile"><div class="k">El más barato</div>
-    <div class="v" style="font-size:1.26rem">${barat ? esc(barat.nom) : "—"}</div>
-    <div class="n">${barat ? `${fmtEur(barat.compra_eur_m2)}/m² · ${fmtMin(barat.valor)} de viaje` : "sin candidatos"}</div></div>`);
+  v.innerHTML = `<span class="n">${ok.length} ${ok.length === 1 ? "zona" : "zonas"}</span> `
+    + `${ok.length === 1 ? "cumple" : "cumplen"} lo que pides`
+    + (primera ? ` · la más barata, <span class="cheap">${esc(primera.nom_llarg)}</span>, `
+               + `a ${fmtEur(primera.compra_eur_m2)}/m²` : "");
 
-  t.push(`<div class="tile"><div class="k">El más rápido</div>
-    <div class="v" style="font-size:1.26rem">${rapid ? esc(rapid.nom) : "—"}</div>
-    <div class="n">${rapid ? `${fmtMin(rapid.valor)} · ${
-      rapid.compra_eur_m2 != null ? fmtEur(rapid.compra_eur_m2) + "/m²" : "sin precio publicado"}` : "sin candidatos"}</div></div>`);
+  const sensePreu = ok.length - rk.length;
+  vs.textContent =
+    (medOk != null && medTot != null
+      ? `Mediana de las que cumplen: ${fmtEur(medOk)}/m², un ${
+          fmtInt(Math.abs(100 * (medOk / medTot - 1)))} % ${
+          medOk <= medTot ? "por debajo" : "por encima"} de la mediana del área. `
+      : "")
+    + `Ordenadas de más barata a más cara; la barra compara el precio dentro del grupo.`
+    + (sensePreu > 0
+        ? ` ${sensePreu} ${sensePreu === 1 ? "cumple pero no tiene" : "cumplen pero no tienen"} `
+          + `precio publicado y ${sensePreu === 1 ? "no aparece" : "no aparecen"} aquí.`
+        : "");
 
-  $("#tiles").innerHTML = t.join("");
+  // La barra se escala contra la más cara del grupo: mide «cuánto más barata es
+  // esta que la peor de las que te valen», que es la comparación que importa
+  // cuando ya has filtrado. Contra el área entera, todas saldrían casi iguales.
+  const topPreu = rk.length ? rk[rk.length - 1].compra_eur_m2 : 1;
+  $("#rank").innerHTML = rk.slice(0, RANK_N).map((m, i) => {
+    const id = condPrincipal(m);
+    const t = id ? viatge(m, id) : null;
+    const dest = id === "__lliure" ? { nom: "tu punto" } : DATA.meta.destins.find(d => d.id === id);
+    return `<button type="button" class="rk" data-id="${esc(m.id)}"
+              aria-pressed="${S.selected === m.id}">
+      <span class="rk-top"><span class="rk-pos">${i + 1}</span>
+        <span class="rk-nom">${esc(m.nom_llarg)}</span></span>
+      <span class="rk-sub">${esc(m.tipus === "barri" ? m.districte : m.comarca)}</span>
+      <span class="rk-preu">${fmtEur(m.compra_eur_m2)} <small>/m²</small></span>
+      <span class="rk-bar"><i style="width:${
+        clamp(100 * m.compra_eur_m2 / topPreu, 4, 100).toFixed(1)}%"></i></span>
+      <span class="rk-meta">${t && dest
+        ? `<span class="mn">${fmtMin(t.min)}</span> a ${esc(dest.nom)}`
+        : "sin tiempo"}${m.aPeu != null ? ` · <span class="mn">${m.aPeu} min</span> a pie` : ""}</span>
+    </button>`;
+  }).join("");
+
+  $("#rank-more").textContent = rk.length > RANK_N
+    ? `Y ${rk.length - RANK_N} más que también cumplen, en la tabla del final.` : "";
+
+  $("#rank").querySelectorAll("[data-id]").forEach(b => {
+    b.onclick = () => selecciona(b.dataset.id);
+  });
 }
 
 function renderMap() {
-  const [lo, hi] = valueRange();
+  const [lo, hi] = rangActual();
   const v = S.view;
   const hiHaConds = condsActives().length > 0;
 
   let s = "";
 
-  // --- 1. municipios ---
+  // --- 1. zonas ---
   for (const m of ROWS) {
-    const d = PATHS.get(m.ine);
+    const d = PATHS.get(m.id);
     if (!d) continue;
-    const fill = seqColor(m.valor, lo, hi);
-    const cls = "muni"
+    const cls = "zona"
       + (hiHaConds && !m.ok ? " is-dim" : "")
       + (m.ok ? " is-ok" : "")
-      + (S.selected === m.ine ? " is-sel" : "");
-    s += `<path class="${cls}" d="${d}" fill="${fill}" data-ine="${esc(m.ine)}"><title>${esc(m.nom)}</title></path>`;
+      + (S.selected === m.id ? " is-sel" : "");
+    s += `<path class="${cls}" d="${d}" fill="${seqColor(valorColor(m), lo, hi)}"
+            data-id="${esc(m.id)}"><title>${esc(m.nom_llarg)}</title></path>`;
   }
 
   // --- 2. red ---
-  if (LINIES) {
-    const dibuixa = (xar) =>
-      xar === "Bus" ? S.capes.bus : S.capes.ferro;
+  if (LINIES && (S.xarxa || S.bus)) {
     // El bus va primero: es contexto y tiene que quedar por debajo del tren.
     const ordre = [...LINIES.linies].sort((a, b) =>
       (a.xarxa === "Bus" ? 0 : 1) - (b.xarxa === "Bus" ? 0 : 1));
     for (const l of ordre) {
-      if (!dibuixa(l.xarxa)) continue;
+      if (l.xarxa === "Bus" ? !S.bus : !S.xarxa) continue;
       let d = "";
       for (const seg of l.punts) {
         d += "M" + seg.map(([lon, lat]) =>
@@ -1034,7 +1153,7 @@ function renderMap() {
       if (d) s += `<path class="linia l-${esc(l.xarxa)}" d="${d}"></path>`;
     }
     // --- 3. paradas: solo ferroviarias, y con rótulo solo si hay zoom ---
-    if (S.capes.parades && S.capes.ferro) {
+    if (S.xarxa) {
       const z = MAP_W / v.w;
       const r = clamp(2.2 / Math.sqrt(z), 0.9, 2.4);
       for (const p of LINIES.parades) {
@@ -1067,7 +1186,7 @@ function renderMap() {
     s += `<text class="poi-lbl" x="${(x + 12).toFixed(1)}" y="${(y + 4).toFixed(1)}">Tu punto</text>`;
   }
 
-  // --- 6. itinerario del seleccionado, por encima de todo ---
+  // --- 6. itinerario de la seleccionada, por encima de todo ---
   s += dibuixaRuta();
 
   const svg = $("#map");
@@ -1075,23 +1194,24 @@ function renderMap() {
   svg.innerHTML = s;
 }
 
-/** El trayecto del municipio seleccionado hacia la condición que manda. Los
-    tramos a pie van punteados: son reales, pero no son una línea de transporte
-    y dibujarlos iguales haría creer que existe un servicio que no existe. */
+/** El trayecto de la zona seleccionada hacia la condición que manda. Los tramos
+    a pie van punteados: son reales, pero no son una línea de transporte y
+    dibujarlos iguales haría creer que existe un servicio que no existe. */
 function dibuixaRuta() {
   if (!S.selected) return "";
-  const m = ROWS.find(r => r.ine === S.selected);
+  const m = ROWS.find(r => r.id === S.selected);
+  if (!m) return "";
   const id = condPrincipal(m);
-  if (!m || !id || id === "__lliure") return "";
-  const v = m.destins?.[id];
-  if (!v || !v.linies?.length) return "";
+  if (!id || id === "__lliure") return "";
+  const r = ruta(m.id, id);            // puede no estar aún: rutas.json es diferido
+  if (!r || !r.linies?.length) return "";
 
   let s = "", prev = [m.lon, m.lat];
   const seg = (a, b, cls) =>
     `<path class="ruta ${cls}" d="M${PROJ.x(a[0]).toFixed(1)},${PROJ.y(a[1]).toFixed(1)}`
     + `L${PROJ.x(b[0]).toFixed(1)},${PROJ.y(b[1]).toFixed(1)}"/>`;
 
-  for (const l of v.linies) {
+  for (const l of r.linies) {
     if (!l.dl || !l.al) continue;
     s += seg(prev, l.dl, "ruta-peu");
     s += seg(l.dl, l.al, "");
@@ -1103,7 +1223,7 @@ function dibuixaRuta() {
   return s;
 }
 
-/** La condición que explica el color y el itinerario de este origen. */
+/** La condición que explica el color y el itinerario de esta zona. */
 function condPrincipal(m) {
   if (!m) return null;
   const actives = condsActives();
@@ -1115,40 +1235,51 @@ function condPrincipal(m) {
 }
 
 function renderLegend() {
-  const [lo, hi] = valueRange();
-  const buit = !ROWS.some(m => m.valor != null);
-  $("#legend-ramp").innerHTML = SEQ.map(c => `<span style="background:var(${c})"></span>`).join("");
-  $("#legend-lo").textContent = buit ? "—" : fmtMin(lo);
-  $("#legend-hi").textContent = buit ? "—" : fmtMin(hi);
-  $("#legend-note").textContent = condsActives().length === 0
-    ? "Marca algún destino arriba para colorear el mapa."
-    : S.combinar === "tots"
-      ? "Cada zona, coloreada por el destino que más le cuesta de los que has marcado."
-      : "Cada zona, coloreada por el mejor de los destinos que has marcado.";
+  const preu = S.color === "preu";
+  const [lo, hi] = rangActual();
+  const buit = !preu && !ROWS.some(m => m.valor != null);
+  const f = preu ? (v) => fmtEur(v) : fmtMin;
 
-  const usades = LINIES
-    ? XARXES.filter(x => LINIES.linies.some(l => l.xarxa === x))
-    : [];
+  $("#legend-title").textContent = preu ? "Precio de compra" : "Tiempo de viaje";
+  $("#legend-ramp").innerHTML = SEQ.map(c => `<span style="background:var(${c})"></span>`).join("");
+  $("#legend-lo").textContent = buit ? "—" : f(lo) + (preu ? "/m²" : "");
+  $("#legend-hi").textContent = buit ? "—" : f(hi) + (preu ? "/m²" : "");
+  $("#legend-null").textContent = preu ? "Sin precio publicado" : "Sin ruta viable";
+  $("#legend-note").textContent = preu
+    ? "Cada zona, coloreada por el precio de compra: cuanto más claro, más barata."
+    : condsActives().length === 0
+      ? "Marca algún destino arriba para colorear el mapa por tiempo."
+      : S.combinar === "tots"
+        ? "Cada zona, coloreada por el destino que más le cuesta de los que has marcado."
+        : "Cada zona, coloreada por el mejor de los destinos que has marcado.";
+
+  const usades = LINIES ? XARXES.filter(x => LINIES.linies.some(l => l.xarxa === x)) : [];
   $("#legend-xarxes").innerHTML = "<h3>Redes</h3>" + (usades.length
     ? usades.map(x => {
         const n = LINIES.linies.filter(l => l.xarxa === x).length;
-        const apagada = (x === "Bus" && !S.capes.bus) || (x !== "Bus" && !S.capes.ferro);
-        return `<div class="net-row" style="opacity:${apagada ? .4 : 1}">
+        const es = x === "Bus";
+        const apagada = es ? !S.bus : !S.xarxa;
+        return `<div class="net-row" style="opacity:${apagada ? .45 : 1}">
           <span class="net-line" style="border-top-color:var(--net-${x.toLowerCase()})"></span>
-          ${esc(x)} <span style="color:var(--muted)">· ${n}</span></div>`;
+          ${esc(x)} <span style="color:var(--muted)">· ${n}</span>
+          ${es ? `<button type="button" id="leg-bus" aria-pressed="${S.bus}">${
+            S.bus ? "ocultar" : "mostrar"}</button>` : ""}</div>`;
       }).join("")
     : `<p class="legend-note">Cargando la red…</p>`);
+
+  const bus = $("#leg-bus");
+  if (bus) bus.onclick = () => { S.bus = !S.bus; render(); };
 }
 
 function renderItin() {
   const panel = $("#panel-itin");
-  const m = S.selected ? ROWS.find(r => r.ine === S.selected) : null;
+  const m = S.selected ? ROWS.find(r => r.id === S.selected) : null;
   if (!m) { panel.hidden = true; return; }
   panel.hidden = false;
 
   const id = condPrincipal(m);
-  const dest = id === "__lliure" ? { nom: "Tu punto" } : DATA.meta.destins.find(d => d.id === id);
-  $("#itin-title").textContent = dest ? `${m.nom} → ${dest.nom}` : m.nom;
+  const dest = id === "__lliure" ? { nom: "tu punto" } : DATA.meta.destins.find(d => d.id === id);
+  $("#itin-title").textContent = dest ? `${m.nom_llarg} → ${dest.nom}` : m.nom_llarg;
 
   if (!id) {
     $("#itin").innerHTML = `<p class="legend-note">Marca algún destino para ver el itinerario.</p>`;
@@ -1160,55 +1291,62 @@ function renderItin() {
       ? `<p class="legend-note">Estimación: <strong>${fmtMin(t.min)}</strong> hasta tu punto.
          Es el mejor encaje entre llegar a una parada cercana y caminar desde ella;
          no hay itinerario con nombre porque no se ha encaminado ese trayecto concreto.</p>`
-      : `<p class="legend-note">Sin estimación: no hay ninguna parada a menos de 2,5 km de tu punto, o este origen no llega.</p>`;
+      : `<p class="legend-note">Sin estimación: no hay ninguna parada a menos de 2,5 km de tu punto, o esta zona no llega.</p>`;
     return;
   }
 
   const v = m.destins[id];
   if (!v) { $("#itin").innerHTML = `<p class="legend-note">Sin ruta viable hasta aquí.</p>`; return; }
 
+  const r = ruta(m.id, id);
+  if (!r) {
+    // rutas.json aún no ha llegado. Se enseña lo que sí se sabe en vez de un
+    // hueco: el total es correcto y está en la carga inicial.
+    $("#itin").innerHTML = `<div class="itin-tot"><span>Total puerta a puerta</span>
+      <span>${fmtMin(v.min)}</span></div>
+      <p class="legend-note">Cargando el detalle del itinerario…</p>`;
+    return;
+  }
+
   const li = [];
-  if (v.a_peu_acces) li.push(`<li><span class="badge peu">a pie</span>
-    <span class="txt">hasta ${esc(v.linies?.[0]?.de || "la parada")}</span>
-    <span class="mn">${v.a_peu_acces}</span></li>`);
-  for (const l of v.linies || []) {
+  if (r.a_peu_acces) li.push(`<li><span class="badge peu">a pie</span>
+    <span class="txt">hasta ${esc(r.linies?.[0]?.de || "la parada")}</span>
+    <span class="mn">${r.a_peu_acces}</span></li>`);
+  for (const l of r.linies || []) {
     li.push(`<li><span class="badge b-${esc(l.xarxa)}">${esc(l.ref || l.xarxa)}</span>
       <span class="txt">${esc(l.de)} → ${esc(l.a)}</span>
       <span class="mn">${l.min}</span></li>`);
   }
-  const final = (v.a_peu ?? 0) - (v.a_peu_acces ?? 0);
+  const final = (v.a_peu ?? 0) - (r.a_peu_acces ?? 0);
   if (final > 0) li.push(`<li><span class="badge peu">a pie</span>
     <span class="txt">transbordos y tramo final</span><span class="mn">${final}</span></li>`);
-  if (v.espera) li.push(`<li><span class="badge peu">espera</span>
-    <span class="txt">en los transbordos</span><span class="mn">${v.espera}</span></li>`);
+  if (r.espera) li.push(`<li><span class="badge peu">espera</span>
+    <span class="txt">en los transbordos</span><span class="mn">${r.espera}</span></li>`);
 
   $("#itin").innerHTML = `<ol>${li.join("")}</ol>
     <div class="itin-tot"><span>Total puerta a puerta</span><span>${fmtMin(v.min)}</span></div>
-    ${v.trivial ? `<p class="legend-note">Este destino está dentro del propio ${vista().unitat[0]}: el número es cierto pero no compara nada.</p>` : ""}
-    ${v.arriba_tard ? `<p class="legend-note">Ningún trayecto llega antes de las 09:00; este es el mejor que llega antes de las 10:00 (${esc(v.arribada_local)}).</p>` : ""}`;
+    ${v.trivial ? `<p class="legend-note">Este destino está dentro de la propia zona: el número es cierto pero no compara nada.</p>` : ""}
+    ${v.arriba_tard ? `<p class="legend-note">Ningún trayecto llega antes de las 09:00; este es el mejor que llega antes de las 10:00${
+      r.arribada_local ? ` (${esc(r.arribada_local)})` : ""}.</p>` : ""}`;
 }
 
 /* ---------- tabla ---------- */
 function colsTaula() {
   const cols = [
-    { k: "nom",    t: vista().unitat[0], txt: true },
-    { k: "aPeu",   t: "A pie",  fmt: (m) => m.aPeu == null ? null : `${m.aPeu} min` },
+    { k: "nom", t: "Zona", txt: true },
+    { k: "aPeu", t: "A pie", fmt: (m) => m.aPeu == null ? null : `${m.aPeu} min` },
   ];
   for (const id of condsActives()) {
     const d = id === "__lliure" ? { nom: "Tu punto" } : DATA.meta.destins.find(x => x.id === id);
     cols.push({ k: "d:" + id, t: d?.nom || id, fmt: (m) => fmtMinOrNull(viatge(m, id)?.min) });
   }
-  cols.push({ k: "sortides", t: "Salidas 7-9h", fmt: (m) => m.sortides == null ? null : fmtInt(m.sortides) });
   cols.push({ k: "compra_eur_m2", t: "€/m²", fmt: (m) => m.compra_eur_m2 == null ? null : fmtEur(m.compra_eur_m2) });
   cols.push({ k: "lloguer_eur_mes", t: "Alquiler", fmt: (m) => m.lloguer_eur_mes == null ? null : fmtEur(m.lloguer_eur_mes) + "/mes" });
-  cols.push({ k: "poblacio", t: "Población", fmt: (m) => m.poblacio == null ? null : fmtInt(m.poblacio) });
   return cols;
 }
-const fmtMinOrNull = (v) => v == null ? null : fmtMin(v);
 
 function valorOrdre(m, k) {
-  if (k === "nom") return m.nom;
-  if (k === "temps") return m.valor;
+  if (k === "nom") return m.nom_llarg;
   if (k === "aPeu") return m.aPeu;
   if (k.startsWith("d:")) return viatge(m, k.slice(2))?.min ?? null;
   return m[k];
@@ -1216,81 +1354,81 @@ function valorOrdre(m, k) {
 
 function renderTable() {
   const cols = colsTaula();
-  // Al arrancar se ordena por tiempo de viaje, pero esa columna no existe como
-  // tal: es el mejor (o el peor) de los destinos marcados. Se engancha a la
-  // primera columna de destino para que la cabecera enseñe la flecha y se vea
-  // por qué está ordenada así.
-  if (!cols.some(c => c.k === S.sortKey)) {
-    S.sortKey = cols.find(c => c.k.startsWith("d:"))?.k || "nom";
-  }
+  if (!cols.some(c => c.k === S.sortKey)) S.sortKey = "compra_eur_m2";
+
   $("#thead").innerHTML = "<tr>" + cols.map(c => {
     const act = S.sortKey === c.k;
     return `<th data-k="${esc(c.k)}" aria-sort="${act ? (S.sortDir > 0 ? "ascending" : "descending") : "none"}">${
       esc(c.t)}<span class="arrow">${act ? (S.sortDir > 0 ? "▲" : "▼") : "↕"}</span></th>`;
   }).join("") + "</tr>";
 
-  let rows = S.nomesOk ? ROWS.filter(m => m.ok) : [...ROWS];
+  const rows = S.nomesOk ? ROWS.filter(m => m.ok) : [...ROWS];
   const k = S.sortKey;
   rows.sort((a, b) => {
     const va = valorOrdre(a, k), vb = valorOrdre(b, k);
     if (va == null && vb == null) return 0;
-    if (va == null) return 1;            // los sin dato, siempre al final
+    if (va == null) return 1;            // las sin dato, siempre al final
     if (vb == null) return -1;
     return (typeof va === "string" ? va.localeCompare(vb, "es") : va - vb) * S.sortDir;
   });
 
   $("#tbody").innerHTML = rows.map(m => {
     const tds = cols.map((c, i) => {
-      const val = c.txt ? m[c.k] : c.fmt(m);
+      let val = c.txt ? m.nom_llarg : c.fmt(m);
       const pre = i === 0 ? `<span class="ok-dot ${m.ok ? "" : "off"}" title="${m.ok ? "cumple" : "no cumple"}"></span>` : "";
-      return `<td class="${val == null ? "na" : ""}">${pre}${val == null ? "—" : esc(val)}</td>`;
+      // La etiqueta «barrio» va aquí y no en el nombre: en el ranking y en el
+      // tooltip el «(Barcelona)» ya lo dice, pero en una tabla ordenable por
+      // precio conviene ver de un golpe qué escala estás comparando.
+      const tag = i === 0 && m.tipus === "barri" ? `<span class="tag">barrio</span>` : "";
+      return `<td class="${val == null ? "na" : ""}">${pre}${val == null ? "—" : esc(val)}${tag}</td>`;
     }).join("");
-    return `<tr data-ine="${esc(m.ine)}" class="${m.ok ? "" : "no-ok"} ${S.selected === m.ine ? "is-sel" : ""}">${tds}</tr>`;
+    return `<tr data-id="${esc(m.id)}" class="${m.ok ? "" : "no-ok"} ${S.selected === m.id ? "is-sel" : ""}">${tds}</tr>`;
   }).join("");
 
   const n = rows.length;
-  $("#tbl-sub").textContent = `${n} ${n === 1 ? vista().unitat[0] : vista().unitat[1]}`
-    + (S.nomesOk ? " que cumplen tus condiciones." : ", los que cumplen marcados con un punto verde.")
+  $("#tbl-sub").textContent = `${n} ${n === 1 ? "zona" : "zonas"}`
+    + (S.nomesOk ? " que cumplen tus condiciones." : ", las que cumplen marcadas con un punto verde.")
     + " Pulsa una cabecera para ordenar, o una fila para ver su itinerario en el mapa.";
 }
 
 function renderTexts() {
   const M = DATA.meta;
   $("#stamp").textContent =
-    `Horarios de referencia: ${M.transit?.hora || "—"}. Precios y padrón: ${
+    `${M.zones.municipis} municipios y los ${M.zones.barris} barrios de Barcelona. `
+    + `Horarios de referencia: ${M.transit?.hora || "—"}. Precios y padrón: ${
       M.periodes?.compra || "—"}. Generado el ${M.generat}.`;
-  $("#map-sub").textContent = vista().sub
-    + " Pincha una zona para ver su itinerario; pincha «Poner mi punto» y luego el mapa para un destino propio.";
+  $("#map-sub").textContent =
+    `Las ${DATA.zones.length} zonas del área: ${M.zones.municipis} municipios a 32 km o `
+    + `menos de Plaça de Catalunya, más los ${M.zones.barris} barrios en que se desglosa `
+    + `la ciudad. Pincha una zona para ver su itinerario.`;
 
   $("#m-ndest").textContent = ["", "un", "dos", "tres", "cuatro", "cinco", "seis"][M.destins.length] || M.destins.length;
-  $("#m-hora").textContent = M.transit?.hora
-    ? `Hora de referencia: ${M.transit.hora}.` : "";
+  $("#m-hora").textContent = M.transit?.hora ? `Hora de referencia: ${M.transit.hora}.` : "";
   $("#m-punta").textContent = M.transit?.hora_punta || "";
+  $("#m-gra").textContent = M.nota_gra || "";
   $("#m-iso").textContent = M.iso?.metode || "";
   $("#m-error").textContent = M.iso
     ? `El alcance se calcula hasta ${M.iso.limit_min} minutos y las paradas se agrupan en una rejilla de ${M.iso.cella_m} m.`
     : "";
-  // El recuento de buses se calcula aquí, no se escribe a mano: así la frase no
-  // puede quedarse desfasada respecto a lo que de verdad hay dibujado.
-  if (LINIES) {
-    const ferro = LINIES.linies.filter(l => l.xarxa !== "Bus").length;
-    const busDib = new Set(LINIES.linies.filter(l => l.xarxa === "Bus")
-                                        .map(l => String(l.ref).toUpperCase()));
-    const busUsats = new Set();
-    for (const m of DATA.files)
-      for (const v of Object.values(m.destins))
-        for (const l of v?.linies || [])
-          if (l.xarxa === "Bus" && l.ref) busUsats.add(String(l.ref).toUpperCase());
-    const n = busUsats.size;
-    const hi = [...busUsats].filter(r => busDib.has(r)).length;
-    $("#m-linies").textContent =
-      `Se dibujan ${ferro} líneas ferroviarias con sus ${LINIES.parades.length} paradas, `
+  $("#m-geo").textContent = M.geo?.nota || "";
+
+  const senseP = DATA.zones.filter(m => m.compra_eur_m2 == null).length;
+  $("#m-sensepreu").textContent = senseP
+    ? `${senseP} de las ${DATA.zones.length} zonas no tienen precio de compra publicado `
+      + `(muy pocas operaciones registradas para poder dar una media).`
+    : "";
+
+  // El recuento de buses viene calculado del build: la página ya no tiene los
+  // itinerarios en la carga inicial, y escribirlo a mano lo dejaría desfasado.
+  const B = M.bus;
+  $("#m-linies").textContent = B
+    ? `Se dibujan ${B.ferroviaries} líneas ferroviarias con sus ${B.parades} paradas, `
       + `trazadas desde OpenStreetMap y simplificadas para que la página siga pesando poco. `
-      + (n ? `De los ${n} autobuses que aparecen en algún itinerario, se dibujan ${hi}: `
-           + `los ${n - hi} restantes usan en el horario oficial un código que en `
-           + `OpenStreetMap no está etiquetado, así que el tiempo de viaje sí los cuenta `
-           + `pero el trazo no aparece.` : "");
-  } else $("#m-linies").textContent = "";
+      + (B.usats ? `De los ${B.usats} autobuses que aparecen en algún itinerario, se dibujan `
+                 + `${B.dibuixats}: los ${B.usats - B.dibuixats} restantes usan en el horario `
+                 + `oficial un código que en OpenStreetMap no está etiquetado, así que el `
+                 + `tiempo de viaje sí los cuenta pero el trazo no aparece.` : "")
+    : "";
 
   $("#m-fonts").innerHTML = `<ul>
     <li><strong>Horarios y encaminamiento</strong>: ${esc(M.transit?.font || "MOTIS / Transitous")}.
@@ -1300,7 +1438,8 @@ function renderTexts() {
       <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>, ODbL.</li>
     <li><strong>Precio de compra y alquiler, población y renta</strong>: los mismos datos
       oficiales que usa <a href="pisos-vs-distancia.html">Piso vs. distancia</a>
-      (Incasòl, Idescat, INE y Ministerio de Vivienda).</li>
+      (Incasòl, Idescat, INE y Ministerio de Vivienda). El desglose por barrio, del
+      Ayuntamiento de Barcelona.</li>
   </ul>`;
 }
 
@@ -1308,28 +1447,29 @@ function renderTexts() {
    7. TOOLTIP
    =========================================================================== */
 const tip = $("#tip");
-function showTip(ine, ev) {
-  const m = ROWS.find(r => r.ine === ine);
+function showTip(id, ev) {
+  const m = ROWS.find(r => r.id === id);
   if (!m) return hideTip();
   const actives = condsActives();
-  const files = actives.map(id => {
-    const d = id === "__lliure" ? { nom: "Tu punto" } : DATA.meta.destins.find(x => x.id === id);
-    const v = viatge(m, id);
-    const cumple = compleixCond(m, id);
-    return `<dt>${esc(d?.nom || id)}${v?.estimat ? " (est.)" : ""}</dt>
+  const files = actives.map(cid => {
+    const d = cid === "__lliure" ? { nom: "Tu punto" } : DATA.meta.destins.find(x => x.id === cid);
+    const v = viatge(m, cid);
+    const cumple = compleixCond(m, cid);
+    return `<dt>${esc(d?.nom || cid)}${v?.estimat ? " (est.)" : ""}</dt>
             <dd style="color:${v?.min == null ? "var(--muted)" : cumple ? "var(--ok)" : "var(--ink)"}">${
               v?.min == null ? "—" : fmtMin(v.min)}</dd>`;
   }).join("");
 
-  const id = condPrincipal(m);
-  const v = id ? viatge(m, id) : null;
-  tip.innerHTML = `<div class="t-name">${esc(m.nom)}</div>
-    <div class="t-sub">${esc(m.comarca || "")}${
-      m.compra_eur_m2 != null ? ` · ${fmtEur(m.compra_eur_m2)}/m²` : ""}</div>
+  const cid = condPrincipal(m);
+  const v = cid ? viatge(m, cid) : null;
+  tip.innerHTML = `<div class="t-name">${esc(m.nom_llarg)}</div>
+    <div class="t-sub">${esc(m.tipus === "barri" ? `${m.districte} · barrio` : m.comarca)}${
+      m.compra_eur_m2 != null ? ` · ${fmtEur(m.compra_eur_m2)}/m²` : " · sin precio publicado"}</div>
     <dl>${files}
       ${v && !v.estimat && v.a_peu != null ? `<dt>A pie en esa ruta</dt><dd>${v.a_peu} min</dd>` : ""}
       ${v && !v.estimat && v.transbords != null ? `<dt>Transbordos</dt><dd>${v.transbords}</dd>` : ""}
       ${m.sortides != null ? `<dt>Salidas 7-9 h</dt><dd>${fmtInt(m.sortides)}</dd>` : ""}
+      ${m.poblacio != null ? `<dt>Población</dt><dd>${fmtInt(m.poblacio)}</dd>` : ""}
     </dl>
     ${actives.length ? `<div class="t-flag" style="color:${m.ok ? "var(--ok)" : "var(--muted)"}">${
       m.ok ? "✓ Cumple tus condiciones" : "No cumple"}</div>` : ""}`;
@@ -1350,30 +1490,19 @@ function hideTip() { tip.classList.remove("on"); tip.setAttribute("aria-hidden",
 /* ===========================================================================
    8. INTERFAZ
    =========================================================================== */
-function syncBtns(sel, attr, val) {
-  document.querySelectorAll(sel + " [" + attr + "]").forEach(b => {
-    b.setAttribute("aria-pressed", String(b.getAttribute(attr) === val));
+
+/** Seleccionar una zona: se pinta ya, y el detalle del itinerario entra cuando
+    llega rutas.json. Pedirlo antes de pintar dejaría la interfaz muerta medio
+    segundo por un panel lateral. */
+function selecciona(id) {
+  S.selected = S.selected === id ? null : id;
+  render();
+  if (S.selected && !RUTES) carregaRutes().then(render).catch(e => {
+    console.warn("sin rutas.json:", e.message);
   });
 }
 
-function resetUIForView() {
-  $("#f-view").querySelectorAll("[data-view]").forEach(b =>
-    b.setAttribute("aria-pressed", String(b.dataset.view === S.viewId)));
-  setPicking(false);
-}
-
 function initUI() {
-  resetUIForView();
-
-  $("#f-view").onclick = async (e) => {
-    const b = e.target.closest("[data-view]");
-    if (!b || b.dataset.view === S.viewId) return;
-    S.viewId = b.dataset.view;
-    $("#state").hidden = false; $("#state").textContent = "Cargando…";
-    await loadView();
-    $("#state").hidden = true;
-  };
-
   const comb = (val) => {
     S.combinar = val;
     $("#f-comb-algun").setAttribute("aria-pressed", String(val === "algun"));
@@ -1392,21 +1521,20 @@ function initUI() {
     $("#f-peu-v").textContent = S.maxPeu === Infinity ? "lo que sea" : `${S.maxPeu} min`;
     render();
   };
-  const tr = $("#f-tr");
-  tr.oninput = () => {
-    S.maxTransbords = +tr.value;
-    $("#f-tr-v").textContent = S.maxTransbords >= 5 ? "los que sea"
-      : S.maxTransbords === 0 ? "directo" : `${S.maxTransbords}`;
+
+  $("#f-color").onclick = (e) => {
+    const b = e.target.closest("[data-color]");
+    if (!b || b.dataset.color === S.color) return;
+    S.color = b.dataset.color;
+    $("#f-color").querySelectorAll("[data-color]").forEach(x =>
+      x.setAttribute("aria-pressed", String(x.dataset.color === S.color)));
     render();
   };
 
-  $("#f-capes").onclick = (e) => {
-    const b = e.target.closest("[data-capa]");
-    if (!b) return;
-    const k = b.dataset.capa;
-    S.capes[k] = !S.capes[k];
-    b.setAttribute("aria-pressed", String(S.capes[k]));
-    if (k === "bus" && S.capes.bus) carregaLinies();
+  $("#f-xarxa").onclick = (e) => {
+    S.xarxa = !S.xarxa;
+    e.currentTarget.setAttribute("aria-pressed", String(S.xarxa));
+    if (S.xarxa) carregaLinies();
     render();
   };
 
@@ -1417,29 +1545,27 @@ function initUI() {
   };
 
   $("#f-reset").onclick = () => {
-    S.combinar = "algun"; S.maxPeu = 30; S.maxTransbords = 5;
+    S.combinar = "algun"; S.maxPeu = 30;
     S.puntLliure = null; S.nomesOk = false; S.selected = null;
-    S.capes = { ferro: true, bus: false, parades: true };
+    S.color = "preu"; S.xarxa = true; S.bus = false;
     peu.value = 30; $("#f-peu-v").textContent = "30 min";
-    tr.value = 5;   $("#f-tr-v").textContent = "los que sea";
     $("#f-comb-algun").setAttribute("aria-pressed", "true");
     $("#f-comb-tots").setAttribute("aria-pressed", "false");
     $("#f-nomes").setAttribute("aria-pressed", "false");
-    $("#f-capes").querySelectorAll("[data-capa]").forEach(b =>
-      b.setAttribute("aria-pressed", String(S.capes[b.dataset.capa])));
+    $("#f-xarxa").setAttribute("aria-pressed", "true");
+    $("#f-color").querySelectorAll("[data-color]").forEach(x =>
+      x.setAttribute("aria-pressed", String(x.dataset.color === "preu")));
     initConds(true);
     setPicking(false);
     zoomFit();
   };
 
-  $("#btn-pick").onclick = () => setPicking(!S.picking);
-
   // --- mapa ---
   const map = $("#map");
   map.addEventListener("pointermove", (ev) => {
     if (mapDrag) return hideTip();
-    const t = ev.target.closest("[data-ine]");
-    if (t) showTip(t.dataset.ine, ev); else hideTip();
+    const t = ev.target.closest("[data-id]");
+    if (t) showTip(t.dataset.id, ev); else hideTip();
   });
   map.addEventListener("pointerleave", hideTip);
   map.addEventListener("click", (ev) => {
@@ -1447,7 +1573,7 @@ function initUI() {
     if (S.picking) {
       const p = svgPoint(map, ev);
       S.puntLliure = { lat: PROJ.invLat(p.y), lon: PROJ.invLon(p.x) };
-      setPicking(false);
+      S.picking = false;
       S.conds.__lliure = { on: true, max: S.conds.__lliure?.max ?? 90 };
       // La matriz solo se descarga ahora, la primera vez que hace falta.
       carregaIso().then(render).catch(e => {
@@ -1457,27 +1583,25 @@ function initUI() {
       render();
       return;
     }
-    const t = ev.target.closest("[data-ine]");
-    S.selected = t && t.dataset.ine !== S.selected ? t.dataset.ine : null;
-    render();
+    const t = ev.target.closest("[data-id]");
+    if (t) selecciona(t.dataset.id);
+    else if (S.selected) { S.selected = null; render(); }
   });
 
   $("#thead").onclick = (e) => {
     const th = e.target.closest("th");
     if (!th) return;
-    const k = th.dataset.k;
-    if (S.sortKey === k) S.sortDir *= -1; else { S.sortKey = k; S.sortDir = k === "nom" ? 1 : 1; }
+    if (S.sortKey === th.dataset.k) S.sortDir *= -1;
+    else { S.sortKey = th.dataset.k; S.sortDir = 1; }
     renderTable();
   };
   $("#tbody").onclick = (e) => {
-    const tr2 = e.target.closest("tr");
-    if (!tr2) return;
-    S.selected = tr2.dataset.ine === S.selected ? null : tr2.dataset.ine;
-    render();
+    const tr = e.target.closest("tr");
+    if (tr) selecciona(tr.dataset.id);
   };
   $("#tbody").addEventListener("pointermove", (e) => {
-    const tr2 = e.target.closest("tr");
-    if (tr2) showTip(tr2.dataset.ine, e); else hideTip();
+    const tr = e.target.closest("tr");
+    if (tr) showTip(tr.dataset.id, e); else hideTip();
   });
   $("#tbody").addEventListener("pointerleave", hideTip);
 
@@ -1489,9 +1613,8 @@ function initUI() {
 
 function setPicking(on) {
   S.picking = on;
-  $("#btn-pick").setAttribute("aria-pressed", String(on));
-  $("#btn-pick").lastChild.textContent = on ? " Pincha en el mapa…" : " Poner mi punto";
   $("#map").style.cursor = on ? "crosshair" : "";
+  renderConds();
 }
 
 /* ---------- zoom y arrastre ---------- */

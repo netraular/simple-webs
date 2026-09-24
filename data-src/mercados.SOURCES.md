@@ -155,6 +155,60 @@ Dos trampas de esa API, las dos resueltas en el script:
 
 ---
 
+## D) Contraste con fuentes independientes
+
+Las series calculadas se han comparado con dos referencias que no comparten
+código con este repositorio. Lo que sigue son las cifras de esta generación.
+
+### Damodaran (NYU Stern), *Annual Returns on Stock, T.Bonds and T.Bills*
+
+Media geométrica nominal, **1928–2025** (aquí, de diciembre de 1927 a diciembre
+de 2025):
+
+| Serie | Este repositorio | Damodaran | Diferencia |
+|---|---|---|---|
+| S&P 500 con dividendos | 10,14 % | 10,02 % | +0,12 pp |
+| Bono a 10 años | 4,64 % | 4,54 % | +0,10 pp |
+| Oro | 5,60 % | 5,61 % | −0,01 pp |
+| S&P 500 **real** | 6,90 % | 6,78 % | +0,12 pp |
+| Bono a 10 años **real** | 1,56 % | 1,46 % | +0,10 pp |
+| Oro **real** | 2,49 % | 2,50 % | −0,01 pp |
+
+Las letras a 3 meses no son comparables en este cuadro porque aquí la serie
+empieza en 1934 (3,47 % hasta 2025) y la suya en 1928 (3,37 %).
+
+La diferencia sistemática de una décima en las series ligadas al S&P y al bono
+tiene explicación conocida: Damodaran encadena **rentabilidades de año natural
+sobre cierres de fin de año**, mientras que aquí el nivel del índice es la
+**media mensual** de Shiller, y las series de dividendos y de IPC que usa cada
+uno no son idénticas. Una décima en 98 años es ruido de convención, no un error
+de método; lo que importa es que ninguna serie se desvía en el orden de
+magnitud.
+
+### Recálculo independiente sobre la hoja original de Shiller
+
+Ventanas móviles mensuales de rentabilidad **real** total del S&P 500,
+1871 → 2026, calculadas por separado a partir de `ie_data.xls` (la hoja de
+Shiller, no la copia en CSV que usa este script):
+
+| Plazo | Ventanas | % en positivo | Peor (inicio) | Mediana |
+|---|---|---|---|---|
+| 10 años | 1.747 | 88,95 % | −5,93 % (1999-03) | +7,04 % |
+| 15 años | 1.687 | 95,61 % | −2,14 % (1905-12) | +6,91 % |
+| 20 años | 1.627 | 99,94 % | −0,22 % (1901-06) | +6,82 % |
+| 30 años | 1.507 | 100,00 % | +1,89 % (1902-06) | +6,76 % |
+
+El recálculo independiente da −5,92 %, −2,13 %, −0,22 % y +1,89 % para esos
+mismos peores casos, con los mismos meses de inicio: dos implementaciones
+distintas coinciden hasta la centésima.
+
+Dato que la página usa en varios sitios: de las 1.627 ventanas de veinte años
+que caben en la serie, **una sola** acabó en pérdidas reales, y por −0,22 %
+anual. Con treinta años no queda ninguna. Eso es cierto **de este mercado y de
+este siglo y medio**, que es exactamente la advertencia de la última sección.
+
+---
+
 ## Lo que estos datos NO son
 
 1. **Bruto de costes.** Ninguna serie descuenta comisiones, custodia, cambio de

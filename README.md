@@ -1,70 +1,57 @@
 # simple-webs
 
-Static web pages hosted at **[webs.raular.com](https://webs.raular.com/)**.
+Static pages served at **[webs.raular.com](https://webs.raular.com/)**.
 
-The home page is a showcase that lists every page under `pages/` automatically,
-each with a live preview.
-
-## Layout
+No build step: drop a self-contained `.html` into `pages/`, commit, push — it
+shows up on the home page within seconds, at
+`https://webs.raular.com/pages/my-page.html`.
 
 ```
-index.html      showcase landing (auto-discovers pages/)
-webs.json       optional per-page title & description
-favicon.ico     default tab icon for pages that define none
-pages/          the published pages — one .html each
-pages/data/     data files a page fetches at runtime (JSON/GeoJSON)
-data-src/       build scripts + raw sources that generate pages/data/
+index.html   showcase landing (auto-lists pages/)
+webs.json    optional title & description per page
+favicon.ico  default tab icon
+pages/       the published pages — one .html each
+pages/data/  data files a page fetches at runtime
+data-src/    scripts + raw sources that generate pages/data/
 ```
 
-The landing page lists only `.html` files sitting directly in `pages/`, so
-`pages/data/` is served but never shows up as a card.
+## Preview locally
 
-## Add a page
-
-Drop a self-contained `.html` into `pages/` and push:
+From the repo root:
 
 ```sh
-git add pages/my-page.html
-git commit -m "add my page"
-git push
+python3 -m http.server 8000
 ```
 
-It appears on the home page within a few seconds, at
-`https://webs.raular.com/pages/my-page.html`. No build step.
+Then open `http://localhost:8000/pages/my-page.html`. Serve from the root (not
+from `pages/`) so the relative `data/` fetches resolve. The landing page stays
+empty locally — its card list comes from nginx's `_list/` endpoint.
 
-## Optional: nicer title & description
+## Title & description
 
-Add an entry to `webs.json` (falls back to the filename if missing):
+Optional, keyed by filename in `webs.json`; falls back to the filename:
 
 ```json
-{
-  "my-page.html": {
-    "title": "My Page",
-    "description": "What this page does."
-  }
-}
+{ "my-page.html": { "title": "My Page", "description": "What it does." } }
 ```
 
-## Pages with data
+## Data files
 
-A page that needs more than it can inline fetches from `pages/data/`. Regenerate
-those files from the scripts in `data-src/` — they hit the public APIs and write
-straight into `pages/data/`:
+Pages that need data fetch it from `pages/data/`. Regenerate it with the scripts
+in `data-src/`: `build-*.mjs` hit the public APIs and write into `pages/data/`,
+`test-*.mjs` check the result. Sources are documented in the `*.SOURCES.md`
+files next to them.
 
 ```sh
 cd data-src
-node build-data.mjs     # pisos-bcn.json + municipis-geo.json
-node build-barris.mjs   # bcn-barris.json + bcn-barris-geo.json
-node build-mercados.mjs # mercados.json (añade --fresh para redescargar)
-node test-mercados.mjs  # 72 checks on mercados.json, incl. third-party cross-checks
-node test-logica.mjs    # sanity checks against the built data
-node test-vistas.mjs
+node build-mercados.mjs   # --fresh re-downloads instead of using the cache
+node test-mercados.mjs
 ```
 
-Some scripts call HTTPS APIs; behind a TLS-intercepting proxy, prefix them with
+Behind a TLS-intercepting proxy, prefix those with
 `NODE_EXTRA_CA_CERTS=/etc/ssl/certs/ca-certificates.crt`.
 
 ---
 
-Served by nginx + git-sync on a K3s homelab. Pages must be self-contained static
-HTML (no server-side code).
+nginx + git-sync on a K3s homelab. Pages must be self-contained static HTML —
+no server-side code.

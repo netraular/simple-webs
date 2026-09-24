@@ -816,6 +816,7 @@ const condsActives = () =>
     una sola vez por punto, no una por municipio. */
 let LLIURE = null;    // {lat, lon, prop:[{i, peu}], sensePar:bool}
 const RADI_ANCORA = 2.5;         // km — más lejos, caminar deja de ser una opción
+const MAX_PEU_DIRECTE = 60;      // min — tope para el «vete andando y ya está»
 
 function preparaLliure() {
   LLIURE = null;
@@ -845,9 +846,12 @@ function minsLliure(m) {
     const tot = t + peu;
     if (tot < best) best = tot;
   }
-  // Si el punto está en el propio pueblo, ir andando puede ganar a cualquier ruta.
+  // Si el punto cae en el propio pueblo, ir andando puede ganar a cualquier
+  // ruta. Pero solo cuenta si es una caminata que alguien haría: sin este tope,
+  // un municipio sin ninguna parada a la que llegar «resolvía» el trayecto
+  // andando 50 km y devolvía 757 minutos, que es peor que no decir nada.
   const aPeu = caminarMin(m.lat, m.lon, LLIURE.lat, LLIURE.lon);
-  if (aPeu < best) best = aPeu;
+  if (aPeu <= MAX_PEU_DIRECTE && aPeu < best) best = aPeu;
   return best === Infinity ? null : Math.round(best);
 }
 

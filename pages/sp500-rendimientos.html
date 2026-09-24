@@ -603,8 +603,16 @@ const el = (t, a = {}) => {
 };
 const esc = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;");
 
-/** Marco común: crea el SVG, los ejes y devuelve las escalas. */
-function marco(host, { w = 960, h = 320, ml = 52, mr = 18, mt = 14, mb = 30 } = {}) {
+/**
+ * Marco común: crea el SVG, los ejes y devuelve las escalas.
+ *
+ * El viewBox se mide en píxeles reales del contenedor, no en un ancho fijo: así
+ * una unidad del SVG es un píxel CSS y las etiquetas salen a 11 px de verdad
+ * también en un móvil, en vez de encogerse con el gráfico. Cada cambio de
+ * tamaño de ventana vuelve a pintar (ver el final del script).
+ */
+function marco(host, { h = 320, ml = 52, mr = 18, mt = 14, mb = 30 } = {}) {
+  const w = Math.max(320, Math.round(host.clientWidth || 960));
   host.textContent = "";
   const svg = el("svg", { viewBox: `0 0 ${w} ${h}`, role: "img" });
   host.appendChild(svg);

@@ -56,6 +56,7 @@ cd data-src
 node build-data.mjs     # pisos-bcn.json + municipis-geo.json
 node build-barris.mjs   # bcn-barris.json + bcn-barris-geo.json
 node build-mercados.mjs # mercados.json (añade --fresh para redescargar)
+node test-mercados.mjs  # 72 checks on mercados.json, incl. third-party cross-checks
 node test-logica.mjs    # sanity checks against the built data
 node test-vistas.mjs
 ```

@@ -1421,7 +1421,12 @@ registra(function rolling() {
   const hayRef = max > 10 && min < 10;
   if (hayRef) {
     g.add(el("line", { x1: g.x0, x2: g.x1, y1: y(10), y2: y(10), class: "ln-ref" }));
-    g.add(el("text", { x: g.x1 - 4, y: y(10) - 6, "text-anchor": "end" })).textContent = "el 10 % de la frase";
+    // La etiqueta solo se escribe si el último tramo de las curvas no pasa por
+    // ahí; si pasa, se calla y lo cuenta la leyenda, que ya lleva la referencia.
+    const cola = [...vs, ...cur].filter((d) => x(d.i) > g.x1 - 130);
+    if (!cola.some((d) => Math.abs(y(d.r) - y(10)) < 14)) {
+      g.add(el("text", { x: g.x1 - 4, y: y(10) - 6, "text-anchor": "end" })).textContent = "el 10 % de la frase";
+    }
   }
   ejeX(g, ticksTiempo(a, b, x, nEtiquetas(g)));
   g.add(el("text", { x: (g.x0 + g.x1) / 2, y: g.y1 + 30, "text-anchor": "middle", class: "lbl" }))
@@ -1810,7 +1815,9 @@ registra(function comparativa() {
   }
 
   const g = marco($("#ch-comp"), {
-    h: 400, ml: 58, mb: 34,
+    // Margen derecho ancho: ahí van las etiquetas directas (×16,6 y compañía),
+    // y con el margen por defecto se salían del gráfico.
+    h: 400, ml: 58, mr: 52, mb: 34,
     titulo: dca
       ? `Valor por cada dólar aportado, aportando cada mes desde ${mesLargo(CMP.mes)}`
       : `Evolución de 100 $ desde ${mesLargo(CMP.mes)} en cada activo`,
@@ -1829,9 +1836,15 @@ registra(function comparativa() {
 
   // La base no es cero: es el dinero puesto, ×1.
   g.add(el("line", { x1: g.x0, x2: g.x1, y1: y(100), y2: y(100), class: "ax" }));
+  // La etiqueta del ×1 ocupa el tramo derecho del eje, así que se calla si
+  // CUALQUIER línea lo cruza ahí, no solo si acaba cerca: en escala log dos
+  // series pueden pasar por el ×1 y salir del cuadro por sitios muy distintos.
+  const jTexto = i + Math.ceil(((g.x1 - 210 - g.x0) / (g.x1 - g.x0)) * (fin - i));
   const cercaDelUno = lineas.some((L) => {
-    const j = ultimoCon(L.v, i, fin);
-    return j != null && Math.abs(y(L.v[j]) - y(100)) < 16;
+    for (let j = Math.max(i, jTexto); j <= fin; j++) {
+      if (L.v[j] != null && Math.abs(y(L.v[j]) - y(100)) < 16) return true;
+    }
+    return false;
   });
   if (!cercaDelUno) {
     g.add(el("text", { x: g.x1 - 4, y: y(100) - 6, "text-anchor": "end", class: "lbl" }))

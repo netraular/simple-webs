@@ -26,8 +26,8 @@ calculadas** son la rentabilidad total del S&P 500 antes de 1988 y la del bono a
 | `oro` | Oro, dólares por onza troy | LBMA / precio oficial | 1871-01 | 3,57 |
 | `vivienda_us` | Vivienda en EE. UU., Case-Shiller nacional | FRED `CSUSHPINSA` | 1987-01 | 4,31 |
 | `mundo_exus` | Desarrollados sin EE. UU., con dividendos (ETF MSCI EAFE) | Yahoo `EFA` | 2001-08 | 6,70 |
-| `nikkei` | Nikkei 225, solo precio | Yahoo `^N225` | 1984-12 | 4,14 |
-| `ibex` | IBEX 35, solo precio | Yahoo `^IBEX` | 1993-06 | 5,85 |
+| `nikkei` | Nikkei 225, solo precio | Yahoo `^N225` | 1985-01 | 4,20 |
+| `ibex` | IBEX 35, solo precio | Yahoo `^IBEX` | 1993-07 | 5,92 |
 | `bitcoin` | Bitcoin en dólares | Yahoo `BTC-USD` | 2014-09 | 56,18 |
 | `ipc` | IPC de EE. UU. (CPI-U, sin desestacionalizar) | Shiller / FRED `CPIAUCNS` | 1871-01 | 2,14 |
 | `ipc_es` | IPC armonizado de España | FRED/Eurostat `CP0000ESM086NEST` | 1996-01 | — |
@@ -135,15 +135,23 @@ comparaciones.
 | `vivienda_us` | FRED `CSUSHPINSA` | Case-Shiller nacional, ventas repetidas, sin desestacionalizar. Es **solo precio**: no incluye alquileres cobrados ni descuenta IBI, reformas, seguros ni derramas. No es comparable con un índice con dividendos. |
 | `mundo_exus` | Yahoo `EFA` | ETF iShares MSCI EAFE (Europa, Australasia y Extremo Oriente) en dólares, **cierre ajustado**, o sea con dividendos reinvertidos y **neto de un 0,33 % anual de comisión** del propio fondo. Empieza en 2001-08. Se usa como contrapeso a "la bolsa sube": es la bolsa desarrollada que no es EE. UU. |
 | `nikkei` | Yahoo `^N225` | **Solo precio, sin dividendos**, en yenes. Está para el caso que rompe la regla: el máximo de diciembre de 1989 no se recuperó hasta 2024. |
-| `ibex` | Yahoo `^IBEX` | **Solo precio, sin dividendos**, en euros, desde 1993-06. Comparar el IBEX 35 con un S&P 500 *con* dividendos es tramposo: la página lo enfrenta al S&P 500 sin dividendos y lo dice. El IBEX con dividendos (IBEX 35 TR) no está disponible en fuentes abiertas. |
+| `ibex` | Yahoo `^IBEX` | **Solo precio, sin dividendos**, en euros, desde 1993-07. Comparar el IBEX 35 con un S&P 500 *con* dividendos es tramposo: la página lo enfrenta al S&P 500 sin dividendos y lo dice. El IBEX con dividendos (IBEX 35 TR) no está disponible en fuentes abiertas. |
 | `bitcoin` | Yahoo `BTC-USD` | Desde 2014-09, que es donde empieza la serie de Yahoo. Doce años no dicen nada sobre el largo plazo, y así se presenta. |
 | `eurusd` | FRED `DEXUSEU` | Dólares por euro, último día hábil de cada mes. Permite ver el S&P 500 **en euros**, que es lo que le pasa de verdad a alguien que invierte desde España. No hay euro antes de 1999. |
 | `ipc_es` | FRED/Eurostat `CP0000ESM086NEST` | IPC armonizado de España, mensual desde 1996. Para el poder adquisitivo real en euros. |
 
 Todas las series de Yahoo se piden a
 `https://query1.finance.yahoo.com/v8/finance/chart/<símbolo>?period1=0&period2=<ahora>&interval=1mo`.
-Sin `period1/period2` explícitos, Yahoo devuelve datos **trimestrales** aunque se
-pida `interval=1mo`.
+Dos trampas de esa API, las dos resueltas en el script:
+
+1. Sin `period1/period2` explícitos devuelve datos **trimestrales** aunque se pida
+   `interval=1mo`.
+2. La marca de tiempo de cada vela es el **inicio del mes en la hora local del
+   mercado**, no en UTC: el 1 de diciembre de 1989 en Tokio es el 30 de noviembre
+   a las 15:00 UTC. Leer el mes directamente con `toISOString()` desplazaba el
+   Nikkei y el IBEX un mes hacia atrás — el máximo japonés de diciembre de 1989
+   caía en noviembre. El script suma 14 horas antes de mirar el mes, que deja
+   bien cualquier huso entre UTC−11 y UTC+14.
 
 ---
 

@@ -1,0 +1,1686 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>¿El S&P 500 renta un 10 % al año? · 155 años de datos</title>
+<meta name="description" content="La frase 'el S&P 500 ha dado un 10 % anual' contrastada con los datos mensuales de Shiller desde 1871: año a año, ventanas móviles, inflación descontada y comparación con bonos, letras, oro, vivienda, Nikkei, IBEX 35 y bitcoin.">
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="#f9f9f7">
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0d0d0d">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='88'>📈</text></svg>">
+<style>
+/* ===========================================================================
+   ¿El S&P 500 renta un 10 % al año? — página autocontenida, sin librerías.
+   Todos los gráficos son SVG generado a mano desde pages/data/mercados.json.
+   No hay peticiones a terceros ni seguimiento.
+
+   Colores: misma paleta validada para daltonismo que el resto del sitio.
+   - Identidad (qué activo es): las ocho ranuras categóricas, asignadas en
+     orden fijo a una entidad concreta. El color sigue al activo, nunca a su
+     posición en la lista, así que filtrar no repinta a los supervivientes.
+   - Polaridad (ganar o perder): par divergente azul↔rojo con gris neutro.
+   - La inflación nunca es una serie: es la línea de referencia, en gris.
+   Bitcoin y el IBEX 35 comparten la ranura roja porque nunca aparecen en el
+   mismo gráfico; cada uno lleva leyenda y etiqueta directa.
+   =========================================================================== */
+
+:root{
+  color-scheme: light dark;
+
+  /* --- superficies y tinta --- */
+  --plane:#f9f9f7;  --surface:#fcfcfb;  --surface-2:#f2f1ee;
+  --ink:#0b0b0b;    --ink-2:#52514e;    --muted:#898781;
+  --grid:#e1e0d9;   --axis:#c3c2b7;     --hairline:rgba(11,11,11,.10);
+  --focus:#2a78d6;
+
+  /* --- ranuras categóricas (orden fijo de la paleta de referencia) --- */
+  --series-1:#2a78d6;  /* S&P 500 con dividendos — el protagonista */
+  --series-2:#eb6834;  /* oro */
+  --series-3:#1baf7a;  /* bonos 10 años */
+  --series-4:#eda100;  /* vivienda EE. UU. */
+  --series-5:#e87ba4;  /* Nikkei 225 */
+  --series-6:#008300;  /* letras 3 meses */
+  --series-7:#4a3aa7;  /* desarrollados sin EE. UU. */
+  --series-8:#e34948;  /* IBEX 35 / bitcoin */
+
+  /* --- par divergente para el signo de la rentabilidad --- */
+  --pos:#2a78d6;  --neg:#e34948;  --div-mid:#cbcac4;
+  --pos-soft:#9ec5f4; --neg-soft:#eb9a99;
+
+  /* --- referencia: la inflación y las líneas de contexto no son series --- */
+  --ref:#898781;
+}
+@media (prefers-color-scheme: dark){
+  :root:where(:not([data-theme="light"])){
+    --plane:#0d0d0d;  --surface:#1a1a19;  --surface-2:#232321;
+    --ink:#ffffff;    --ink-2:#c3c2b7;    --muted:#898781;
+    --grid:#2c2c2a;   --axis:#383835;     --hairline:rgba(255,255,255,.10);
+    --focus:#3987e5;
+    --series-1:#3987e5; --series-2:#d95926; --series-3:#199e70; --series-4:#c98500;
+    --series-5:#d55181; --series-6:#008300; --series-7:#9085e9; --series-8:#e66767;
+    --pos:#3987e5; --neg:#e66767; --div-mid:#55544f;
+    --pos-soft:#256abf; --neg-soft:#b84b49;
+  }
+}
+:root[data-theme="dark"]{
+  --plane:#0d0d0d;  --surface:#1a1a19;  --surface-2:#232321;
+  --ink:#ffffff;    --ink-2:#c3c2b7;    --muted:#898781;
+  --grid:#2c2c2a;   --axis:#383835;     --hairline:rgba(255,255,255,.10);
+  --focus:#3987e5;
+  --series-1:#3987e5; --series-2:#d95926; --series-3:#199e70; --series-4:#c98500;
+  --series-5:#d55181; --series-6:#008300; --series-7:#9085e9; --series-8:#e66767;
+  --pos:#3987e5; --neg:#e66767; --div-mid:#55544f;
+  --pos-soft:#256abf; --neg-soft:#b84b49;
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+body{
+  font-family:system-ui,-apple-system,"Segoe UI",sans-serif;
+  background:var(--plane); color:var(--ink); line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:1180px;margin:0 auto;padding:0 20px}
+
+/* ---------- cabecera ---------- */
+header{padding:56px 0 6px}
+.eyebrow{font-size:.72rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+h1{font-size:clamp(2rem,4.6vw,3.2rem);font-weight:700;letter-spacing:-.02em;line-height:1.07;margin:14px 0 0;max-width:20ch}
+.lede{margin:18px 0 0;max-width:66ch;color:var(--ink-2);font-size:1.03rem}
+.lede + .lede{margin-top:10px}
+.stamp{margin:18px 0 0;font-size:.78rem;color:var(--muted)}
+
+/* ---------- barra de opciones: una sola fila, por encima de todo lo que afecta ---------- */
+.filters{
+  position:sticky; top:0; z-index:40;
+  background:color-mix(in srgb,var(--plane) 92%,transparent);
+  backdrop-filter:blur(8px);
+  border-bottom:1px solid var(--hairline);
+  margin-top:26px; padding:12px 0;
+}
+.filters-inner{display:flex;flex-wrap:wrap;gap:12px 22px;align-items:flex-end}
+.field{display:flex;flex-direction:column;gap:5px;min-width:0}
+.field > label,.field > span.lbl{font-size:.7rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+.field select,.field input[type=number]{
+  font:inherit;font-size:.9rem;background:var(--surface);color:var(--ink);
+  border:1px solid var(--axis);border-radius:6px;padding:7px 9px;min-height:36px;
+}
+.field input[type=number]{width:96px;text-align:right;font-variant-numeric:tabular-nums}
+select:focus-visible,input:focus-visible,button:focus-visible,summary:focus-visible{
+  outline:2px solid var(--focus);outline-offset:2px
+}
+.btn{
+  font:inherit;font-size:.85rem;font-weight:600;background:var(--surface);color:var(--ink);
+  border:1px solid var(--axis);border-radius:6px;padding:8px 13px;cursor:pointer;min-height:36px;
+}
+.btn:hover{border-color:var(--ink-2)}
+.btn[aria-pressed=true]{background:var(--series-1);border-color:var(--series-1);color:#fff}
+.btn-sm{padding:6px 10px;font-size:.8rem;min-height:32px}
+.btn-group{display:flex;gap:6px;flex-wrap:wrap}
+.hint{font-size:.76rem;color:var(--muted);max-width:40ch}
+
+/* ---------- secciones y tarjetas ---------- */
+main{padding:26px 0 40px}
+section{margin-bottom:34px;scroll-margin-top:80px}
+.sec-head{margin:44px 0 16px}
+.sec-head h2{font-size:1.45rem;font-weight:700;letter-spacing:-.02em;max-width:26ch}
+.sec-head p{margin-top:9px;font-size:.95rem;color:var(--ink-2);max-width:72ch}
+.card{
+  background:var(--surface);border:1px solid var(--hairline);border-radius:12px;
+  padding:20px 20px 16px;margin-bottom:16px;
+}
+.card > h3{font-size:1rem;font-weight:700;letter-spacing:-.01em}
+.card > .sub{margin-top:5px;font-size:.84rem;color:var(--ink-2);max-width:78ch}
+.card-head{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:flex-start;justify-content:space-between}
+.grid-2{display:grid;grid-template-columns:repeat(auto-fit,minmax(330px,1fr));gap:16px}
+
+/* ---------- tiles ---------- */
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(168px,1fr));gap:12px;margin-bottom:16px}
+.tile{background:var(--surface);border:1px solid var(--hairline);border-radius:12px;padding:15px 16px}
+.tile .k{font-size:.69rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+.tile .v{font-size:1.62rem;font-weight:700;letter-spacing:-.02em;margin-top:6px;line-height:1.1}
+.tile .s{font-size:.76rem;color:var(--ink-2);margin-top:5px}
+.tile.hero{grid-column:span 2;background:var(--surface-2)}
+.tile.hero .v{font-size:clamp(2.6rem,7vw,3.6rem);line-height:1}
+.tile .v.pos{color:var(--ink)} .tile .v.neg{color:var(--neg)}
+@media (max-width:560px){.tile.hero{grid-column:span 1}}
+
+/* ---------- gráficos ---------- */
+.chart{position:relative;margin-top:14px}
+.chart svg{display:block;width:100%;height:auto;overflow:visible}
+.chart .gl{stroke:var(--grid);stroke-width:1}
+.chart .ax{stroke:var(--axis);stroke-width:1}
+.chart text{fill:var(--muted);font-size:11px;font-variant-numeric:tabular-nums}
+.chart text.lbl{fill:var(--ink-2);font-size:11.5px;font-weight:600}
+.chart .ln{fill:none;stroke-width:2;stroke-linejoin:round;stroke-linecap:round}
+.chart .ln-ref{fill:none;stroke:var(--ref);stroke-width:1.5;stroke-dasharray:4 4}
+.chart .band{fill:var(--series-1);opacity:.10}
+.chart .hit{fill:transparent;cursor:crosshair}
+.chart .dot{stroke:var(--surface);stroke-width:2}
+.tip{
+  position:absolute;pointer-events:none;z-index:20;opacity:0;transition:opacity .09s;
+  background:var(--surface);border:1px solid var(--axis);border-radius:8px;
+  padding:8px 10px;font-size:.78rem;box-shadow:0 8px 22px -12px rgba(0,0,0,.5);
+  min-width:130px;
+}
+.tip.on{opacity:1}
+.tip b{font-size:.82rem}
+.tip .row{display:flex;gap:10px;justify-content:space-between;align-items:center;margin-top:3px}
+.tip .row span{color:var(--ink-2)}
+.tip .row b{font-variant-numeric:tabular-nums;font-weight:700}
+.dot-inline{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;flex:none}
+
+/* ---------- leyenda ---------- */
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;margin-top:12px;font-size:.8rem;color:var(--ink-2)}
+.legend .it{display:flex;align-items:center;gap:0}
+.legend .key{display:inline-block;width:14px;height:3px;border-radius:2px;margin-right:7px}
+.legend .key.dash{background:none;border-top:2px dashed var(--ref);height:0}
+
+/* ---------- selector de activos ---------- */
+.picks{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px}
+.pick{
+  display:inline-flex;align-items:center;gap:7px;font:inherit;font-size:.82rem;
+  background:var(--surface);color:var(--ink-2);border:1px solid var(--axis);
+  border-radius:999px;padding:6px 12px;cursor:pointer;min-height:34px;
+}
+.pick .key{width:10px;height:10px;border-radius:50%;flex:none;background:var(--c)}
+.pick[aria-pressed=true]{color:var(--ink);border-color:var(--ink-2);background:var(--surface-2);font-weight:600}
+.pick[aria-pressed=false] .key{opacity:.28}
+
+/* ---------- tabla ---------- */
+details.tbl{margin-top:14px;border-top:1px solid var(--hairline);padding-top:10px}
+details.tbl > summary{
+  font-size:.79rem;color:var(--muted);cursor:pointer;list-style:none;
+  display:flex;align-items:center;gap:6px;font-weight:600;
+}
+details.tbl > summary::-webkit-details-marker{display:none}
+details.tbl > summary::before{content:"▸";font-size:.7rem}
+details.tbl[open] > summary::before{content:"▾"}
+.table-scroll{overflow-x:auto;margin-top:10px;max-height:380px;-webkit-overflow-scrolling:touch}
+table{border-collapse:collapse;width:100%;font-size:.83rem;font-variant-numeric:tabular-nums}
+th,td{padding:7px 10px;text-align:right;white-space:nowrap;border-bottom:1px solid var(--hairline)}
+th:first-child,td:first-child{text-align:left;position:sticky;left:0;background:var(--surface)}
+thead th{
+  position:sticky;top:0;background:var(--surface);z-index:2;
+  font-size:.68rem;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);
+  border-bottom:1px solid var(--axis);
+}
+thead th:first-child{z-index:3}
+td.na{color:var(--muted)}
+td.neg{color:var(--neg)}
+
+/* ---------- avisos y notas ---------- */
+.note{
+  margin-top:14px;padding:11px 14px;border-left:3px solid var(--axis);
+  background:var(--surface-2);border-radius:0 8px 8px 0;font-size:.82rem;color:var(--ink-2);
+}
+.note b{color:var(--ink)}
+.note.warn{border-left-color:var(--series-2)}
+.prose{max-width:72ch;font-size:.95rem;color:var(--ink-2)}
+.prose p{margin-top:12px}
+.prose h3{font-size:.98rem;font-weight:700;color:var(--ink);margin-top:22px}
+.prose ul{margin:10px 0 0 18px}
+.prose li{margin-top:7px}
+.prose a{color:var(--focus)}
+.prose code{font-size:.85em;background:var(--surface-2);padding:1px 5px;border-radius:4px}
+
+footer{border-top:1px solid var(--hairline);padding:26px 0 60px;font-size:.8rem;color:var(--muted)}
+footer a{color:var(--muted)}
+.state{padding:60px 20px;text-align:center;color:var(--muted)}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <span class="eyebrow">Datos reales · 1871 – 2026</span>
+    <h1>¿De verdad el S&amp;P 500 renta un 10&nbsp;% al año?</h1>
+    <p class="lede">Sí, más o menos, si uno mide desde 1928, en dólares, sin descontar la inflación,
+      reinvirtiendo cada dividendo y sin pagar comisiones ni impuestos. Casi ninguna de esas
+      condiciones describe a un inversor real.</p>
+    <p class="lede">Esta página coge las series mensuales de Robert Shiller y las de la Reserva Federal
+      y deja que cada cual mire el dato por su cuenta: <b>año a año</b>, por <b>ventana de entrada y
+      salida</b>, con la <b>inflación descontada</b> y al lado de los activos con los que se compara.
+      Ningún número está inventado; los dos que están calculados llevan su fórmula escrita.</p>
+    <p class="stamp" id="stamp">Cargando datos…</p>
+  </header>
+</div>
+
+<div class="filters">
+  <div class="wrap filters-inner">
+    <div class="field">
+      <span class="lbl" id="lbl-optica">Cómo se mide</span>
+      <div class="btn-group" role="group" aria-labelledby="lbl-optica">
+        <button class="btn" id="op-nom" aria-pressed="true">Nominal</button>
+        <button class="btn" id="op-real" aria-pressed="false">Real (sin inflación)</button>
+      </div>
+    </div>
+    <div class="field">
+      <label for="coste">Coste anual %</label>
+      <input type="number" id="coste" min="0" max="5" step="0.05" value="0" inputmode="decimal">
+    </div>
+    <p class="hint">Lo real descuenta el IPC de EE.&nbsp;UU.: mide poder de compra, no dólares.
+      El coste anual resta comisiones de fondo, custodia o lo que quieras suponer, mes a mes.</p>
+  </div>
+</div>
+
+<div class="wrap">
+<main id="app" hidden>
+
+  <!-- ====================== 1 · el titular ====================== -->
+  <section id="titular">
+    <div class="tiles" id="tiles-hero"></div>
+    <div class="note" id="nota-hero"></div>
+  </section>
+
+  <!-- ====================== 2 · año a año ====================== -->
+  <div class="sec-head">
+    <h2>Un 10&nbsp;% de media, pero casi ningún año del 10&nbsp;%</h2>
+    <p>La media es un resumen, no una experiencia. Esto es lo que hizo el índice cada año natural
+      desde 1871. La franja azul marca la zona “normal” que la frase sugiere, del 8&nbsp;% al 12&nbsp;%.</p>
+  </div>
+  <section id="anual">
+    <div class="card">
+      <div class="card-head">
+        <div>
+          <h3 id="t-anual">Rentabilidad de cada año natural</h3>
+          <p class="sub" id="s-anual"></p>
+        </div>
+      </div>
+      <div class="chart" id="ch-anual"></div>
+      <div class="legend">
+        <span class="it"><i class="key" style="background:var(--pos)"></i>Año en positivo</span>
+        <span class="it"><i class="key" style="background:var(--neg)"></i>Año en negativo</span>
+        <span class="it"><i class="key" style="background:var(--series-1);opacity:.35"></i>Franja del 8&nbsp;% al 12&nbsp;%</span>
+      </div>
+      <details class="tbl"><summary>Ver los datos en tabla</summary>
+        <div class="table-scroll" id="tb-anual"></div>
+      </details>
+    </div>
+    <div class="card">
+      <h3>La misma serie, ordenada por tramos</h3>
+      <p class="sub" id="s-hist-anual"></p>
+      <div class="chart" id="ch-hist-anual"></div>
+    </div>
+  </section>
+
+  <!-- ====================== 3 · ventanas móviles ====================== -->
+  <div class="sec-head">
+    <h2>Lo que importa no es la media: es cuándo entraste y cuándo saliste</h2>
+    <p>Aquí no se elige un periodo bonito. Se calculan <b>todas</b> las ventanas posibles de la
+      duración que marques, mes a mes, y se muestran todas a la vez. Cada punto es un inversor que
+      entró ese mes y aguantó exactamente ese tiempo.</p>
+  </div>
+  <section id="ventanas">
+    <div class="card">
+      <div class="card-head">
+        <div>
+          <h3>Rentabilidad anualizada según el mes de entrada</h3>
+          <p class="sub" id="s-vent"></p>
+        </div>
+        <div class="field">
+          <label for="horizonte">Años aguantando</label>
+          <div class="btn-group" style="align-items:center;gap:10px">
+            <input type="range" id="horizonte" min="1" max="40" step="1" value="10"
+                   style="width:190px;accent-color:var(--series-1)">
+            <b id="horizonte-val" style="font-variant-numeric:tabular-nums;min-width:62px">10 años</b>
+          </div>
+        </div>
+      </div>
+      <div class="tiles" id="tiles-vent"></div>
+      <div class="chart" id="ch-rolling"></div>
+      <div class="legend" id="lg-rolling"></div>
+      <div class="note" id="nota-vent"></div>
+    </div>
+    <div class="card">
+      <h3>La misma información, como reparto</h3>
+      <p class="sub" id="s-hist-vent"></p>
+      <div class="chart" id="ch-hist-vent"></div>
+      <details class="tbl"><summary>Ver todos los horizontes en tabla</summary>
+        <div class="table-scroll" id="tb-horizontes"></div>
+      </details>
+    </div>
+  </section>
+
+  <!-- ====================== 4 · simulador ====================== -->
+  <div class="sec-head">
+    <h2>Ponle tu fecha y tu dinero</h2>
+    <p>Elige cuándo entraste, cuánto pusiste y cuánto tiempo aguantaste. Los casos de abajo son los
+      momentos que se suelen citar; los tres primeros son los peores de la historia del índice.</p>
+  </div>
+  <section id="simulador">
+    <div class="card">
+      <div class="filters-inner" style="margin-bottom:6px">
+        <div class="field">
+          <label for="sim-mes">Mes de entrada</label>
+          <select id="sim-mes"></select>
+        </div>
+        <div class="field">
+          <label for="sim-anos">Años invertido</label>
+          <input type="number" id="sim-anos" min="1" max="155" step="1" value="20">
+        </div>
+        <div class="field">
+          <span class="lbl" id="lbl-modo">Forma de invertir</span>
+          <div class="btn-group" role="group" aria-labelledby="lbl-modo">
+            <button class="btn btn-sm" id="md-unico" aria-pressed="true">Todo de golpe</button>
+            <button class="btn btn-sm" id="md-dca" aria-pressed="false">Aportación mensual</button>
+          </div>
+        </div>
+        <div class="field">
+          <label for="sim-importe" id="lbl-importe">Importe inicial $</label>
+          <input type="number" id="sim-importe" min="1" step="100" value="10000">
+        </div>
+      </div>
+      <div class="btn-group" id="presets" style="margin-bottom:4px"></div>
+      <div class="tiles" id="tiles-sim" style="margin-top:16px"></div>
+      <div class="chart" id="ch-sim"></div>
+      <div class="legend" id="lg-sim"></div>
+      <div class="note" id="nota-sim"></div>
+    </div>
+  </section>
+
+  <!-- ====================== 5 · comparativa ====================== -->
+  <div class="sec-head">
+    <h2>¿Y comparado con qué?</h2>
+    <p>Un 10&nbsp;% no significa nada suelto. Esto es el mismo dinero, desde el mismo mes, en cada
+      activo del que hay serie pública. Escala logarítmica: la misma pendiente es la misma
+      rentabilidad, y así los años recientes no aplastan a los antiguos.</p>
+  </div>
+  <section id="comparativa">
+    <div class="card">
+      <div class="filters-inner" style="margin-bottom:2px">
+        <div class="field">
+          <label for="cmp-mes">Desde</label>
+          <select id="cmp-mes"></select>
+        </div>
+        <div class="btn-group" id="cmp-presets"></div>
+      </div>
+      <div class="picks" id="cmp-picks"></div>
+      <div class="chart" id="ch-comp"></div>
+      <div class="legend" id="lg-comp"></div>
+      <div class="note warn" id="nota-comp"></div>
+      <details class="tbl" open><summary>Ver los datos en tabla</summary>
+        <div class="table-scroll" id="tb-comp"></div>
+      </details>
+    </div>
+  </section>
+
+  <!-- ====================== 6 · el sesgo ====================== -->
+  <div class="sec-head">
+    <h2>El país que salió bien</h2>
+    <p>Toda esta página trata de EE.&nbsp;UU., que es el mercado que mejor terminó el siglo XX. Esa
+      es exactamente la razón por la que tenemos la frase del 10&nbsp;%. Tres contraejemplos, con la
+      misma escala y el mismo método.</p>
+  </div>
+  <section id="sesgo">
+    <div class="grid-2">
+      <div class="card">
+        <h3>Japón: comprar en el máximo de 1989</h3>
+        <p class="sub" id="s-nikkei"></p>
+        <div class="chart" id="ch-nikkei"></div>
+        <div class="legend" id="lg-nikkei"></div>
+      </div>
+      <div class="card">
+        <h3>El resto del mundo desarrollado</h3>
+        <p class="sub" id="s-exus"></p>
+        <div class="chart" id="ch-exus"></div>
+        <div class="legend" id="lg-exus"></div>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Y desde España: en euros y con el IPC español</h3>
+      <p class="sub" id="s-euros"></p>
+      <div class="chart" id="ch-euros"></div>
+      <div class="legend" id="lg-euros"></div>
+      <div class="note" id="nota-euros"></div>
+    </div>
+  </section>
+
+  <!-- ====================== 7 · bitcoin ====================== -->
+  <div class="sec-head">
+    <h2>El activo que rompe la escala</h2>
+    <p>Bitcoin va aparte porque no cabe en el mismo gráfico sin deformarlo todo, y porque doce años
+      no son una serie histórica: son un tramo.</p>
+  </div>
+  <section id="bitcoin">
+    <div class="card">
+      <h3 id="t-btc">Bitcoin frente al S&amp;P 500, misma fecha de partida</h3>
+      <p class="sub" id="s-btc"></p>
+      <div class="chart" id="ch-btc"></div>
+      <div class="legend" id="lg-btc"></div>
+      <div class="note warn" id="nota-btc"></div>
+    </div>
+  </section>
+
+  <!-- ====================== 8 · método ====================== -->
+  <div class="sec-head">
+    <h2>Qué hay detrás de estos números</h2>
+  </div>
+  <section id="metodo">
+    <div class="card prose" id="prosa-metodo"></div>
+  </section>
+
+</main>
+
+<div class="state" id="cargando">Cargando 1.868 meses de datos…</div>
+<div class="state" id="error" hidden></div>
+
+<footer>
+  <p id="pie-fuentes"></p>
+  <p style="margin-top:8px">Página estática, sin seguimiento ni peticiones a terceros ·
+    <a href="/">webs.raular.com</a></p>
+</footer>
+</div>
+
+<script type="module">
+/* ===========================================================================
+   Núcleo: carga, estado global y utilidades de dibujo.
+   =========================================================================== */
+
+const $  = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+
+/* ---------- formato ---------- */
+const nf = (d = 1) => new Intl.NumberFormat("es-ES", { minimumFractionDigits: d, maximumFractionDigits: d });
+const pct  = (x, d = 1) => (x == null || !isFinite(x) ? "—" : `${x >= 0 ? "" : "−"}${nf(d).format(Math.abs(x))} %`);
+const pctS = (x, d = 1) => (x == null || !isFinite(x) ? "—" : `${x >= 0 ? "+" : "−"}${nf(d).format(Math.abs(x))} %`);
+const mult = (x) => (x == null || !isFinite(x) ? "—"
+  : `×${new Intl.NumberFormat("es-ES", { maximumFractionDigits: x >= 100 ? 0 : x >= 10 ? 1 : 2 }).format(x)}`);
+const dinero = (x) => (x == null || !isFinite(x) ? "—" :
+  new Intl.NumberFormat("es-ES", { maximumFractionDigits: 0 }).format(Math.round(x)));
+const MESES = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
+const mesLargo = (k) => `${MESES[+k.slice(5, 7) - 1]} de ${k.slice(0, 4)}`;
+const mesCorto = (k) => `${k.slice(5, 7)}/${k.slice(0, 4)}`;
+
+/* ---------- datos ---------- */
+let D, M, IDX;
+try {
+  D = await (await fetch("data/mercados.json", { cache: "no-cache" })).json();
+} catch (e) {
+  $("#cargando").hidden = true;
+  const err = $("#error");
+  err.hidden = false;
+  err.innerHTML = `No se han podido cargar los datos (<code>data/mercados.json</code>).<br>
+    Si has abierto el archivo con doble clic, el navegador bloquea la lectura por CORS:
+    sírvelo por HTTP o ábrelo en <a href="https://webs.raular.com/pages/sp500-rendimientos.html">webs.raular.com</a>.`;
+  throw e;
+}
+M = D.meses;
+IDX = new Map(M.map((m, i) => [m, i]));
+const i0 = (k) => IDX.get(k);
+const N = M.length;
+
+/* ---------- estado global (la barra de arriba lo gobierna todo) ---------- */
+const S = { real: false, coste: 0 };
+
+/**
+ * Cada serie se deflacta con el IPC de SU moneda: el del dólar para las
+ * estadounidenses y el español para el IBEX. Del yen no hay IPC en los datos,
+ * así que el Nikkei no se puede pasar a términos reales y se retira en vez de
+ * deflactarlo con una inflación que no es la suya.
+ */
+const DEFLACTOR = { USD: "ipc", EUR: "ipc_es", JPY: null };
+const sinReal = (id) => S.real && D.series[id] && DEFLACTOR[D.series[id].moneda] === null;
+
+/**
+ * Serie lista para dibujar: índice base 100 en su primer dato, ya deflactada
+ * si se pide "real" y ya con el coste anual restado mes a mes.
+ * Se cachea porque cada cambio de la barra reconstruye la página entera.
+ * Con `{ real:false }` se pide explícitamente la versión nominal.
+ */
+const cache = new Map();
+function serie(id, { real = S.real } = {}) {
+  const clave = `${id}|${real}|${S.coste}`;
+  if (cache.has(clave)) return cache.get(clave);
+  const esIpc = id === "ipc" || id === "ipc_es";
+  const base = id === "ipc" ? D.ipc : id === "ipc_es" ? D.ipc_es : D.series[id]?.v;
+  if (!base) throw new Error(`serie desconocida: ${id}`);
+  const nombreIpc = esIpc ? null : DEFLACTOR[D.series[id].moneda];
+  const ipc = nombreIpc === "ipc" ? D.ipc : nombreIpc === "ipc_es" ? D.ipc_es : null;
+  const deflactar = real && !esIpc;
+  if (deflactar && !ipc) { // moneda sin IPC publicado: no hay versión real honesta
+    const vacia = new Array(N).fill(null);
+    cache.set(clave, vacia);
+    return vacia;
+  }
+  const k = S.coste > 0 && !esIpc ? 1 - S.coste / 100 : 1;
+  const desde = base.findIndex((x) => x !== null);
+  const out = new Array(N).fill(null);
+  for (let i = desde; i < N; i++) {
+    let v = base[i];
+    if (v == null) continue;
+    if (deflactar) {
+      if (ipc[i] == null) continue;
+      v = v / ipc[i];
+    }
+    if (k !== 1) v *= Math.pow(k, (i - desde) / 12);
+    out[i] = v;
+  }
+  const primero = out.findIndex((x) => x !== null);
+  const norm = out.map((x) => (x == null ? null : (x / out[primero]) * 100));
+  cache.set(clave, norm);
+  return norm;
+}
+
+/** CAGR entre dos posiciones de una serie, en % anual. */
+function cagr(v, a, b) {
+  if (v[a] == null || v[b] == null || b <= a) return null;
+  return (Math.pow(v[b] / v[a], 12 / (b - a)) - 1) * 100;
+}
+/** Primer y último mes con dato de una serie ya procesada. */
+function rango(v) {
+  const a = v.findIndex((x) => x !== null);
+  let b = v.length - 1;
+  while (b > 0 && v[b] == null) b--;
+  return [a, b];
+}
+
+/* ---------- catálogo de activos: el color sigue a la entidad ---------- */
+const ACTIVOS = [
+  { id: "sp500_tr",   c: "var(--series-1)", corto: "S&P 500", nota: "con dividendos" },
+  { id: "oro",        c: "var(--series-2)", corto: "Oro", nota: "precio del metal" },
+  { id: "bonos10",    c: "var(--series-3)", corto: "Bonos 10a EE. UU.", nota: "cupón + precio" },
+  { id: "vivienda_us",c: "var(--series-4)", corto: "Vivienda EE. UU.", nota: "solo precio" },
+  { id: "nikkei",     c: "var(--series-5)", corto: "Nikkei 225", nota: "solo precio, en yenes" },
+  { id: "letras3m",   c: "var(--series-6)", corto: "Letras 3m", nota: "el “no invertir”" },
+  { id: "mundo_exus", c: "var(--series-7)", corto: "Mundo sin EE. UU.", nota: "con dividendos" },
+  { id: "ibex",       c: "var(--series-8)", corto: "IBEX 35", nota: "solo precio, en euros" },
+];
+const META = (id) => D.series[id];
+const COLOR = (id) => ACTIVOS.find((a) => a.id === id)?.c || "var(--series-1)";
+
+/* ===========================================================================
+   Primitivas de dibujo. SVG a mano: viewBox fijo, ancho 100 %.
+   =========================================================================== */
+
+const NS = "http://www.w3.org/2000/svg";
+const el = (t, a = {}) => {
+  const n = document.createElementNS(NS, t);
+  for (const [k, v] of Object.entries(a)) if (v != null) n.setAttribute(k, v);
+  return n;
+};
+const esc = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;");
+
+/** Marco común: crea el SVG, los ejes y devuelve las escalas. */
+function marco(host, { w = 960, h = 320, ml = 52, mr = 18, mt = 14, mb = 30 } = {}) {
+  host.textContent = "";
+  const svg = el("svg", { viewBox: `0 0 ${w} ${h}`, role: "img" });
+  host.appendChild(svg);
+  const tip = document.createElement("div");
+  tip.className = "tip";
+  host.appendChild(tip);
+  return {
+    svg, tip, w, h, ml, mr, mt, mb,
+    x0: ml, x1: w - mr, y0: mt, y1: h - mb,
+    add: (n) => (svg.appendChild(n), n),
+  };
+}
+
+/** Rejilla horizontal + etiquetas del eje Y. `fmt` recibe el valor. */
+function ejeY(g, vals, escala, fmt, { cero = null } = {}) {
+  for (const v of vals) {
+    const y = escala(v);
+    g.add(el("line", { x1: g.x0, x2: g.x1, y1: y, y2: y, class: v === cero ? "ax" : "gl" }));
+    g.add(el("text", { x: g.x0 - 8, y: y + 4, "text-anchor": "end" })).textContent = fmt(v);
+  }
+}
+
+/** Ticks del eje X en píxeles ya calculados: [{x, t}] */
+function ejeX(g, ticks) {
+  g.add(el("line", { x1: g.x0, x2: g.x1, y1: g.y1, y2: g.y1, class: "ax" }));
+  for (const { x, t } of ticks) {
+    g.add(el("line", { x1: x, x2: x, y1: g.y1, y2: g.y1 + 4, class: "ax" }));
+    g.add(el("text", { x, y: g.y1 + 17, "text-anchor": "middle" })).textContent = t;
+  }
+}
+
+/** Ticks "redondos" para un eje temporal de posiciones [a,b] de M. */
+function ticksTiempo(a, b, x, max = 9) {
+  const años = (b - a) / 12;
+  const paso = [1, 2, 5, 10, 20, 25, 50].find((p) => años / p <= max) || 100;
+  const out = [];
+  const y0 = Math.ceil(+M[a].slice(0, 4) / paso) * paso;
+  for (let y = y0; +M[b].slice(0, 4) >= y; y += paso) {
+    const i = IDX.get(`${y}-01`);
+    if (i != null && i >= a && i <= b) out.push({ x: x(i), t: String(y) });
+  }
+  return out;
+}
+
+/** Valores redondos para un eje lineal. */
+function ticksLineal(min, max, n = 6) {
+  const bruto = (max - min) / n;
+  const mag = Math.pow(10, Math.floor(Math.log10(bruto)));
+  const paso = [1, 2, 2.5, 5, 10].map((m) => m * mag).find((p) => p >= bruto) || mag * 10;
+  const out = [];
+  for (let v = Math.ceil(min / paso) * paso; v <= max + 1e-9; v += paso) out.push(+v.toFixed(10));
+  return out;
+}
+
+/** Potencias de 10 (y medias) para un eje logarítmico. */
+function ticksLog(min, max) {
+  const out = [];
+  for (let e = Math.floor(Math.log10(min)); e <= Math.ceil(Math.log10(max)); e++) {
+    for (const m of [1, 3]) {
+      const v = m * Math.pow(10, e);
+      if (v >= min * 0.999 && v <= max * 1.001) out.push(v);
+    }
+  }
+  return out.length > 2 ? out : ticksLineal(min, max, 5);
+}
+
+/** Camino SVG de una serie, saltando los huecos. */
+function camino(v, a, b, x, y) {
+  let d = "", roto = true;
+  for (let i = a; i <= b; i++) {
+    if (v[i] == null) { roto = true; continue; }
+    d += `${roto ? "M" : "L"}${x(i).toFixed(1)} ${y(v[i]).toFixed(1)}`;
+    roto = false;
+  }
+  return d;
+}
+
+/**
+ * Capa de hover con cruceta para gráficos de líneas. Un único rectángulo
+ * captura el ratón y el dedo: el objetivo es toda la altura del gráfico, no
+ * el punto. Con teclado, las flechas mueven la cruceta.
+ */
+function hoverLineas(g, { a, b, x, y, series, titulo }) {
+  const cruz = g.add(el("line", { y1: g.y0, y2: g.y1, class: "gl", "stroke-width": 1.5, opacity: 0 }));
+  const dots = series.map((s) => g.add(el("circle", { r: 4.5, class: "dot", fill: s.color, opacity: 0 })));
+  const hit = g.add(el("rect", {
+    x: g.x0, y: g.y0, width: g.x1 - g.x0, height: g.y1 - g.y0, class: "hit",
+    tabindex: "0", role: "application", "aria-label": titulo || "Gráfico interactivo",
+  }));
+  let cur = null;
+  const pinta = (i) => {
+    cur = i;
+    const px = x(i);
+    cruz.setAttribute("x1", px); cruz.setAttribute("x2", px); cruz.setAttribute("opacity", 1);
+    let html = `<b>${mesLargo(M[i])}</b>`;
+    series.forEach((s, k) => {
+      const v = s.v[i];
+      if (v == null) { dots[k].setAttribute("opacity", 0); return; }
+      dots[k].setAttribute("cx", px); dots[k].setAttribute("cy", y(v)); dots[k].setAttribute("opacity", 1);
+      html += `<div class="row"><span><i class="dot-inline" style="background:${s.color}"></i>${esc(s.nombre)}</span><b>${s.fmt(v, i)}</b></div>`;
+    });
+    g.tip.innerHTML = html;
+    g.tip.classList.add("on");
+    const r = g.svg.getBoundingClientRect();
+    const escala = r.width / g.w;
+    const izq = px * escala;
+    g.tip.style.left = `${Math.min(Math.max(izq + 14, 4), r.width - g.tip.offsetWidth - 4)}px`;
+    g.tip.style.top = `${Math.max(4, g.y0 * escala + 6)}px`;
+  };
+  const apaga = () => {
+    cruz.setAttribute("opacity", 0);
+    dots.forEach((d) => d.setAttribute("opacity", 0));
+    g.tip.classList.remove("on");
+  };
+  const desdeEvento = (ev) => {
+    const r = g.svg.getBoundingClientRect();
+    const vx = ((ev.clientX - r.left) / r.width) * g.w;
+    let mejor = a, dmin = Infinity;
+    for (let i = a; i <= b; i++) {
+      const d = Math.abs(x(i) - vx);
+      if (d < dmin) { dmin = d; mejor = i; }
+    }
+    pinta(mejor);
+  };
+  hit.addEventListener("pointermove", desdeEvento);
+  hit.addEventListener("pointerdown", desdeEvento);
+  hit.addEventListener("pointerleave", apaga);
+  hit.addEventListener("blur", apaga);
+  hit.addEventListener("focus", () => pinta(cur ?? b));
+  hit.addEventListener("keydown", (ev) => {
+    const paso = ev.shiftKey ? 12 : 1;
+    if (ev.key === "ArrowRight") { pinta(Math.min(b, (cur ?? a) + paso)); ev.preventDefault(); }
+    if (ev.key === "ArrowLeft")  { pinta(Math.max(a, (cur ?? b) - paso)); ev.preventDefault(); }
+    if (ev.key === "Escape") apaga();
+  });
+  return { pinta, apaga };
+}
+
+/** Tooltip simple para marcas sueltas (barras, celdas). */
+function hoverMarca(g, nodo, html) {
+  const on = (ev) => {
+    g.tip.innerHTML = html;
+    g.tip.classList.add("on");
+    const r = g.svg.getBoundingClientRect();
+    const bb = nodo.getBoundingClientRect();
+    const izq = bb.left - r.left + bb.width / 2;
+    g.tip.style.left = `${Math.min(Math.max(izq - g.tip.offsetWidth / 2, 4), r.width - g.tip.offsetWidth - 4)}px`;
+    g.tip.style.top = `${Math.max(4, bb.top - r.top - g.tip.offsetHeight - 8)}px`;
+  };
+  nodo.addEventListener("pointerenter", on);
+  nodo.addEventListener("pointerdown", on);
+  nodo.addEventListener("focus", on);
+  nodo.addEventListener("pointerleave", () => g.tip.classList.remove("on"));
+  nodo.addEventListener("blur", () => g.tip.classList.remove("on"));
+}
+
+/** Leyenda: siempre presente con dos o más series. */
+function leyenda(host, items) {
+  host.innerHTML = items
+    .map((it) => `<span class="it"><i class="key${it.dash ? " dash" : ""}"${it.dash ? "" : ` style="background:${it.color}"`}></i>${esc(it.nombre)}</span>`)
+    .join("");
+}
+
+/** Tabla: el gemelo accesible de cada gráfico. */
+function tabla(host, cabeceras, filas) {
+  host.innerHTML =
+    `<table><thead><tr>${cabeceras.map((c) => `<th scope="col">${esc(c)}</th>`).join("")}</tr></thead>` +
+    `<tbody>${filas.map((f) => `<tr>${f.map((c, i) =>
+      i === 0 ? `<th scope="row" style="font-weight:600">${c}</th>`
+              : `<td class="${c && String(c).startsWith("−") ? "neg" : c === "—" ? "na" : ""}">${c}</td>`).join("")}</tr>`).join("")}</tbody></table>`;
+}
+
+/**
+ * Hover para marcas discretas (barras): un único rectángulo captura el puntero
+ * y calcula la barra más cercana, así el objetivo es toda la columna y no los
+ * pocos píxeles de la barra. Las flechas hacen lo mismo con teclado.
+ */
+function hoverDiscreto(g, items, { titulo } = {}) {
+  const hit = g.add(el("rect", {
+    x: g.x0, y: g.y0, width: g.x1 - g.x0, height: g.y1 - g.y0, class: "hit",
+    tabindex: "0", role: "application", "aria-label": titulo || "Gráfico interactivo",
+  }));
+  let cur = null;
+  const pinta = (k) => {
+    if (!items[k]) return;
+    if (cur != null && items[cur]) items[cur].nodo.setAttribute("opacity", 1);
+    cur = k;
+    const it = items[k];
+    it.nodo.setAttribute("opacity", 0.62);
+    g.tip.innerHTML = it.html;
+    g.tip.classList.add("on");
+    const r = g.svg.getBoundingClientRect();
+    const escala = r.width / g.w;
+    g.tip.style.left = `${Math.min(Math.max(it.cx * escala - g.tip.offsetWidth / 2, 4), r.width - g.tip.offsetWidth - 4)}px`;
+    g.tip.style.top = `${Math.max(2, (g.y0 - 4) * escala)}px`;
+  };
+  const apaga = () => {
+    if (cur != null && items[cur]) items[cur].nodo.setAttribute("opacity", 1);
+    cur = null;
+    g.tip.classList.remove("on");
+  };
+  const desdeEvento = (ev) => {
+    const r = g.svg.getBoundingClientRect();
+    const vx = ((ev.clientX - r.left) / r.width) * g.w;
+    let mejor = 0, dmin = Infinity;
+    items.forEach((it, k) => { const d = Math.abs(it.cx - vx); if (d < dmin) { dmin = d; mejor = k; } });
+    pinta(mejor);
+  };
+  hit.addEventListener("pointermove", desdeEvento);
+  hit.addEventListener("pointerdown", desdeEvento);
+  hit.addEventListener("pointerleave", apaga);
+  hit.addEventListener("blur", apaga);
+  hit.addEventListener("focus", () => pinta(cur ?? items.length - 1));
+  hit.addEventListener("keydown", (ev) => {
+    const paso = ev.shiftKey ? 10 : 1;
+    if (ev.key === "ArrowRight") { pinta(Math.min(items.length - 1, (cur ?? 0) + paso)); ev.preventDefault(); }
+    if (ev.key === "ArrowLeft")  { pinta(Math.max(0, (cur ?? items.length - 1) - paso)); ev.preventDefault(); }
+    if (ev.key === "Escape") apaga();
+  });
+}
+
+/** Histograma de una lista de rentabilidades anualizadas, en tramos de `paso`. */
+function histograma(host, datos, { paso = 5, titulo, etiqueta }) {
+  const min = Math.floor(Math.min(...datos) / paso) * paso;
+  const max = Math.ceil(Math.max(...datos) / paso) * paso;
+  const nb = Math.max(1, Math.round((max - min) / paso));
+  const bins = Array.from({ length: nb }, (_, k) => ({ a: min + k * paso, b: min + (k + 1) * paso, n: 0 }));
+  for (const v of datos) bins[Math.min(nb - 1, Math.max(0, Math.floor((v - min) / paso)))].n++;
+  const maxN = Math.max(...bins.map((b) => b.n));
+
+  const g = marco(host, { h: 230, ml: 44, mb: 34 });
+  const bw = (g.x1 - g.x0) / nb;
+  const y = (n) => g.y1 - (n / maxN) * (g.y1 - g.y0);
+  ejeY(g, ticksLineal(0, maxN, 4), y, (v) => String(Math.round(v)));
+
+  const items = [];
+  bins.forEach((b, k) => {
+    const alto = g.y1 - y(b.n);
+    const x = g.x0 + k * bw + 1;
+    const w = Math.max(1, bw - 2); // separación de 2 px en el color de la superficie
+    const nodo = g.add(el("rect", {
+      x, y: y(b.n), width: w, height: Math.max(b.n ? 1 : 0, alto),
+      fill: b.b <= 0 ? "var(--neg)" : "var(--pos)", rx: Math.min(4, w / 2),
+    }));
+    items.push({
+      nodo, cx: x + w / 2,
+      html: `<b>${pctS(b.a, 0)} a ${pctS(b.b, 0)}</b>` +
+        `<div class="row"><span>${etiqueta}</span><b>${b.n}</b></div>` +
+        `<div class="row"><span>del total</span><b>${nf(1).format((b.n / datos.length) * 100)} %</b></div>`,
+    });
+    if (k % Math.ceil(nb / 12) === 0) {
+      g.add(el("text", { x, y: g.y1 + 16, "text-anchor": "middle" })).textContent = pctS(b.a, 0).replace(" %", "");
+    }
+  });
+  g.add(el("line", { x1: g.x0, x2: g.x1, y1: g.y1, y2: g.y1, class: "ax" }));
+  g.add(el("text", { x: (g.x0 + g.x1) / 2, y: g.y1 + 31, "text-anchor": "middle", class: "lbl" }))
+    .textContent = "rentabilidad anualizada (%)";
+  hoverDiscreto(g, items, { titulo });
+  return bins;
+}
+
+/* ===========================================================================
+   SECCIONES
+   =========================================================================== */
+
+const RENDERS = [];
+const registra = (f) => { RENDERS.push(f); return f; };
+
+/* ---------------------------------------------------- 1 · el titular ----- */
+
+/** Rentabilidad de cada año natural (de diciembre a diciembre) de una serie. */
+function añosNaturales(id) {
+  const v = serie(id);
+  const out = [];
+  for (let y = +M[0].slice(0, 4) + 1; y <= +M[N - 1].slice(0, 4); y++) {
+    const a = IDX.get(`${y - 1}-12`), b = IDX.get(`${y}-12`);
+    if (a == null || b == null || v[a] == null || v[b] == null) continue;
+    out.push({ y, r: (v[b] / v[a] - 1) * 100 });
+  }
+  return out;
+}
+
+registra(function titular() {
+  const v = serie("sp500_tr");
+  const [a, b] = rango(v);
+  const años = añosNaturales("sp500_tr");
+  const enLaFranja = años.filter((x) => x.r >= 8 && x.r <= 12).length;
+  const i1928 = i0("1928-01");
+  const veces = v[b] / v[a];
+  const optica = S.real ? "descontada la inflación" : "en dólares corrientes";
+  const coste = S.coste > 0 ? `, menos ${nf(2).format(S.coste)} % anual de costes` : "";
+
+  $("#tiles-hero").innerHTML = `
+    <div class="tile hero">
+      <div class="k">S&P 500 con dividendos · ${M[a].slice(0, 4)} – ${M[b].slice(0, 4)}</div>
+      <div class="v">${pct(cagr(v, a, b), 1).replace(" %", " %")}</div>
+      <div class="s">al año, ${optica}${coste}. Es la media geométrica de ${Math.round((b - a) / 12)} años:
+        el número que resume la frase entera.</div>
+    </div>
+    <div class="tile">
+      <div class="k">Desde 1928</div>
+      <div class="v">${pct(cagr(v, i1928, b))}</div>
+      <div class="s">El periodo que suele citarse, y el más generoso de los tres.</div>
+    </div>
+    <div class="tile">
+      <div class="k">Últimos 30 años</div>
+      <div class="v">${pct(cagr(v, b - 360, b))}</div>
+      <div class="s">Desde ${mesLargo(M[b - 360])}.</div>
+    </div>
+    <div class="tile">
+      <div class="k">Años “del 10 %”</div>
+      <div class="v">${enLaFranja} de ${años.length}</div>
+      <div class="s">Años naturales que acabaron entre +8 % y +12 %: el
+        ${nf(0).format((enLaFranja / años.length) * 100)} % de las veces.</div>
+    </div>
+    <div class="tile">
+      <div class="k">1 $ de ${M[a].slice(0, 4)}</div>
+      <div class="v">${mult(veces)}</div>
+      <div class="s">${S.real ? "En poder de compra de hoy." : "En dólares de hoy, sin descontar la inflación."}</div>
+    </div>`;
+
+  const ipc = serie("ipc");
+  $("#nota-hero").innerHTML = S.real
+    ? `Estás mirando <b>rentabilidad real</b>: lo que queda después de la inflación, que en este
+       periodo fue del ${pct(cagr(ipc, a, b))} anual. Es lo que de verdad cambia tu poder de compra,
+       y es entre dos y tres puntos menos que la cifra que se suele repetir.`
+    : `Estás mirando <b>rentabilidad nominal</b>. La inflación de EE.&nbsp;UU. se comió un
+       ${pct(cagr(ipc, a, b))} anual en el mismo periodo: pulsa <b>Real</b> arriba para ver qué queda.`;
+});
+
+/* ------------------------------------------------------- 2 · año a año --- */
+
+registra(function anual() {
+  const años = añosNaturales("sp500_tr");
+  const host = $("#ch-anual");
+  const g = marco(host, { h: 330, ml: 46, mb: 30, mt: 18 });
+
+  const min = Math.min(...años.map((d) => d.r), -10);
+  const max = Math.max(...años.map((d) => d.r), 15);
+  const y = (r) => g.y1 - ((r - min) / (max - min)) * (g.y1 - g.y0);
+  ejeY(g, ticksLineal(min, max, 6), y, (v) => pctS(v, 0), { cero: 0 });
+
+  // Franja del 8 % al 12 %: la "normalidad" que sugiere la frase.
+  g.add(el("rect", { x: g.x0, y: y(12), width: g.x1 - g.x0, height: y(8) - y(12), class: "band" }));
+  g.add(el("line", { x1: g.x0, x2: g.x1, y1: y(0), y2: y(0), class: "ax" }));
+
+  const bw = (g.x1 - g.x0) / años.length;
+  const w = Math.min(24, Math.max(1, bw - 2)); // 2 px de aire entre barras vecinas
+  const items = [];
+  const peor = años.reduce((p, c) => (c.r < p.r ? c : p));
+  const mejor = años.reduce((p, c) => (c.r > p.r ? c : p));
+
+  años.forEach((d, k) => {
+    const cx = g.x0 + (k + 0.5) * bw;
+    const alto = Math.abs(y(d.r) - y(0));
+    const nodo = g.add(el("rect", {
+      x: cx - w / 2, y: Math.min(y(d.r), y(0)), width: w, height: Math.max(1, alto),
+      fill: d.r >= 0 ? "var(--pos)" : "var(--neg)", rx: Math.min(4, w / 2),
+    }));
+    items.push({
+      nodo, cx,
+      html: `<b>${d.y}</b><div class="row"><span>S&P 500 con dividendos</span><b>${pctS(d.r)}</b></div>` +
+        (d.r >= 8 && d.r <= 12 ? `<div class="row"><span>dentro de la franja del 8–12 %</span><b>sí</b></div>` : ""),
+    });
+    // Etiquetas directas solo en los dos extremos: el resto lo cuenta el eje.
+    if (d === peor || d === mejor) {
+      g.add(el("text", {
+        x: cx, y: d.r >= 0 ? y(d.r) - 7 : y(d.r) + 15, "text-anchor": "middle", class: "lbl",
+      })).textContent = `${d.y}: ${pctS(d.r, 0)}`;
+    }
+  });
+  ejeX(g, ticksTiempo(i0(`${años[0].y}-12`), i0(`${años.at(-1).y}-12`), (i) => {
+    const k = años.findIndex((d) => d.y === +M[i].slice(0, 4));
+    return g.x0 + (Math.max(0, k) + 0.5) * bw;
+  }));
+  hoverDiscreto(g, items, { titulo: "Rentabilidad del S&P 500 por año natural" });
+
+  const enFranja = años.filter((d) => d.r >= 8 && d.r <= 12);
+  const negativos = años.filter((d) => d.r < 0);
+  const extremos = años.filter((d) => Math.abs(d.r) > 20);
+  $("#t-anual").textContent = `Rentabilidad de cada año natural (${años[0].y}–${años.at(-1).y})`;
+  $("#s-anual").innerHTML =
+    `${años.length} años completos, de diciembre a diciembre, ${S.real ? "descontada la inflación" : "en dólares corrientes"}. ` +
+    `<b>${enFranja.length}</b> cayeron dentro de la franja del 8 al 12 %; <b>${negativos.length}</b> acabaron en pérdidas ` +
+    `y <b>${extremos.length}</b> se movieron más de 20 puntos arriba o abajo. La media es un punto por el que la serie casi nunca pasa.`;
+
+  tabla($("#tb-anual"), ["Año", "Rentabilidad", "¿En la franja 8–12 %?"],
+    años.slice().reverse().map((d) => [String(d.y), pctS(d.r), d.r >= 8 && d.r <= 12 ? "sí" : "no"]));
+
+  // Histograma de los mismos años.
+  histograma($("#ch-hist-anual"), años.map((d) => d.r), {
+    paso: 5, etiqueta: "años", titulo: "Reparto de las rentabilidades anuales",
+  });
+  const moda = [[0, 10], [10, 20], [-10, 0], [20, 30]].map(([a2, b2]) =>
+    ({ a: a2, b: b2, n: años.filter((d) => d.r >= a2 && d.r < b2).length }));
+  $("#s-hist-anual").innerHTML =
+    `Cuántos años cayeron en cada tramo de cinco puntos. El montón no está en el 10 %: está repartido. ` +
+    `Entre 0 y +10 % hubo ${moda[0].n} años, entre +10 y +20 % otros ${moda[1].n}, y ${moda[2].n} entre −10 y 0 %. ` +
+    `Con datos ${S.real ? "reales" : "nominales"}.`;
+});
+
+/* --------------------------------------------------- 3 · ventanas móviles */
+
+/** Todas las ventanas de `meses` meses: {i, cagr} para cada mes de entrada. */
+function ventanas(id, meses) {
+  const v = serie(id);
+  const out = [];
+  for (let i = 0; i + meses < N; i++) {
+    if (v[i] == null || v[i + meses] == null) continue;
+    out.push({ i, r: (Math.pow(v[i + meses] / v[i], 12 / meses) - 1) * 100 });
+  }
+  return out;
+}
+const mediana = (xs) => {
+  const s = xs.slice().sort((a, b) => a - b);
+  return s.length % 2 ? s[(s.length - 1) / 2] : (s[s.length / 2 - 1] + s[s.length / 2]) / 2;
+};
+
+registra(function rolling() {
+  const años = +$("#horizonte").value;
+  $("#horizonte-val").textContent = `${años} ${años === 1 ? "año" : "años"}`;
+  const vs = ventanas("sp500_tr", años * 12);
+  const rs = vs.map((d) => d.r);
+  const peor = vs.reduce((p, c) => (c.r < p.r ? c : p));
+  const mejor = vs.reduce((p, c) => (c.r > p.r ? c : p));
+  const negativas = vs.filter((d) => d.r < 0).length;
+
+  $("#s-vent").innerHTML =
+    `${new Intl.NumberFormat("es-ES").format(vs.length)} ventanas de ${años} ${años === 1 ? "año" : "años"}, ` +
+    `una por cada mes de entrada entre ${mesLargo(M[vs[0].i])} y ${mesLargo(M[vs.at(-1).i])}, ` +
+    `${S.real ? "con la inflación descontada" : "en dólares corrientes"}.`;
+
+  $("#tiles-vent").innerHTML = `
+    <div class="tile"><div class="k">Peor entrada</div>
+      <div class="v ${peor.r < 0 ? "neg" : ""}">${pctS(peor.r)}</div>
+      <div class="s">Entrando en ${mesLargo(M[peor.i])}.</div></div>
+    <div class="tile"><div class="k">Mediana</div>
+      <div class="v">${pctS(mediana(rs))}</div>
+      <div class="s">La mitad de las entradas lo hizo mejor; la otra mitad, peor.</div></div>
+    <div class="tile"><div class="k">Mejor entrada</div>
+      <div class="v">${pctS(mejor.r)}</div>
+      <div class="s">Entrando en ${mesLargo(M[mejor.i])}.</div></div>
+    <div class="tile"><div class="k">Acabaron perdiendo</div>
+      <div class="v ${negativas ? "neg" : ""}">${nf(negativas / vs.length >= 0.1 ? 0 : 1).format((negativas / vs.length) * 100)} %</div>
+      <div class="s">${new Intl.NumberFormat("es-ES").format(negativas)} de ${new Intl.NumberFormat("es-ES").format(vs.length)} ventanas
+        terminaron por debajo de lo invertido.</div></div>`;
+
+  const host = $("#ch-rolling");
+  const g = marco(host, { h: 300, ml: 46, mb: 30, mt: 14 });
+  const min = Math.min(...rs, -2), max = Math.max(...rs, 12);
+  const a = vs[0].i, b = vs.at(-1).i;
+  const x = (i) => g.x0 + ((i - a) / Math.max(1, b - a)) * (g.x1 - g.x0);
+  const y = (r) => g.y1 - ((r - min) / (max - min)) * (g.y1 - g.y0);
+  ejeY(g, ticksLineal(min, max, 6), y, (v) => pctS(v, 0), { cero: 0 });
+
+  // Relleno bajo cero: donde aguantar ese plazo no bastó.
+  const bajoCero = [];
+  vs.forEach((d, k) => { if (d.r < 0) bajoCero.push(k); });
+  if (bajoCero.length) {
+    let d = `M${x(vs[0].i)} ${y(0)}`;
+    for (const p of vs) d += `L${x(p.i).toFixed(1)} ${y(Math.min(0, p.r)).toFixed(1)}`;
+    d += `L${x(vs.at(-1).i)} ${y(0)}Z`;
+    g.add(el("path", { d, fill: "var(--neg)", opacity: 0.1 }));
+  }
+  const serieV = new Array(N).fill(null);
+  vs.forEach((d) => (serieV[d.i] = d.r));
+  g.add(el("path", { d: camino(serieV, a, b, x, y), class: "ln", stroke: "var(--series-1)" }));
+  g.add(el("line", { x1: g.x0, x2: g.x1, y1: y(0), y2: y(0), class: "ax" }));
+  if (max > 10 && min < 10) {
+    g.add(el("line", { x1: g.x0, x2: g.x1, y1: y(10), y2: y(10), class: "ln-ref" }));
+    g.add(el("text", { x: g.x1 - 4, y: y(10) - 6, "text-anchor": "end" })).textContent = "el 10 % de la frase";
+  }
+  ejeX(g, ticksTiempo(a, b, x));
+  g.add(el("text", { x: (g.x0 + g.x1) / 2, y: g.y1 + 30, "text-anchor": "middle", class: "lbl" }))
+    .textContent = "mes de entrada";
+  hoverLineas(g, {
+    a, b, x, y, titulo: `Rentabilidad anualizada a ${años} años según el mes de entrada`,
+    series: [{
+      nombre: `Anualizado a ${años} ${años === 1 ? "año" : "años"}`, color: "var(--series-1)", v: serieV,
+      fmt: (v, i) => `${pctS(v)} <span style="color:var(--muted);font-weight:400">→ ${mesCorto(M[Math.min(N - 1, i + años * 12)])}</span>`,
+    }],
+  });
+  leyenda($("#lg-rolling"), [
+    { nombre: `Rentabilidad anualizada del S&P 500 a ${años} años`, color: "var(--series-1)" },
+    { nombre: "El 10 % de la frase", dash: true },
+  ]);
+
+  const dif = mejor.r - peor.r;
+  $("#nota-vent").innerHTML =
+    `Entre la mejor y la peor entrada hay <b>${nf(1).format(dif)} puntos</b> de diferencia anual, y el
+     inversor no eligió: le tocó. Aguantando ${años} ${años === 1 ? "año" : "años"}, la peor racha empezó en
+     <b>${mesLargo(M[peor.i])}</b> y terminó en ${mesLargo(M[peor.i + años * 12])} con ${pctS(peor.r)} anual
+     (${mult(Math.pow(1 + peor.r / 100, años))} el dinero). Mueve el mando y mira cuándo desaparece el rojo.`;
+
+  histograma($("#ch-hist-vent"), rs, {
+    paso: años <= 3 ? 5 : 2, etiqueta: "ventanas",
+    titulo: `Reparto de las ventanas de ${años} años`,
+  });
+  $("#s-hist-vent").innerHTML =
+    `Las mismas ${new Intl.NumberFormat("es-ES").format(vs.length)} ventanas, contadas por tramos. ` +
+    `Cuanto más largo el plazo, más se estrecha el montón: eso, y no la media, es lo que de verdad
+     mejora con el tiempo.`;
+
+  // Tabla resumen de todos los horizontes, que es la vista accesible del mando.
+  const filas = [1, 2, 3, 5, 10, 15, 20, 25, 30, 40].map((h) => {
+    const ws = ventanas("sp500_tr", h * 12);
+    if (!ws.length) return [`${h} años`, "—", "—", "—", "—"];
+    const r2 = ws.map((d) => d.r);
+    const neg = ws.filter((d) => d.r < 0).length;
+    return [
+      `${h} ${h === 1 ? "año" : "años"}`,
+      pctS(Math.min(...r2)), pctS(mediana(r2)), pctS(Math.max(...r2)),
+      `${nf(1).format((neg / ws.length) * 100)} %`,
+    ];
+  });
+  tabla($("#tb-horizontes"), ["Plazo", "Peor", "Mediana", "Mejor", "Ventanas en pérdidas"], filas);
+});
+
+$("#horizonte").addEventListener("input", () => pintarTodo());
+
+/* ------------------------------------------------------- 4 · simulador --- */
+
+/** Rellena un <select> con meses, de `desde` a `hasta`, y deja `sel` elegido. */
+function rellenaMeses(node, desde, hasta, sel) {
+  node.innerHTML = "";
+  for (let i = desde; i <= hasta; i++) {
+    const o = document.createElement("option");
+    o.value = M[i];
+    o.textContent = mesLargo(M[i]);
+    node.appendChild(o);
+  }
+  node.value = M[Math.min(Math.max(sel, desde), hasta)];
+}
+
+/** TIR mensual de una serie de flujos, por bisección. Devuelve % anual. */
+function tir(flujos) {
+  const vp = (r) => flujos.reduce((s, f, k) => s + f / Math.pow(1 + r, k), 0);
+  let lo = -0.99, hi = 1;
+  if (vp(lo) * vp(hi) > 0) return null;
+  for (let k = 0; k < 200; k++) {
+    const m = (lo + hi) / 2;
+    (vp(lo) * vp(m) <= 0 ? (hi = m) : (lo = m));
+  }
+  return (Math.pow(1 + (lo + hi) / 2, 12) - 1) * 100;
+}
+
+const SIM = { mes: "2000-08", modo: "unico" };
+const PRESETS = [
+  ["1929-09", "Septiembre de 1929", "el crac"],
+  ["1966-01", "Enero de 1966", "los 16 años planos"],
+  ["2000-08", "Agosto de 2000", "la burbuja puntocom"],
+  ["2007-10", "Octubre de 2007", "antes de la crisis"],
+  ["2021-12", "Diciembre de 2021", "el último máximo largo"],
+];
+
+registra(function simulador() {
+  const v = serie("sp500_tr");
+  const ipc = serie("ipc");
+  const [vmin, vmax] = rango(v);
+  const sel = $("#sim-mes");
+  if (!sel.options.length) rellenaMeses(sel, vmin, vmax - 12, i0(SIM.mes));
+  SIM.mes = sel.value;
+  const i = i0(SIM.mes);
+  const maxAños = Math.floor((vmax - i) / 12);
+  const inAños = $("#sim-anos");
+  inAños.max = String(Math.max(1, maxAños));
+  let h = Math.min(Math.max(1, +inAños.value || 1), Math.max(1, maxAños));
+  if (+inAños.value !== h) inAños.value = String(h);
+  const n = h * 12;
+  const importe = Math.max(1, +$("#sim-importe").value || 1);
+  const dca = SIM.modo === "dca";
+
+  // Trayectoria mes a mes de la cartera y de lo aportado.
+  const valor = new Array(N).fill(null);
+  const aportado = new Array(N).fill(null);
+  let participaciones = 0, puesto = 0;
+  for (let k = 0; k <= n; k++) {
+    const j = i + k;
+    if (v[j] == null) break;
+    if (k === 0 || (dca && k < n)) {
+      const cuota = importe;
+      participaciones += cuota / v[j];
+      puesto += cuota;
+    }
+    valor[j] = participaciones * v[j];
+    aportado[j] = puesto;
+  }
+  const fin = i + n;
+  const final = valor[fin];
+  const flujos = dca
+    ? [...Array(n).fill(-importe), 0].map((f, k) => (k === n ? final : f))
+    : [-importe, ...Array(n - 1).fill(0), final];
+  const rend = dca ? tir(flujos) : cagr(v, i, fin);
+
+  // Peor caída desde un máximo y meses por debajo de lo aportado. El máximo que
+  // se guarda es el que precede al valle, no el último de la serie.
+  let pico = 0, mesUltimoPico = i, caida = 0, bajoAgua = 0, mesPico = i, mesValle = i;
+  for (let k = 0; k <= n; k++) {
+    const j = i + k;
+    if (valor[j] == null) continue;
+    if (valor[j] > pico) { pico = valor[j]; mesUltimoPico = j; }
+    const d = valor[j] / pico - 1;
+    if (d < caida) { caida = d; mesValle = j; mesPico = mesUltimoPico; }
+    if (valor[j] < aportado[j]) bajoAgua++;
+  }
+
+  $("#lbl-importe").textContent = dca ? "Aportación mensual $" : "Importe inicial $";
+  $("#tiles-sim").innerHTML = `
+    <div class="tile hero">
+      <div class="k">${dca ? `${dinero(importe)} $ al mes durante ${h} ${h === 1 ? "año" : "años"}` : `${dinero(importe)} $ en ${mesLargo(SIM.mes)}`}</div>
+      <div class="v">${dinero(final)} $</div>
+      <div class="s">En ${mesLargo(M[fin])}, tras poner ${dinero(puesto)} $ en total.
+        ${S.real ? "En poder de compra de " + mesLargo(SIM.mes) + "." : "En dólares corrientes."}</div>
+    </div>
+    <div class="tile"><div class="k">${dca ? "TIR anual" : "Rentabilidad anual"}</div>
+      <div class="v ${rend < 0 ? "neg" : ""}">${pctS(rend)}</div>
+      <div class="s">${S.real ? "Real, descontada la inflación." : "Nominal."} ${S.coste > 0 ? `Ya restado el ${nf(2).format(S.coste)} % de costes.` : ""}</div></div>
+    <div class="tile"><div class="k">Multiplicó por</div>
+      <div class="v">${mult(final / puesto)}</div>
+      <div class="s">Sobre el dinero puesto, sin anualizar.</div></div>
+    <div class="tile"><div class="k">Peor caída por el camino</div>
+      <div class="v neg">${pct(caida * 100)}</div>
+      <div class="s">De ${mesCorto(M[mesPico])} a ${mesCorto(M[mesValle])}. Había que seguir dentro.</div></div>
+    <div class="tile"><div class="k">Meses en pérdidas</div>
+      <div class="v">${bajoAgua}</div>
+      <div class="s">De ${n} meses, los que la cartera valía menos que lo aportado
+        (${nf(0).format((bajoAgua / n) * 100)} % del tiempo).</div></div>`;
+
+  const g = marco($("#ch-sim"), { h: 280, ml: 62, mb: 30 });
+  const vals = [];
+  for (let k = 0; k <= n; k++) if (valor[i + k] != null) vals.push(valor[i + k], aportado[i + k]);
+  const min = 0, max = Math.max(...vals) * 1.06;
+  const x = (j) => g.x0 + ((j - i) / Math.max(1, n)) * (g.x1 - g.x0);
+  const y = (val) => g.y1 - ((val - min) / (max - min)) * (g.y1 - g.y0);
+  ejeY(g, ticksLineal(min, max, 5), y, (val) => (val >= 1e6 ? `${nf(1).format(val / 1e6)} M` : dinero(val)));
+  g.add(el("path", { d: camino(aportado, i, fin, x, y), class: "ln-ref" }));
+  g.add(el("path", { d: camino(valor, i, fin, x, y), class: "ln", stroke: "var(--series-1)" }));
+  if (valor[fin] != null) {
+    g.add(el("circle", { cx: x(fin), cy: y(valor[fin]), r: 4.5, class: "dot", fill: "var(--series-1)" }));
+    g.add(el("text", { x: x(fin) - 6, y: y(valor[fin]) - 10, "text-anchor": "end", class: "lbl" }))
+      .textContent = `${dinero(valor[fin])} $`;
+  }
+  ejeX(g, ticksTiempo(i, fin, x, 8));
+  hoverLineas(g, {
+    a: i, b: fin, x, y, titulo: "Evolución de la cartera",
+    series: [
+      { nombre: "Valor de la cartera", color: "var(--series-1)", v: valor, fmt: (val) => `${dinero(val)} $` },
+      { nombre: "Dinero aportado", color: "var(--ref)", v: aportado, fmt: (val) => `${dinero(val)} $` },
+    ],
+  });
+  leyenda($("#lg-sim"), [
+    { nombre: "Valor de la cartera", color: "var(--series-1)" },
+    { nombre: "Dinero aportado", dash: true },
+  ]);
+
+  const cagrIpc = cagr(ipc, i, fin);
+  $("#nota-sim").innerHTML =
+    `Entre ${mesLargo(SIM.mes)} y ${mesLargo(M[fin])} la inflación de EE.&nbsp;UU. fue del
+     <b>${pct(cagrIpc)} anual</b> (${mult(ipc[fin] / ipc[i])} los precios). ` +
+    (dca
+      ? `Aportando cada mes, el momento de entrada pesa mucho menos: se compra caro y barato a la vez.
+         La TIR es la rentabilidad que iguala todos esos flujos, que no es lo mismo que la del índice.`
+      : `Poner todo de golpe hace que el resultado dependa del mes exacto: prueba a mover la fecha
+         un año arriba o abajo y compara.`) +
+    ` Nada de esto descuenta impuestos: en España, la plusvalía tributa al 19-30 % al venderla.`;
+});
+
+$("#sim-mes").addEventListener("change", () => pintarTodo());
+$("#sim-anos").addEventListener("input", () => pintarTodo());
+$("#sim-importe").addEventListener("input", () => pintarTodo());
+$("#md-unico").addEventListener("click", () => {
+  SIM.modo = "unico";
+  $("#md-unico").setAttribute("aria-pressed", "true");
+  $("#md-dca").setAttribute("aria-pressed", "false");
+  $("#sim-importe").value = "10000";
+  pintarTodo();
+});
+$("#md-dca").addEventListener("click", () => {
+  SIM.modo = "dca";
+  $("#md-dca").setAttribute("aria-pressed", "true");
+  $("#md-unico").setAttribute("aria-pressed", "false");
+  $("#sim-importe").value = "200";
+  pintarTodo();
+});
+$("#presets").innerHTML = PRESETS
+  .map(([k, t, q]) => `<button class="btn btn-sm" data-mes="${k}">${t} <span style="color:var(--muted);font-weight:400">· ${q}</span></button>`)
+  .join("");
+$$("#presets .btn").forEach((b) => b.addEventListener("click", () => {
+  $("#sim-mes").value = b.dataset.mes;
+  pintarTodo();
+}));
+
+/* ----------------------------------------------------- 5 · comparativa --- */
+
+const CMP = {
+  mes: "1971-01",
+  activos: new Set(["sp500_tr", "bonos10", "oro", "letras3m"]),
+};
+const CMP_PRESETS = [["1871-01", "1871"], ["1928-01", "1928"], ["1971-01", "1971"], ["2000-01", "2000"], ["2010-01", "2010"]];
+
+registra(function comparativa() {
+  const sel = $("#cmp-mes");
+  const [smin, smax] = rango(serie("sp500_tr"));
+  if (!sel.options.length) rellenaMeses(sel, smin, smax - 12, i0(CMP.mes));
+  CMP.mes = sel.value;
+  const i = i0(CMP.mes);
+  const fin = smax;
+
+  // Un activo solo entra si ya cotizaba el mes elegido: nada de empezar a
+  // media curva en base 100, que haría parecer que todos salieron del mismo sitio.
+  const disponibles = ACTIVOS.filter((act) => serie(act.id)[i] != null);
+  const tarde = ACTIVOS.filter((act) => !disponibles.includes(act) && !sinReal(act.id));
+  const sinIpc = ACTIVOS.filter((act) => sinReal(act.id));
+  const porQue = (act) => sinReal(act.id)
+    ? `No hay IPC de ${META(act.id).moneda === "JPY" ? "Japón" : "su país"} en los datos: no se puede pasar a términos reales`
+    : `Sin datos antes de ${mesLargo(META(act.id).desde)}`;
+  $("#cmp-picks").innerHTML = ACTIVOS.map((act) => {
+    const ok = disponibles.includes(act);
+    const on = ok && CMP.activos.has(act.id);
+    return `<button class="pick" data-id="${act.id}" aria-pressed="${on}" ${ok ? "" : "disabled"}
+      style="--c:${act.c}${ok ? "" : ";opacity:.4;cursor:not-allowed"}"
+      title="${ok ? esc(META(act.id).nombre) : esc(porQue(act))}">
+      <i class="key"></i>${esc(act.corto)}</button>`;
+  }).join("");
+  $$("#cmp-picks .pick").forEach((b) => b.addEventListener("click", () => {
+    const id = b.dataset.id;
+    CMP.activos.has(id) ? CMP.activos.delete(id) : CMP.activos.add(id);
+    if (!CMP.activos.size) CMP.activos.add("sp500_tr");
+    pintarTodo();
+  }));
+
+  const puestos = disponibles.filter((act) => CMP.activos.has(act.id));
+  const lineas = puestos.map((act) => {
+    const v = serie(act.id);
+    return { id: act.id, nombre: act.corto, color: act.c, v: v.map((x) => (x == null ? null : (x / v[i]) * 100)) };
+  });
+  // La inflación no es una serie más: es la referencia contra la que se mide todo.
+  const ipc = serie("ipc");
+  const refIpc = ipc.map((x) => (x == null ? null : (x / ipc[i]) * 100));
+
+  const g = marco($("#ch-comp"), { h: 400, ml: 58, mb: 34 });
+  let lo = Infinity, hi = -Infinity;
+  for (const L of [...lineas.map((l) => l.v), S.real ? null : refIpc].filter(Boolean)) {
+    for (let j = i; j <= fin; j++) if (L[j] != null) { lo = Math.min(lo, L[j]); hi = Math.max(hi, L[j]); }
+  }
+  lo = Math.max(1, lo * 0.85); hi = hi * 1.15;
+  const x = (j) => g.x0 + ((j - i) / Math.max(1, fin - i)) * (g.x1 - g.x0);
+  const y = (val) => g.y1 - ((Math.log10(val) - Math.log10(lo)) / (Math.log10(hi) - Math.log10(lo))) * (g.y1 - g.y0);
+  ejeY(g, ticksLog(lo, hi), y, (val) => (val >= 1000 ? `×${nf(0).format(val / 100)}` : `×${nf(val < 300 ? 1 : 0).format(val / 100)}`));
+  g.add(el("text", { x: g.x0 - 8, y: g.y0 - 4, "text-anchor": "end", class: "lbl" })).textContent = "×veces";
+
+  if (!S.real) g.add(el("path", { d: camino(refIpc, i, fin, x, y), class: "ln-ref" }));
+  for (const L of lineas) g.add(el("path", { d: camino(L.v, i, fin, x, y), class: "ln", stroke: L.color }));
+
+  // Etiqueta directa en el extremo derecho, y solo donde no se pisan: si dos
+  // líneas llegan juntas, la de abajo se queda sin etiqueta y lo cuentan la
+  // leyenda, el tooltip y la tabla.
+  const ultimoDato = (L) => { let j = fin; while (j > i && L.v[j] == null) j--; return j; };
+  const finales = lineas
+    .map((L) => ({ L, j: ultimoDato(L) }))
+    .filter((o) => o.L.v[o.j] != null)
+    .sort((a, b) => b.L.v[b.j] - a.L.v[a.j]);
+  let ultimaY = -Infinity;
+  for (const o of finales) {
+    const py = y(o.L.v[o.j]);
+    g.add(el("circle", { cx: x(o.j), cy: py, r: 4, class: "dot", fill: o.L.color }));
+    if (Math.abs(py - ultimaY) > 13) {
+      g.add(el("text", { x: x(o.j) + 7, y: py + 4, class: "lbl" })).textContent = mult(o.L.v[o.j] / 100);
+      ultimaY = py;
+    }
+  }
+  ejeX(g, ticksTiempo(i, fin, x));
+  hoverLineas(g, {
+    a: i, b: fin, x, y, titulo: "Comparación de activos",
+    series: [
+      ...lineas.map((L) => ({ nombre: L.nombre, color: L.color, v: L.v, fmt: (val) => mult(val / 100) })),
+      ...(S.real ? [] : [{ nombre: "Inflación EE. UU.", color: "var(--ref)", v: refIpc, fmt: (val) => mult(val / 100) }]),
+    ],
+  });
+  leyenda($("#lg-comp"), [
+    ...lineas.map((L) => ({ nombre: L.nombre, color: L.color })),
+    ...(S.real ? [] : [{ nombre: "Inflación EE. UU. (referencia)", dash: true }]),
+  ]);
+
+  const soloPrecio = puestos.filter((act) => !META(act.id).dividendos).map((act) => act.corto);
+  $("#nota-comp").innerHTML =
+    (soloPrecio.length
+      ? `<b>Ojo con la comparación:</b> ${soloPrecio.join(", ")} ${soloPrecio.length === 1 ? "es una serie" : "son series"}
+         <b>solo de precio</b>. No incluye${soloPrecio.length === 1 ? "" : "n"} dividendos ni alquileres cobrados, así que
+         sale${soloPrecio.length === 1 ? "" : "n"} peor de lo que fue en realidad. El S&P 500 sí los lleva. `
+      : "") +
+    (tarde.length
+      ? `Sin datos desde ${mesLargo(CMP.mes)}: ${tarde.map((act) => `${act.corto} (desde ${META(act.id).desde.slice(0, 4)})`).join(", ")}. `
+      : "") +
+    (sinIpc.length
+      ? `Fuera del modo real: ${sinIpc.map((act) => act.corto).join(", ")}, porque su moneda no tiene IPC en estos datos
+         y deflactarla con el estadounidense sería inventar. `
+      : "") +
+    `Cada índice va en su moneda${S.real ? " y deflactado con el IPC de esa moneda" : ""}, y sin impuestos.`;
+
+  const filas = [...puestos.map((act) => {
+    const v = serie(act.id);
+    return [
+      `<i class="dot-inline" style="background:${act.c}"></i>${esc(act.corto)}`,
+      pctS(cagr(v, i, fin)), mult(v[fin] / v[i]), esc(act.nota), META(act.id).moneda,
+    ];
+  }), [
+    `<i class="dot-inline" style="background:var(--ref)"></i>Inflación EE. UU.`,
+    pctS(cagr(ipc, i, fin)), mult(ipc[fin] / ipc[i]), "IPC, no es un activo", "USD",
+  ]];
+  tabla($("#tb-comp"), [`Desde ${mesLargo(CMP.mes)}`, "Anualizado", "Multiplicó por", "Qué mide", "Moneda"], filas);
+});
+
+$("#cmp-mes").addEventListener("change", () => pintarTodo());
+$("#cmp-presets").innerHTML = CMP_PRESETS.map(([k, t]) => `<button class="btn btn-sm" data-mes="${k}">${t}</button>`).join("");
+$$("#cmp-presets .btn").forEach((b) => b.addEventListener("click", () => {
+  $("#cmp-mes").value = b.dataset.mes;
+  pintarTodo();
+}));
+
+/* ----------------------------------------------------------- 6 · sesgo --- */
+
+/** Gráfico de líneas genérico, indexado a 100 en `i`, escala logarítmica. */
+function lineasIndexadas(host, hostLeyenda, { desde, series, alto = 260, ref = null }) {
+  const i = i0(desde);
+  let fin = i;
+  for (const s of series) { const [, b] = rango(s.v); fin = Math.max(fin, b); }
+  const norm = series.map((s) => ({ ...s, n: s.v.map((x) => (x == null ? null : (x / s.v[i]) * 100)) }));
+  const refN = ref ? ref.v.map((x) => (x == null ? null : (x / ref.v[i]) * 100)) : null;
+
+  const g = marco(host, { h: alto, ml: 52, mb: 30 });
+  let lo = Infinity, hi = -Infinity;
+  for (const L of [...norm.map((s) => s.n), refN].filter(Boolean)) {
+    for (let j = i; j <= fin; j++) if (L[j] != null) { lo = Math.min(lo, L[j]); hi = Math.max(hi, L[j]); }
+  }
+  lo = Math.max(1, lo * 0.9); hi *= 1.1;
+  const x = (j) => g.x0 + ((j - i) / Math.max(1, fin - i)) * (g.x1 - g.x0);
+  const y = (val) => g.y1 - ((Math.log10(val) - Math.log10(lo)) / (Math.log10(hi) - Math.log10(lo))) * (g.y1 - g.y0);
+  ejeY(g, ticksLog(lo, hi), y, (val) => `×${nf(val < 300 ? 1 : 0).format(val / 100)}`);
+  g.add(el("line", { x1: g.x0, x2: g.x1, y1: y(100), y2: y(100), class: "ax" }));
+  if (refN) g.add(el("path", { d: camino(refN, i, fin, x, y), class: "ln-ref" }));
+  for (const s of norm) g.add(el("path", { d: camino(s.n, i, fin, x, y), class: "ln", stroke: s.color }));
+  for (const s of norm) {
+    let j = fin; while (j > i && s.n[j] == null) j--;
+    if (s.n[j] == null) continue;
+    g.add(el("circle", { cx: x(j), cy: y(s.n[j]), r: 4, class: "dot", fill: s.color }));
+  }
+  ejeX(g, ticksTiempo(i, fin, x, 7));
+  hoverLineas(g, {
+    a: i, b: fin, x, y, titulo: "Comparación",
+    series: [
+      ...norm.map((s) => ({ nombre: s.nombre, color: s.color, v: s.n, fmt: (val) => mult(val / 100) })),
+      ...(refN ? [{ nombre: ref.nombre, color: "var(--ref)", v: refN, fmt: (val) => mult(val / 100) }] : []),
+    ],
+  });
+  leyenda(hostLeyenda, [
+    ...norm.map((s) => ({ nombre: s.nombre, color: s.color })),
+    ...(ref ? [{ nombre: ref.nombre, dash: true }] : []),
+  ]);
+  return { i, fin, norm };
+}
+
+registra(function sesgo() {
+  /* --- Japón: el máximo de diciembre de 1989 ---
+     Siempre nominal: no hay IPC japonés en los datos y deflactar un índice en
+     yenes con la inflación estadounidense no significaría nada. */
+  const desdeJP = "1989-12";
+  const nk = serie("nikkei", { real: false }), px = serie("sp500_px", { real: false });
+  lineasIndexadas($("#ch-nikkei"), $("#lg-nikkei"), {
+    desde: desdeJP, alto: 250,
+    series: [
+      { nombre: "Nikkei 225 (yenes)", color: COLOR("nikkei"), v: nk },
+      { nombre: "S&P 500 sin dividendos", color: COLOR("sp500_tr"), v: px },
+    ],
+  });
+  const jp = i0(desdeJP);
+  const [, finNk] = rango(nk);
+  // Primer mes en que el Nikkei recupera su nivel de diciembre de 1989.
+  let recupera = null;
+  for (let j = jp + 1; j <= finNk; j++) if (nk[j] != null && nk[j] >= nk[jp]) { recupera = j; break; }
+  $("#s-nikkei").innerHTML =
+    `Dos índices <b>solo de precio</b> y en términos nominales, cada uno en su moneda, para que la
+     comparación sea justa, desde el máximo japonés de diciembre de 1989. El Nikkei ${recupera
+       ? `tardó <b>${Math.round((recupera - jp) / 12)} años</b> en volver a ese nivel (${mesLargo(M[recupera])})`
+       : "todavía no ha vuelto a ese nivel"}; anualizado desde entonces, ${pctS(cagr(nk, jp, finNk))}
+     frente al ${pctS(cagr(px, jp, finNk))} del S&P 500.`;
+
+  /* --- El resto de desarrollados --- */
+  const ex = serie("mundo_exus"), tr = serie("sp500_tr");
+  const desdeEx = META("mundo_exus").desde;
+  lineasIndexadas($("#ch-exus"), $("#lg-exus"), {
+    desde: desdeEx, alto: 250,
+    series: [
+      { nombre: "Mundo desarrollado sin EE. UU.", color: COLOR("mundo_exus"), v: ex },
+      { nombre: "S&P 500 con dividendos", color: COLOR("sp500_tr"), v: tr },
+    ],
+  });
+  const ie = i0(desdeEx), [, finEx] = rango(ex);
+  $("#s-exus").innerHTML =
+    `Europa, Japón y Australasia con dividendos (ETF de MSCI EAFE, en dólares) frente al S&P 500,
+     desde ${mesLargo(desdeEx)}: <b>${pctS(cagr(ex, ie, finEx))}</b> contra
+     <b>${pctS(cagr(tr, ie, finEx))}</b> anual. Tres puntos menos cada año durante un cuarto de siglo
+     son ${mult(ex[finEx] / ex[ie])} el dinero frente a ${mult(tr[finEx] / tr[ie])}. La bolsa que ganó
+     es justo la que aparece en la frase.`;
+
+  /* --- Desde España: en euros, y con el IPC de aquí --- */
+  const desdeEu = "1999-01";
+  const ieu = i0(desdeEu);
+  const eur = D.eurusd, ipcEsRaw = D.ipc_es;
+  const aEuros = (v) => v.map((x, j) => (x == null || eur[j] == null ? null : x / eur[j]));
+  const deflactaEs = (v) => (S.real ? v.map((x, j) => (x == null || ipcEsRaw[j] == null ? null : x / ipcEsRaw[j])) : v);
+  const trNom = serie("sp500_tr", { real: false });
+  const trEur = aEuros(trNom);
+  const pxEur = deflactaEs(aEuros(serie("sp500_px", { real: false })));
+  const ib = deflactaEs(serie("ibex", { real: false }));
+  const ipcEs = serie("ipc_es");
+  lineasIndexadas($("#ch-euros"), $("#lg-euros"), {
+    desde: desdeEu, alto: 280,
+    series: [
+      { nombre: "S&P 500 sin dividendos, en euros", color: COLOR("sp500_tr"), v: pxEur },
+      { nombre: "IBEX 35 (sin dividendos, en euros)", color: COLOR("ibex"), v: ib },
+    ],
+    ref: S.real ? null : { nombre: "Inflación de España (IPC armonizado)", v: ipcEs },
+  });
+  const [, finEu] = rango(ib);
+  const cagrUsd = cagr(trNom, ieu, finEu), cagrEur = cagr(trEur, ieu, finEu);
+  $("#s-euros").innerHTML =
+    `Desde que existe el euro, ${S.real ? "descontando el IPC español" : "en euros corrientes"}. Los dos
+     índices van <b>sin dividendos</b> porque del IBEX 35 no hay serie pública con ellos, y mezclarlas
+     sería tramposo: con dividendos ambos suben, y el IBEX más, porque históricamente reparte bastante
+     más que el S&P 500.`;
+  // El efecto divisa en el largo plazo casi se cancela; lo interesante es
+  // cuánto pesa dentro de una década concreta, que es el plazo de la gente.
+  let peorDec = { dif: Infinity, j: null }, mejorDec = { dif: -Infinity, j: null };
+  for (let j = ieu; j + 120 <= finEu; j++) {
+    const rU = cagr(trNom, j, j + 120), rE = cagr(trEur, j, j + 120);
+    if (rU == null || rE == null) continue;
+    const dif = rE - rU;
+    if (dif < peorDec.dif) peorDec = { dif, j };
+    if (dif > mejorDec.dif) mejorDec = { dif, j };
+  }
+  const cambios = [];
+  for (let j = ieu; j <= finEu; j++) if (eur[j] != null) cambios.push([eur[j], j]);
+  const minC = cambios.reduce((p, c) => (c[0] < p[0] ? c : p));
+  const maxC = cambios.reduce((p, c) => (c[0] > p[0] ? c : p));
+  $("#nota-euros").innerHTML =
+    `<b>La divisa también cuenta.</b> El S&P 500 con dividendos dio ${pctS(cagrUsd)} anual nominal en
+     dólares desde ${mesLargo(desdeEu)} y ${pctS(cagrEur)} en euros: de punta a punta casi lo mismo,
+     porque el cambio ha vuelto a donde estaba. Por el medio no: el euro pasó de
+     ${nf(2).format(minC[0])} $ (${mesCorto(M[minC[1]])}) a ${nf(2).format(maxC[0])} $
+     (${mesCorto(M[maxC[1]])}). Quien invirtió diez años desde ${mesLargo(M[peorDec.j])} se dejó
+     <b>${nf(1).format(Math.abs(peorDec.dif))} puntos anuales</b> solo por el tipo de cambio;
+     quien lo hizo desde ${mesLargo(M[mejorDec.j])} se llevó ${nf(1).format(mejorDec.dif)} de regalo.
+     Y lo que hay que batir aquí no es el IPC estadounidense, sino el español
+     (${pct(cagr(ipcEs, ieu, finEu))} anual en el periodo).`;
+});
+
+/* --------------------------------------------------------- 7 · bitcoin --- */
+
+registra(function btc() {
+  const desde = META("bitcoin").desde;
+  const b = serie("bitcoin"), tr = serie("sp500_tr");
+  lineasIndexadas($("#ch-btc"), $("#lg-btc"), {
+    desde, alto: 300,
+    series: [
+      { nombre: "Bitcoin", color: "var(--series-8)", v: b },
+      { nombre: "S&P 500 con dividendos", color: COLOR("sp500_tr"), v: tr },
+    ],
+  });
+  const i = i0(desde), [, fin] = rango(b);
+  // Peor caída del bitcoin en el periodo, para poner la cifra al lado del brillo.
+  let pico = -Infinity, caida = 0;
+  for (let j = i; j <= fin; j++) {
+    if (b[j] == null) continue;
+    pico = Math.max(pico, b[j]);
+    caida = Math.min(caida, b[j] / pico - 1);
+  }
+  $("#t-btc").textContent = `Bitcoin frente al S&P 500 desde ${mesLargo(desde)}`;
+  $("#s-btc").innerHTML =
+    `Escala logarítmica, ${S.real ? "con la inflación descontada" : "en dólares corrientes"}:
+     <b>${pctS(cagr(b, i, fin))}</b> anual frente al <b>${pctS(cagr(tr, i, fin))}</b> del S&P 500.
+     Multiplicó por ${mult(b[fin] / b[i])} lo invertido; el índice, por ${mult(tr[fin] / tr[i])}.`;
+  $("#nota-btc").innerHTML =
+    `Y por el camino, una caída máxima del <b>${pct(caida * 100)}</b> desde máximos. Doce años no
+     permiten calcular nada parecido a una rentabilidad esperada: en el S&P 500, cualquier tramo de
+     doce años elegido a dedo da entre ${pctS(Math.min(...ventanas("sp500_tr", 144).map((d) => d.r)))} y
+     ${pctS(Math.max(...ventanas("sp500_tr", 144).map((d) => d.r)))} anual. Aquí solo hay un tramo, y
+     encima es el primero de la vida del activo.`;
+});
+
+/* ---------------------------------------------------------- 8 · método --- */
+
+$("#prosa-metodo").innerHTML = `
+  <h3>De dónde sale cada número</h3>
+  <ul>
+    <li><b>S&P 500, 1871–2026.</b> Precio medio mensual y dividendos de la serie de
+      <a href="https://shillerdata.com/" rel="noopener">Robert Shiller</a> (Yale). La rentabilidad total
+      se construye reinvirtiendo cada mes un doceavo del dividendo anual:
+      <code>TR_t = TR_{t-1} × (P_t + D_{t-1}/12) / P_{t-1}</code>. Desde julio de 2023, donde la serie de
+      dividendos se acaba, se encadena el índice oficial <b>S&P 500 Total Return</b>. En los 35 años en
+      que conviven las dos fuentes, el método da 10,67 % anual y el índice oficial 10,74 %.</li>
+    <li><b>Bono del Tesoro a 10 años.</b> No es el tipo de interés: es una cartera de vencimiento
+      constante que cada mes compra un bono a la par y lo revende un mes después al tipo nuevo, así que
+      incluye las pérdidas de precio cuando los tipos suben. Mismo criterio que usa Damodaran (NYU).</li>
+    <li><b>Inflación</b>: IPC de EE.&nbsp;UU. (CPI-U sin desestacionalizar) de la Reserva Federal de
+      St. Louis, y el IPC armonizado de España de Eurostat para la parte en euros.</li>
+    <li><b>Letras a 3 meses, vivienda (Case-Shiller) y tipo de cambio</b>: FRED.
+      <b>Oro</b>: precio en dólares por onza (fijado por el patrón oro hasta 1968, mercado libre después).
+      <b>Nikkei 225, IBEX 35, MSCI EAFE y bitcoin</b>: Yahoo Finance.</li>
+  </ul>
+  <p>Todo el detalle, con las URL exactas y las comprobaciones de empalme, está en
+    <code>data-src/mercados.SOURCES.md</code> del repositorio. El fichero que lee esta página es
+    <code>pages/data/mercados.json</code> y se regenera con un solo comando.</p>
+
+  <h3>Qué no está en estos números</h3>
+  <ul>
+    <li><b>Impuestos.</b> Ninguno. En España, las plusvalías y los dividendos tributan al 19–30 %, y los
+      dividendos de acciones estadounidenses llevan además retención en origen. Un fondo de acumulación
+      difiere lo primero, no lo segundo.</li>
+    <li><b>Comisiones</b>, salvo las que pongas arriba. El campo “coste anual” resta lo que le indiques
+      cada mes: un 0,20 % es un indexado barato de hoy; un 1,5 % era lo normal hace veinte años y sigue
+      siendo lo normal en muchos bancos. Pruébalo: en 30 años, un 1 % anual se come una cuarta parte
+      del capital final.</li>
+    <li><b>La posibilidad de comprar el índice.</b> El primer fondo indexado se lanzó en 1976. Todo lo
+      anterior es lo que habría dado el índice, no lo que nadie obtuvo.</li>
+    <li><b>El inversor.</b> Estas series suponen que nadie vendió nunca: ni en 1932, ni en 1974, ni en
+      marzo de 2020. El simulador enseña cuántos meses habría estado en pérdidas.</li>
+    <li><b>El sesgo de supervivencia.</b> EE.&nbsp;UU. es el mercado que mejor salió del siglo XX, y la
+      frase del 10 % existe porque miramos precisamente ese. Japón, el resto de desarrollados y el IBEX
+      están en la página por eso.</li>
+  </ul>
+
+  <h3>Entonces, ¿es verdad o no?</h3>
+  <p>Es verdad como media y es engañosa como expectativa. El índice ha dado en torno a un 10 % nominal
+    anual desde 1928 y un 7 % real desde 1871, pero eso solo describe a quien entró y salió en los
+    extremos exactos de ese periodo. Para plazos que se parezcan a una vida laboral, lo honesto es
+    mirar el reparto entero de las ventanas: ahí el 10 % es el centro de una nube muy ancha, y la
+    anchura de esa nube es justo lo que se está comprando.</p>`;
+
+/* ===========================================================================
+   Arranque y reacción a la barra global.
+   =========================================================================== */
+
+function pintarTodo() {
+  cache.clear();
+  for (const f of RENDERS) {
+    try { f(); } catch (e) { console.error(e); }
+  }
+}
+
+$("#op-nom").addEventListener("click", () => { S.real = false; sincroniza(); });
+$("#op-real").addEventListener("click", () => { S.real = true; sincroniza(); });
+$("#coste").addEventListener("input", (ev) => {
+  const v = Math.min(5, Math.max(0, +ev.target.value || 0));
+  S.coste = v;
+  pintarTodo();
+});
+function sincroniza() {
+  $("#op-nom").setAttribute("aria-pressed", String(!S.real));
+  $("#op-real").setAttribute("aria-pressed", String(S.real));
+  pintarTodo();
+}
+
+$("#stamp").innerHTML =
+  `Series mensuales de <b>${M[0].slice(0, 4)}</b> a <b>${mesLargo(M[N - 1])}</b> · ` +
+  `${new Intl.NumberFormat("es-ES").format(N)} meses · datos generados el ${D.meta.generado}`;
+$("#pie-fuentes").innerHTML =
+  "Fuentes: Robert Shiller (Yale), S&P Dow Jones Indices, Reserva Federal de St. Louis (FRED), " +
+  "Eurostat, LBMA y Yahoo Finance. Método y URL exactas en la sección “Qué hay detrás de estos números”.";
+
+$("#cargando").hidden = true;
+$("#app").hidden = false;
+pintarTodo();
+
+let redibujo;
+addEventListener("resize", () => { clearTimeout(redibujo); redibujo = setTimeout(pintarTodo, 180); });
+</script>
+</body>
+</html>

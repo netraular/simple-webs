@@ -82,7 +82,17 @@ function fredMap(csv) {
   return m;
 }
 
-/** Chart de Yahoo -> Map "YYYY-MM" -> cierre (ajustado si lo hay). */
+/**
+ * Chart de Yahoo -> Map "YYYY-MM" -> cierre de fin de mes (ajustado si lo hay).
+ *
+ * Cuidado con el mes: la marca de tiempo de cada vela es el **inicio del mes en
+ * la hora local del mercado**, no en UTC. Para Tokio (UTC+9) el 1 de diciembre
+ * de 1989 es el 30 de noviembre a las 15:00 UTC, así que leer el mes con
+ * `toISOString()` a pelo desplaza el Nikkei y el IBEX un mes entero hacia atrás
+ * (el máximo japonés de diciembre de 1989 aparecía en noviembre). Sumar 14 h
+ * antes de mirar el mes deja cualquier huso, de UTC−11 a UTC+14, dentro del mes
+ * que le toca.
+ */
 function yahooMap(chart, { ajustado = false } = {}) {
   const r = chart?.chart?.result?.[0];
   if (!r) throw new Error("respuesta de Yahoo sin resultado");
@@ -92,7 +102,7 @@ function yahooMap(chart, { ajustado = false } = {}) {
   const m = new Map();
   r.timestamp.forEach((t, i) => {
     const v = cierres[i];
-    if (Number.isFinite(v)) m.set(new Date(t * 1000).toISOString().slice(0, 7), v);
+    if (Number.isFinite(v)) m.set(new Date((t + 14 * 3600) * 1000).toISOString().slice(0, 7), v);
   });
   return m;
 }

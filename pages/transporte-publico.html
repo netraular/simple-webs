@@ -5,8 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>¿Dónde puedo vivir? · Transporte público del área de Barcelona</title>
 <meta name="description" content="Di cuánto estás dispuesto a caminar, a dónde tienes que llegar y en cuánto tiempo. El mapa deja encendidas las 164 zonas del área de Barcelona que lo cumplen —91 municipios y los 73 barrios de la ciudad— ordenadas de más barata a más cara.">
-<meta name="theme-color" media="(prefers-color-scheme: light)" content="#f9f9f7">
-<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0d0d0d">
+<meta name="theme-color" content="#f4f6f5">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='88'>🚆</text></svg>">
 <style>
 /* ===========================================================================
@@ -24,13 +23,14 @@
    =========================================================================== */
 
 :root{
-  color-scheme: light dark;
+  color-scheme: light;
 
   /* --- superficies y tinta (chrome) --- */
-  --plane:#f9f9f7;  --surface:#fcfcfb;  --surface-2:#f2f1ee;
-  --ink:#0b0b0b;    --ink-2:#52514e;    --muted:#898781;
-  --grid:#e1e0d9;   --axis:#c3c2b7;     --hairline:rgba(11,11,11,.10);
-  --focus:#2a78d6;
+  --plane:#f4f6f5;  --surface:#ffffff;  --surface-2:#eaf0ee;
+  --ink:#202b28;    --ink-2:#52635d;    --muted:#65756f;
+  --grid:#dce5e0;   --axis:#b5c5bd;     --hairline:#dce5e0;
+  --focus:#087565;  --accent:#d95b44;  --accent-soft:#fcece7;
+  --display:"Avenir Next","Trebuchet MS",sans-serif;
 
   /* --- rampa secuencial (azul 100→700) ---
      Una sola rampa para las dos magnitudes que se pueden pintar, precio y
@@ -39,10 +39,10 @@
      leyenda cada vez. */
   --seq-100:#cde2fb; --seq-200:#9ec5f4; --seq-300:#6da7ec; --seq-400:#3987e5;
   --seq-500:#256abf; --seq-600:#184f95; --seq-700:#0d366b;
-  --seq-null:#e6e5e0;               /* sin dato — gris, nunca un tono de la rampa */
+  --seq-null:#dfe5e2;               /* sin dato — gris, nunca un tono de la rampa */
 
-  --series-1:#2a78d6;               /* marca de énfasis / selección */
-  --ok:#189b6b;                     /* cumple las condiciones */
+  --series-1:#087565;               /* marca de énfasis / selección */
+  --ok:#087565;                     /* cumple las condiciones */
 
   /* --- redes de transporte ---
      Identidad, no magnitud: son categorías, así que no salen de la rampa
@@ -54,86 +54,101 @@
   --net-rodalies:#2a78d6;  --net-fgc:#d95926;  --net-metro:#189b6b;
   --net-tram:#7a5cd6;      --net-bus:#898781;
 }
-@media (prefers-color-scheme: dark){
-  :root:where(:not([data-theme="light"])){
-    --plane:#0d0d0d;  --surface:#1a1a19;  --surface-2:#232321;
-    --ink:#ffffff;    --ink-2:#c3c2b7;    --muted:#898781;
-    --grid:#2c2c2a;   --axis:#383835;     --hairline:rgba(255,255,255,.10);
-    --focus:#3987e5;
-    --seq-100:#0d366b; --seq-200:#184f95; --seq-300:#256abf; --seq-400:#2a78d6;
-    --seq-500:#3987e5; --seq-600:#6da7ec; --seq-700:#9ec5f4;
-    --seq-null:#2a2a28;
-    --series-1:#3987e5; --ok:#199e70;
-    --net-rodalies:#3987e5;  --net-fgc:#e07a4e;  --net-metro:#199e70;
-    --net-tram:#9085e9;      --net-bus:#9d9b95;
-  }
-}
-
 *{box-sizing:border-box;margin:0;padding:0}
-html{-webkit-text-size-adjust:100%}
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth;scroll-padding-top:24px}
+[hidden]{display:none!important}
 body{
-  font-family:system-ui,-apple-system,"Segoe UI",sans-serif;
+  font-family:var(--display);letter-spacing:0;
   background:var(--plane); color:var(--ink); line-height:1.5;
   -webkit-font-smoothing:antialiased;
 }
-.wrap{max-width:1220px;margin:0 auto;padding:0 20px}
+.wrap{max-width:1540px;margin:0 auto;padding:0 32px}
+a{color:var(--series-1);text-underline-offset:4px}
+:focus-visible{outline:2px solid var(--focus);outline-offset:4px}
+.skip-link{position:fixed;top:-80px;left:16px;z-index:100;background:var(--surface);padding:12px}
+.skip-link:focus{top:12px}
+.topbar{border-bottom:1px solid var(--hairline);background:var(--surface)}
+.topbar-inner{display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:68px}
+.brand{display:flex;align-items:center;gap:12px;text-decoration:none;color:var(--ink);font-size:.9rem;font-weight:700}
+.brand-mark{display:grid;place-items:center;width:42px;height:36px;flex:none;background:var(--series-1);color:#fff;border-radius:6px;font-size:.8rem}
+.topnav{display:flex;gap:24px;font-size:.8rem;align-items:center}
+.topnav a{text-decoration:none;color:var(--ink-2)}
+.topnav a:hover{color:var(--series-1);text-decoration:underline}
 
 /* ---------- cabecera ---------- */
-header{padding:56px 0 8px}
-.eyebrow{font-size:.72rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
-h1{font-size:clamp(2rem,4.4vw,3.1rem);font-weight:700;letter-spacing:-.02em;line-height:1.08;margin:14px 0 0}
-.lede{margin:16px 0 0;max-width:62ch;color:var(--ink-2);font-size:1.02rem}
-.stamp{margin:18px 0 0;font-size:.78rem;color:var(--muted)}
+header{padding:30px 0 26px;display:flex;justify-content:space-between;align-items:center;gap:28px}
+.eyebrow{font-size:.7rem;font-weight:700;letter-spacing:0;text-transform:uppercase;color:var(--series-1)}
+h1{font-size:2.2rem;font-weight:700;letter-spacing:0;line-height:1.12;margin:7px 0 0}
+.lede{margin:10px 0 0;max-width:65ch;color:var(--ink-2);font-size:.93rem}
+.coverage{display:flex;align-items:center;gap:16px;flex:none;border-left:1px solid var(--axis);padding-left:28px}
+.coverage strong{font-size:2.6rem;line-height:1;color:var(--accent);font-weight:700}
+.coverage span{font-size:.76rem;color:var(--ink-2);max-width:13ch}
+.stamp{font-size:.72rem;color:var(--muted);line-height:1.6}
+.workspace{display:grid;grid-template-columns:310px minmax(0,1fr);gap:32px;align-items:start}
 
 /* ---------- barra de condiciones ---------- */
 .filters{
-  position:sticky; top:0; z-index:40;
-  background:color-mix(in srgb,var(--plane) 92%,transparent);
-  backdrop-filter:blur(8px);
-  border-bottom:1px solid var(--hairline);
-  margin-top:28px; padding:14px 0;
+  position:sticky;top:20px;z-index:40;
+  background:var(--surface);border:1px solid var(--hairline);border-radius:8px;
+  padding:20px;max-height:calc(100dvh - 40px);overflow-y:auto;
 }
-.filters-inner{display:flex;flex-wrap:wrap;gap:14px 24px;align-items:flex-start}
+.filters-inner{display:flex;flex-direction:column;gap:24px}
+.filter-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%}
+.filter-heading h2{font-size:1.05rem}
+.mobile-map-link{display:none;font-size:.78rem;margin-left:auto}
+.filter-index{display:inline-grid;place-items:center;width:22px;height:22px;margin-right:6px;background:var(--accent-soft);color:#a63b28;border-radius:50%;font-size:.7rem}
+.filter-foot{border-top:1px solid var(--hairline);padding-top:15px;font-size:.75rem;color:var(--muted)}
+.filter-foot strong{display:block;color:var(--ink-2);margin-bottom:4px}
 .field{display:flex;flex-direction:column;gap:5px;min-width:0}
-.field > label,.field > .lbl{font-size:.7rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+.field > label,.field > .lbl{font-size:.78rem;font-weight:700;letter-spacing:0;color:var(--ink-2)}
 .field input[type=number]{
   font:inherit;font-size:.9rem;background:var(--surface);color:var(--ink);
   border:1px solid var(--axis);border-radius:6px;padding:7px 9px;min-height:36px;
   width:78px;text-align:right;font-variant-numeric:tabular-nums;
 }
 .field input:focus-visible,button:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
-.slider-field{min-width:230px;flex:0 1 260px}
+.slider-field{width:100%;border-top:1px solid var(--hairline);padding-top:18px}
 .slider-row{display:flex;align-items:center;gap:10px}
 .slider-row input[type=range]{flex:1;accent-color:var(--series-1);min-height:36px}
 .slider-val{font-variant-numeric:tabular-nums;font-weight:700;font-size:.9rem;min-width:74px;text-align:right}
+.slider-scale{display:flex;justify-content:space-between;color:var(--muted);font-size:.68rem}
 .btn{
   font:inherit;font-size:.85rem;font-weight:600;background:var(--surface);color:var(--ink);
-  border:1px solid var(--axis);border-radius:6px;padding:8px 13px;cursor:pointer;min-height:36px;
+  border:1px solid var(--axis);border-radius:6px;padding:8px 13px;cursor:pointer;min-height:40px;
+  transition:background .15s,border-color .15s;
 }
-.btn:hover{border-color:var(--ink-2)}
+.btn:hover{border-color:var(--series-1);background:var(--surface-2)}
 .btn[aria-pressed=true]{background:var(--series-1);border-color:var(--series-1);color:#fff}
-.btn-sm{padding:5px 9px;font-size:.78rem;min-height:30px}
+.btn-sm{padding:6px 10px;font-size:.75rem;min-height:36px}
 .btn-group{display:flex;gap:6px;flex-wrap:wrap}
+.segmented{display:flex;gap:3px;padding:3px;background:var(--surface-2);border-radius:6px}
+.segmented .btn{border:0;background:transparent;flex:1;white-space:nowrap}
+.segmented .btn[aria-pressed=true]{background:var(--surface);color:var(--series-1);box-shadow:0 1px 4px #203b2814}
+.toggle-btn{display:flex;align-items:center;gap:8px;border-color:var(--hairline)}
+.toggle-btn::before{content:"";width:26px;height:16px;flex:none;border-radius:10px;background:radial-gradient(circle at 8px 8px,#fff 5px,transparent 5.5px),var(--axis)}
+.toggle-btn[aria-pressed=true]{background:var(--surface);border-color:var(--hairline);color:var(--ink)}
+.toggle-btn[aria-pressed=true]::before{background:radial-gradient(circle at 18px 8px,#fff 5px,transparent 5.5px),var(--series-1)}
+.icon-btn{display:grid;place-items:center;width:36px;padding:0;font-size:1.2rem}
 
 /* ---------- «tengo que llegar a…»: el corazón de la página ---------- */
-.cond-field{flex:1 1 440px;min-width:300px}
-.conds{display:flex;flex-direction:column;gap:5px;margin-top:2px}
+.cond-field{width:100%;min-width:0}
+.conds{display:flex;flex-direction:column;gap:0;margin:8px 0}
 .cond{
-  display:flex;align-items:center;gap:9px;font-size:.86rem;
-  background:var(--surface);border:1px solid var(--hairline);border-radius:7px;padding:5px 9px;
+  display:flex;align-items:center;gap:8px;font-size:.8rem;
+  background:var(--surface);border:0;border-bottom:1px solid var(--hairline);padding:11px 0;
 }
-.cond.is-on{border-color:var(--series-1)}
-.cond.is-off{opacity:.6}
+.cond.is-on .cn{color:var(--series-1);font-weight:700}
+.cond.is-off{color:var(--ink-2)}
 .cond input[type=checkbox]{width:16px;height:16px;accent-color:var(--series-1);flex:none;cursor:pointer}
-.cond .cn{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer}
+.cond .cn{flex:1;min-width:0;overflow-wrap:anywhere;line-height:1.4;cursor:pointer}
 .cond .ct{display:flex;align-items:center;gap:5px;color:var(--ink-2);font-size:.8rem;flex:none}
 .cond input[type=number]{
-  width:66px;padding:4px 6px;min-height:28px;font:inherit;font-size:.85rem;text-align:right;
+  width:57px;padding:5px 4px;min-height:34px;font:inherit;font-size:.8rem;text-align:right;
   background:var(--surface);color:var(--ink);border:1px solid var(--axis);border-radius:6px;
   font-variant-numeric:tabular-nums;
 }
-.cond .est{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
-.cond.is-pick{border-style:dashed;border-color:var(--axis)}
+.cond .est{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0;color:var(--muted)}
+.cond.is-pick{border:1px dashed var(--axis);border-radius:6px;padding:12px 10px;margin-top:12px}
 .cond .pick-btn{
   flex:1;text-align:left;font:inherit;font-size:.86rem;background:none;border:0;
   color:var(--series-1);cursor:pointer;padding:0;min-width:0;
@@ -146,19 +161,25 @@ h1{font-size:clamp(2rem,4.4vw,3.1rem);font-weight:700;letter-spacing:-.02em;line
 .cond .clear:hover{color:var(--ink)}
 
 /* ---------- tarjetas ---------- */
-main{padding:28px 0 72px}
+main{min-width:0;padding:0 0 48px}
 .card{
-  background:var(--surface);border:1px solid var(--hairline);border-radius:12px;
-  padding:22px 22px 18px;margin-bottom:22px;
+  padding:24px 0;margin:0;border-bottom:1px solid var(--hairline);scroll-margin-top:20px;
 }
-.card > h2{font-size:1.06rem;font-weight:700;letter-spacing:-.01em}
+.card > h2,.card-head h2{font-size:1.1rem;font-weight:700;letter-spacing:0}
 .card > .sub{margin-top:5px;font-size:.84rem;color:var(--ink-2);max-width:74ch}
 .card-head{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:flex-start;justify-content:space-between}
+.card-head .sub{font-size:.77rem;color:var(--muted);margin-top:4px;max-width:65ch}
+.map-section{padding-top:0}
+.section-label{display:block;margin-bottom:8px;font-size:.68rem;text-transform:uppercase;font-weight:700;color:var(--muted)}
+.results-section{animation:reveal .4s ease both}
+.results-heading{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:12px}
+.results-heading a{font-size:.78rem;white-space:nowrap}
+@keyframes reveal{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
 
 /* ---------- el titular: la respuesta, antes que nada ---------- */
 .verdict{
-  font-size:clamp(1.15rem,2.5vw,1.6rem);font-weight:700;letter-spacing:-.015em;
-  line-height:1.3;max-width:34ch;
+  font-size:1.3rem;font-weight:700;letter-spacing:0;
+  line-height:1.4;max-width:65ch;
 }
 .verdict .n{color:var(--ok)}
 .verdict .cheap{color:var(--series-1)}
@@ -166,39 +187,46 @@ main{padding:28px 0 72px}
 
 /* ---------- ranking ---------- */
 .rank{
-  display:grid;grid-template-columns:repeat(auto-fill,minmax(228px,1fr));
+  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
   gap:11px;margin-top:20px;
 }
 .rk{
   display:block;width:100%;text-align:left;font:inherit;cursor:pointer;
-  background:var(--surface);border:1px solid var(--hairline);border-radius:10px;
-  padding:12px 13px 11px;color:var(--ink);
+  background:var(--surface);border:1px solid var(--hairline);border-radius:8px;
+  padding:16px;color:var(--ink);transition:border-color .15s,box-shadow .15s;
 }
-.rk:hover{border-color:var(--ink-2)}
+.rk:hover{border-color:var(--series-1);box-shadow:0 3px 12px #203b280a}
+.rk:first-child{border-top:3px solid var(--series-1);padding-top:14px}
 .rk[aria-pressed=true]{border-color:var(--series-1);box-shadow:inset 0 0 0 1px var(--series-1)}
 .rk-top{display:flex;align-items:baseline;gap:7px}
 .rk-pos{
   font-size:.68rem;font-weight:700;color:var(--muted);font-variant-numeric:tabular-nums;
   flex:none;min-width:1.3em;
 }
-.rk-nom{font-weight:700;font-size:.93rem;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rk-nom{font-weight:700;font-size:.88rem;line-height:1.3;overflow-wrap:anywhere}
 .rk-sub{font-size:.72rem;color:var(--muted);margin-top:1px;margin-left:calc(1.3em + 7px)}
-.rk-preu{font-size:1.32rem;font-weight:700;letter-spacing:-.02em;margin-top:9px;font-variant-numeric:tabular-nums}
+.rk-preu{display:block;font-size:1.4rem;font-weight:700;letter-spacing:0;margin-top:12px;font-variant-numeric:tabular-nums}
 .rk-preu small{font-size:.7rem;font-weight:600;color:var(--ink-2);letter-spacing:0}
 /* La barra es lo que hace el ranking comparable de un vistazo: los números
    solos obligan a restar mentalmente, la longitud no. */
 .rk-bar{display:block;height:5px;border-radius:3px;background:var(--surface-2);margin-top:7px;overflow:hidden}
 .rk-bar i{display:block;height:100%;background:var(--series-1);border-radius:3px}
-.rk-meta{margin-top:8px;font-size:.76rem;color:var(--ink-2);line-height:1.35}
+.rk-meta{display:block;margin-top:8px;font-size:.76rem;color:var(--ink-2);line-height:1.5}
 .rk-meta .mn{font-weight:700;font-variant-numeric:tabular-nums;color:var(--ink)}
 .rank-more{margin-top:12px;font-size:.8rem;color:var(--muted)}
 .rank-empty{margin-top:16px;font-size:.88rem;color:var(--ink-2);max-width:60ch}
 
 /* ---------- mapa ---------- */
-.map-layout{display:grid;grid-template-columns:minmax(0,1fr) 262px;gap:22px;margin-top:18px;align-items:start}
-@media (max-width:900px){.map-layout{grid-template-columns:minmax(0,1fr)}}
-.map-box{position:relative;background:var(--surface-2);border-radius:10px;overflow:hidden;touch-action:none}
-.map-box svg{display:block;width:100%;height:auto;cursor:crosshair}
+.map-layout{display:grid;grid-template-columns:minmax(0,1fr);gap:16px;margin-top:14px}
+.map-box{position:relative;background:radial-gradient(circle,#a9bdba45 1px,transparent 1px),#e8efec;background-size:18px 18px;border:1px solid #d2dfd8;border-radius:8px;overflow:hidden;touch-action:none}
+.map-box svg{display:block;width:100%;height:auto;aspect-ratio:1.65;cursor:crosshair}
+.map-box.is-picking{outline:3px solid var(--series-1);outline-offset:3px}
+.map-caption{position:absolute;bottom:12px;left:14px;pointer-events:none;font-size:.65rem;font-weight:700;text-transform:uppercase;color:#526d65;background:#f4f6f5e8;padding:4px 7px;border-radius:3px}
+.map-layout > aside{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px;font-size:.78rem}
+.map-layout > aside > .legend{margin:0}
+#panel-itin{grid-column:1/-1;border-top:1px solid var(--hairline);padding-top:16px}
+#legend-xarxes{display:flex;flex-wrap:wrap;gap:0 18px;align-content:start}
+#legend-xarxes h3{width:100%}
 .zona{stroke:var(--surface);stroke-width:.6;vector-effect:non-scaling-stroke;transition:fill .18s ease}
 .zona:hover{stroke:var(--ink);stroke-width:1.8}
 .zona.is-dim{opacity:.16}
@@ -226,11 +254,11 @@ main{padding:28px 0 72px}
 .poi-ring{fill:none;stroke:var(--ink);stroke-width:1.5;stroke-opacity:.5;pointer-events:none}
 .poi-lbl{fill:var(--ink);font-size:11px;font-weight:700;paint-order:stroke;stroke:var(--surface);stroke-width:3;pointer-events:none}
 .map-zoom{position:absolute;right:10px;top:10px;display:flex;flex-direction:column;gap:6px}
-.map-zoom button{width:32px;height:32px;padding:0;font-size:1.05rem;line-height:1}
+.map-zoom button{width:38px;height:38px;padding:0;font-size:1.15rem;line-height:1;box-shadow:0 2px 5px #203b2810}
 .pin{width:11px;height:11px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:var(--series-1);flex:none}
 
 /* ---------- leyenda y panel lateral ---------- */
-.legend h3{font-size:.7rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);margin-bottom:9px}
+.legend h3{font-size:.68rem;font-weight:700;letter-spacing:0;text-transform:uppercase;color:var(--muted);margin-bottom:9px}
 .legend + .legend{margin-top:22px}
 .ramp{display:flex;height:13px;border-radius:3px;overflow:hidden}
 .ramp span{flex:1}
@@ -267,7 +295,7 @@ main{padding:28px 0 72px}
 .tip{
   position:fixed;z-index:80;pointer-events:none;opacity:0;transition:opacity .12s ease;
   background:var(--surface);border:1px solid var(--hairline);border-radius:9px;
-  box-shadow:0 10px 30px rgba(0,0,0,.22);padding:11px 13px;min-width:200px;max-width:280px;
+  box-shadow:0 10px 30px rgba(0,0,0,.12);padding:11px 13px;min-width:200px;max-width:280px;
 }
 .tip.on{opacity:1}
 .tip .t-name{font-weight:700;font-size:.92rem;line-height:1.25}
@@ -278,13 +306,13 @@ main{padding:28px 0 72px}
 .tip .t-flag{margin-top:8px;padding-top:7px;border-top:1px solid var(--hairline);font-size:.76rem;font-weight:600}
 
 /* ---------- tabla ---------- */
-.table-scroll{overflow-x:auto;margin-top:14px;-webkit-overflow-scrolling:touch}
+.table-scroll{overflow-x:auto;margin-top:14px;-webkit-overflow-scrolling:touch;border:1px solid var(--hairline);border-radius:6px;background:var(--surface)}
 table{border-collapse:collapse;width:100%;font-size:.85rem;font-variant-numeric:tabular-nums}
-th,td{padding:8px 11px;text-align:right;white-space:nowrap;border-bottom:1px solid var(--hairline)}
+th,td{padding:12px;text-align:right;white-space:nowrap;border-bottom:1px solid var(--hairline)}
 th:first-child,td:first-child{text-align:left;position:sticky;left:0;background:var(--surface)}
 thead th{
   position:sticky;top:0;background:var(--surface);z-index:2;
-  font-size:.7rem;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);
+  font-size:.7rem;letter-spacing:0;text-transform:uppercase;color:var(--muted);
   cursor:pointer;user-select:none;border-bottom:1px solid var(--axis);
 }
 thead th:first-child{z-index:3}
@@ -298,7 +326,7 @@ td.na{color:var(--muted)}
 .ok-dot.off{background:transparent;border:1px solid var(--axis)}
 .tag{
   display:inline-block;font-size:.62rem;font-weight:700;text-transform:uppercase;
-  letter-spacing:.05em;color:var(--muted);border:1px solid var(--hairline);
+  letter-spacing:0;color:var(--muted);border:1px solid var(--hairline);
   border-radius:3px;padding:0 4px;margin-left:6px;vertical-align:1px;
 }
 
@@ -315,87 +343,130 @@ summary:focus-visible{outline:2px solid var(--focus);outline-offset:3px;border-r
 .prose code{background:var(--surface-2);padding:1px 5px;border-radius:4px;font-size:.92em}
 footer{border-top:1px solid var(--hairline);padding:22px 0 44px;font-size:.8rem;color:var(--muted)}
 footer a{color:var(--focus)}
-.state{padding:56px 20px;text-align:center;color:var(--muted)}
+.state{padding:56px 20px;text-align:center;color:var(--muted);grid-column:2}
 .visually-hidden{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 
-@media (max-width:900px){
-  .filters{position:static;backdrop-filter:none}
-  .filters-inner{gap:12px 14px}
-  .cond-field{flex:1 1 100%}
-  .slider-field{flex:1 1 100%}
+@media (max-width:1150px){
+  .wrap{padding:0 24px}
+  .workspace{grid-template-columns:290px minmax(0,1fr);gap:24px}
+  .filters{padding:16px}
+  .rank{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .coverage{display:none}
 }
-@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
-@media print{.filters,.map-zoom{display:none}.card{break-inside:avoid}}
+@media (max-width:850px){
+  .workspace{grid-template-columns:minmax(0,1fr);gap:24px}
+  .filters{position:static;max-height:none}
+  .filters-inner{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px 24px;align-items:start}
+  .filter-heading{grid-column:1/-1}
+  .mobile-map-link{display:block}
+  .cond-field{grid-row:2/4}
+  .slider-field{border:0;padding:0}
+  .filter-foot{grid-column:2}
+  .state{grid-column:1}
+  .map-box svg{aspect-ratio:1.4}
+}
+@media (max-width:560px){
+  .wrap{padding:0 16px}
+  .topbar-inner{min-height:60px}
+  .topnav{gap:12px}
+  .topnav .related-link{display:none}
+  header{padding:24px 0}
+  h1{font-size:1.75rem}
+  .lede{font-size:.85rem}
+  .filters-inner{display:flex;gap:18px}
+  .slider-field{border-top:1px solid var(--hairline);padding-top:16px}
+  .filter-foot{font-size:.7rem}
+  .cond{padding:9px 0}
+  .cond input[type=number]{min-height:36px}
+  .cond.is-pick{padding:11px}
+  .btn{min-height:40px}
+  .card-head{gap:12px}
+  .map-box svg{aspect-ratio:1}
+  .map-layout > aside{gap:16px}
+  .rank{grid-template-columns:minmax(0,1fr)}
+  .rk{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 12px}
+  .rk-sub{grid-column:1}
+  .rk-preu{grid-column:2;grid-row:1/3;margin:0;align-self:center;font-size:1.25rem}
+  .rk-bar,.rk-meta{grid-column:1/-1}
+  .verdict{font-size:1.1rem}
+  .results-heading{align-items:baseline}
+  .results-heading a{white-space:normal;text-align:right}
+  footer{padding-bottom:28px}
+}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
+@media print{.filters,.map-zoom,.topbar{display:none}.workspace{display:block}.card{break-inside:avoid}}
 </style>
 </head>
 <body>
 
+<a class="skip-link" href="#main">Saltar al mapa y los resultados</a>
+<div class="topbar">
+  <div class="wrap topbar-inner">
+    <a class="brand" href="../"><span class="brand-mark">BCN</span> Conexiones</a>
+    <nav class="topnav" aria-label="Navegación principal">
+      <a class="related-link" href="pisos-vs-distancia.html">Vivienda y distancia</a>
+      <a href="#metodologia">Datos y fuentes</a>
+    </nav>
+  </div>
+</div>
 <div class="wrap">
   <header>
-    <span class="eyebrow">Àrea metropolitana de Barcelona</span>
-    <h1>¿Dónde puedo vivir, si tengo que ir ahí cada día?</h1>
-    <p class="lede">
-      Di cuánto estás dispuesto a caminar, a qué sitios tienes que llegar y en
-      cuánto tiempo. La página te devuelve <strong>las zonas más baratas que lo
-      cumplen</strong>, ordenadas por precio, sobre un mapa del área de Barcelona
-      con la ciudad desglosada en sus barrios. Los tiempos son trayectos reales
-      <strong>puerta a puerta</strong> en transporte público, encaminados sobre los
-      horarios oficiales: incluyen lo que caminas hasta la parada, los transbordos
-      y la espera.
-    </p>
-    <p class="stamp" id="stamp"></p>
+    <div>
+      <span class="eyebrow">Barcelona · Transporte público y vivienda</span>
+      <h1>Tu próximo barrio, bien conectado.</h1>
+      <p class="lede">Menos trayecto. Más posibilidades. Vivienda y tiempos puerta a puerta en el área de Barcelona.</p>
+    </div>
+    <div class="coverage"><strong>164</strong><span>zonas · 91 municipios y 73 barrios</span></div>
   </header>
 </div>
 
-<div class="filters">
-  <div class="wrap filters-inner" id="filters" hidden>
+<div class="wrap workspace">
+<aside class="filters" aria-label="Condiciones del viaje">
+  <div class="filters-inner" id="filters" hidden>
+    <div class="filter-heading">
+      <h2>Tu día a día</h2>
+      <a class="mobile-map-link" href="#map-title">Ver mapa ↓</a>
+      <button class="btn icon-btn" id="f-reset" type="button" title="Restablecer condiciones" aria-label="Restablecer condiciones">↺</button>
+    </div>
 
     <div class="field cond-field">
-      <span class="lbl" id="f-cond-label">Tengo que llegar a… (minutos como mucho)</span>
+      <span class="lbl" id="f-cond-label"><span class="filter-index" aria-hidden="true">1</span> Destinos y tiempo máximo</span>
       <div class="conds" id="f-conds" role="group" aria-labelledby="f-cond-label"></div>
-      <div class="btn-group" style="margin-top:6px">
-        <button class="btn btn-sm" type="button" id="f-comb-algun" aria-pressed="true">Con uno me basta</button>
-        <button class="btn btn-sm" type="button" id="f-comb-tots" aria-pressed="false">Los quiero todos</button>
+      <div class="segmented" role="group" aria-label="Destinos que deben cumplir el límite">
+        <button class="btn btn-sm" type="button" id="f-comb-algun" aria-pressed="true">Al menos uno</button>
+        <button class="btn btn-sm" type="button" id="f-comb-tots" aria-pressed="false">Todos</button>
       </div>
     </div>
 
     <div class="field slider-field">
-      <label for="f-peu">Camino como mucho</label>
+      <label for="f-peu"><span class="filter-index" aria-hidden="true">2</span> Caminata máxima total</label>
       <div class="slider-row">
         <input type="range" id="f-peu" min="0" max="60" step="1" value="30">
         <span class="slider-val" id="f-peu-v">30 min</span>
       </div>
-      <button class="btn btn-sm" id="f-reset" type="button" style="margin-top:6px;align-self:flex-start">Reiniciar</button>
+      <div class="slider-scale" aria-hidden="true"><span>0 min</span><span>Sin límite</span></div>
     </div>
+    <div class="filter-foot"><strong>Horarios programados, no en directo</strong><p class="stamp" id="stamp"></p></div>
   </div>
-</div>
+</aside>
 
-<div class="state" id="state">Cargando datos…</div>
+<div class="state" id="state" role="status">Cargando zonas y conexiones…</div>
 
-<main id="main" hidden>
-  <div class="wrap">
-
-    <!-- ===================== LA RESPUESTA ===================== -->
-    <section class="card">
-      <p class="verdict" id="verdict"></p>
-      <p class="verdict-sub" id="verdict-sub"></p>
-      <div class="rank" id="rank"></div>
-      <p class="rank-more" id="rank-more"></p>
-    </section>
+<main id="main" tabindex="-1" hidden>
 
     <!-- ===================== MAPA ===================== -->
-    <section class="card">
+    <section class="card map-section" aria-labelledby="map-title">
       <div class="card-head">
         <div>
-          <h2 id="map-title">Dónde se cumple</h2>
+          <h2 id="map-title" tabindex="-1">Explora tus conexiones</h2>
           <p class="sub" id="map-sub"></p>
         </div>
         <div class="btn-group">
-          <div class="btn-group" role="group" aria-label="Colorear el mapa por" id="f-color">
+          <div class="segmented" role="group" aria-label="Colorear el mapa por" id="f-color">
             <button class="btn btn-sm" type="button" data-color="preu" aria-pressed="true">Precio</button>
             <button class="btn btn-sm" type="button" data-color="temps" aria-pressed="false">Tiempo</button>
           </div>
-          <button class="btn btn-sm" id="f-xarxa" type="button" aria-pressed="true">Ver la red</button>
+          <button class="btn btn-sm toggle-btn" id="f-xarxa" type="button" aria-pressed="true">Red de transporte</button>
         </div>
       </div>
 
@@ -409,10 +480,11 @@ footer a{color:var(--focus)}
             resaltadas, coloreadas por precio de la vivienda o por tiempo de
             trayecto. Los mismos valores están en la tabla del final de la página.
           </desc>
+          <span class="map-caption" aria-hidden="true">Barcelona y su entorno</span>
           <div class="map-zoom">
-            <button class="btn" id="z-in" type="button" aria-label="Acercar">+</button>
-            <button class="btn" id="z-out" type="button" aria-label="Alejar">−</button>
-            <button class="btn" id="z-fit" type="button" aria-label="Ver todo">⤢</button>
+            <button class="btn" id="z-in" type="button" aria-label="Acercar" title="Acercar">+</button>
+            <button class="btn" id="z-out" type="button" aria-label="Alejar" title="Alejar">−</button>
+            <button class="btn" id="z-fit" type="button" aria-label="Ver todo" title="Ver todo">⤢</button>
           </div>
         </div>
 
@@ -442,18 +514,31 @@ footer a{color:var(--focus)}
       </div>
     </section>
 
+    <section class="card results-section" aria-labelledby="results-title">
+      <div class="results-heading">
+        <h2 id="results-title" class="section-label">Tus opciones de vivienda</h2>
+        <a href="#todas-las-zonas">Comparar todas las zonas →</a>
+      </div>
+      <div aria-live="polite" aria-atomic="true">
+        <p class="verdict" id="verdict"></p>
+        <p class="verdict-sub" id="verdict-sub"></p>
+      </div>
+      <div class="rank" id="rank"></div>
+      <p class="rank-more" id="rank-more"></p>
+    </section>
+
     <!-- ===================== TABLA ===================== -->
-    <section class="card">
+    <section class="card" id="todas-las-zonas" aria-labelledby="table-title">
       <div class="card-head">
         <div>
-          <h2>Todas las zonas</h2>
+          <h2 id="table-title">Todas las zonas</h2>
           <p class="sub" id="tbl-sub"></p>
         </div>
         <div class="btn-group">
-          <button class="btn btn-sm" id="f-nomes" type="button" aria-pressed="false">Solo las que cumplen</button>
+          <button class="btn btn-sm toggle-btn" id="f-nomes" type="button" aria-pressed="false">Solo las que cumplen</button>
         </div>
       </div>
-      <div class="table-scroll">
+      <div class="table-scroll" tabindex="0" role="region" aria-label="Comparativa de zonas, desplazable horizontalmente">
         <table>
           <thead id="thead"></thead>
           <tbody id="tbody"></tbody>
@@ -462,10 +547,10 @@ footer a{color:var(--focus)}
     </section>
 
     <!-- ===================== METODOLOGÍA ===================== -->
-    <section class="card">
-      <h2>Cómo se ha hecho, y cuándo no fiarse</h2>
+    <section class="card" id="metodologia">
+      <h2>Datos claros, con sus límites</h2>
 
-      <details open>
+      <details>
         <summary>Qué es exactamente cada número</summary>
         <div class="prose">
           <p>
@@ -482,7 +567,7 @@ footer a{color:var(--focus)}
             seguridad, ni retrasos: es horario <strong>teórico programado</strong>.
           </p>
           <p>
-            <strong>«Camino como mucho»</strong> se mide sobre el total a pie de
+            La <strong>caminata máxima total</strong> se mide sobre el total a pie de
             <em>la ruta más rápida</em>: la caminata hasta la primera parada, más la de
             los transbordos, más la del final. Ojo con la letra pequeña: es lo que
             caminas en la mejor ruta, <strong>no el mínimo posible</strong>. Podría
@@ -611,14 +696,14 @@ footer a{color:var(--focus)}
       </details>
     </section>
 
-  </div>
 </main>
+</div>
 
 <footer>
   <div class="wrap">
     <p>
-      Datos oficiales y abiertos, sin estimaciones. Página estática y autocontenida:
-      no hay seguimiento ni peticiones a terceros.
+      Datos abiertos · Horarios teóricos y estimaciones para puntos libres.
+      Sin seguimiento ni peticiones a terceros.
       · <a href="pisos-vs-distancia.html">Piso vs. distancia</a>
       · <a href="../">Volver</a>
     </p>
@@ -1008,7 +1093,7 @@ function renderConds() {
       return `<div class="cond is-off is-pick">
         <span class="pin" aria-hidden="true"></span>
         <button type="button" class="pick-btn" id="c-pick">${
-          S.picking ? "Pincha en el mapa…" : "Otro punto del mapa…"}</button>
+          S.picking ? "Cancelar selección" : "Añadir punto en el mapa"}</button>
       </div>`;
     }
     return `<div class="cond ${c.on ? "is-on" : "is-off"}">
@@ -1052,16 +1137,14 @@ function renderVerdict() {
 
   if (!actives.length) {
     v.innerHTML = "Marca algún destino para empezar.";
-    vs.textContent = "Arriba, en «tengo que llegar a…», elige a dónde tienes que ir cada "
-                   + "día y en cuántos minutos como mucho.";
+    vs.textContent = "Sin destinos seleccionados.";
     $("#rank").innerHTML = "";
     $("#rank-more").textContent = "";
     return;
   }
   if (!ok.length) {
     v.innerHTML = `<span class="n">Ninguna zona</span> cumple lo que pides.`;
-    vs.textContent = "Prueba a subir los minutos, a caminar un poco más, o a pasar a "
-                   + "«con uno me basta» si tenías marcados varios destinos.";
+    vs.textContent = "No hay conexiones dentro de estos límites de tiempo y caminata.";
     $("#rank").innerHTML = "";
     $("#rank-more").textContent = "";
     return;
@@ -1083,7 +1166,7 @@ function renderVerdict() {
           fmtInt(Math.abs(100 * (medOk / medTot - 1)))} % ${
           medOk <= medTot ? "por debajo" : "por encima"} de la mediana del área. `
       : "")
-    + `Ordenadas de más barata a más cara; la barra compara el precio dentro del grupo.`
+    + `Precios medios de compra, de menor a mayor.`
     + (sensePreu > 0
         ? ` ${sensePreu} ${sensePreu === 1 ? "cumple pero no tiene" : "cumplen pero no tienen"} `
           + `precio publicado y ${sensePreu === 1 ? "no aparece" : "no aparecen"} aquí.`
@@ -1115,7 +1198,10 @@ function renderVerdict() {
     ? `Y ${rk.length - RANK_N} más que también cumplen, en la tabla del final.` : "";
 
   $("#rank").querySelectorAll("[data-id]").forEach(b => {
-    b.onclick = () => selecciona(b.dataset.id);
+    b.onclick = () => {
+      selecciona(b.dataset.id);
+      if (S.selected) $("#panel-itin").scrollIntoView({ block: "nearest" });
+    };
   });
 }
 
@@ -1387,8 +1473,7 @@ function renderTable() {
 
   const n = rows.length;
   $("#tbl-sub").textContent = `${n} ${n === 1 ? "zona" : "zonas"}`
-    + (S.nomesOk ? " que cumplen tus condiciones." : ", las que cumplen marcadas con un punto verde.")
-    + " Pulsa una cabecera para ordenar, o una fila para ver su itinerario en el mapa.";
+    + (S.nomesOk ? " compatibles con tu viaje." : " · Compra, alquiler y conexiones.");
 }
 
 function renderTexts() {
@@ -1398,9 +1483,9 @@ function renderTexts() {
     + `Horarios de referencia: ${M.transit?.hora || "—"}. Precios y padrón: ${
       M.periodes?.compra || "—"}. Generado el ${M.generat}.`;
   $("#map-sub").textContent =
-    `Las ${DATA.zones.length} zonas del área: ${M.zones.municipis} municipios a 32 km o `
-    + `menos de Plaça de Catalunya, más los ${M.zones.barris} barrios en que se desglosa `
-    + `la ciudad. Pincha una zona para ver su itinerario.`;
+    condsActives().length
+      ? `${ROWS.filter(m => m.ok).length} de ${DATA.zones.length} zonas compatibles con tu viaje`
+      : `${M.zones.municipis} municipios · ${M.zones.barris} barrios de Barcelona`;
 
   $("#m-ndest").textContent = ["", "un", "dos", "tres", "cuatro", "cinco", "seis"][M.destins.length] || M.destins.length;
   $("#m-hora").textContent = M.transit?.hora ? `Hora de referencia: ${M.transit.hora}.` : "";
@@ -1518,7 +1603,7 @@ function initUI() {
   const peu = $("#f-peu");
   peu.oninput = () => {
     S.maxPeu = +peu.value >= 60 ? Infinity : +peu.value;
-    $("#f-peu-v").textContent = S.maxPeu === Infinity ? "lo que sea" : `${S.maxPeu} min`;
+    $("#f-peu-v").textContent = S.maxPeu === Infinity ? "Sin límite" : `${S.maxPeu} min`;
     render();
   };
 
@@ -1597,7 +1682,10 @@ function initUI() {
   };
   $("#tbody").onclick = (e) => {
     const tr = e.target.closest("tr");
-    if (tr) selecciona(tr.dataset.id);
+    if (tr) {
+      selecciona(tr.dataset.id);
+      if (S.selected) $("#panel-itin").scrollIntoView({ block: "nearest" });
+    }
   };
   $("#tbody").addEventListener("pointermove", (e) => {
     const tr = e.target.closest("tr");
@@ -1614,14 +1702,17 @@ function initUI() {
 function setPicking(on) {
   S.picking = on;
   $("#map").style.cursor = on ? "crosshair" : "";
+  $("#map-box").classList.toggle("is-picking", on);
   renderConds();
+  if (on) $("#map-box").scrollIntoView({ block: "center" });
 }
 
 /* ---------- zoom y arrastre ---------- */
 function svgPoint(svg, ev) {
-  const r = svg.getBoundingClientRect(), v = S.view;
-  return { x: v.x + (ev.clientX - r.left) / r.width * v.w,
-           y: v.y + (ev.clientY - r.top) / r.height * v.h };
+  const point = svg.createSVGPoint();
+  point.x = ev.clientX;
+  point.y = ev.clientY;
+  return point.matrixTransform(svg.getScreenCTM().inverse());
 }
 function zoomFit() { S.view = { x: 0, y: 0, w: MAP_W, h: MAP_H }; render(); }
 function zoom(k, cx, cy) {

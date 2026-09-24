@@ -767,7 +767,7 @@ if (ANC && ISOZ && ISOZ.ids?.length) {
       json: async () => JSON.parse(readFileSync(new URL("../pages/" + p, import.meta.url), "utf8")) });
     globalThis.atob = (b) => Buffer.from(b, "base64").toString("binary");
     api = new Function(js + `
-      return { S, initConds, recompute, minsLliure, fetchJSON, carregaIso,
+      return { S, initConds, recompute, minsLliure, fetchJSON, carregaIso, svgPoint,
                set DATA_(v){ DATA = v }, get DATA_(){ return DATA },
                get LLIURE_(){ return LLIURE },
                set PUNT_(v){ S.puntLliure = v } };
@@ -782,6 +782,36 @@ if (ANC && ISOZ && ISOZ.ids?.length) {
 
   if (api) {
     ok(true, "el <script> de transporte-publico.html se ejecuta con un DOM de mentira");
+
+    const viewBefore = api.S.view;
+    for (const viewport of [
+      { name: "proporción original", width: 900, height: 640, view: { x: 0, y: 0, w: 900, h: 640 } },
+      { name: "escritorio ancho", width: 990, height: 600, view: { x: 0, y: 0, w: 900, h: 640 } },
+      { name: "móvil cuadrado", width: 360, height: 360, view: { x: 0, y: 0, w: 900, h: 640 } },
+      { name: "móvil con zoom y desplazamiento", width: 360, height: 360, view: { x: 20, y: 30, w: 450, h: 320 } },
+    ]) {
+      api.S.view = viewport.view;
+      const scale = Math.min(viewport.width / viewport.view.w, viewport.height / viewport.view.h);
+      const offsetX = 24 + (viewport.width - viewport.view.w * scale) / 2;
+      const offsetY = 160 + (viewport.height - viewport.view.h * scale) / 2;
+      const inverse = { a: 1 / scale, d: 1 / scale,
+        e: viewport.view.x - offsetX / scale, f: viewport.view.y - offsetY / scale };
+      const svg = {
+        getBoundingClientRect: () => ({ left: 24, top: 160, width: viewport.width, height: viewport.height }),
+        getScreenCTM: () => ({ inverse: () => inverse }),
+        createSVGPoint: () => ({ x: 0, y: 0,
+          matrixTransform(matrix) {
+            return { x: this.x * matrix.a + matrix.e, y: this.y * matrix.d + matrix.f };
+          } }),
+      };
+      const actual = api.svgPoint(svg, {
+        clientX: offsetX + (120 - viewport.view.x) * scale,
+        clientY: offsetY + (110 - viewport.view.y) * scale,
+      });
+      ok(Math.abs(actual.x - 120) < 1e-8 && Math.abs(actual.y - 110) < 1e-8,
+        `selección y zoom respetan las coordenadas SVG: ${viewport.name}`);
+    }
+    api.S.view = viewBefore;
 
     const porPunt = new Map();
     let totes = [], maxEst = 0, maxQui = "";

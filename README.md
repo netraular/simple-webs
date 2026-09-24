@@ -48,6 +48,18 @@ node build-mercados.mjs   # --fresh re-downloads instead of using the cache
 node test-mercados.mjs
 ```
 
+`transporte-publico.html` is the one pipeline with a required order — each step
+feeds the next, and every step is resumable:
+
+```sh
+cd data-src
+python3 fetch-transit.py     # ~1.150 routing queries, ~1 h
+python3 fetch-isocronas.py   # 165 one-to-all queries, ~6 min
+node fetch-linies.mjs        # OpenStreetMap; needs transit.json to pick the buses
+node build-transport.mjs     # writes pages/data/
+node test-transport.mjs      # contract, coverage and estimator error
+```
+
 Behind a TLS-intercepting proxy, prefix those with
 `NODE_EXTRA_CA_CERTS=/etc/ssl/certs/ca-certificates.crt`.
 

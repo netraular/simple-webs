@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>¿El S&P 500 renta un 10 % al año? · 155 años de datos</title>
-<meta name="description" content="La frase 'el S&P 500 ha dado un 10 % anual' contrastada con los datos mensuales de Shiller desde 1871: año a año, ventanas móviles, inflación descontada y comparación con bonos, letras, oro, vivienda, Nikkei, IBEX 35 y bitcoin.">
+<meta name="description" content="La frase 'el S&P 500 ha dado un 10 % anual' contrastada con los datos mensuales de Shiller desde 1871: año a año, ventanas móviles, inflación descontada y comparación con el oro, la vivienda y la bolsa mundial.">
 <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f9f9f7">
 <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0d0d0d">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='88'>📈</text></svg>">
@@ -20,8 +20,8 @@
      posición en la lista, así que filtrar no repinta a los supervivientes.
    - Polaridad (ganar o perder): par divergente azul↔rojo con gris neutro.
    - La inflación nunca es una serie: es la línea de referencia, en gris.
-   Bitcoin y el IBEX 35 comparten la ranura roja porque nunca aparecen en el
-   mismo gráfico; cada uno lleva leyenda y etiqueta directa.
+   El Nikkei y el IBEX 35 conservan su ranura aunque estén fuera del
+   comparador: cada uno tiene su propio panel en la sección del sesgo.
    =========================================================================== */
 
 :root{
@@ -46,10 +46,16 @@
   --series-5:#e87ba4;  /* Nikkei 225 */
   --series-6:#008300;  /* letras 3 meses */
   --series-7:#4a3aa7;  /* desarrollados sin EE. UU. */
-  --series-8:#e34948;  /* IBEX 35 / bitcoin */
+  --series-8:#e34948;  /* IBEX 35 */
 
-  /* --- par divergente para el signo de la rentabilidad --- */
-  --pos:#2a78d6;  --neg:#e34948;
+  /* --- par divergente para el signo de la rentabilidad, con un escalón
+     intermedio para el año que gana pero se queda por debajo de la media.
+     El verde sale del validador de paleta: es el único candidato que pasa las
+     seis comprobaciones contra el azul y el rojo. Su separación con el rojo en
+     deuteranopia queda en la banda 6–8, admisible aquí porque el signo también
+     está codificado por la posición (encima o debajo del cero) y cada gráfico
+     tiene su gemelo en tabla. --- */
+  --pos:#2a78d6;  --pos-baja:#189b6b;  --neg:#e34948;
 
   /* --- referencia: la inflación y las líneas de contexto no son series --- */
   --ref:#898781;
@@ -62,7 +68,7 @@
     --focus:#3987e5;
     --series-1:#3987e5; --series-2:#d95926; --series-3:#199e70; --series-4:#c98500;
     --series-5:#d55181; --series-6:#008300; --series-7:#9085e9; --series-8:#e66767;
-    --pos:#3987e5; --neg:#e66767;
+    --pos:#3987e5; --pos-baja:#199e70; --neg:#e66767;
     --muted-txt:#9d9b95;
   }
 }
@@ -73,7 +79,7 @@
   --focus:#3987e5;
   --series-1:#3987e5; --series-2:#d95926; --series-3:#199e70; --series-4:#c98500;
   --series-5:#d55181; --series-6:#008300; --series-7:#9085e9; --series-8:#e66767;
-  --pos:#3987e5; --neg:#e66767;
+  --pos:#3987e5; --pos-baja:#199e70; --neg:#e66767;
   --muted-txt:#9d9b95;
 }
 
@@ -252,10 +258,6 @@ footer a{color:var(--muted-txt)}
     <p class="lede">Sí, más o menos, si uno mide desde 1928, en dólares, sin descontar la inflación,
       reinvirtiendo cada dividendo y sin pagar comisiones ni impuestos. Casi ninguna de esas
       condiciones describe a un inversor real.</p>
-    <p class="lede">Esta página coge las series mensuales de Robert Shiller y las de la Reserva Federal
-      y deja que cada cual mire el dato por su cuenta: <b>año a año</b>, por <b>ventana de entrada y
-      salida</b>, con la <b>inflación descontada</b> y al lado de los activos con los que se compara.
-      Ningún número está inventado; los dos que están calculados llevan su fórmula escrita.</p>
     <p class="stamp" id="stamp">Cargando datos…</p>
   </header>
 </div>
@@ -273,8 +275,7 @@ footer a{color:var(--muted-txt)}
       <label for="coste">Coste anual %</label>
       <input type="number" id="coste" min="0" max="5" step="0.05" value="0" inputmode="decimal">
     </div>
-    <p class="hint">Lo real descuenta el IPC de EE.&nbsp;UU.: mide poder de compra, no dólares.
-      El coste anual resta comisiones de fondo, custodia o lo que quieras suponer, mes a mes.</p>
+    <p class="hint">Real descuenta el IPC de EE.&nbsp;UU. El coste anual se resta mes a mes.</p>
   </div>
 </div>
 
@@ -284,14 +285,11 @@ footer a{color:var(--muted-txt)}
   <!-- ====================== 1 · el titular ====================== -->
   <section id="titular">
     <div class="tiles" id="tiles-hero"></div>
-    <div class="note" id="nota-hero"></div>
   </section>
 
   <!-- ====================== 2 · año a año ====================== -->
   <div class="sec-head">
     <h2>Un 10&nbsp;% de media, pero casi ningún año del 10&nbsp;%</h2>
-    <p>La media es un resumen, no una experiencia. Esto es lo que hizo el índice cada año natural
-      desde 1871. La franja azul marca la zona “normal” que la frase sugiere, del 8&nbsp;% al 12&nbsp;%.</p>
   </div>
   <section id="anual">
     <div class="card">
@@ -302,11 +300,7 @@ footer a{color:var(--muted-txt)}
         </div>
       </div>
       <div class="chart" id="ch-anual"></div>
-      <div class="legend">
-        <span class="it"><i class="key" style="background:var(--pos)"></i>Año en positivo</span>
-        <span class="it"><i class="key" style="background:var(--neg)"></i>Año en negativo</span>
-        <span class="it"><i class="key" style="background:var(--series-1);opacity:.35"></i>Franja del 8&nbsp;% al 12&nbsp;%</span>
-      </div>
+      <div class="legend" id="lg-anual"></div>
       <details class="tbl"><summary>Ver los datos en tabla</summary>
         <div class="table-scroll" id="tb-anual"></div>
       </details>
@@ -315,6 +309,7 @@ footer a{color:var(--muted-txt)}
       <h3>La misma serie, ordenada por tramos</h3>
       <p class="sub" id="s-hist-anual"></p>
       <div class="chart" id="ch-hist-anual"></div>
+      <div class="legend" id="lg-hist-anual"></div>
       <details class="tbl"><summary>Ver el reparto en tabla</summary>
         <div class="table-scroll" id="tb-hist-anual"></div>
       </details>
@@ -324,10 +319,6 @@ footer a{color:var(--muted-txt)}
   <!-- ====================== 3 · ventanas móviles ====================== -->
   <div class="sec-head">
     <h2>Lo que importa no es la media: es cuándo entraste y cuándo saliste</h2>
-    <p>Aquí no se elige un periodo bonito. Se calculan <b>todas</b> las ventanas posibles de la
-      duración que marques, mes a mes, y se muestran todas a la vez. Cada punto es un inversor que
-      empezó ese mes y aguantó exactamente ese tiempo, ya pusiera el dinero <b>de golpe</b> o
-      <b>aportando cada mes</b>.</p>
   </div>
   <section id="ventanas">
     <div class="card">
@@ -373,8 +364,6 @@ footer a{color:var(--muted-txt)}
   <!-- ====================== 4 · simulador ====================== -->
   <div class="sec-head">
     <h2>Ponle tu fecha y tu dinero</h2>
-    <p>Elige cuándo entraste, cuánto pusiste y cuánto tiempo aguantaste. Los casos de abajo son los
-      momentos que se suelen citar; los tres primeros son los peores de la historia del índice.</p>
   </div>
   <section id="simulador">
     <div class="card">
@@ -414,9 +403,7 @@ footer a{color:var(--muted-txt)}
   <!-- ====================== 5 · comparativa ====================== -->
   <div class="sec-head">
     <h2>¿Y comparado con qué?</h2>
-    <p>Un 10&nbsp;% no significa nada suelto. Esto es el mismo dinero, desde el mismo mes, en cada
-      activo del que hay serie pública. Escala logarítmica: la misma pendiente es la misma
-      rentabilidad, y así los años recientes no aplastan a los antiguos.</p>
+    <p>Escala logarítmica: la misma pendiente es la misma rentabilidad.</p>
   </div>
   <section id="comparativa">
     <div class="card">
@@ -450,9 +437,6 @@ footer a{color:var(--muted-txt)}
   <!-- ====================== 6 · el sesgo ====================== -->
   <div class="sec-head">
     <h2>El país que salió bien</h2>
-    <p>Toda esta página trata de EE.&nbsp;UU., que es el mercado que mejor terminó el siglo XX. Esa
-      es exactamente la razón por la que tenemos la frase del 10&nbsp;%. Tres contraejemplos, con la
-      misma escala y el mismo método.</p>
   </div>
   <section id="sesgo">
     <div class="grid-2">
@@ -488,45 +472,19 @@ footer a{color:var(--muted-txt)}
     </div>
     <div class="card prose">
       <h3 style="margin-top:0">Y el dato que no sale de esta página</h3>
-      <p>Los únicos que han reconstruido más de un siglo de bolsa en muchos países a la vez son
-        Dimson, Marsh y Staunton, en el <i>Global Investment Returns Yearbook</i> que publica UBS.
-        Sus cifras, que no salen de los datos de aquí sino de su propio trabajo, ponen la frase en su
-        sitio: entre 1900 y 2024, la bolsa <b>mundial</b> rindió un <b>5,2&nbsp;% real anual</b>; los
-        bonos, un 1,7&nbsp;%; las letras, un 0,5&nbsp;%. Y para 1900–2023 sitúan a
-        <b>EE.&nbsp;UU. en el 6,5&nbsp;% real, el más alto de los 21 países</b> con serie continua,
-        con Japón en el 4,4&nbsp;% y la mediana de los países cerca del 4,5&nbsp;%.</p>
-      <p>Dicho de otra forma: el número que todo el mundo repite es el del país que quedó primero,
-        contado después de saber quién quedó primero. La bolsa mundial también ganó a los bonos en los
-        21 países, que es la parte de la frase que sí aguanta; lo que no aguanta es el 10&nbsp;%.</p>
+      <p>Dimson, Marsh y Staunton (<i>Global Investment Returns Yearbook</i>, UBS), 1900–2024:
+        la bolsa <b>mundial</b> rindió un <b>5,2&nbsp;% real anual</b>; los bonos, un 1,7&nbsp;%.
+        Para 1900–2023, <b>EE.&nbsp;UU. es el más alto de los 21 países</b> con serie continua
+        (6,5&nbsp;% real), con Japón en el 4,4&nbsp;% y la mediana cerca del 4,5&nbsp;%.</p>
     </div>
   </section>
 
-  <!-- ====================== 7 · bitcoin ====================== -->
-  <div class="sec-head">
-    <h2>El activo que rompe la escala</h2>
-    <p>Bitcoin va aparte porque no cabe en el mismo gráfico sin deformarlo todo, y porque doce años
-      no son una serie histórica: son un tramo.</p>
-  </div>
-  <section id="bitcoin">
-    <div class="card">
-      <h3 id="t-btc">Bitcoin frente al S&amp;P 500, misma fecha de partida</h3>
-      <p class="sub" id="s-btc"></p>
-      <div class="chart" id="ch-btc"></div>
-      <div class="legend" id="lg-btc"></div>
-      <div class="note warn" id="nota-btc"></div>
-      <details class="tbl"><summary>Ver los datos en tabla</summary>
-        <div class="table-scroll" id="tb-btc"></div>
-      </details>
-
-    </div>
-  </section>
-
-  <!-- ====================== 8 · método ====================== -->
-  <div class="sec-head">
-    <h2>Qué hay detrás de estos números</h2>
-  </div>
+  <!-- ====================== 7 · método ====================== -->
   <section id="metodo">
-    <div class="card prose" id="prosa-metodo"></div>
+    <details class="tbl">
+      <summary>Qué hay detrás de estos números: fuentes, método y lo que no está contado</summary>
+      <div class="card prose" id="prosa-metodo" style="margin-top:12px"></div>
+    </details>
   </section>
 
 </main>
@@ -668,20 +626,23 @@ function rango(v) {
 const ACTIVOS = [
   { id: "sp500_tr",   c: "var(--series-1)", corto: "S&P 500", nota: "con dividendos" },
   { id: "oro",        c: "var(--series-2)", corto: "Oro", nota: "precio del metal" },
-  { id: "bonos10",    c: "var(--series-3)", corto: "Bonos 10a EE. UU.", nota: "cupón + precio" },
   { id: "vivienda_us",c: "var(--series-4)", corto: "Vivienda EE. UU.", nota: "solo precio" },
-  { id: "nikkei",     c: "var(--series-5)", corto: "Nikkei 225", nota: "solo precio, en yenes" },
-  { id: "letras3m",   c: "var(--series-6)", corto: "Letras 3m", nota: "el “no invertir”" },
   // MSCI World y MSCI EAFE son el mismo tono a propósito: la paleta tiene ocho
   // ranuras validadas para daltonismo y un noveno tono inventado no lo estaría.
   // Se distinguen por el trazo (continuo / discontinuo), que es codificación
   // compuesta y no depende del color.
   { id: "mundo_exus", c: "var(--series-7)", corto: "Mundo sin EE. UU.", nota: "con dividendos" },
   { id: "mundo",      c: "var(--series-7)", rayada: true, corto: "Mundo (MSCI World)", nota: "con dividendos" },
-  { id: "ibex",       c: "var(--series-8)", corto: "IBEX 35", nota: "solo precio, en euros" },
 ];
 const META = (id) => D.series[id];
-const COLOR = (id) => ACTIVOS.find((a) => a.id === id)?.c || "var(--series-1)";
+/**
+ * Color de una entidad. El Nikkei y el IBEX ya no están en el comparador, pero
+ * siguen teniendo su panel propio en la sección del sesgo, así que conservan su
+ * ranura de la paleta aquí: si se resolvieran por `ACTIVOS` caerían en el azul
+ * por defecto y se confundirían con el S&P 500 en su propio gráfico.
+ */
+const EXTRA = { nikkei: "var(--series-5)", ibex: "var(--series-8)" };
+const COLOR = (id) => ACTIVOS.find((a) => a.id === id)?.c || EXTRA[id] || "var(--series-1)";
 
 /* ===========================================================================
    Primitivas de dibujo. SVG a mano: viewBox fijo, ancho 100 %.
@@ -945,8 +906,12 @@ function hoverDiscreto(g, items, { titulo } = {}) {
   });
 }
 
-/** Histograma de una lista de rentabilidades anualizadas, en tramos de `paso`. */
-function histograma(host, datos, { paso = 5, titulo, etiqueta, tabla: hostTabla = null }) {
+/**
+ * Histograma de una lista de rentabilidades anualizadas, en tramos de `paso`.
+ * Con `umbral` los tramos en positivo se parten en dos colores: por debajo y
+ * por encima de esa cifra (la media de largo plazo).
+ */
+function histograma(host, datos, { paso = 5, titulo, etiqueta, tabla: hostTabla = null, umbral = null }) {
   const min = Math.floor(Math.min(...datos) / paso) * paso;
   const max = Math.ceil(Math.max(...datos) / paso) * paso;
   const nb = Math.max(1, Math.round((max - min) / paso));
@@ -966,7 +931,12 @@ function histograma(host, datos, { paso = 5, titulo, etiqueta, tabla: hostTabla 
     const w = Math.max(1, bw - 2); // separación de 2 px en el color de la superficie
     const nodo = g.add(el("rect", {
       x, y: y(b.n), width: w, height: Math.max(b.n ? 1 : 0, alto),
-      fill: b.b <= 0 ? "var(--neg)" : "var(--pos)", rx: Math.min(4, w / 2),
+      // El tramo que cruza el umbral se decide por su punto medio: con tramos
+      // de cinco puntos y una media del 9,4 %, el 5–10 cae por debajo.
+      fill: b.b <= 0 ? "var(--neg)"
+        : umbral != null && (b.a + b.b) / 2 <= umbral ? "var(--pos-baja)"
+        : "var(--pos)",
+      rx: Math.min(4, w / 2),
     }));
     items.push({
       nodo, cx: x + w / 2,
@@ -1033,49 +1003,24 @@ function añosNaturales(id) {
 registra(function titular() {
   const v = serie("sp500_tr");
   const [a, b] = rango(v);
-  const años = añosNaturales("sp500_tr");
-  const enLaFranja = años.filter((x) => x.r >= 8 && x.r <= 12).length;
-  const i1928 = i0("1928-01");
-  const veces = v[b] / v[a];
-  const optica = S.real ? "descontada la inflación" : "en dólares corrientes";
-  const coste = S.coste > 0 ? `, menos ${nf(2).format(S.coste)} % anual de costes` : "";
+  const optica = S.real ? "real, descontada la inflación" : "en dólares corrientes";
 
   $("#tiles-hero").innerHTML = `
     <div class="tile hero">
       <div class="k">S&P 500 con dividendos · ${M[a].slice(0, 4)} – ${M[b].slice(0, 4)}</div>
-      <div class="v">${pct(cagr(v, a, b), 1).replace(" %", " %")}</div>
-      <div class="s">al año, ${optica}${coste}. Es la media geométrica de ${Math.floor((b - a) / 12)} años:
-        el número que resume la frase entera.</div>
+      <div class="v">${pct(cagr(v, a, b), 1)}</div>
+      <div class="s">al año, ${optica}.</div>
     </div>
     <div class="tile">
       <div class="k">Desde 1928</div>
-      <div class="v">${pct(cagr(v, i1928, b))}</div>
-      <div class="s">El periodo que suele citarse, y el más generoso de los tres.</div>
+      <div class="v">${pct(cagr(v, i0("1928-01"), b))}</div>
+      <div class="s">El periodo que suele citarse.</div>
     </div>
     <div class="tile">
       <div class="k">Últimos 30 años</div>
       <div class="v">${pct(cagr(v, b - 360, b))}</div>
       <div class="s">Desde ${mesLargo(M[b - 360])}.</div>
-    </div>
-    <div class="tile">
-      <div class="k">Años “del 10 %”</div>
-      <div class="v">${enLaFranja} de ${años.length}</div>
-      <div class="s">Años naturales que acabaron entre +8 % y +12 %: el
-        ${nf(0).format((enLaFranja / años.length) * 100)} % de las veces.</div>
-    </div>
-    <div class="tile">
-      <div class="k">1 $ de ${M[a].slice(0, 4)}</div>
-      <div class="v">${mult(veces)}</div>
-      <div class="s">${S.real ? "En poder de compra de hoy." : "En dólares de hoy, sin descontar la inflación."}</div>
     </div>`;
-
-  const ipc = serie("ipc");
-  $("#nota-hero").innerHTML = S.real
-    ? `Estás mirando <b>rentabilidad real</b>: lo que queda después de la inflación, que en este
-       periodo fue del ${pct(cagr(ipc, a, b))} anual. Es lo que de verdad cambia tu poder de compra,
-       y es entre dos y tres puntos menos que la cifra que se suele repetir.`
-    : `Estás mirando <b>rentabilidad nominal</b>. La inflación de EE.&nbsp;UU. se comió un
-       ${pct(cagr(ipc, a, b))} anual en el mismo periodo: pulsa <b>Real</b> arriba para ver qué queda.`;
 });
 
 /* ------------------------------------------------------- 2 · año a año --- */
@@ -1090,8 +1035,13 @@ registra(function anual() {
   const y = (r) => g.y1 - ((r - min) / (max - min)) * (g.y1 - g.y0);
   ejeY(g, ticksLineal(min, max, 6), y, (v) => pctS(v, 0), { cero: 0 });
 
-  // Franja del 8 % al 12 %: la "normalidad" que sugiere la frase.
-  g.add(el("rect", { x: g.x0, y: y(12), width: g.x1 - g.x0, height: y(8) - y(12), class: "band" }));
+  // El umbral que parte los años en positivo es la media de largo plazo: la
+  // misma cifra del titular, dibujada para que el color no sea el único aviso.
+  const [ra, rb] = rango(serie("sp500_tr"));
+  const media = cagr(serie("sp500_tr"), ra, rb);
+  // Sin etiqueta sobre la línea: las barras llegan hasta el borde derecho y la
+  // cifra se pisaría con ellas. La leyenda ya lleva el número.
+  g.add(el("line", { x1: g.x0, x2: g.x1, y1: y(media), y2: y(media), class: "ln-ref" }));
   g.add(el("line", { x1: g.x0, x2: g.x1, y1: y(0), y2: y(0), class: "ax" }));
 
   const bw = (g.x1 - g.x0) / años.length;
@@ -1105,12 +1055,14 @@ registra(function anual() {
     const alto = Math.abs(y(d.r) - y(0));
     const nodo = g.add(el("rect", {
       x: cx - w / 2, y: Math.min(y(d.r), y(0)), width: w, height: Math.max(1, alto),
-      fill: d.r >= 0 ? "var(--pos)" : "var(--neg)", rx: Math.min(4, w / 2),
+      fill: d.r < 0 ? "var(--neg)" : d.r < media ? "var(--pos-baja)" : "var(--pos)",
+      rx: Math.min(4, w / 2),
     }));
     items.push({
       nodo, cx,
       html: `<b>${d.y}</b><div class="row"><span>S&P 500 con dividendos</span><b>${pctS(d.r)}</b></div>` +
-        (d.r >= 8 && d.r <= 12 ? `<div class="row"><span>dentro de la franja del 8–12 %</span><b>sí</b></div>` : ""),
+        `<div class="row"><span>frente a la media de ${pctS(media)}</span><b>${
+          d.r < 0 ? "en pérdidas" : d.r < media ? "por debajo" : "por encima"}</b></div>`,
     });
     // Etiquetas directas solo en los dos extremos: el resto lo cuenta el eje.
     // La del año malo se coloca justo debajo de la línea del cero, no al final
@@ -1129,30 +1081,36 @@ registra(function anual() {
   }, nEtiquetas(g)));
   hoverDiscreto(g, items, { titulo: "Rentabilidad del S&P 500 por año natural" });
 
-  const enFranja = años.filter((d) => d.r >= 8 && d.r <= 12);
-  const negativos = años.filter((d) => d.r < 0);
-  const extremos = años.filter((d) => Math.abs(d.r) > 20);
+  const bajos = años.filter((d) => d.r >= 0 && d.r < media).length;
+  const negativos = años.filter((d) => d.r < 0).length;
   $("#t-anual").textContent = `Rentabilidad de cada año natural (${años[0].y}–${años.at(-1).y})`;
   $("#s-anual").innerHTML =
-    `${años.length} años completos, de diciembre a diciembre, ${S.real ? "descontada la inflación" : "en dólares corrientes"}. ` +
-    `<b>${enFranja.length}</b> cayeron dentro de la franja del 8 al 12 %; <b>${negativos.length}</b> acabaron en pérdidas ` +
-    `y <b>${extremos.length}</b> se movieron más de 20 puntos arriba o abajo. La media es un punto por el que la serie casi nunca pasa.`;
+    `${años.length} años · ${años.length - bajos - negativos} por encima de la media · ` +
+    `${bajos} en positivo por debajo · ${negativos} en pérdidas`;
+  leyenda($("#lg-anual"), [
+    { nombre: `Por encima de la media (${pctS(media)})`, color: "var(--pos)" },
+    { nombre: "En positivo, por debajo de la media", color: "var(--pos-baja)" },
+    { nombre: "En pérdidas", color: "var(--neg)" },
+    { nombre: "Media de largo plazo", dash: true },
+  ]);
 
-  tabla($("#tb-anual"), ["Año", "Rentabilidad", "¿En la franja 8–12 %?"],
-    años.slice().reverse().map((d) => [String(d.y), pctS(d.r), d.r >= 8 && d.r <= 12 ? "sí" : "no"]),
+  tabla($("#tb-anual"), ["Año", "Rentabilidad", `Frente a la media (${pctS(media)})`],
+    años.slice().reverse().map((d) => [
+      String(d.y), pctS(d.r), d.r < 0 ? "en pérdidas" : d.r < media ? "por debajo" : "por encima",
+    ]),
     "Rentabilidad del S&P 500 en cada año natural");
 
-  // Histograma de los mismos años.
+  // Histograma de los mismos años, con el mismo corte de color.
   histograma($("#ch-hist-anual"), años.map((d) => d.r), {
     paso: 5, etiqueta: "años", titulo: "Reparto de las rentabilidades anuales",
-    tabla: $("#tb-hist-anual"),
+    tabla: $("#tb-hist-anual"), umbral: media,
   });
-  const moda = [[0, 10], [10, 20], [-10, 0], [20, 30]].map(([a2, b2]) =>
-    ({ a: a2, b: b2, n: años.filter((d) => d.r >= a2 && d.r < b2).length }));
-  $("#s-hist-anual").innerHTML =
-    `Cuántos años cayeron en cada tramo de cinco puntos. El montón no está en el 10 %: está repartido. ` +
-    `Entre 0 y +10 % hubo ${moda[0].n} años, entre +10 y +20 % otros ${moda[1].n}, y ${moda[2].n} entre −10 y 0 %. ` +
-    `Con datos ${S.real ? "reales" : "nominales"}.`;
+  $("#s-hist-anual").innerHTML = `Cuántos años cayeron en cada tramo de cinco puntos.`;
+  leyenda($("#lg-hist-anual"), [
+    { nombre: `Por encima de la media (${pctS(media)})`, color: "var(--pos)" },
+    { nombre: "En positivo, por debajo", color: "var(--pos-baja)" },
+    { nombre: "En pérdidas", color: "var(--neg)" },
+  ]);
 });
 
 /* --------------------------------------------------- 3 · ventanas móviles */
@@ -1370,54 +1328,22 @@ registra(function rolling() {
   ]);
 
   const dif = mejor.r - peor.r;
-  const peorOtro = otras.length ? otras.reduce((p, c) => (c.r < p.r ? c : p)) : null;
   const difOtro = otras.length ? Math.max(...rsOtras) - Math.min(...rsOtras) : null;
   const huecoIpc = S.real && D.ipc.indexOf(null, i0("2000-01")) > 0;
   $("#nota-vent").innerHTML =
-    (huecoIpc
-      ? `<b>Un aviso de los datos:</b> no hay IPC publicado para octubre de 2025, así que las series
-         reales llevan ahí un hueco de un mes; no se rellena con una estimación. `
-      : "") +
-    `Entre ${dca ? "el mejor y el peor arranque" : "la mejor y la peor entrada"} hay
-     <b>${nf(1).format(dif)} puntos</b> de diferencia anual` +
-    (difOtro != null
-      ? ` (${dca ? "poniéndolo de golpe" : "aportando cada mes"} eran ${nf(1).format(difOtro)})`
-      : "") +
-    `, y el inversor no eligió: le tocó. ` +
-    (dca
-      ? `Aguantando ${etiquetaAños}, el peor plan empezó a aportar en <b>${mesLargo(M[peor.i])}</b> y
-         liquidó en ${mesLargo(M[peor.i + meses])} con ${pctS(peor.r)} anual (${mult(peor.x)} lo aportado)` +
-        (peorOtro ? `; de golpe, el peor mes de entrada fue ${mesLargo(M[peorOtro.i])}, con ${pctS(peorOtro.r)} anual` : "") +
-        `. ` +
-        (difOtro != null && dif > difOtro
-          ? `Aquí conviene desmontar un tópico: aportar cada mes quita el riesgo de <b>acertar el mes
-             de entrada</b>, pero a este plazo <b>no</b> estrecha el resultado, lo ensancha. Como la
-             mayor parte del dinero lleva poco tiempo invertido, lo que manda es dónde esté el mercado
-             el día de liquidar. `
-          : `A este plazo, aportar cada mes sí estrecha el abanico: ninguna aportación concentra todo
-             el riesgo en un único precio de entrada. `) +
-        `La <b>TIR</b> es la rentabilidad que iguala todas las aportaciones con el valor final, y no
-         es la del índice. `
-      : `Aguantando ${etiquetaAños}, la peor racha empezó en <b>${mesLargo(M[peor.i])}</b> y terminó en
-         ${mesLargo(M[peor.i + meses])} con ${pctS(peor.r)} anual (${mult(Math.pow(1 + peor.r / 100, años))} el dinero)` +
-        (peorOtro ? `; aportando cada mes, el peor arranque dio ${pctS(peorOtro.r)} anual` : "") +
-        `. `) +
-    (S.real
-      ? `Todas estas cifras van <b>con la inflación descontada</b>: son poder de compra, no dólares.`
-      : `Estas cifras son <b>nominales</b>: pulsa <b>Real</b> arriba para descontar la inflación.`);
+    `Abanico: <b>${nf(1).format(dif)} puntos</b> ${dca ? "aportando cada mes" : "de golpe"}` +
+    (difOtro != null ? ` · ${nf(1).format(difOtro)} ${dca ? "de golpe" : "aportando cada mes"}` : "") +
+    (huecoIpc ? ` · sin IPC de octubre de 2025, las series reales llevan ahí un hueco de un mes` : "");
 
   histograma($("#ch-hist-vent"), rs, {
-    paso: años <= 3 ? 5 : 2, etiqueta: "ventanas",
+    paso: 1, etiqueta: "ventanas",
     titulo: dca
       ? `Reparto de las ventanas de aportación mensual de ${años} años`
       : `Reparto de las ventanas de ${años} años`,
     tabla: $("#tb-hist-vent"),
   });
   $("#s-hist-vent").innerHTML =
-    `Las mismas ${new Intl.NumberFormat("es-ES").format(vs.length)} ventanas ` +
-    `${dca ? "de aportación mensual" : "de entrada única"}, contadas por tramos. ` +
-    `Cuanto más largo el plazo, más se estrecha el montón: eso, y no la media, es lo que de verdad
-     mejora con el tiempo.`;
+    `Las mismas ${new Intl.NumberFormat("es-ES").format(vs.length)} ventanas, punto a punto.`;
 
   // Tabla resumen de todos los horizontes, que es la vista accesible del mando:
   // enseña los dos modos a la vez, que es justo lo que el gráfico compara.
@@ -1621,24 +1547,9 @@ registra(function simulador() {
 
   const finIpc = ultimoCon(D.ipc, i, fin);
   $("#nota-sim").innerHTML =
-    (finIpc
-      ? `Entre ${mesLargo(SIM.mes)} y ${mesLargo(M[finIpc])} la inflación de EE.&nbsp;UU. fue del
-         <b>${pct(cagr(ipc, i, finIpc))} anual</b> (${mult(raz(ipc, i, finIpc))} los precios). `
-      : "") +
-    (recortado
-      ? `<b>El plazo se ha recortado</b> a ${mesLargo(M[fin])}: el mes que pedías no tiene dato
-         publicado en todas las series que hacen falta. `
-      : "") +
-    (dca
-      ? `Aportando cada mes, el momento de entrada pesa mucho menos: se compra caro y barato a la vez.
-         La TIR es la rentabilidad que iguala todos esos flujos, que no es la del índice. `
-      : `Poner todo de golpe hace que el resultado dependa del mes exacto: prueba a mover la fecha
-         un año arriba o abajo y compara. `) +
-    (dca && S.real
-      ? `Ojo con la aportación: en modo real, esos ${dinero(importe)} $ al mes son <b>poder de compra
-         de ${mesLargo(SIM.mes)}</b>, así que equivalen a un recibo que sube cada año con el IPC. `
-      : "") +
-    `Nada de esto descuenta impuestos: en España, la plusvalía tributa al 19-30 % al venderla.`;
+    (finIpc ? `Inflación en el periodo: <b>${pct(cagr(ipc, i, finIpc))} anual</b> (${mult(raz(ipc, i, finIpc))} los precios). ` : "") +
+    (recortado ? `Plazo recortado a ${mesLargo(M[fin])}: el mes pedido no tiene dato publicado. ` : "") +
+    `Sin impuestos.`;
 
   tablaSerie($("#tb-sim"), "Evolución de la cartera y del dinero aportado, año a año", [
     { nombre: "Valor de la cartera ($)", v: valor, fmt: (x) => dinero(x) },
@@ -1680,7 +1591,7 @@ $$("#presets .btn").forEach((b) => b.addEventListener("click", () => {
 
 const CMP = {
   mes: "1971-01",
-  activos: new Set(["sp500_tr", "bonos10", "oro", "letras3m"]),
+  activos: new Set(["sp500_tr", "oro", "vivienda_us", "mundo_exus", "mundo"]),
 };
 // 2012 no es una fecha redonda cualquiera: es el primer mes de MSCI World en
 // estos datos, así que es el único tramo en el que se le puede comparar.
@@ -1797,29 +1708,20 @@ registra(function comparativa() {
   ]);
 
   // El aviso de "solo precio" vale para lo que reparte rentas y aquí no se
-  // cuentan (bolsa, vivienda). El oro y el bitcoin no reparten nada: su precio
-  // ya es toda su rentabilidad, y meterlos en la misma frase sería falso.
-  const sinRentas = puestos.filter((act) => !META(act.id).dividendos && act.id !== "oro" && act.id !== "bitcoin");
+  // cuentan (bolsa, vivienda). El oro no reparte nada: su precio ya es toda su
+  // rentabilidad, y meterlo en la misma frase sería falso.
+  const sinRentas = puestos.filter((act) => !META(act.id).dividendos && act.id !== "oro");
   const oroPatron = puestos.some((act) => act.id === "oro") && CMP.mes < "1968-04";
   $("#nota-comp").innerHTML =
     (sinRentas.length
-      ? `<b>Ojo con la comparación:</b> ${sinRentas.map((a2) => a2.corto).join(", ")}
-         ${sinRentas.length === 1 ? "es una serie" : "son series"} <b>solo de precio</b>:
-         no llevan${sinRentas.length === 1 ? "" : ""} los dividendos ni los alquileres que fueron cobrando,
-         así que se quedan cortas frente al S&P 500, que sí los lleva. `
+      ? `${sinRentas.map((a2) => a2.corto).join(", ")}: <b>solo precio</b>, sin las rentas que fue pagando. `
       : "") +
-    (oroPatron
-      ? `<b>Y el oro de antes de 1968 no es un precio de mercado:</b> era el que fijaba el patrón oro
-         (20,67 $ la onza, y 35 $ desde 1934). Ese tramo plano no es rentabilidad, es una ley. `
-      : "") +
+    (oroPatron ? `El oro antes de 1968 no es precio de mercado: lo fijaba el patrón oro. ` : "") +
     (tarde.length
-      ? `Sin datos desde ${mesLargo(CMP.mes)}: ${tarde.map((act) => `${act.corto} (desde ${META(act.id).desde.slice(0, 4)})`).join(", ")}. `
+      ? `Sin datos desde ${mesLargo(CMP.mes)}: ${tarde.map((act) => `${act.corto} (${META(act.id).desde.slice(0, 4)})`).join(", ")}. `
       : "") +
-    (sinIpc.length
-      ? `Fuera del modo real: ${sinIpc.map((act) => act.corto).join(", ")}, porque su moneda no tiene IPC en estos datos
-         y deflactarla con el estadounidense sería inventar. `
-      : "") +
-    `Cada índice va en su moneda${S.real ? " y deflactado con el IPC de esa moneda" : ""}, y sin impuestos.`;
+    (sinIpc.length ? `Fuera del modo real: ${sinIpc.map((act) => act.corto).join(", ")}. ` : "") +
+    `Sin impuestos.`;
 
   // Cada fila se cierra en el último mes con dato de SU serie (la vivienda
   // acaba dos meses antes que el resto), y la tabla lo dice en vez de callarlo.
@@ -1892,12 +1794,8 @@ registra(function comparativaDca() {
   }
 
   $("#s-cmp-dca").innerHTML =
-    `En vez de poner el dinero de golpe, se aportan ${CUOTA}&nbsp;$ el primer día de cada mes desde
-     ${mesLargo(M[i])}. La línea dice <b>cuánto vale la cartera por cada dólar aportado</b> hasta ese
-     momento: ×1 es no haber ganado ni perdido nada sobre lo puesto. ` +
-    (S.real
-      ? `Con la inflación descontada, así que ×1 es <b>conservar el poder de compra</b>.`
-      : `En dólares corrientes; la línea gris es lo que haría falta solo para <b>seguir a la inflación</b>.`);
+    `Cuánto vale la cartera por cada dólar aportado. ×1 es no ganar ni perder sobre lo puesto` +
+    (S.real ? `, con la inflación descontada.` : `.`);
 
   const g = marco($("#ch-cmp-dca"), {
     h: 340, ml: 58, mb: 34,
@@ -1955,18 +1853,10 @@ registra(function comparativaDca() {
     ...(planIpc ? [{ nombre: "Seguir a la inflación (referencia)", dash: true }] : []),
   ]);
 
-  const mejor = finales[0];
-  const meses = mejor.p.aportes;
+  const meses = finales[0].p.aportes;
   $("#nota-cmp-dca").innerHTML =
-    `Aportando ${CUOTA}&nbsp;$ al mes durante ${nf(0).format(meses)} meses se ponen
-     ${dinero(meses * CUOTA)}&nbsp;$ en total. La <b>TIR</b> de la tabla es la rentabilidad anual que
-     iguala todas esas aportaciones con el valor final: no es la rentabilidad del índice, porque cada
-     aportación estuvo invertida un tiempo distinto y las últimas casi no dieron tiempo a nada. ` +
-    (S.real
-      ? `Todo va <b>con la inflación descontada</b> y la aportación es constante en poder de compra,
-         es decir, un recibo que sube cada año con el IPC.`
-      : `Todo va en <b>dólares corrientes</b>: pulsa <b>Real</b> arriba para descontar la inflación y
-         ver el poder de compra.`);
+    `${nf(0).format(meses)} aportaciones de ${CUOTA}&nbsp;$ = ${dinero(meses * CUOTA)}&nbsp;$ puestos. ` +
+    `La TIR no es la rentabilidad del índice: cada aportación estuvo invertida un tiempo distinto.`;
 
   const fila = (nombre, color, p, nota, rayada = false) => [
     `<i class="dot-inline" style="${rayada ? `border:2px dashed ${color}` : `background:${color}`}"></i>${esc(nombre)}`,
@@ -2060,12 +1950,11 @@ registra(function sesgo() {
   let recupera = null;
   for (let j = jp + 1; j <= finNk; j++) if (nk[j] != null && nk[j] >= nk[jp]) { recupera = j; break; }
   $("#s-nikkei").innerHTML =
-    `Dos índices <b>solo de precio</b>, cada uno en su moneda y sin descontar inflación ni costes:
-     aquí se comparan dos índices, no dos carteras, y por eso este panel ignora los controles de
-     arriba. Desde el máximo japonés de diciembre de 1989, el Nikkei ${recupera
-       ? `tardó <b>${Math.round((recupera - jp) / 12)} años</b> en volver a ese nivel (${mesLargo(M[recupera])})`
-       : "todavía no ha vuelto a ese nivel"}; anualizado desde entonces, ${pctS(cagr(nk, jp, finNk))}
-     frente al ${pctS(cagr(px, jp, finNk))} del S&P 500.`;
+    (recupera
+      ? `<b>${Math.round((recupera - jp) / 12)} años</b> en recuperar el máximo (${mesCorto(M[recupera])})`
+      : "Todavía por debajo del máximo") +
+    ` · ${pctS(cagr(nk, jp, finNk))} anual frente al ${pctS(cagr(px, jp, finNk))} del S&P 500 ·
+      solo precio, sin inflación ni costes (este panel ignora los mandos de arriba)`;
 
   /* --- El resto de desarrollados --- */
   const ex = serie("mundo_exus"), tr = serie("sp500_tr");
@@ -2080,11 +1969,9 @@ registra(function sesgo() {
   });
   const ie = i0(desdeEx), [, finEx] = rango(ex);
   $("#s-exus").innerHTML =
-    `Europa, Japón y Australasia con dividendos (ETF de MSCI EAFE, en dólares) frente al S&P 500,
-     desde ${mesLargo(desdeEx)}: <b>${pctS(cagr(ex, ie, finEx))}</b> contra
-     <b>${pctS(cagr(tr, ie, finEx))}</b> anual. ${nf(1).format(Math.abs(cagr(tr, ie, finEx) - cagr(ex, ie, finEx)))}
-     puntos menos cada año durante ${Math.round((finEx - ie) / 12)} años son ${mult(raz(ex, ie, finEx))}
-     el dinero frente a ${mult(raz(tr, ie, finEx))}. La bolsa que ganó es justo la que aparece en la frase.`;
+    `Desde ${mesLargo(desdeEx)}: <b>${pctS(cagr(ex, ie, finEx))}</b> contra
+     <b>${pctS(cagr(tr, ie, finEx))}</b> anual · ${mult(raz(ex, ie, finEx))} el dinero frente a
+     ${mult(raz(tr, ie, finEx))}`;
 
   /* --- Desde España: en euros, y con el IPC de aquí --- */
   const desdeEu = "1999-01";
@@ -2109,10 +1996,8 @@ registra(function sesgo() {
   const [, finEu] = rango(ib);
   const cagrUsd = cagr(trNom, ieu, finEu), cagrEur = cagr(trEur, ieu, finEu);
   $("#s-euros").innerHTML =
-    `Desde que existe el euro, ${S.real ? "descontando el IPC español" : "en euros corrientes"}. Los dos
-     índices van <b>sin dividendos</b> porque del IBEX 35 no hay serie pública con ellos, y mezclarlas
-     sería tramposo: con dividendos ambos suben, y el IBEX más, porque históricamente reparte bastante
-     más que el S&P 500.`;
+    `Desde que existe el euro, ${S.real ? "descontando el IPC español" : "en euros corrientes"} ·
+     los dos <b>sin dividendos</b>, porque del IBEX 35 no hay serie pública con ellos`;
   // El efecto divisa en el largo plazo casi se cancela; lo interesante es
   // cuánto pesa dentro de una década concreta, que es el plazo de la gente.
   let peorDec = { dif: Infinity, j: null }, mejorDec = { dif: -Infinity, j: null };
@@ -2128,52 +2013,13 @@ registra(function sesgo() {
   const minC = cambios.reduce((p, c) => (c[0] < p[0] ? c : p));
   const maxC = cambios.reduce((p, c) => (c[0] > p[0] ? c : p));
   $("#nota-euros").innerHTML =
-    `<b>La divisa también cuenta.</b> El S&P 500 con dividendos dio ${pctS(cagrUsd)} anual nominal en
-     dólares desde ${mesLargo(desdeEu)} y ${pctS(cagrEur)} en euros: de punta a punta casi lo mismo,
-     porque el cambio ha vuelto a donde estaba. Por el medio no: el euro osciló entre
-     ${nf(2).format(minC[0])} $ (${mesCorto(M[minC[1]])}) y ${nf(2).format(maxC[0])} $
-     (${mesCorto(M[maxC[1]])}). Quien invirtió diez años desde ${mesLargo(M[peorDec.j])} se dejó
-     <b>${nf(1).format(Math.abs(peorDec.dif))} puntos anuales</b> solo por el tipo de cambio;
-     quien lo hizo desde ${mesLargo(M[mejorDec.j])} se llevó ${nf(1).format(mejorDec.dif)} de regalo.
-     Y lo que hay que batir aquí no es el IPC estadounidense, sino el español
-     (${pct(cagr(ipcEs, ieu, finEu))} anual en el periodo).`;
+    `Efecto divisa: S&P 500 con dividendos, ${pctS(cagrUsd)} anual en dólares y ${pctS(cagrEur)} en euros.
+     A diez años llegó a restar <b>${nf(1).format(Math.abs(peorDec.dif))} puntos anuales</b>
+     (desde ${mesCorto(M[peorDec.j])}) y a sumar ${nf(1).format(mejorDec.dif)} (desde ${mesCorto(M[mejorDec.j])}).
+     IPC español en el periodo: ${pct(cagr(ipcEs, ieu, finEu))} anual.`;
 });
 
-/* --------------------------------------------------------- 7 · bitcoin --- */
-
-registra(function btc() {
-  const desde = META("bitcoin").desde;
-  const b = serie("bitcoin"), tr = serie("sp500_tr");
-  lineasIndexadas($("#ch-btc"), $("#lg-btc"), {
-    desde, alto: 300, tabla: $("#tb-btc"),
-    titulo: "Bitcoin frente al S&P 500",
-    series: [
-      { nombre: "Bitcoin", color: "var(--series-8)", v: b },
-      { nombre: "S&P 500 con dividendos", color: COLOR("sp500_tr"), v: tr },
-    ],
-  });
-  const i = i0(desde), [, fin] = rango(b);
-  // Peor caída del bitcoin en el periodo, para poner la cifra al lado del brillo.
-  let pico = -Infinity, caida = 0;
-  for (let j = i; j <= fin; j++) {
-    if (b[j] == null) continue;
-    pico = Math.max(pico, b[j]);
-    caida = Math.min(caida, b[j] / pico - 1);
-  }
-  $("#t-btc").textContent = `Bitcoin frente al S&P 500 desde ${mesLargo(desde)}`;
-  $("#s-btc").innerHTML =
-    `Escala logarítmica, ${S.real ? "con la inflación descontada" : "en dólares corrientes"}:
-     <b>${pctS(cagr(b, i, fin))}</b> anual frente al <b>${pctS(cagr(tr, i, fin))}</b> del S&P 500.
-     Multiplicó por ${mult(b[fin] / b[i])} lo invertido; el índice, por ${mult(tr[fin] / tr[i])}.`;
-  $("#nota-btc").innerHTML =
-    `Y por el camino, una caída máxima del <b>${pct(caida * 100)}</b> desde máximos. Doce años no
-     permiten calcular nada parecido a una rentabilidad esperada: en el S&P 500, cualquier tramo de
-     doce años elegido a dedo da entre ${pctS(Math.min(...ventanas("sp500_tr", 144).map((d) => d.r)))} y
-     ${pctS(Math.max(...ventanas("sp500_tr", 144).map((d) => d.r)))} anual. Aquí solo hay un tramo, y
-     encima es el primero de la vida del activo.`;
-});
-
-/* ---------------------------------------------------------- 8 · método --- */
+/* ---------------------------------------------------------- 7 · método --- */
 
 $("#prosa-metodo").innerHTML = `
   <h3>De dónde sale cada número</h3>
@@ -2191,7 +2037,7 @@ $("#prosa-metodo").innerHTML = `
       St. Louis, y el IPC armonizado de España de Eurostat para la parte en euros.</li>
     <li><b>Letras a 3 meses, vivienda (Case-Shiller) y tipo de cambio</b>: FRED.
       <b>Oro</b>: precio en dólares por onza (fijado por el patrón oro hasta 1968, mercado libre después).
-      <b>Nikkei 225, IBEX 35, MSCI World, MSCI EAFE y bitcoin</b>: Yahoo Finance.</li>
+      <b>Nikkei 225, IBEX 35, MSCI World y MSCI EAFE</b>: Yahoo Finance.</li>
     <li><b>Aportación mensual (DCA).</b> Se pone la misma cantidad el primer día de cada mes y se
       liquida al final del tramo. La cifra anual que se enseña es la <b>TIR</b>: el tipo
       <code>r</code> que cumple <code>V = Σ c·(1+r)^(m−k)</code> sobre todas las aportaciones, resuelto
@@ -2273,8 +2119,7 @@ $("#stamp").innerHTML =
   `Series mensuales de <b>${M[0].slice(0, 4)}</b> a <b>${mesLargo(M[N - 1])}</b> · ` +
   `${new Intl.NumberFormat("es-ES").format(N)} meses · datos generados el ${D.meta.generado}`;
 $("#pie-fuentes").innerHTML =
-  "Fuentes: Robert Shiller (Yale), S&P Dow Jones Indices, Reserva Federal de St. Louis (FRED), " +
-  "Eurostat, LBMA y Yahoo Finance. Método y URL exactas en la sección “Qué hay detrás de estos números”.";
+  "Fuentes: Shiller (Yale), S&P Dow Jones Indices, FRED, Eurostat, LBMA y Yahoo Finance.";
 
 $("#cargando").hidden = true;
 $("#app").hidden = false;

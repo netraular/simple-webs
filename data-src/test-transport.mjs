@@ -1,23 +1,42 @@
 /**
  * Comprobaciones sobre los datos ya generados de la página de transporte
- * público: `transporte-muni.json`, `transporte-barris.json`, `linies.json`,
- * `iso-ancores.json`, `iso-muni.json` e `iso-barris.json`.
+ * público: `zonas.json`, `zonas-geo.json`, `rutas.json`, `linies.json`,
+ * `iso-ancores.json` e `iso-zonas.json`.
  *
- * No abre un navegador ni toca la página: solo mira los ficheros de
- * `pages/data/`. Cuatro clases de prueba:
+ * Los datos ya no van por escalas. Antes había dos juegos paralelos
+ * (`transporte-muni.json` + `transporte-barris.json`, y sus dos matrices de
+ * isócronas) y el test los recorría dos veces con umbrales distintos. Ahora hay
+ * un único conjunto de 164 zonas —91 municipios + los 73 barrios de Barcelona,
+ * que sustituyen a la ciudad como municipio—, así que el test recorre una sola
+ * lista y exige lo mismo a todas. El desglose tramo a tramo de cada trayecto se
+ * fue a `rutas.json` (se descarga solo al abrir una zona), de modo que las
+ * comprobaciones de coherencia interna cruzan los dos ficheros por id de zona.
  *
- *   1. Contrato y coherencia interna: las claves están, los tipos son los que
- *      toca, ningún número es NaN, y cada trayecto cuadra consigo mismo
- *      (a_peu + en_vehicle + espera ≈ min, a_peu_acces ≤ a_peu, …).
- *   2. Cordura contra horarios publicados: Castelldefels, Sabadell, Terrassa y
- *      Barcelona hacia plaça de Catalunya, con ±25 % de margen porque son
+ * No abre un navegador, pero sí ejecuta el código real de la página: el bloque
+ * del estimador extrae el `<script>` de `pages/transporte-publico.html` y llama
+ * a sus funciones. Es deliberado — un estimador reimplementado aquí habría
+ * pasado por bueno el fallo de los 757 minutos que se coló en su día.
+ *
+ * Clases de prueba:
+ *
+ *   1. Contrato y tipos: las claves están, los tipos son los que toca y ningún
+ *      número es NaN, en zonas, rutas, geometría, líneas e isócronas.
+ *   2. Identidad entre ficheros: los mismos 164 ids, únicos, y en el mismo
+ *      orden donde el orden importa (la página indexa la matriz por posición).
+ *   3. Coherencia interna de cada trayecto: a_peu + en_vehicle + espera ≈ min,
+ *      a_peu_acces ≤ a_peu, …, cruzando zonas.json con rutas.json.
+ *   4. Cordura contra horarios publicados: Castelldefels, Sabadell, Terrassa y
+ *      el Raval hacia plaça de Catalunya, con ±25 % de margen porque son
  *      horarios reales y el router elige el tren que le parece.
- *   3. Consistencia entre ficheros: los buses que aparecen en un itinerario
- *      tienen que estar dibujados en linies.json.
- *   4. Isócronas: la matriz de anclajes mide lo que dice medir. Se reconstruye
- *      el estimador que usa la página (anclaje más próximo + caminata) y se
- *      contrasta contra los tiempos exactos puerta a puerta de los 6 destinos.
- *      Esa tabla de error es la que justifica que la página diga «estimado».
+ *   5. Geometría: la simplificación no ha roto ningún anillo ni miente más de
+ *      lo que su propia `meta.tolerancia_m` promete.
+ *   6. Consistencia entre ficheros: los buses que aparecen en un itinerario
+ *      tienen que estar dibujados en linies.json, y el recuento publicado en
+ *      `meta.bus` tiene que ser el que sale de recontarlo.
+ *   7. Isócronas: la matriz mide lo que dice medir, y el estimador REAL de la
+ *      página se contrasta contra los tiempos exactos puerta a puerta. Esa
+ *      tabla de error es la que justifica que la página diga «estimado».
+ *   8. Presupuesto de descarga de la primera pintada.
  *
  * Si un fichero no existe todavía se avisa y se salta su bloque, para poder
  * ejecutar el test mientras se regeneran los datos.
@@ -25,6 +44,7 @@
  * Uso:  node test-transport.mjs
  */
 import { readFileSync, statSync } from "node:fs";
+import { desviacioMaxima, simplificaGeometria } from "./geom.mjs";
 
 /* ------------------------------------------------------------ utilidades */
 
@@ -95,34 +115,55 @@ function numerosMalos(v, ruta = "", malos = []) {
   return malos;
 }
 
+/** Recorre los anillos de una geometría GeoJSON. Igual que el de geom.mjs, pero
+    el test no debe depender de que ese helper siga exportándose. */
+function cadaAnell(geom, cb) {
+  if (!geom) return;
+  if (geom.type === "Polygon") geom.coordinates.forEach(cb);
+  else if (geom.type === "MultiPolygon") geom.coordinates.forEach((p) => p.forEach(cb));
+}
+
 /* ------------------------------------------------------------- ficheros */
 
-const FITXERS = ["transporte-muni.json", "transporte-barris.json", "linies.json",
-                 "iso-ancores.json", "iso-muni.json", "iso-barris.json"];
+const FITXERS = ["zonas.json", "zonas-geo.json", "rutas.json", "linies.json",
+                 "iso-ancores.json", "iso-zonas.json"];
+/** Lo que baja la página antes de la primera pintada. El resto —itinerarios y
+    matriz de isócronas— solo se descarga cuando alguien lo usa. */
+const INICIAL = ["zonas.json", "zonas-geo.json", "linies.json"];
+const PRESSUPOST = 600 * 1024;
 
-const ESCALES = [
-  { id: "municipis", dades: "transporte-muni.json", iso: "iso-muni.json", n: 92 },
-  { id: "barris",    dades: "transporte-barris.json", iso: "iso-barris.json", n: 73 },
-];
+/* Tamaños del reparto de zonas. Barcelona no está como municipio: la sustituyen
+   sus 73 barrios, que es lo único sub-municipal que alguien publica. */
+const N_ZONES = 164, N_MUNI = 91, N_BARRI = 73;
+const BCN_INE = "08019";
+/* Olivella: el router no le encuentra ni un solo trayecto razonable, así que se
+   queda sin entrada en rutas.json. Es el único caso legítimo y se comprueba que
+   siga siendo el único. */
+const SENSE_RUTA = "08148";
 
 console.log("Carga de ficheros");
-for (const e of ESCALES) e.D = carga(e.dades);
+const Z   = carga("zonas.json");
+const GEO = carga("zonas-geo.json");
+const RUT = carga("rutas.json");
 const LIN = carga("linies.json");
 const ANC = carga("iso-ancores.json");
-for (const e of ESCALES) e.M = carga(e.iso);
-if (!ESCALES.some((e) => e.D)) {
-  console.log("\n✗ no hay ningún transporte-*.json que mirar; no puedo seguir.");
+const ISOZ = carga("iso-zonas.json");
+if (!Z) {
+  console.log("\n✗ no hay zonas.json que mirar; no puedo seguir.");
   process.exit(1);
 }
 console.log(`  ${FITXERS.filter((f) => tamany(f) != null).length}/${FITXERS.length} ficheros presentes`);
 
-/* Claves del contrato de cada fila. */
-const CLAUS = ["ine", "nom", "comarca", "lat", "lon", "dist_bcn_km", "poblacio",
-               "compra_eur_m2", "compra_eur_total", "lloguer_eur_mes", "renda_llar_eur",
-               "tren", "sortides", "destins"];
-/* Claves obligatorias de un trayecto con dato. */
-const CLAUS_T = ["min", "transbords", "modes", "a_peu", "a_peu_acces", "en_vehicle",
-                 "espera", "linies"];
+/* Claves del contrato de cada zona. */
+const CLAUS = ["id", "tipus", "nom", "nom_llarg", "comarca", "lat", "lon",
+               "dist_bcn_km", "poblacio", "compra_eur_m2", "compra_eur_total",
+               "lloguer_eur_mes", "renda_llar_eur", "tren", "sortides", "destins"];
+/* Claves obligatorias de un trayecto con dato, en zonas.json. Lo que la página
+   necesita para filtrar, ordenar y pintar sin bajarse los itinerarios. */
+const CLAUS_T = ["min", "a_peu", "transbords", "modes"];
+/* Claves obligatorias de un itinerario, en rutas.json. */
+const CLAUS_R = ["a_peu_acces", "a_peu_transbord", "a_peu_final", "en_vehicle",
+                 "espera", "sortida", "arribada", "linies"];
 
 const esNum = (x) => typeof x === "number" && Number.isFinite(x);
 const esNumONull = (x) => x === null || esNum(x);
@@ -130,105 +171,210 @@ const esLonLat = (p) => Array.isArray(p) && p.length === 2 &&
                         esNum(p[0]) && esNum(p[1]) &&
                         p[0] > 0 && p[0] < 4 && p[1] > 40 && p[1] < 43;
 
-/* ============================================================ 1. contrato
-   y 2. coherencia interna de cada trayecto, y 3. cobertura por destino.    */
+const zones = Array.isArray(Z.zones) ? Z.zones : [];
+const destins = Array.isArray(Z.meta?.destins) ? Z.meta.destins : [];
+const ids = destins.map((d) => d.id);
+const perId = new Map(zones.map((z) => [z.id, z]));
 
-for (const E of ESCALES) {
-  if (!E.D) continue;
-  const D = E.D;
-  console.log(`\n══ escala «${E.id}» ═══════════════════════════════`);
+/* ============================================ 1. contrato de zonas.json */
 
-  /* --- contrato del meta --- */
-  const dst = D.meta?.destins;
-  ok(Array.isArray(dst) && dst.length > 0 &&
-     dst.every((d) => typeof d.id === "string" && typeof d.nom === "string" &&
-                      esNum(d.lat) && esNum(d.lon)),
-     `meta.destins: ${dst?.length} destinos con id, nom, lat y lon`);
-  ok(D.meta?.transit && typeof D.meta.transit === "object" &&
-     D.meta?.iso && typeof D.meta.iso === "object",
-     "meta.transit y meta.iso documentan el método");
-  ok(D.meta?.escala === E.id.replace("municipis", "municipis"), `meta.escala = «${D.meta?.escala}»`);
-  ok(esNum(D.meta?.radi_km), `meta.radi_km = ${D.meta?.radi_km}`);
+console.log("\n══ zonas.json ══════════════════════════════════");
 
-  const ids = (dst || []).map((d) => d.id);
+ok(destins.length > 0 &&
+   destins.every((d) => typeof d.id === "string" && typeof d.nom === "string" &&
+                        esNum(d.lat) && esNum(d.lon)),
+   `meta.destins: ${destins.length} destinos con id, nom, lat y lon`);
+ok(Z.meta?.transit && typeof Z.meta.transit === "object" &&
+   Z.meta?.iso && typeof Z.meta.iso === "object",
+   "meta.transit y meta.iso documentan el método");
+ok(Z.meta?.escala === "zones", `meta.escala = «${Z.meta?.escala}»`);
+ok(esNum(Z.meta?.radi_km), `meta.radi_km = ${Z.meta?.radi_km}`);
+ok(typeof Z.meta?.nota_gra === "string" && Z.meta.nota_gra.length > 40,
+   "meta.nota_gra explica por qué el grano es desigual (municipios vs barrios)");
+ok(Z.meta?.zones?.municipis === N_MUNI && Z.meta?.zones?.barris === N_BARRI,
+   `meta.zones dice ${N_MUNI} municipios + ${N_BARRI} barrios`,
+   `→ ${Z.meta?.zones?.municipis} + ${Z.meta?.zones?.barris}`);
 
-  /* --- contrato de las filas --- */
-  ok(Array.isArray(D.files) && D.files.length === E.n,
-     `${D.files?.length} unidades (esperadas ${E.n})`);
-  const ines = new Set(D.files.map((f) => f.ine));
-  ok(ines.size === D.files.length,
-     `los ${ines.size} códigos ine son únicos`,
-     ines.size === D.files.length ? "" : `(${D.files.length - ines.size} repetidos)`);
+/* --- una sola lista de zonas --- */
+ok(zones.length === N_ZONES, `${zones.length} zonas (esperadas ${N_ZONES})`);
+const conjuntZ = new Set(zones.map((z) => z.id));
+ok(conjuntZ.size === zones.length,
+   `los ${conjuntZ.size} ids de zona son únicos`,
+   conjuntZ.size === zones.length ? "" : `(${zones.length - conjuntZ.size} repetidos)`);
 
-  const faltaClau = new Set();
-  let tipoMal = 0, destinsMal = 0, liniesMal = 0, trajectes = 0;
-  for (const f of D.files) {
-    for (const k of CLAUS) if (!(k in f)) faltaClau.add(k);
-    if (!(typeof f.ine === "string" && typeof f.nom === "string" && typeof f.comarca === "string" &&
-          esNum(f.lat) && esNum(f.lon) && esNum(f.dist_bcn_km) && esNum(f.poblacio) &&
-          esNumONull(f.compra_eur_m2) && esNumONull(f.compra_eur_total) &&
-          esNumONull(f.lloguer_eur_mes) && esNumONull(f.renda_llar_eur) &&
-          (f.tren === null || typeof f.tren === "string") && esNumONull(f.sortides))) tipoMal++;
-    const claus = Object.keys(f.destins || {});
-    if (claus.length !== ids.length || ids.some((i) => !(i in (f.destins || {})))) destinsMal++;
-    for (const id of ids) {
-      const t = f.destins?.[id];
-      if (t == null) continue;
-      trajectes++;
-      const bien = CLAUS_T.every((k) => k in t) &&
-        esNum(t.min) && esNum(t.transbords) && Array.isArray(t.modes) &&
-        t.modes.every((m) => typeof m === "string") &&
-        esNum(t.a_peu) && esNum(t.a_peu_acces) && esNum(t.en_vehicle) && esNum(t.espera) &&
-        Array.isArray(t.linies) &&
-        (t.arriba_tard === undefined || typeof t.arriba_tard === "boolean") &&
-        (t.trivial === undefined || typeof t.trivial === "boolean") &&
-        (t.arribada_local === undefined || t.arribada_local === null ||
-         typeof t.arribada_local === "string");
-      if (!bien) tipoMal++;
-      for (const l of t.linies || []) {
-        if (!(typeof l.ref === "string" && typeof l.xarxa === "string" && esNum(l.min) &&
-              typeof l.de === "string" && typeof l.a === "string" &&
-              (l.dl === null || esLonLat(l.dl)) && (l.al === null || esLonLat(l.al)))) liniesMal++;
-      }
+const nMuni = zones.filter((z) => z.tipus === "municipi").length;
+const nBarri = zones.filter((z) => z.tipus === "barri").length;
+ok(nMuni === N_MUNI && nBarri === N_BARRI,
+   `${nMuni} municipios y ${nBarri} barrios, y ningún «tipus» de otra cosa`,
+   `→ ${zones.length - nMuni - nBarri} zonas con otro tipus`);
+
+/* Barcelona desaparece como municipio y la sustituyen sus barrios. Si la ciudad
+   volviera a colarse en la capa municipal estaría contada dos veces: el mapa se
+   pintaría encima de sus propios barrios y el ranking la tendría duplicada. */
+ok(!conjuntZ.has(BCN_INE),
+   `Barcelona (${BCN_INE}) NO está como municipio: la sustituyen sus barrios`);
+const idsBarri = zones.filter((z) => z.tipus === "barri").map((z) => z.id);
+const barrisBen = idsBarri.every((id) => /^B\d{2}$/.test(id)) &&
+                  new Set(idsBarri).size === N_BARRI;
+ok(barrisBen, `los ${idsBarri.length} barrios llevan id B01…B${N_BARRI} y cubren la ciudad`);
+ok(zones.filter((z) => z.tipus === "municipi").every((z) => /^\d{5}$/.test(z.id)),
+   "los municipios llevan el código INE de 5 cifras como id");
+ok(zones.filter((z) => z.tipus === "barri").every((z) => typeof z.districte === "string" && z.districte),
+   "cada barrio dice a qué distrito pertenece");
+
+/* --- contrato de las filas --- */
+const faltaClau = new Set();
+let tipoMal = 0, destinsMal = 0, trajectes = 0;
+for (const z of zones) {
+  for (const k of CLAUS) if (!(k in z)) faltaClau.add(k);
+  if (!(typeof z.id === "string" && typeof z.nom === "string" &&
+        typeof z.nom_llarg === "string" && typeof z.comarca === "string" &&
+        (z.tipus === "municipi" || z.tipus === "barri") &&
+        esNum(z.lat) && esNum(z.lon) && esNum(z.dist_bcn_km) && esNum(z.poblacio) &&
+        esNumONull(z.compra_eur_m2) && esNumONull(z.compra_eur_total) &&
+        esNumONull(z.lloguer_eur_mes) && esNumONull(z.renda_llar_eur) &&
+        (z.tren === null || typeof z.tren === "string") && esNumONull(z.sortides))) tipoMal++;
+  const claus = Object.keys(z.destins || {});
+  if (claus.length !== ids.length || ids.some((i) => !(i in (z.destins || {})))) destinsMal++;
+  for (const id of ids) {
+    const t = z.destins?.[id];
+    if (t == null) continue;
+    trajectes++;
+    const bien = CLAUS_T.every((k) => k in t) &&
+      esNum(t.min) && esNum(t.a_peu) && esNum(t.transbords) &&
+      Array.isArray(t.modes) && t.modes.every((m) => typeof m === "string") &&
+      (t.arriba_tard === undefined || typeof t.arriba_tard === "boolean") &&
+      (t.trivial === undefined || typeof t.trivial === "boolean");
+    if (!bien) tipoMal++;
+  }
+}
+ok(faltaClau.size === 0,
+   `todas las zonas traen las ${CLAUS.length} claves del contrato`,
+   faltaClau.size ? `(faltan: ${[...faltaClau].join(", ")})` : "");
+ok(tipoMal === 0, "los tipos de cada campo son los declarados",
+   tipoMal ? `(${tipoMal} objetos con algún campo del tipo equivocado)` : "");
+ok(destinsMal === 0, `cada zona lleva los ${ids.length} destinos como claves de «destins»`,
+   destinsMal ? `(${destinsMal} zonas con las claves mal)` : "");
+
+const malos = numerosMalos(Z, "zonas.json");
+ok(malos.length === 0, "ningún número es NaN, Infinity ni undefined",
+   malos.length ? `(${malos.length}: ${malos.slice(0, 3).join("; ")})` : "");
+
+/* ================================ 2. los cuatro ficheros hablan de lo mismo */
+
+console.log("\n══ los ids cuadran entre ficheros ══════════════");
+
+if (GEO) {
+  const idsGeo = (GEO.features || []).map((f) => f.properties?.id);
+  const conjuntG = new Set(idsGeo);
+  ok(GEO.type === "FeatureCollection" && idsGeo.length === N_ZONES,
+     `zonas-geo.json: ${idsGeo.length} polígonos (esperados ${N_ZONES})`);
+  ok(conjuntG.size === idsGeo.length, "los ids de la geometría son únicos",
+     conjuntG.size === idsGeo.length ? "" : `(${idsGeo.length - conjuntG.size} repetidos)`);
+  const sobren = [...conjuntG].filter((i) => !conjuntZ.has(i));
+  const falten = [...conjuntZ].filter((i) => !conjuntG.has(i));
+  ok(sobren.length === 0 && falten.length === 0,
+     "el conjunto de ids de zonas-geo.json es exactamente el de zonas.json",
+     sobren.length || falten.length
+       ? `(sobran ${sobren.slice(0, 5).join(", ") || "—"}; faltan ${falten.slice(0, 5).join(", ") || "—"})` : "");
+}
+
+if (RUT) {
+  const idsRut = Object.keys(RUT.rutes || {});
+  const conjuntR = new Set(idsRut);
+  const sobren = idsRut.filter((i) => !conjuntZ.has(i));
+  ok(sobren.length === 0, `rutas.json: las ${idsRut.length} zonas con itinerario existen en zonas.json`,
+     sobren.length ? `(sobran: ${sobren.slice(0, 5).join(", ")})` : "");
+  // Una zona sin ni un solo destino alcanzable no tiene nada que guardar aquí.
+  // Hoy es solo Olivella; si aparecieran más, es que el router ha empeorado.
+  const senseRuta = [...conjuntZ].filter((i) => !conjuntR.has(i));
+  ok(senseRuta.length === 0 ||
+     (senseRuta.length === 1 && senseRuta[0] === SENSE_RUTA),
+     `la única zona sin itinerarios es Olivella (${SENSE_RUTA}), que no tiene ningún destino alcanzable`,
+     `→ sin itinerarios: ${senseRuta.join(", ") || "ninguna"}`);
+}
+
+if (ISOZ) {
+  const idsIso = ISOZ.ids || [];
+  ok(idsIso.length === N_ZONES, `iso-zonas.json: ${idsIso.length} orígenes (esperados ${N_ZONES})`);
+  // El orden NO es un detalle: la página fusiona las filas por posición y no
+  // guarda un mapa de ids en memoria. Si las dos listas se desordenan la una
+  // respecto de la otra no falla nada, simplemente cada zona pasa a enseñar los
+  // tiempos de otra — un error silencioso y de los caros.
+  const mateixOrdre = idsIso.length === zones.length &&
+                      idsIso.every((id, i) => id === zones[i].id);
+  const primerDesfase = idsIso.findIndex((id, i) => id !== zones[i]?.id);
+  ok(mateixOrdre,
+     "iso-zonas.json lleva los ids en el MISMO ORDEN que zonas.json (la página indexa por posición)",
+     mateixOrdre ? "" : `(primer desfase en la posición ${primerDesfase}: ` +
+                        `«${idsIso[primerDesfase]}» vs «${zones[primerDesfase]?.id}»)`);
+}
+
+/* ======================= 3. coherencia interna: zonas.json ↔ rutas.json */
+
+if (RUT) {
+  console.log("\n══ coherencia de los trayectos (zonas ↔ rutas) ══");
+
+  let rutaMal = 0, liniesMal = 0, senseItinerari = [], nRutes = 0;
+  for (const z of zones) for (const id of ids) {
+    const t = z.destins?.[id];
+    if (t == null) continue;
+    const r = RUT.rutes?.[z.id]?.[id];
+    if (!r) { if (senseItinerari.length < 6) senseItinerari.push(`${z.nom}→${id}`); continue; }
+    nRutes++;
+    const bien = CLAUS_R.every((k) => k in r) &&
+      esNum(r.a_peu_acces) && esNum(r.a_peu_transbord) && esNum(r.a_peu_final) &&
+      esNum(r.en_vehicle) && esNum(r.espera) && Array.isArray(r.linies) &&
+      (r.sortida === null || typeof r.sortida === "string") &&
+      (r.arribada === null || typeof r.arribada === "string") &&
+      (r.arribada_local === undefined || r.arribada_local === null ||
+       typeof r.arribada_local === "string");
+    if (!bien) rutaMal++;
+    for (const l of r.linies || []) {
+      if (!(typeof l.ref === "string" && typeof l.xarxa === "string" && esNum(l.min) &&
+            typeof l.de === "string" && typeof l.a === "string" &&
+            (l.dl === null || esLonLat(l.dl)) && (l.al === null || esLonLat(l.al)))) liniesMal++;
     }
   }
-  ok(faltaClau.size === 0,
-     `todas las filas traen las ${CLAUS.length} claves del contrato`,
-     faltaClau.size ? `(faltan: ${[...faltaClau].join(", ")})` : "");
-  ok(tipoMal === 0, "los tipos de cada campo son los declarados",
-     tipoMal ? `(${tipoMal} objetos con algún campo del tipo equivocado)` : "");
-  ok(destinsMal === 0, `cada fila lleva los ${ids.length} destinos como claves de «destins»`,
-     destinsMal ? `(${destinsMal} filas con las claves mal)` : "");
+  ok(rutaMal === 0, `los ${nRutes} itinerarios traen las ${CLAUS_R.length} claves con el tipo correcto`,
+     rutaMal ? `(${rutaMal} mal formados)` : "");
   ok(liniesMal === 0, "cada tramo de «linies» lleva ref, xarxa, min, de, a y coordenadas [lon,lat]",
      liniesMal ? `(${liniesMal} tramos mal formados)` : "");
+  ok(senseItinerari.length === 0,
+     `todo trayecto con tiempo en zonas.json tiene su itinerario en rutas.json`,
+     senseItinerari.length ? `(p. ej. ${senseItinerari.join(", ")})` : "");
+  const malosR = numerosMalos(RUT, "rutas.json");
+  ok(malosR.length === 0, "rutas.json: ningún número es NaN, Infinity ni undefined",
+     malosR.length ? `(${malosR.length}: ${malosR.slice(0, 3).join("; ")})` : "");
 
-  const malos = numerosMalos(D, E.dades);
-  ok(malos.length === 0, "ningún número es NaN, Infinity ni undefined",
-     malos.length ? `(${malos.length}: ${malos.slice(0, 3).join("; ")})` : "");
-
-  /* --- coherencia interna de cada trayecto --- */
+  /* Las reglas de siempre, ahora con el desglose al otro lado del join. `peu` es
+     la suma de los tres tramos a pie del itinerario, que tiene que ser el a_peu
+     que zonas.json publica para que el filtro de caminata signifique algo. */
   const reglas = {
-    "a_peu + en_vehicle + espera ≈ min (±2)": (t) => Math.abs(t.a_peu + t.en_vehicle + t.espera - t.min) <= 2,
-    "a_peu_acces ≤ a_peu": (t) => t.a_peu_acces <= t.a_peu,
+    "a_peu + en_vehicle + espera ≈ min (±2)": (t, r) =>
+      Math.abs((r.a_peu_acces + r.a_peu_transbord + r.a_peu_final) + r.en_vehicle + r.espera - t.min) <= 2,
+    "a_peu_acces + a_peu_transbord + a_peu_final = a_peu (±1)": (t, r) =>
+      Math.abs(r.a_peu_acces + r.a_peu_transbord + r.a_peu_final - t.a_peu) <= 1,
+    "a_peu_acces ≤ a_peu": (t, r) => r.a_peu_acces <= t.a_peu,
     "transbords ≥ 0": (t) => t.transbords >= 0,
     "min > 0": (t) => t.min > 0,
-    "sin líneas ⇒ modes = [«A peu»] o trivial": (t) =>
-      t.linies.length > 0 || t.trivial === true ||
+    "sin líneas ⇒ modes = [«A peu»] o trivial": (t, r) =>
+      r.linies.length > 0 || t.trivial === true ||
       (t.modes.length === 1 && t.modes[0] === "A peu"),
   };
   const roto = {}, ejemplos = {};
   for (const k of Object.keys(reglas)) { roto[k] = 0; ejemplos[k] = []; }
   const culpables = new Set();
-  for (const f of D.files) for (const id of ids) {
-    const t = f.destins?.[id];
-    if (t == null) continue;
+  for (const z of zones) for (const id of ids) {
+    const t = z.destins?.[id], r = RUT.rutes?.[z.id]?.[id];
+    if (t == null || !r) continue;
     for (const [k, test] of Object.entries(reglas)) {
       let bien;
-      try { bien = test(t); } catch { bien = false; }
+      try { bien = test(t, r); } catch { bien = false; }
       if (!bien) {
         roto[k]++;
-        culpables.add(f.ine + "|" + id);
-        if (ejemplos[k].length < 3) ejemplos[k].push(`${f.nom}→${id}`);
+        culpables.add(z.id + "|" + id);
+        if (ejemplos[k].length < 3) ejemplos[k].push(`${z.nom}→${id}`);
       }
     }
   }
@@ -240,71 +386,158 @@ for (const E of ESCALES) {
   ok(trajectes === 0 || culpables.size <= trajectes * 0.02,
      "como mucho el 2 % de los trayectos son internamente incoherentes",
      `→ ${culpables.size}/${trajectes} = ${pc1(culpables.size, trajectes)}`);
-
-  /* --- cobertura por destino --- */
-  console.log(`  — cobertura por destino (${E.id}) —`);
-  console.log("     destino               con dato   cobertura   arriba_tard   trivial");
-  const bajos = [];
-  for (const id of ids) {
-    let con = 0, tard = 0, triv = 0;
-    for (const f of D.files) {
-      const t = f.destins?.[id];
-      if (t == null) continue;
-      con++;
-      if (t.arriba_tard) tard++;
-      if (t.trivial) triv++;
-    }
-    console.log("     " + id.padEnd(22) +
-                `${con}/${D.files.length}`.padStart(8) +
-                pc1(con, D.files.length).padStart(12) +
-                String(tard).padStart(14) + String(triv).padStart(10));
-    if (pct(con, D.files.length) < 90) bajos.push(`${id} ${pc1(con, D.files.length)}`);
-  }
-  if (E.id === "municipis") {
-    ok(bajos.length === 0, "todos los destinos llegan al 90 % de cobertura en municipios",
-       bajos.length ? `(por debajo: ${bajos.join(", ")})` : "");
-  } else if (bajos.length) {
-    aviso(`en barrios hay destinos por debajo del 90 %: ${bajos.join(", ")} (no se exige a esta escala)`);
-  }
 }
+
+/* ------------------------------------------------ cobertura por destino */
+
+console.log("  — cobertura por destino —");
+console.log("     destino               con dato   cobertura   arriba_tard   trivial");
+const bajos = [];
+for (const id of ids) {
+  let con = 0, tard = 0, triv = 0;
+  for (const z of zones) {
+    const t = z.destins?.[id];
+    if (t == null) continue;
+    con++;
+    if (t.arriba_tard) tard++;
+    if (t.trivial) triv++;
+  }
+  console.log("     " + id.padEnd(22) +
+              `${con}/${zones.length}`.padStart(8) +
+              pc1(con, zones.length).padStart(12) +
+              String(tard).padStart(14) + String(triv).padStart(10));
+  if (pct(con, zones.length) < 90) bajos.push(`${id} ${pc1(con, zones.length)}`);
+}
+// Una sola escala, un solo umbral: antes a los barrios no se les exigía nada
+// porque su columna era otro fichero. Ahora son zonas como las demás.
+ok(bajos.length === 0, "todos los destinos llegan al 90 % de cobertura",
+   bajos.length ? `(por debajo: ${bajos.join(", ")})` : "");
 
 /* ============================================ 4. cordura contra horarios */
 
-const MUNI = ESCALES[0].D;
-if (MUNI) {
-  console.log("\n══ cordura contra horarios publicados ══════════");
-  const porIne = new Map(MUNI.files.map((f) => [f.ine, f]));
-  const min = (ine, dest) => porIne.get(ine)?.destins?.[dest]?.min ?? null;
+console.log("\n══ cordura contra horarios publicados ══════════");
+const min = (id, dest) => perId.get(id)?.destins?.[dest]?.min ?? null;
 
-  // ±25 %: son horarios reales de un martes a las 09:00 y el router puede coger
-  // un semidirecto o un tren que para en todas, que es justo esa diferencia.
-  cerca(min("08056", "pl-catalunya"), 43, 0.25, "Castelldefels → plaça de Catalunya ≈ 43 min");
-  cerca(min("08187", "pl-catalunya"), 48, 0.25, "Sabadell (Vallès Occidental) → plaça de Catalunya ≈ 48 min");
-  cerca(min("08279", "pl-catalunya"), 65, 0.25, "Terrassa → plaça de Catalunya ≈ 65 min");
-  const bcn = min("08019", "pl-catalunya");
-  ok(bcn != null && bcn < 20, "Barcelona → plaça de Catalunya por debajo de 20 min", `→ ${bcn ?? "sin dato"} min`);
-  const oli = min("08148", "pl-catalunya");
-  ok(oli === null || oli >= 90,
-     "Olivella sigue sin dato o muy mal comunicada (≥ 90 min)",
-     `→ ${oli === null ? "sin dato" : oli + " min"}`);
+// ±25 %: son horarios reales de un martes a las 09:00 y el router puede coger
+// un semidirecto o un tren que para en todas, que es justo esa diferencia.
+cerca(min("08056", "pl-catalunya"), 43, 0.25, "Castelldefels → plaça de Catalunya ≈ 43 min");
+cerca(min("08187", "pl-catalunya"), 48, 0.25, "Sabadell (Vallès Occidental) → plaça de Catalunya ≈ 48 min");
+cerca(min("08279", "pl-catalunya"), 65, 0.25, "Terrassa → plaça de Catalunya ≈ 65 min");
+// Barcelona ya no es una fila: la prueba «desde dentro de la ciudad se llega
+// rápido» se hace ahora sobre un barrio céntrico. El Raval (B01) es el que
+// queda donde caía el centroide del municipio que usaba el test anterior —
+// pegado a la plaza, cruzando las Ramblas.
+const bcn = min("B01", "pl-catalunya");
+ok(bcn != null && bcn < 20, "el Raval → plaça de Catalunya por debajo de 20 min",
+   `→ ${bcn ?? "sin dato"} min`);
+const oli = min(SENSE_RUTA, "pl-catalunya");
+ok(oli === null || oli >= 90,
+   "Olivella sigue sin dato o muy mal comunicada (≥ 90 min)",
+   `→ ${oli === null ? "sin dato" : oli + " min"}`);
 
-  // Roche queda 1,5 km más allá de la red y arrastra el bus lanzadera desde
-  // Sant Joan: llegar a la estación de Sant Cugat tiene que salir mejor.
-  const estalvis = [];
-  for (const f of MUNI.files) {
-    const a = f.destins?.["sant-cugat-estacio"]?.min, b = f.destins?.["roche-sant-cugat"]?.min;
-    if (a != null && b != null) estalvis.push({ nom: f.nom, d: b - a });
+// Roche queda 1,5 km más allá de la red y arrastra el bus lanzadera desde
+// Sant Joan: llegar a la estación de Sant Cugat tiene que salir mejor.
+const estalvis = [];
+for (const z of zones) {
+  const a = z.destins?.["sant-cugat-estacio"]?.min, b = z.destins?.["roche-sant-cugat"]?.min;
+  if (a != null && b != null) estalvis.push({ nom: z.nom, d: b - a });
+}
+const mejores = estalvis.filter((x) => x.d > 0).length;
+const med = mediana(estalvis.map((x) => x.d));
+console.log(`     ${estalvis.length} zonas tienen los dos tiempos; ` +
+            `en ${mejores} (${pc1(mejores, estalvis.length)}) la estación sale mejor que Roche`);
+ok(estalvis.length > 0 && med > 0,
+   "la mediana del ahorro «estación de Sant Cugat» vs «Roche» es positiva",
+   `→ ${Number.isNaN(med) ? "sin pares" : n1(med) + " min"}`);
+
+/* ================================================ 5. geometría simplificada */
+
+if (GEO) {
+  console.log("\n══ zonas-geo.json: la simplificación no ha roto nada ══");
+
+  const TOL = GEO.meta?.tolerancia_m;
+  ok(esNum(TOL) && TOL > 0, `meta.tolerancia_m = ${TOL} m`);
+  ok(typeof GEO.meta?.nota === "string" && /superficie|lindes/i.test(GEO.meta.nota),
+     "meta.nota avisa de que estos polígonos no sirven para medir");
+
+  // Un anillo que no cierra, o con menos de cuatro puntos, no es un polígono:
+  // los navegadores lo pintan igual pero cada uno se lo inventa a su manera.
+  // El bbox es el del área de Barcelona con holgura: si un vértice se sale,
+  // alguien ha intercambiado lat y lon en algún sitio.
+  const LO0 = 1.0, LO1 = 3.2, LA0 = 40.8, LA1 = 42.2;
+  let anells = 0, vertexs = 0, obert = 0, curt = 0, fueraBbox = 0, tipoRaro = 0;
+  const culpablesG = new Set();
+  for (const f of GEO.features || []) {
+    if (f.geometry?.type !== "Polygon" && f.geometry?.type !== "MultiPolygon") tipoRaro++;
+    cadaAnell(f.geometry, (r) => {
+      anells++; vertexs += r.length;
+      if (r.length < 4) { curt++; culpablesG.add(f.properties?.id); }
+      const a = r[0], b = r[r.length - 1];
+      if (!a || !b || a[0] !== b[0] || a[1] !== b[1]) { obert++; culpablesG.add(f.properties?.id); }
+      for (const p of r) {
+        if (!(Array.isArray(p) && esNum(p[0]) && esNum(p[1]) &&
+              p[0] >= LO0 && p[0] <= LO1 && p[1] >= LA0 && p[1] <= LA1)) {
+          fueraBbox++; culpablesG.add(f.properties?.id);
+        }
+      }
+    });
   }
-  const mejores = estalvis.filter((x) => x.d > 0).length;
-  const med = mediana(estalvis.map((x) => x.d));
-  console.log(`     ${estalvis.length} municipios tienen los dos tiempos; ` +
-              `en ${mejores} (${pc1(mejores, estalvis.length)}) la estación sale mejor que Roche`);
-  ok(estalvis.length > 0 && med > 0,
-     "la mediana del ahorro «estación de Sant Cugat» vs «Roche» es positiva",
-     `→ ${Number.isNaN(med) ? "sin pares" : n1(med) + " min"}`);
+  const mostra = [...culpablesG].slice(0, 5).join(", ");
+  ok(tipoRaro === 0, `las ${GEO.features?.length} geometrías son Polygon o MultiPolygon`,
+     tipoRaro ? `(${tipoRaro} de otro tipo)` : "");
+  ok(obert === 0, `los ${anells} anillos cierran (primer punto = último)`,
+     obert ? `(${obert} abiertos, en ${mostra})` : "");
+  ok(curt === 0, "ningún anillo baja de 4 puntos",
+     curt ? `(${curt} degenerados, en ${mostra})` : "");
+  ok(fueraBbox === 0,
+     `los ${vertexs.toLocaleString("es-ES")} vértices son finitos y caen en el área de Barcelona`,
+     fueraBbox ? `(${fueraBbox} fuera de [${LO0}, ${LO1}] × [${LA0}, ${LA1}], en ${mostra})` : "");
+
+  /* --- la simplificación no miente más de lo que dice --- */
+  // Se rehace la simplificación desde los polígonos ORIGINALES y se mide el
+  // desplazamiento máximo de cada vértice original respecto del anillo nuevo.
+  // desviacioMaxima() es O(n²) por anillo, pero con 164 zonas y ~20 000 vértices
+  // tarda unas décimas de segundo: no hace falta muestrear.
+  const ORIGINALS = [
+    { f: "municipis-geo.json", id: (c) => String(c).padStart(5, "0") },
+    { f: "bcn-barris-geo.json", id: (c) => "B" + String(c).padStart(2, "0") },
+  ];
+  let peorTot = 0, peorQui = "", anellsMesurats = 0, desparell = 0, faltaOrig = 0;
+  const t0 = Date.now();
+  for (const O of ORIGINALS) {
+    const fc = carga(O.f);
+    if (!fc) { faltaOrig++; continue; }
+    for (const f of fc.features || []) {
+      const id = O.id(f.properties?.codi_ine);
+      if (!conjuntZ.has(id)) continue;      // Barcelona como municipio cae aquí
+      const s = simplificaGeometria(f.geometry, TOL);
+      const orig = [], simp = [];
+      cadaAnell(f.geometry, (r) => orig.push(r));
+      cadaAnell(s, (r) => simp.push(r));
+      // Si la simplificación se come una isla entera no hay con qué comparar
+      // ese anillo; se cuenta aparte en vez de emparejar anillos distintos.
+      if (orig.length !== simp.length) { desparell++; continue; }
+      for (let i = 0; i < orig.length; i++) {
+        const d = desviacioMaxima(orig[i], simp[i]);
+        anellsMesurats++;
+        if (d > peorTot) { peorTot = d; peorQui = id; }
+      }
+    }
+  }
+  if (faltaOrig === ORIGINALS.length) {
+    aviso("no están los GeoJSON originales: no puedo comprobar la tolerancia de la simplificación");
+  } else {
+    console.log(`     ${anellsMesurats} anillos re-simplificados a ${TOL} m en ${Date.now() - t0} ms` +
+                (desparell ? `; ${desparell} zonas pierden algún anillo al simplificar` : ""));
+    // El 5 % de holgura es por el redondeo a 5 decimales que aplica
+    // simplificaGeometria() después de simplificar: son ~1 m sobre 20.
+    ok(peorTot <= TOL * 1.05,
+       `ningún vértice se desplaza más de la tolerancia declarada (+5 % de holgura)`,
+       `→ peor desviación ${n1(peorTot)} m vs ${n1(TOL * 1.05)} m permitidos (en ${peorQui})`);
+  }
 }
 
-/* ================================================== 5. líneas dibujadas */
+/* ================================================== 6. líneas dibujadas */
 
 if (LIN) {
   console.log("\n══ linies.json ═════════════════════════════════");
@@ -351,17 +584,23 @@ if (LIN) {
      falten.length ? `(faltan ${falten.length}: ${falten.join(", ")})` : "");
 }
 
-/* ============================ 6. consistencia entre itinerarios y líneas */
+/* ============================ 7. consistencia entre itinerarios y líneas */
 
-if (LIN) {
+if (LIN && RUT) {
   console.log("\n══ consistencia itinerarios ↔ linies.json ══════");
-  const dibuixats = new Set(LIN.linies.filter((l) => l.xarxa === "Bus").map((l) => l.ref));
+  // Los itinerarios ya no están en el fichero inicial: se recorre rutas.json.
+  const dibuixats = new Set(LIN.linies.filter((l) => l.xarxa === "Bus" && l.ref)
+                                      .map((l) => String(l.ref).toUpperCase()));
   const usats = new Map();          // ref de bus → veces que aparece en un itinerario
-  for (const E of ESCALES) {
-    if (!E.D) continue;
-    for (const f of E.D.files) for (const t of Object.values(f.destins || {})) {
-      for (const l of t?.linies || []) {
-        if (l.xarxa === "Bus") usats.set(l.ref, (usats.get(l.ref) || 0) + 1);
+  const ferro = new Set();
+  for (const perDesti of Object.values(RUT.rutes || {})) {
+    for (const r of Object.values(perDesti)) {
+      for (const l of r.linies || []) {
+        if (!l.ref) continue;
+        if (l.xarxa === "Bus") {
+          const ref = String(l.ref).toUpperCase();
+          usats.set(ref, (usats.get(ref) || 0) + 1);
+        } else ferro.add(l.ref);
       }
     }
   }
@@ -388,16 +627,23 @@ if (LIN) {
        "el emparejamiento de buses con OpenStreetMap no se ha roto (suelo 50 %)",
        `→ ${hi.length}/${refs.length} = ${pc1(hi.length, refs.length)}`
        + " · el resto no están etiquetados con ese código en OSM");
+
+    // La página ya no tiene los itinerarios en la carga inicial, así que cita
+    // este recuento desde meta.bus en vez de contarlo en el navegador. Si el
+    // meta se desfasa, la metodología publica una cifra que no es la de los
+    // datos: se recuenta aquí y se exige que coincida exactamente.
+    const B = Z.meta?.bus || {};
+    ok(B.usats === refs.length && B.dibuixats === hi.length,
+       "meta.bus coincide con el recuento sobre rutas.json + linies.json",
+       `→ meta dice ${B.dibuixats}/${B.usats}, recuento ${hi.length}/${refs.length} ` +
+       `= ${pc1(hi.length, refs.length)}`);
+    ok(B.ferroviaries === LIN.linies.filter((l) => l.xarxa !== "Bus").length &&
+       B.parades === (LIN.parades?.length ?? 0),
+       "meta.bus.ferroviaries y meta.bus.parades cuadran con linies.json",
+       `→ meta ${B.ferroviaries} líneas / ${B.parades} paradas`);
   }
 
   // Las redes ferroviarias sí deberían estar todas dibujadas: es barato mirarlo.
-  const ferro = new Set();
-  for (const E of ESCALES) {
-    if (!E.D) continue;
-    for (const f of E.D.files) for (const t of Object.values(f.destins || {})) {
-      for (const l of t?.linies || []) if (l.xarxa !== "Bus") ferro.add(l.ref);
-    }
-  }
   const dibFerro = new Set(LIN.linies.filter((l) => l.xarxa !== "Bus").map((l) => l.ref));
   const faltenF = [...ferro].filter((r) => !dibFerro.has(r));
   if (ferro.size) {
@@ -407,11 +653,10 @@ if (LIN) {
   }
 }
 
-/* ======================================== 7. isócronas: el bloque gordo */
+/* ======================================== 8. isócronas: la rejilla y la matriz */
 
 if (ANC) {
   console.log("\n══ isócronas: rejilla de anclajes ══════════════");
-  const [S, W] = ANC.bbox;
   ok(Array.isArray(ANC.bbox) && ANC.bbox.length === 4 && ANC.bbox[0] < ANC.bbox[2] &&
      ANC.bbox[1] < ANC.bbox[3], `bbox [${ANC.bbox.join(", ")}]`);
   ok(esNum(ANC.dlat) && ANC.dlat > 0 && esNum(ANC.dlon) && ANC.dlon > 0 &&
@@ -437,16 +682,16 @@ if (ANC) {
   ok(fueraBbox === 0, "los centros de todos los anclajes caen dentro del bbox",
      fueraBbox ? `(${fueraBbox} fuera)` : "");
 
-  /* --- las matrices tienen el tamaño que dicen --- */
-  for (const E of ESCALES) {
-    if (!E.M) continue;
-    const buf = Buffer.from(E.M.matriu ?? "", "base64");
-    ok(Array.isArray(E.M.ids), `${E.iso}: ${E.M.ids?.length} orígenes`);
-    ok(buf.length === (E.M.ids?.length || 0) * A.length,
-       `${E.iso}: la matriz mide ids × anclajes`,
-       `→ ${buf.length} bytes vs ${(E.M.ids?.length || 0) * A.length} esperados`);
+  /* --- la matriz mide lo que dice medir --- */
+  if (ISOZ) {
+    const buf = Buffer.from(ISOZ.matriu ?? "", "base64");
+    const esperats = (ISOZ.ids?.length || 0) * A.length;
+    ok(buf.length === esperats,
+       `iso-zonas.json: la matriz mide zonas × anclajes = ${ISOZ.ids?.length} × ${A.length}`,
+       `→ ${buf.length} bytes vs ${esperats} esperados`);
     let raros = 0, vacias = 0;
-    for (let i = 0; i < (E.M.ids?.length || 0); i++) {
+    const sinIso = [];
+    for (let i = 0; i < (ISOZ.ids?.length || 0); i++) {
       const fila = buf.subarray(i * A.length, (i + 1) * A.length);
       let alcanzables = 0;
       for (const b of fila) {
@@ -454,141 +699,226 @@ if (ANC) {
         alcanzables++;
         if (b > ANC.limit_min) raros++;
       }
-      if (alcanzables === 0) vacias++;
+      if (alcanzables === 0) { vacias++; sinIso.push(ISOZ.ids[i]); }
     }
-    ok(raros === 0, `${E.iso}: ningún minuto pasa del límite declarado sin ser 255`,
+    ok(raros === 0, "ningún minuto pasa del límite declarado sin ser 255",
        raros ? `(${raros} bytes entre ${ANC.limit_min} y 254)` : "");
-    if (E.M.ids?.length === 0) aviso(`${E.iso}: la matriz está vacía (0 orígenes)`);
-    else if (vacias) aviso(`${E.iso}: ${vacias}/${E.M.ids.length} orígenes no alcanzan ningún anclaje`);
-    if (E.D && E.M.ids?.length) {
-      const ines = new Set(E.D.files.map((f) => f.ine));
-      const sobren = E.M.ids.filter((i) => !ines.has(i));
-      ok(sobren.length === 0, `${E.iso}: todos los orígenes existen en ${E.dades}`,
-         sobren.length ? `(sobran: ${sobren.slice(0, 5).join(", ")})` : "");
-      const falten = [...ines].filter((i) => !E.M.ids.includes(i));
-      if (falten.length) aviso(`${E.iso}: ${falten.length} unidades de ${E.dades} sin fila de isócrona`);
-    }
+    if (!ISOZ.ids?.length) aviso("iso-zonas.json: la matriz está vacía (0 orígenes)");
+    else if (vacias) aviso(`iso-zonas.json: ${vacias}/${ISOZ.ids.length} orígenes no alcanzan ` +
+                           `ningún anclaje (${sinIso.slice(0, 8).join(", ")})`);
+  }
+}
+
+/* ================ 9. el estimador REAL de la página contra la verdad de campo */
+
+/* Este bloque no reimplementa nada: extrae el <script> de la página, le pone un
+   DOM de mentira y llama a sus propias funciones. Es la única forma de que el
+   test vea lo que ve el usuario. La versión anterior, con el estimador copiado
+   a mano aquí, daba todo por bueno mientras la página devolvía 757 minutos para
+   una zona sin ninguna parada: el fallo estaba en el camino a pie de reserva,
+   que no tenía tope, y una copia fiel «del algoritmo» no lo tenía. */
+
+/* Los seis destinos, todos. Se prueban todos porque dejar uno fuera de la tabla
+   de error es elegir qué no mirar. */
+const PUNTS = ["pl-catalunya", "castelldefels", "aeroport", "sant-cugat-estacio",
+               "sants", "roche-sant-cugat"];
+/* Umbrales del estimador. Son suelos de regresión con algo de holgura sobre lo
+   medido hoy (mediana +3…+6, p90 +11…+15, peor +23…+44, cobertura 91…98 %), no
+   objetivos de calidad: el sesgo positivo es esperable porque la isócrona sale a
+   las 07:15 y el tiempo exacto llega a las 09:00. */
+const MAX_BIAIX = 8, MAX_PEOR = 60, MIN_COBERTURA = 90;
+/* El p90 va por punto y no en común: `roche-sant-cugat` mide hoy exactamente
+   20,0, y un umbral de 20 lo dejaría decidido a cara o cruz en cada tanda de
+   datos. No es que el estimador vaya peor allí: Roche depende de un bus
+   lanzadera de frecuencia escasa, y ese bus es justo lo que peor encaja en una
+   isócrona de salida fija. Se le da el margen que necesita, escrito, en vez de
+   subir el de los otros cinco o de sacarlo de la tabla. */
+const MAX_P90 = 20, MAX_P90_PUNT = { "roche-sant-cugat": 24 };
+const p90Max = (punt) => MAX_P90_PUNT[punt] ?? MAX_P90;
+/* El guardián del fallo de los 757 minutos: ninguna estimación, en ningún punto
+   y para ninguna zona, puede pasar de aquí. La página tiene un tope de 60 min de
+   caminata directa, así que el peor caso legítimo es el límite de la isócrona
+   más ese paseo. Si alguien quita el tope, esto se dispara antes que nada. */
+const SOSTRE_MIN = 200;
+
+if (ANC && ISOZ && ISOZ.ids?.length) {
+  console.log("\n══ isócronas: error del estimador vs. tiempos exactos ══");
+  console.log("  No es una reimplementación: se extrae el <script> de");
+  console.log("  pages/transporte-publico.html, se le pone un DOM de mentira y se llaman sus");
+  console.log("  propias minsLliure() y recompute(). La verdad de campo son los tiempos");
+  console.log("  exactos puerta a puerta de zonas.json para el mismo destino.");
+
+  let api = null;
+  try {
+    const html = readFileSync(new URL("../pages/transporte-publico.html", import.meta.url), "utf8");
+    const js = html.match(/<script>([\s\S]*)<\/script>/)[1].replace(/\nboot\(\);\s*$/, "\n");
+    // Un DOM suficiente para que el script se evalúe: la página consulta nodos
+    // en initUI() y render(), que aquí no se llaman, pero sí en el cuerpo del
+    // módulo. Todo devuelve el mismo elemento inerte.
+    const el = () => ({ innerHTML: "", textContent: "", hidden: false, style: {},
+      setAttribute() {}, getAttribute() { return null; },
+      querySelectorAll: () => [], querySelector: () => null,
+      addEventListener() {}, classList: { add() {}, remove() {} },
+      getBoundingClientRect: () => ({ left: 0, top: 0, width: 900, height: 640 }) });
+    globalThis.document = { querySelector: () => el(), documentElement: {} };
+    globalThis.getComputedStyle = () => ({ getPropertyValue: () => "#000" });
+    globalThis.location = { protocol: "http:" };
+    globalThis.fetch = async (p) => ({ ok: true,
+      json: async () => JSON.parse(readFileSync(new URL("../pages/" + p, import.meta.url), "utf8")) });
+    globalThis.atob = (b) => Buffer.from(b, "base64").toString("binary");
+    api = new Function(js + `
+      return { S, initConds, recompute, minsLliure, fetchJSON, carregaIso,
+               set DATA_(v){ DATA = v }, get DATA_(){ return DATA },
+               get LLIURE_(){ return LLIURE },
+               set PUNT_(v){ S.puntLliure = v } };
+    `)();
+    api.DATA_ = await api.fetchJSON("data/zonas.json");
+    api.initConds(true);
+    await api.carregaIso();
+  } catch (e) {
+    api = null;
+    ok(false, "el <script> de transporte-publico.html se puede extraer y ejecutar", `→ ${e.message}`);
   }
 
-  /* --- el estimador contra la verdad de campo --- */
-  const ISO = ESCALES[0].M;
-  if (MUNI && ISO && ISO.ids.length) {
-    console.log("\n══ isócronas: error del estimador vs. tiempos exactos ══");
-    console.log("  Estimador reproducido de la página: para un punto P, el mínimo sobre los");
-    console.log("  anclajes A a ≤ 2,5 km de P de (minutos hasta A) + (caminar de A a P),");
-    console.log("  caminando en línea recta × 1,3 de rodeo a 4,5 km/h. La verdad de campo son");
-    console.log("  los tiempos exactos puerta a puerta de transporte-muni.json.");
+  if (api) {
+    ok(true, "el <script> de transporte-publico.html se ejecuta con un DOM de mentira");
 
-    const buf = Buffer.from(ISO.matriu, "base64");
-    const filaDe = new Map(ISO.ids.map((id, i) => [id, buf.subarray(i * A.length, (i + 1) * A.length)]));
-    const caminarMin = (aLat, aLon, bLat, bLon) => (haversine(aLat, aLon, bLat, bLon) * 1.3 / 4.5) * 60;
+    const porPunt = new Map();
+    let totes = [], maxEst = 0, maxQui = "";
+    for (const id of PUNTS) {
+      const d = destins.find((x) => x.id === id);
+      if (!d) { aviso(`el destino «${id}» ya no existe: me salto su columna del estimador`); continue; }
+      api.PUNT_ = { lat: d.lat, lon: d.lon };
+      api.S.conds.__lliure = { on: true, max: 90 };
+      api.recompute();
 
-    // Para cada destino, los anclajes a ≤ 2,5 km y lo que cuesta caminar desde ellos.
-    const cerca25 = MUNI.meta.destins.map((d) => {
-      const lista = [];
-      for (let k = 0; k < A.length; k++) {
-        const km = haversine(alat[k], alon[k], d.lat, d.lon);
-        if (km <= 2.5) lista.push([k, (km * 1.3 / 4.5) * 60]);
-      }
-      return { d, lista };
-    });
-    const estima = (fila, pre) => {
-      let mejor = Infinity;
-      for (const [k, cam] of pre.lista) {
-        const v = fila[k];
-        if (v === 255) continue;
-        const t = v + cam;
-        if (t < mejor) mejor = t;
-      }
-      return Number.isFinite(mejor) ? mejor : null;
-    };
-    // Comprobación tonta pero útil: el estimador y caminarMin no devuelven basura.
-    ok(Math.abs(caminarMin(41.38, 2.17, 41.38, 2.17)) < 1e-9 &&
-       caminarMin(41.38, 2.17, 41.39, 2.17) > 0,
-       "caminarMin() es 0 sobre el propio punto y crece con la distancia");
-    ok(cerca25.every((c) => c.lista.length > 0),
-       "los 6 destinos tienen anclajes a menos de 2,5 km",
-       `→ ${cerca25.map((c) => c.lista.length).join(", ")} anclajes`);
-
-    const errores = [], porDest = new Map(MUNI.meta.destins.map((d) => [d.id, []]));
-    let pares = 0, sinEst = 0, saltados = 0, peor = null;
-    const origenSinIso = new Set();   // orígenes cuya fila no alcanza ningún anclaje
-    for (const f of MUNI.files) {
-      const fila = filaDe.get(f.ine);
-      if (!fila) continue;
-      const vacia = !fila.some((b) => b !== 255);
-      for (const pre of cerca25) {
-        const t = f.destins?.[pre.d.id];
+      const errores = [];
+      let ambEst = 0, sinEst = 0, saltados = 0, peor = null;
+      for (const z of zones) {
+        const est = api.minsLliure(z);
+        if (est != null) {
+          ambEst++;
+          if (est > maxEst) { maxEst = est; maxQui = `${z.nom} → ${id}`; }
+        } else sinEst++;
+        const t = z.destins?.[id];
         if (t == null) continue;
         if (t.trivial) { saltados++; continue; }   // el propio destino: no dice nada
-        pares++;
-        const est = estima(fila, pre);
-        if (est == null) { sinEst++; if (vacia) origenSinIso.add(f.nom); continue; }
+        if (est == null) continue;
         const err = est - t.min;
-        errores.push({ err, nom: f.nom, dest: pre.d.id, est, exacte: t.min });
-        porDest.get(pre.d.id).push(err);
+        errores.push(err);
+        if (!peor || err > peor.err) peor = { err, nom: z.nom, est, exacte: t.min };
+      }
+      porPunt.set(id, { errores, ambEst, sinEst, saltados, peor,
+                        anclas: api.LLIURE_?.prop?.length ?? 0 });
+      totes = totes.concat(errores);
+    }
+
+    ok([...porPunt.values()].every((p) => p.anclas > 0),
+       `los ${porPunt.size} puntos de prueba tienen anclajes a menos de 2,5 km`,
+       `→ ${[...porPunt.values()].map((p) => p.anclas).join(", ")} anclajes`);
+
+    console.log("");
+    console.log("  error = estimado - exacto, en minutos. n = zonas con estimación;");
+    console.log("  «sin est.» = zonas para las que la página no diría nada.");
+    console.log("");
+    console.log("     punto                     n   mediana     media       p10       p90      peor   sin est.");
+    for (const [id, p] of porPunt) {
+      const e = p.errores;
+      if (!e.length) {
+        console.log("     " + id.padEnd(22) + "0".padStart(6) +
+                    "         —         —         —         —         —" +
+                    String(p.sinEst).padStart(11));
+        continue;
+      }
+      console.log("     " + id.padEnd(22) + String(p.ambEst).padStart(6) +
+                  sig(mediana(e)).padStart(10) + sig(media(e)).padStart(10) +
+                  sig(perc(e, 0.1)).padStart(10) + sig(perc(e, 0.9)).padStart(10) +
+                  sig(p.peor.err).padStart(10) + String(p.sinEst).padStart(11));
+    }
+    console.log("");
+    for (const [id, p] of porPunt) {
+      if (p.peor) {
+        console.log(`     peor de ${id}: ${p.peor.nom}, estimado ${p.peor.est} vs ${p.peor.exacte} exactos ` +
+                    `(${p.saltados} trivales descartados)`);
       }
     }
 
-    if (!errores.length) {
-      ok(false, "hay pares (municipio, destino) con estimación e exacto que comparar",
-         `→ 0 de ${pares} pares (${saltados} trivales descartados)`);
+    console.log("");
+    if (!totes.length) {
+      ok(false, "hay pares (zona, punto) con estimación y exacto que comparar", "→ 0");
     } else {
-      const e = errores.map((x) => x.err);
-      const abs = e.map(Math.abs);
-      peor = errores.reduce((p, c) => (Math.abs(c.err) > Math.abs(p.err) ? c : p));
-      console.log(`\n  n = ${errores.length} pares (de ${pares} posibles; ` +
-                  `${saltados} triviales descartados, ${sinEst} sin estimación)`);
-      console.log("  error = estimado - exacto, en minutos");
-      console.log("");
-      console.log("     medida            valor");
-      console.log("     " + "mediana".padEnd(18) + sig(mediana(e)).padStart(8));
-      console.log("     " + "media".padEnd(18) + sig(media(e)).padStart(8));
-      console.log("     " + "p10".padEnd(18) + sig(perc(e, 0.1)).padStart(8));
-      console.log("     " + "p90".padEnd(18) + sig(perc(e, 0.9)).padStart(8));
-      console.log("     " + "mediana |error|".padEnd(18) + n1(mediana(abs)).padStart(8));
-      console.log("     " + "peor caso".padEnd(18) + sig(peor.err).padStart(8) +
-                  `   ${peor.nom} → ${peor.dest} (estimado ${n1(peor.est)}, exacto ${peor.exacte})`);
-      console.log("");
-      console.log("     sesgo por destino        n   mediana     media       p10       p90");
-      for (const [id, xs] of porDest) {
-        if (!xs.length) { console.log("     " + id.padEnd(22) + "0".padStart(5) + "        —         —         —         —"); continue; }
-        console.log("     " + id.padEnd(22) + String(xs.length).padStart(5) +
-                    sig(mediana(xs)).padStart(10) + sig(media(xs)).padStart(10) +
-                    sig(perc(xs, 0.1)).padStart(10) + sig(perc(xs, 0.9)).padStart(10));
-      }
-      console.log("");
+      const abs = totes.map(Math.abs);
+      console.log(`     sobre los ${totes.length} pares de los ${porPunt.size} puntos: ` +
+                  `mediana ${sig(mediana(totes))}, mediana |error| ${n1(mediana(abs))}, ` +
+                  `p90 ${sig(perc(totes, 0.9))}`);
       // Deliberadamente NO se falla por el signo del sesgo: la isócrona sale a
-      // las 07:15 y el exacto llega a las 09:00, así que un sesgo por destino es
+      // las 07:15 y el exacto llega a las 09:00, así que un sesgo por punto es
       // esperable y lo que interesa es que esté publicado, no que sea cero.
       ok(mediana(abs) <= 25, "la mediana del error absoluto del estimador no pasa de 25 min",
          `→ ${n1(mediana(abs))} min`);
     }
-    if (origenSinIso.size) {
-      console.log(`     los pares sin estimación salen de ${origenSinIso.size} orígenes con la fila ` +
-                  `entera a 255: ${[...origenSinIso].slice(0, 8).join(", ")}`);
+
+    const malBiaix = [], malP90 = [], malPeor = [], malCob = [];
+    for (const [id, p] of porPunt) {
+      if (!p.errores.length) { malCob.push(`${id} sin pares`); continue; }
+      if (mediana(p.errores) > MAX_BIAIX) malBiaix.push(`${id} ${sig(mediana(p.errores))}`);
+      if (perc(p.errores, 0.9) > p90Max(id)) {
+        malP90.push(`${id} ${sig(perc(p.errores, 0.9))} > ${sig(p90Max(id))}`);
+      }
+      if (p.peor.err > MAX_PEOR) malPeor.push(`${id} ${sig(p.peor.err)}`);
+      const cob = pct(p.ambEst, zones.length);
+      if (cob < MIN_COBERTURA) malCob.push(`${id} ${pc1(p.ambEst, zones.length)}`);
     }
-    ok(pares > 0 && pct(errores.length, pares) >= 80,
-       "al menos el 80 % de los pares tienen estimación",
-       `→ ${errores.length}/${pares} = ${pc1(errores.length, pares)}`);
-  } else if (MUNI) {
-    aviso("iso-muni.json no tiene orígenes: me salto la validación del estimador");
+    ok(malBiaix.length === 0, `el sesgo mediano no pasa de ${sig(MAX_BIAIX)} min en ningún punto`,
+       malBiaix.length ? `(se pasan: ${malBiaix.join(", ")})` : "");
+    ok(malP90.length === 0, `el p90 del error no pasa de ${sig(MAX_P90)} min en ningún punto`
+       + ` (${Object.entries(MAX_P90_PUNT).map(([k, v]) => `${k} ${sig(v)}`).join(", ")})`,
+       malP90.length ? `(se pasan: ${malP90.join(", ")})` : "");
+    ok(malPeor.length === 0, `la peor sobreestimación no pasa de ${sig(MAX_PEOR)} min en ningún punto`,
+       malPeor.length ? `(se pasan: ${malPeor.join(", ")})` : "");
+    ok(malCob.length === 0, `en cada punto hay estimación para al menos el ${MIN_COBERTURA} % de las zonas`,
+       malCob.length ? `(por debajo: ${malCob.join(", ")})` : "");
+
+    // La regresión de los 757 minutos. No es un umbral de calidad: es un tope
+    // absoluto. Si vuelve a caerse el límite de la caminata de reserva, alguna
+    // zona sin paradas «resolverá» el viaje andando 50 km y saltará aquí.
+    ok(maxEst <= SOSTRE_MIN,
+       `ninguna estimación pasa de ${SOSTRE_MIN} min (la regresión de los 757 minutos)`,
+       `→ máximo ${maxEst} min${maxQui ? ` (${maxQui})` : ""}`);
   }
 }
 
-/* ================================================== 8. tamaño del reparto */
+/* ================================================== 10. peso del reparto */
 
 console.log("\n══ peso de los datos de la página ══════════════");
-let total = 0;
+let total = 0, inicial = 0;
 for (const f of FITXERS) {
   const s = tamany(f);
-  if (s == null) { console.log("     " + f.padEnd(26) + "—".padStart(12)); continue; }
+  const marca = INICIAL.includes(f) ? " ←" : "";
+  if (s == null) { console.log("     " + f.padEnd(26) + "—".padStart(12) + marca); continue; }
   total += s;
-  console.log("     " + f.padEnd(26) + (n1(s / 1024) + " kB").padStart(12));
+  if (INICIAL.includes(f)) inicial += s;
+  console.log("     " + f.padEnd(26) + (n1(s / 1024) + " kB").padStart(12) + marca);
 }
 console.log("     " + "TOTAL".padEnd(26) + (n1(total / 1024) + " kB").padStart(12));
-if (total > 1_200_000) aviso(`el total pasa de 1,2 MB (${n1(total / 1024 / 1024)} MB): la página tardará en arrancar`);
-else console.log(`     por debajo del límite blando de 1,2 MB (${pc1(total, 1_200_000)} del presupuesto)`);
+console.log("     " + "← primera pintada".padEnd(26) + (n1(inicial / 1024) + " kB").padStart(12));
+
+// Lo que se descarga antes de que la página enseñe nada. El resto —itinerarios y
+// matriz de isócronas— solo baja si el usuario abre una zona o pone su punto, y
+// por eso no entra en este presupuesto.
+ok(inicial <= PRESSUPOST,
+   `la carga inicial cabe en ${n1(PRESSUPOST / 1024)} kB`,
+   `→ ${n1(inicial / 1024)} kB (${pc1(inicial, PRESSUPOST)} del presupuesto)`);
+/* Aviso, no fallo: nadie se descarga el total: son tres grupos que bajan por
+   separado y la mayoría de visitas solo ve el primero. Pero si el conjunto crece
+   mucho es que algo se ha ido de las manos y conviene mirarlo. 1,6 MB son ~13 %
+   sobre los 1,42 de hoy: bastante para que un retoque normal no chille, poco
+   para que un fichero duplicado pase inadvertido. */
+const TOTAL_TOU = 1_600_000;
+if (total > TOTAL_TOU) {
+  aviso(`el total pasa de ${n1(TOTAL_TOU / 1024 / 1024)} MB `
+      + `(${n1(total / 1024 / 1024)} MB): revisa qué ha engordado`);
+}
 
 /* ------------------------------------------------------------- resumen */
 

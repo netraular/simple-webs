@@ -83,7 +83,7 @@ python3 fetch-transit.py      # 1.155 consultes  (165 origens × 6 destins + hor
 python3 fetch-isocronas.py    # 165 consultes one-to-all
 node fetch-linies.mjs         # 4 consultes a Overpass (necessita transit.json fet)
 node build-transport.mjs      # munta pages/data/ — segons
-node test-transport.mjs       # 58 comprovacions — segons
+node test-transport.mjs       # 71 comprovacions — segons
 ```
 
 - **`fetch-transit.py`** és el pas llarg: 1.155 consultes, 3 en paral·lel amb
@@ -227,30 +227,41 @@ pàgina ho diu al tooltip).
 
 ## 3. Quant s'equivoca l'estimador
 
-`test-transport.mjs` reprodueix l'estimador de la pàgina exactament (mateix radi
-de 2,5 km, mateix rodeig de 1,3, mateixa velocitat) i el compara contra la
-**veritat de camp**, que són els temps exactes porta a porta dels sis destins.
+`test-transport.mjs` **no reprodueix** l'estimador: n'extreu el `<script>` de
+`pages/transporte-publico.html`, li posa un DOM de mentida i crida les seves
+pròpies `minsLliure()` i `recompute()`. La veritat de camp són els temps exactes
+porta a porta dels sis destins, al mateix fitxer.
+
+Que sigui el codi real i no una còpia no és un detall: la versió anterior del
+test duia l'algorisme copiat a mà i donava tot per bo mentre la pàgina retornava
+**757 minuts** per a una zona sense cap parada assolible. El camí a peu de
+reserva no tenia topall, i una còpia «fidel a l'algorisme» tampoc no el tenia.
 
 ```
-n = 505 parells (de 542 possibles; 4 trivials descartats, 37 sense estimació)
+900 parells sobre les 164 zones × 6 punts
 error = estimat − exacte, en minuts
 
    mesura              valor
-   mediana              +5,2
-   mitjana              +5,7
-   p10                  −4,8
-   p90                 +18,9
-   mediana |error|       6,5
-   pitjor cas          +44,1   Castellví de Rosanes → sants (estimat 111,1, exacte 67)
+   mediana              +4,0
+   mediana |error|       5,0
+   p90                 +14,0
 
-   biaix per destí         n   mediana   mitjana      p10      p90
-   roche-sant-cugat       84      +6,3      +6,5     −5,8    +22,9
-   pl-catalunya           87      +5,2      +6,4     −2,2    +19,4
-   sants                  88      +6,7      +7,5     −0,8    +18,2
-   aeroport               83      +2,9      +3,7     −4,9    +17,1
-   castelldefels          77      +5,5      +5,9     −1,5    +15,5
-   sant-cugat-estacio     86      +3,2      +4,3     −7,8    +19,8
+   per punt                n   mediana   mitjana      p10      p90   pitjor   sense est.
+   pl-catalunya          160      +3,0      +4,5     −1,0    +12,0    +31,0            4
+   castelldefels         150      +5,0      +4,8     −2,0    +12,0    +24,0           14
+   aeroport              155      +3,0      +2,7     −5,0    +11,0    +23,0            9
+   sant-cugat-estacio    159      +4,0      +3,7     −5,0    +13,3    +44,0            5
+   sants                 160      +5,0      +6,1     +1,0    +15,0    +44,0            4
+   roche-sant-cugat      157      +6,0      +6,1     −3,0    +20,0    +35,0            7
 ```
+
+Els llindars del test són **suports de regressió**, no objectius de qualitat:
+mediana ≤ +8, p90 ≤ +20, pitjor ≤ +60, cobertura ≥ 90 %, i un sostre absolut de
+**200 min** que és el guardià específic del fallo dels 757. `roche-sant-cugat`
+té el p90 a 24 en comptes de 20 perquè mesura exactament 20,0 i un llindar
+igual al valor mesurat es decidiria a cara o creu cada tanda; depèn d'un bus
+llançadora de freqüència escassa, que és justament el que pitjor encaixa en una
+isòcrona de sortida fixa.
 
 **El biaix és positiu a tots els destins: l'estimació sobreestima**, entre 3 i
 7 min de mediana. Té dues causes que empenyen en la mateixa direcció: el model
@@ -263,9 +274,13 @@ il·lustra**: Castellví de Rosanes és un municipi amb servei escassíssim, i a
 trajecte exacte, triant l'hora, en fa 67.
 
 **Llegiu el punt lliure com un ordre de magnitud, no com un horari.** La mediana
-de l'error absolut és de 6,5 min i el p90 de +19: un llindar de «menys de 45 min»
-sobre el punt lliure inclou pobles que hi són just i n'exclou alguns que hi
+de l'error absolut és de 5 min i el p90 de +14: un llindar de «menys de 45 min»
+sobre el punt lliure inclou zones que hi són just i n'exclou algunes que hi
 cabrien.
+
+Entre **4 i 14 zones per punt no reben cap estimació**, i és a propòsit: si no hi
+ha cap ancoratge a menys de 2,5 km, la pàgina no diu res en comptes d'inventar-se
+una caminada de mitja hora llarga.
 
 ---
 

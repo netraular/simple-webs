@@ -5,7 +5,8 @@
   { "id": "sants",         "nom": "Estació de Sants",        "tipus": "tren de larga distancia", "lat": 41.3792, "lon": 2.1400 },
   { "id": "diagonal-zu",   "nom": "Diagonal · Zona Universitària", "tipus": "oficinas y campus", "lat": 41.3839, "lon": 2.1163 },
   { "id": "22at",          "nom": "22@ · Glòries",           "tipus": "distrito tecnológico",  "lat": 41.4036, "lon": 2.1894 },
-  { "id": "aeroport",      "nom": "Aeroport de Barcelona T1","tipus": "aeropuerto",            "lat": 41.2874, "lon": 2.0830 },
+  { "id": "aeroport",      "nom": "Aeroport de Barcelona T1","tipus": "aeropuerto",            "lat": 41.28867, "lon": 2.07341,
+    "nota": "Centroide de l'edifici de la T1 a OSM. La coordenada anterior (41.2874, 2.0830) queda sobre la plataforma d'aeronaus, fora de la xarxa de carrers: el router de transport public no hi arribava mai i tota la columna sortia null. La T2 te estacio de Rodalies propia i surt uns 10 min millor." },
   { "id": "platja-cast",   "nom": "Platja de Castelldefels", "tipus": "playa abierta",         "lat": 41.2652, "lon": 1.9767 },
   { "id": "collserola",    "nom": "Tibidabo · Collserola",   "tipus": "parque natural",        "lat": 41.4222, "lon": 2.1189 },
   { "id": "sabadell",      "nom": "Sabadell centre",         "tipus": "polo del Vallès",       "lat": 41.5463, "lon": 2.1086 }

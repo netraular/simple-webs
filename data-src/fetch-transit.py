@@ -30,10 +30,16 @@ API = "https://api.transitous.org/api/v1/plan"
 CACHE = os.path.join(HERE, ".transit-cache.json")
 OUT = os.path.join(HERE, "transit.json")
 
+# Versio del format de la resposta guardada a la cache. Les entrades v1 nomes
+# tenien {min, transbords, modes}; la v2 hi afegeix el desglos per tram (minuts
+# a peu, en vehicle, espera, linies i parades), que es el que permet filtrar per
+# "quant camino". Son claus separades: si la v2 falla, la v1 segueix intacta.
+CACHE_VER = "v2"
+
 # --- Dia i hores de referencia -------------------------------------------
-# Dimarts 22 de setembre de 2026, dia feiner normal. Catalunya es a CEST
+# Dimarts 29 de setembre de 2026, dia feiner normal. Catalunya es a CEST
 # (UTC+2) fins al 25 d'octubre, per tant hora local = UTC + 2.
-DIA = "2026-09-22"
+DIA = "2026-09-29"
 ARRIBADA_LOCAL = "09:00"
 ARRIBADA_UTC = f"{DIA}T07:00:00Z"   # 09:00 local
 SORTIDA_MINIMA_UTC = f"{DIA}T03:30:00Z"  # 05:30 local: ningu no surt de casa abans
@@ -47,6 +53,18 @@ DESTINS = {
     "roche-sant-cugat": (41.492364, 2.058228),
     "pl-catalunya": (41.3870, 2.1701),
     "sants": (41.3792, 2.1400),
+    # Terminal 1 del Prat, centroide de l'edifici a OSM. OJO: la coordenada que
+    # hi havia a pois.json (41.2874, 2.0830) cau sobre la plataforma d'aeronaus,
+    # sense cap carrer a prop, i el router no hi arribava des d'enlloc: tota la
+    # columna sortia null. La T2 te estacio de Rodalies propia i va ~10 min millor.
+    "aeroport": (41.28867, 2.07341),
+    # Estacio de Rodalies de Castelldefels, no la platja: qui diu "anar a
+    # Castelldefels" cada dia hi va al poble, i la platja ja es un POI a part.
+    "castelldefels": (41.2800, 1.9757),
+    # Estacio d'FGC de Sant Cugat (centre). Separada de Roche a proposit: el
+    # punt de Roche queda a 1,5 km de la xarxa i arrossega un bus llancadora que
+    # suma 10-12 min a TOTS els temps. "Arribar a Sant Cugat" en general es aixo.
+    "sant-cugat-estacio": (41.46791, 2.07820),
 }
 
 # Parametres comuns: nomes a peu als extrems (l'usuari no te cotxe), i fins a
@@ -128,23 +146,87 @@ def mode_name(leg):
     return None
 
 
+def lloc(p):
+    """Place de MOTIS -> {nom, lat, lon}, tolerant amb els camps que faltin."""
+    if not isinstance(p, dict):
+        return None
+    lat, lon = p.get("lat"), p.get("lon")
+    return {
+        "nom": p.get("name"),
+        "lat": round(lat, 5) if isinstance(lat, (int, float)) else None,
+        "lon": round(lon, 5) if isinstance(lon, (int, float)) else None,
+    }
+
+
 def resumeix(it):
-    """Converteix un itinerari MOTIS en {min, transbords, modes, sortida, arribada}."""
-    modes = []
-    for leg in it.get("legs", []):
+    """Converteix un itinerari MOTIS en el resum que guardem a la cache.
+
+    A banda del total, desglossa el trajecte en les parts que l'usuari viu de
+    manera diferent: caminar no es el mateix que anar assegut al tren, i esperar
+    en una andana no es el mateix que cap de les dues coses.
+
+      a_peu_acces     portal -> primera parada  (el "quant camino des de casa")
+      a_peu_transbord caminar entre parades d'un transbord
+      a_peu_final     ultima parada -> desti
+      a_peu           la suma dels tres: el que filtra la pagina
+      en_vehicle      temps dins d'un vehicle
+      espera          durada total menys la suma dels trams: el temps mort
+
+    `linies` son els trams de transport public en ordre, amb el codi de linia
+    (S1, R4, L3, T2...) i les parades on puges i baixes, que es el que permet
+    dibuixar l'itinerari sobre el mapa.
+    """
+    legs = it.get("legs", []) or []
+    modes, linies = [], []
+    a_peu_acces = a_peu_final = a_peu_transbord = en_vehicle = 0
+    suma_trams = 0
+
+    for i, leg in enumerate(legs):
+        dur = round((leg.get("duration") or 0) / 60)
+        suma_trams += leg.get("duration") or 0
+        if (leg.get("mode") or "").upper() == "WALK":
+            # START / END son els extrems que posa MOTIS al portal i al desti.
+            de_inici = i == 0 or (leg.get("from") or {}).get("name") == "START"
+            al_final = i == len(legs) - 1 or (leg.get("to") or {}).get("name") == "END"
+            if de_inici:
+                a_peu_acces += dur
+            elif al_final:
+                a_peu_final += dur
+            else:
+                a_peu_transbord += dur
+            continue
+        en_vehicle += dur
         n = mode_name(leg)
         if n and (not modes or modes[-1] != n):
             modes.append(n)
+        linies.append({
+            "ref": leg.get("routeShortName") or None,
+            "xarxa": n,
+            "operador": leg.get("agencyName") or None,
+            "min": dur,
+            "de": lloc(leg.get("from")),
+            "a": lloc(leg.get("to")),
+        })
+
     # dedup preservant ordre
     vist, nets = set(), []
     for m in modes:
         if m not in vist:
             vist.add(m)
             nets.append(m)
+
+    total = it["duration"]
     return {
-        "min": round(it["duration"] / 60),
+        "min": round(total / 60),
         "transbords": max(0, it.get("transfers", 0)),
         "modes": nets,
+        "a_peu": a_peu_acces + a_peu_transbord + a_peu_final,
+        "a_peu_acces": a_peu_acces,
+        "a_peu_transbord": a_peu_transbord,
+        "a_peu_final": a_peu_final,
+        "en_vehicle": en_vehicle,
+        "espera": max(0, round((total - suma_trams) / 60)),
+        "linies": linies,
         "sortida": it.get("startTime"),
         "arribada": it.get("endTime"),
     }
@@ -214,9 +296,13 @@ def sortides_punta(origen):
     return len(sortides), len(d.get("itineraries", []))
 
 
+def ckey(kind, key, dest):
+    return f"{CACHE_VER}|{kind}|{key}|{dest}"
+
+
 def feina(item):
     kind, key, lat, lon, dest = item
-    ck = f"{kind}|{key}|{dest}"
+    ck = ckey(kind, key, dest)
     if ck in _cache:
         return ck, _cache[ck]
     try:
@@ -276,7 +362,7 @@ def main():
             for d in dests:
                 tasques.append(("bar", str(b["ine"]), b["lat"], b["lon"], d))
 
-    pend = [t for t in tasques if f"{t[0]}|{t[1]}|{t[4]}" not in _cache]
+    pend = [t for t in tasques if ckey(t[0], t[1], t[4]) not in _cache]
     print(f"{len(tasques)} consultes, {len(pend)} pendents", file=sys.stderr)
 
     with cf.ThreadPoolExecutor(max_workers=args.jobs) as ex:
@@ -293,8 +379,8 @@ def main():
         kind, key, lat, lon, dest = t
         if dest == "__punta__":
             continue
-        v = _cache.get(f"{kind}|{key}|{dest}")
-        if v and "_cap" in v and f"{kind}|{key}|{dest}@tard" not in _cache:
+        v = _cache.get(ckey(kind, key, dest))
+        if v and "_cap" in v and ckey(kind, key, dest + "@tard") not in _cache:
             rescat.append((kind, key, lat, lon, dest + "@tard"))
     if rescat:
         print(f"segona passada: {len(rescat)} consultes", file=sys.stderr)
@@ -307,15 +393,15 @@ def main():
         out = {}
         for it in items:
             k = str(it[idkey])
+            pre = "mun" if idkey == "codi_ine" else "bar"
             entrada = {"nom": it["nom"], "sortides_hora_punta": None, "destins": {}}
-            pv = _cache.get(f"{'mun' if idkey == 'codi_ine' else 'bar'}|{k}|__punta__")
+            pv = _cache.get(ckey(pre, k, "__punta__"))
             if pv and "sortides_hora_punta" in pv:
                 entrada["sortides_hora_punta"] = pv["sortides_hora_punta"]
             for d in DESTINS:
-                pre = "mun" if idkey == "codi_ine" else "bar"
-                v = _cache.get(f"{pre}|{k}|{d}")
+                v = _cache.get(ckey(pre, k, d))
                 if not v or "_error" in v or "_cap" in v:
-                    v = _cache.get(f"{pre}|{k}|{d}@tard")
+                    v = _cache.get(ckey(pre, k, d + "@tard"))
                 if not v or "_error" in v or "_cap" in v or v.get("min") is None:
                     entrada["destins"][d] = None
                 else:
@@ -323,6 +409,15 @@ def main():
                         "min": v["min"],
                         "transbords": v["transbords"],
                         "modes": v["modes"],
+                        # Desglos v2. Els camps antics de dalt no es toquen: la
+                        # pagina pisos-vs-distancia.html els llegeix tal qual.
+                        "a_peu": v.get("a_peu"),
+                        "a_peu_acces": v.get("a_peu_acces"),
+                        "a_peu_transbord": v.get("a_peu_transbord"),
+                        "a_peu_final": v.get("a_peu_final"),
+                        "en_vehicle": v.get("en_vehicle"),
+                        "espera": v.get("espera"),
+                        "linies": v.get("linies") or [],
                     }
                     if v.get("tard"):
                         arr = (v.get("arribada") or "")[11:16]
@@ -353,6 +448,14 @@ def main():
                            "Catalunya en un trajecte optim de Pareto (sortir mes tard / "
                            "arribar mes aviat). Mesura la frequencia util, no el total de "
                            "circulacions."),
+            "desglos": ("Cada desti porta el trajecte partit en les parts que es viuen "
+                        "diferent: a_peu_acces (portal -> primera parada), a_peu_transbord, "
+                        "a_peu_final (ultima parada -> desti), a_peu (la suma dels tres), "
+                        "en_vehicle i espera (temps mort als transbords). min = la suma de "
+                        "tot. `linies` son els trams de transport public en ordre, amb codi "
+                        "de linia i les parades on puges i baixes. ATENCIO: a_peu es el que "
+                        "camines a la ruta MES RAPIDA, no el minim possible: podria haver-hi "
+                        "una alternativa mes lenta i amb menys cami que el router descarta."),
             "destins": {k: {"lat": v[0], "lon": v[1]} for k, v in DESTINS.items()},
             "generat": time.strftime("%Y-%m-%d"),
             "limitacions": ("Horari teoric, no temps real. El temps es de portal a portal amb "

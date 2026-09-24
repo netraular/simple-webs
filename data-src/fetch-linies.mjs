@@ -88,11 +88,19 @@ function xarxa(t) {
   if (t.route === "tram" || t.route === "light_rail") return "Tram";
   if (t.route === "subway") return "Metro";
   if (t.route === "bus") return "Bus";
-  // Los funiculares no son una red aparte para quien los usa: el de Montjuïc es
-  // de TMB y sale en el plano del metro; el de Vallvidrera es de FGC y va en el
-  // suyo. Se clasifican por operador, no por tecnología.
+  // Los funiculares no son una red aparte para quien los usa: el de Vallvidrera
+  // (FV) es de FGC y va en su plano; el de Montjuïc (FM) es de TMB y sale en el
+  // del metro, y de hecho aparece en itinerarios reales. Se clasifican por
+  // operador, no por tecnología.
+  //
+  // El del Tibidabo (FT) lo opera Barcelona de Serveis Municipals: sube a un
+  // parque de atracciones y no es transporte de cercanías. Fuera, por el mismo
+  // criterio que la larga distancia. Meterlo en "Metro" —que es lo que hacía el
+  // comodín anterior— era sencillamente falso.
   if (t.route === "funicular") {
-    return /fgc|ferrocarrils de la generalitat/i.test(blob) ? "FGC" : "Metro";
+    if (/fgc|ferrocarrils de la generalitat/i.test(blob)) return "FGC";
+    if (/tmb|transports metropolitans|metro de barcelona/i.test(blob)) return "Metro";
+    return null;
   }
   if (t.route === "train") {
     if (/fgc|ferrocarrils de la generalitat/i.test(blob)) return "FGC";
@@ -374,7 +382,8 @@ const doc = {
   nota: ("Capa ferroviaria completa (metro, FGC, Rodalies, tram), sense llarga "
        + "distancia. Capa de bus NOMES amb les linies que surten en algun "
        + "itinerari optim de transit.json. Traçat simplificat (Douglas-Peucker, "
-       + "25 m ferroviaria / 40 m bus) i coordenades a 5 decimals."),
+       + "25 m ferroviaria / 60 m bus) i coordenades a 5 decimals. Dels busos no "
+       + "se'n guarden les parades."),
   linies,
   parades,
 };

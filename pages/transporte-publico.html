@@ -1573,8 +1573,8 @@ function initUI() {
     if (S.picking) {
       const p = svgPoint(map, ev);
       S.puntLliure = { lat: PROJ.invLat(p.y), lon: PROJ.invLon(p.x) };
-      S.picking = false;
       S.conds.__lliure = { on: true, max: S.conds.__lliure?.max ?? 90 };
+      setPicking(false);          // devuelve el cursor y repinta la fila
       // La matriz solo se descarga ahora, la primera vez que hace falta.
       carregaIso().then(render).catch(e => {
         console.warn("sin isócronas:", e.message);

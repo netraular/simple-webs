@@ -70,6 +70,15 @@ esta generación:
 En ambos casos, donde hay dato de FRED manda FRED. Si en una regeneración futura
 aparecieran más discrepancias, el script **aborta** en vez de publicar.
 
+### Un hueco real: octubre de 2025
+
+`CPIAUCNS` **no tiene dato de octubre de 2025**: FRED lo publica vacío. Queda a
+`null`, como manda el principio de la casa — no se interpola ni se arrastra el
+mes anterior. Es el único hueco interior de todo el fichero, y tiene
+consecuencias visibles que la página asume en vez de disimular: en términos
+reales todas las series llevan ahí un corte de un mes, y una simulación que
+terminase justo en ese mes se liquida en septiembre de 2025 diciéndolo.
+
 ---
 
 ## B) Series calculadas

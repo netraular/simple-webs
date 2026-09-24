@@ -32,6 +32,11 @@
   --ink:#0b0b0b;    --ink-2:#52514e;    --muted:#898781;
   --grid:#e1e0d9;   --axis:#c3c2b7;     --hairline:rgba(11,11,11,.10);
   --focus:#2a78d6;
+  /* --muted es la tinta de las marcas recesivas (línea de referencia, 3,4:1 sobre
+     la superficie: suficiente para un trazo, no para texto). Todo el texto pequeño
+     usa --muted-txt, que sí pasa el 4,5:1 de la AA. */
+  --muted-txt:#6e6c67;
+  --btn-on:#256abf;   /* azul del botón activo: blanco encima a 5,4:1 */
 
   /* --- ranuras categóricas (orden fijo de la paleta de referencia) --- */
   --series-1:#2a78d6;  /* S&P 500 con dividendos — el protagonista */
@@ -44,8 +49,7 @@
   --series-8:#e34948;  /* IBEX 35 / bitcoin */
 
   /* --- par divergente para el signo de la rentabilidad --- */
-  --pos:#2a78d6;  --neg:#e34948;  --div-mid:#cbcac4;
-  --pos-soft:#9ec5f4; --neg-soft:#eb9a99;
+  --pos:#2a78d6;  --neg:#e34948;
 
   /* --- referencia: la inflación y las líneas de contexto no son series --- */
   --ref:#898781;
@@ -58,8 +62,8 @@
     --focus:#3987e5;
     --series-1:#3987e5; --series-2:#d95926; --series-3:#199e70; --series-4:#c98500;
     --series-5:#d55181; --series-6:#008300; --series-7:#9085e9; --series-8:#e66767;
-    --pos:#3987e5; --neg:#e66767; --div-mid:#55544f;
-    --pos-soft:#256abf; --neg-soft:#b84b49;
+    --pos:#3987e5; --neg:#e66767;
+    --muted-txt:#9d9b95;
   }
 }
 :root[data-theme="dark"]{
@@ -69,8 +73,8 @@
   --focus:#3987e5;
   --series-1:#3987e5; --series-2:#d95926; --series-3:#199e70; --series-4:#c98500;
   --series-5:#d55181; --series-6:#008300; --series-7:#9085e9; --series-8:#e66767;
-  --pos:#3987e5; --neg:#e66767; --div-mid:#55544f;
-  --pos-soft:#256abf; --neg-soft:#b84b49;
+  --pos:#3987e5; --neg:#e66767;
+  --muted-txt:#9d9b95;
 }
 
 *{box-sizing:border-box;margin:0;padding:0}
@@ -84,11 +88,11 @@ body{
 
 /* ---------- cabecera ---------- */
 header{padding:56px 0 6px}
-.eyebrow{font-size:.72rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.eyebrow{font-size:.72rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted-txt)}
 h1{font-size:clamp(2rem,4.6vw,3.2rem);font-weight:700;letter-spacing:-.02em;line-height:1.07;margin:14px 0 0;max-width:20ch}
 .lede{margin:18px 0 0;max-width:66ch;color:var(--ink-2);font-size:1.03rem}
 .lede + .lede{margin-top:10px}
-.stamp{margin:18px 0 0;font-size:.78rem;color:var(--muted)}
+.stamp{margin:18px 0 0;font-size:.78rem;color:var(--muted-txt)}
 
 /* ---------- barra de opciones: una sola fila, por encima de todo lo que afecta ---------- */
 .filters{
@@ -100,7 +104,7 @@ h1{font-size:clamp(2rem,4.6vw,3.2rem);font-weight:700;letter-spacing:-.02em;line
 }
 .filters-inner{display:flex;flex-wrap:wrap;gap:12px 22px;align-items:flex-end}
 .field{display:flex;flex-direction:column;gap:5px;min-width:0}
-.field > label,.field > span.lbl{font-size:.7rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+.field > label,.field > span.lbl{font-size:.7rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--muted-txt)}
 .field select,.field input[type=number]{
   font:inherit;font-size:.9rem;background:var(--surface);color:var(--ink);
   border:1px solid var(--axis);border-radius:6px;padding:7px 9px;min-height:36px;
@@ -114,10 +118,10 @@ select:focus-visible,input:focus-visible,button:focus-visible,summary:focus-visi
   border:1px solid var(--axis);border-radius:6px;padding:8px 13px;cursor:pointer;min-height:36px;
 }
 .btn:hover{border-color:var(--ink-2)}
-.btn[aria-pressed=true]{background:var(--series-1);border-color:var(--series-1);color:#fff}
+.btn[aria-pressed=true]{background:var(--btn-on);border-color:var(--btn-on);color:#fff}
 .btn-sm{padding:6px 10px;font-size:.8rem;min-height:32px}
 .btn-group{display:flex;gap:6px;flex-wrap:wrap}
-.hint{font-size:.76rem;color:var(--muted);max-width:40ch}
+.hint{font-size:.76rem;color:var(--muted-txt);max-width:40ch}
 
 /* ---------- secciones y tarjetas ---------- */
 main{padding:26px 0 40px}
@@ -137,7 +141,7 @@ section{margin-bottom:34px;scroll-margin-top:80px}
 /* ---------- tiles ---------- */
 .tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(168px,1fr));gap:12px;margin-bottom:16px}
 .tile{background:var(--surface);border:1px solid var(--hairline);border-radius:12px;padding:15px 16px}
-.tile .k{font-size:.69rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+.tile .k{font-size:.69rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--muted-txt)}
 .tile .v{font-size:1.62rem;font-weight:700;letter-spacing:-.02em;margin-top:6px;line-height:1.1}
 .tile .s{font-size:.76rem;color:var(--ink-2);margin-top:5px}
 .tile.hero{grid-column:span 2;background:var(--surface-2)}
@@ -150,8 +154,12 @@ section{margin-bottom:34px;scroll-margin-top:80px}
 .chart svg{display:block;width:100%;height:auto;overflow:visible}
 .chart .gl{stroke:var(--grid);stroke-width:1}
 .chart .ax{stroke:var(--axis);stroke-width:1}
-.chart text{fill:var(--muted);font-size:11px;font-variant-numeric:tabular-nums}
+.chart text{fill:var(--muted-txt);font-size:11px;font-variant-numeric:tabular-nums}
 .chart text.lbl{fill:var(--ink-2);font-size:11.5px;font-weight:600}
+/* Etiqueta directa sobre el propio dibujo: lleva un borde del color de la
+   superficie para leerse aunque caiga encima de una barra o del eje. */
+.chart text.lbl-out{fill:var(--ink);font-size:11.5px;font-weight:700;
+  paint-order:stroke;stroke:var(--surface);stroke-width:3.5;stroke-linejoin:round}
 .chart .ln{fill:none;stroke-width:2;stroke-linejoin:round;stroke-linecap:round}
 .chart .ln-ref{fill:none;stroke:var(--ref);stroke-width:1.5;stroke-dasharray:4 4}
 .chart .band{fill:var(--series-1);opacity:.10}
@@ -190,7 +198,7 @@ section{margin-bottom:34px;scroll-margin-top:80px}
 /* ---------- tabla ---------- */
 details.tbl{margin-top:14px;border-top:1px solid var(--hairline);padding-top:10px}
 details.tbl > summary{
-  font-size:.79rem;color:var(--muted);cursor:pointer;list-style:none;
+  font-size:.79rem;color:var(--muted-txt);cursor:pointer;list-style:none;
   display:flex;align-items:center;gap:6px;font-weight:600;
 }
 details.tbl > summary::-webkit-details-marker{display:none}
@@ -202,11 +210,11 @@ th,td{padding:7px 10px;text-align:right;white-space:nowrap;border-bottom:1px sol
 th:first-child,td:first-child{text-align:left;position:sticky;left:0;background:var(--surface)}
 thead th{
   position:sticky;top:0;background:var(--surface);z-index:2;
-  font-size:.68rem;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);
+  font-size:.68rem;letter-spacing:.05em;text-transform:uppercase;color:var(--muted-txt);
   border-bottom:1px solid var(--axis);
 }
 thead th:first-child{z-index:3}
-td.na{color:var(--muted)}
+td.na{color:var(--muted-txt)}
 td.neg{color:var(--neg)}
 
 /* ---------- avisos y notas ---------- */
@@ -224,9 +232,9 @@ td.neg{color:var(--neg)}
 .prose a{color:var(--focus)}
 .prose code{font-size:.85em;background:var(--surface-2);padding:1px 5px;border-radius:4px}
 
-footer{border-top:1px solid var(--hairline);padding:26px 0 60px;font-size:.8rem;color:var(--muted)}
-footer a{color:var(--muted)}
-.state{padding:60px 20px;text-align:center;color:var(--muted)}
+footer{border-top:1px solid var(--hairline);padding:26px 0 60px;font-size:.8rem;color:var(--muted-txt)}
+footer a{color:var(--muted-txt)}
+.state{padding:60px 20px;text-align:center;color:var(--muted-txt)}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
 </style>
@@ -303,6 +311,9 @@ footer a{color:var(--muted)}
       <h3>La misma serie, ordenada por tramos</h3>
       <p class="sub" id="s-hist-anual"></p>
       <div class="chart" id="ch-hist-anual"></div>
+      <details class="tbl"><summary>Ver el reparto en tabla</summary>
+        <div class="table-scroll" id="tb-hist-anual"></div>
+      </details>
     </div>
   </section>
 
@@ -324,7 +335,7 @@ footer a{color:var(--muted)}
           <label for="horizonte">Años aguantando</label>
           <div class="btn-group" style="align-items:center;gap:10px">
             <input type="range" id="horizonte" min="1" max="40" step="1" value="10"
-                   style="width:190px;accent-color:var(--series-1)">
+                   aria-valuetext="10 años" style="width:190px;accent-color:var(--series-1)">
             <b id="horizonte-val" style="font-variant-numeric:tabular-nums;min-width:62px">10 años</b>
           </div>
         </div>
@@ -338,6 +349,9 @@ footer a{color:var(--muted)}
       <h3>La misma información, como reparto</h3>
       <p class="sub" id="s-hist-vent"></p>
       <div class="chart" id="ch-hist-vent"></div>
+      <details class="tbl"><summary>Ver el reparto en tabla</summary>
+        <div class="table-scroll" id="tb-hist-vent"></div>
+      </details>
       <details class="tbl"><summary>Ver todos los horizontes en tabla</summary>
         <div class="table-scroll" id="tb-horizontes"></div>
       </details>
@@ -378,6 +392,10 @@ footer a{color:var(--muted)}
       <div class="chart" id="ch-sim"></div>
       <div class="legend" id="lg-sim"></div>
       <div class="note" id="nota-sim"></div>
+      <details class="tbl"><summary>Ver la evolución año a año en tabla</summary>
+        <div class="table-scroll" id="tb-sim"></div>
+      </details>
+
     </div>
   </section>
 
@@ -421,12 +439,18 @@ footer a{color:var(--muted)}
         <p class="sub" id="s-nikkei"></p>
         <div class="chart" id="ch-nikkei"></div>
         <div class="legend" id="lg-nikkei"></div>
+      <details class="tbl"><summary>Ver los datos en tabla</summary>
+        <div class="table-scroll" id="tb-nikkei"></div>
+      </details>
       </div>
       <div class="card">
         <h3>El resto del mundo desarrollado</h3>
         <p class="sub" id="s-exus"></p>
         <div class="chart" id="ch-exus"></div>
         <div class="legend" id="lg-exus"></div>
+      <details class="tbl"><summary>Ver los datos en tabla</summary>
+        <div class="table-scroll" id="tb-exus"></div>
+      </details>
       </div>
     </div>
     <div class="card">
@@ -435,6 +459,10 @@ footer a{color:var(--muted)}
       <div class="chart" id="ch-euros"></div>
       <div class="legend" id="lg-euros"></div>
       <div class="note" id="nota-euros"></div>
+      <details class="tbl"><summary>Ver los datos en tabla</summary>
+        <div class="table-scroll" id="tb-euros"></div>
+      </details>
+
     </div>
     <div class="card prose">
       <h3 style="margin-top:0">Y el dato que no sale de esta página</h3>
@@ -464,6 +492,10 @@ footer a{color:var(--muted)}
       <div class="chart" id="ch-btc"></div>
       <div class="legend" id="lg-btc"></div>
       <div class="note warn" id="nota-btc"></div>
+      <details class="tbl"><summary>Ver los datos en tabla</summary>
+        <div class="table-scroll" id="tb-btc"></div>
+      </details>
+
     </div>
   </section>
 
@@ -499,8 +531,14 @@ const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const nf = (d = 1) => new Intl.NumberFormat("es-ES", { minimumFractionDigits: d, maximumFractionDigits: d });
 const pct  = (x, d = 1) => (x == null || !isFinite(x) ? "—" : `${x >= 0 ? "" : "−"}${nf(d).format(Math.abs(x))} %`);
 const pctS = (x, d = 1) => (x == null || !isFinite(x) ? "—" : `${x >= 0 ? "+" : "−"}${nf(d).format(Math.abs(x))} %`);
-const mult = (x) => (x == null || !isFinite(x) ? "—"
-  : `×${new Intl.NumberFormat("es-ES", { maximumFractionDigits: x >= 100 ? 0 : x >= 10 ? 1 : 2 }).format(x)}`);
+const mult = (x) => {
+  if (x == null || !isFinite(x)) return "—";
+  // Por debajo de 1 hacen falta cifras significativas, no decimales fijos: con
+  // un coste anual alto y la inflación descontada, el oro desde 1871 queda en
+  // ×0,0012, y "×0" sería mentira.
+  const d = x >= 100 ? 0 : x >= 10 ? 1 : x >= 1 ? 2 : Math.min(6, 2 - Math.floor(Math.log10(x)));
+  return `×${new Intl.NumberFormat("es-ES", { maximumFractionDigits: d }).format(x)}`;
+};
 const dinero = (x) => (x == null || !isFinite(x) ? "—" :
   new Intl.NumberFormat("es-ES", { maximumFractionDigits: 0 }).format(Math.round(x)));
 const MESES = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
@@ -544,8 +582,8 @@ const sinReal = (id) => S.real && D.series[id] && DEFLACTOR[D.series[id].moneda]
  * Con `{ real:false }` se pide explícitamente la versión nominal.
  */
 const cache = new Map();
-function serie(id, { real = S.real } = {}) {
-  const clave = `${id}|${real}|${S.coste}`;
+function serie(id, { real = S.real, coste = S.coste } = {}) {
+  const clave = `${id}|${real}|${coste}`;
   if (cache.has(clave)) return cache.get(clave);
   const esIpc = id === "ipc" || id === "ipc_es";
   const base = id === "ipc" ? D.ipc : id === "ipc_es" ? D.ipc_es : D.series[id]?.v;
@@ -558,7 +596,7 @@ function serie(id, { real = S.real } = {}) {
     cache.set(clave, vacia);
     return vacia;
   }
-  const k = S.coste > 0 && !esIpc ? 1 - S.coste / 100 : 1;
+  const k = coste > 0 && !esIpc ? 1 - coste / 100 : 1;
   const desde = base.findIndex((x) => x !== null);
   const out = new Array(N).fill(null);
   for (let i = desde; i < N; i++) {
@@ -581,6 +619,20 @@ function serie(id, { real = S.real } = {}) {
 function cagr(v, a, b) {
   if (v[a] == null || v[b] == null || b <= a) return null;
   return (Math.pow(v[b] / v[a], 12 / (b - a)) - 1) * 100;
+}
+/**
+ * Cuántas veces se multiplicó entre dos posiciones, o null si falta un extremo.
+ * Sin esto, `v[b] / v[a]` con un hueco da 0 (null se convierte en 0) y la página
+ * enseñaría "×0" donde lo honesto es no enseñar nada. Pasa de verdad: el IPC de
+ * EE. UU. no tiene dato de octubre de 2025 y la vivienda se queda en junio de 2026.
+ */
+function raz(v, a, b) {
+  return v[a] == null || v[b] == null ? null : v[b] / v[a];
+}
+/** Última posición con dato en [a, b]; null si no hay ninguna. */
+function ultimoCon(v, a, b) {
+  for (let j = b; j >= a; j--) if (v[j] != null) return j;
+  return null;
 }
 /** Primer y último mes con dato de una serie ya procesada. */
 function rango(v) {
@@ -624,13 +676,21 @@ const esc = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;");
  * también en un móvil, en vez de encogerse con el gráfico. Cada cambio de
  * tamaño de ventana vuelve a pintar (ver el final del script).
  */
-function marco(host, { h = 320, ml = 52, mr = 18, mt = 14, mb = 30 } = {}) {
+function marco(host, { h = 320, ml = 52, mr = 18, mt = 14, mb = 30, titulo = "" } = {}) {
   const w = Math.max(320, Math.round(host.clientWidth || 960));
   host.textContent = "";
-  const svg = el("svg", { viewBox: `0 0 ${w} ${h}`, role: "img" });
+  // `role="group"` y no `role="img"`: con img, todo lo de dentro pasa a ser
+  // decorativo para un lector de pantalla y se perdería la zona navegable con
+  // teclado que hay debajo. El nombre accesible lo da el <title> del SVG.
+  const svg = el("svg", { viewBox: `0 0 ${w} ${h}`, role: "group" });
+  if (titulo) svg.appendChild(el("title")).textContent = titulo;
   host.appendChild(svg);
+  // El tooltip es también la región viva: lo que ve el ratón es lo que se
+  // anuncia al mover la cruceta con las flechas.
   const tip = document.createElement("div");
   tip.className = "tip";
+  tip.setAttribute("role", "status");
+  tip.setAttribute("aria-live", "polite");
   host.appendChild(tip);
   return {
     svg, tip, w, h, ml, mr, mt, mb,
@@ -648,6 +708,9 @@ function ejeY(g, vals, escala, fmt, { cero = null } = {}) {
   }
 }
 
+/** Cuántas etiquetas caben en el eje X de este gráfico, por ancho real. */
+const nEtiquetas = (g, px = 110) => Math.max(3, Math.floor((g.x1 - g.x0) / px));
+
 /** Ticks del eje X en píxeles ya calculados: [{x, t}] */
 function ejeX(g, ticks) {
   g.add(el("line", { x1: g.x0, x2: g.x1, y1: g.y1, y2: g.y1, class: "ax" }));
@@ -657,7 +720,10 @@ function ejeX(g, ticks) {
   }
 }
 
-/** Ticks "redondos" para un eje temporal de posiciones [a,b] de M. */
+/**
+ * Ticks "redondos" para un eje temporal de posiciones [a,b] de M. `max` sale del
+ * ancho real del gráfico: en un móvil caben tres etiquetas, no nueve.
+ */
 function ticksTiempo(a, b, x, max = 9) {
   const años = (b - a) / 12;
   const paso = [1, 2, 5, 10, 20, 25, 50].find((p) => años / p <= max) || 100;
@@ -790,9 +856,10 @@ function leyenda(host, items) {
 }
 
 /** Tabla: el gemelo accesible de cada gráfico. */
-function tabla(host, cabeceras, filas) {
+function tabla(host, cabeceras, filas, caption = "") {
   host.innerHTML =
-    `<table><thead><tr>${cabeceras.map((c) => `<th scope="col">${esc(c)}</th>`).join("")}</tr></thead>` +
+    `<table>${caption ? `<caption class="sr">${esc(caption)}</caption>` : ""}` +
+    `<thead><tr>${cabeceras.map((c) => `<th scope="col">${esc(c)}</th>`).join("")}</tr></thead>` +
     `<tbody>${filas.map((f) => `<tr>${f.map((c, i) =>
       i === 0 ? `<th scope="row" style="font-weight:600">${c}</th>`
               : `<td class="${c && String(c).startsWith("−") ? "neg" : c === "—" ? "na" : ""}">${c}</td>`).join("")}</tr>`).join("")}</tbody></table>`;
@@ -848,7 +915,7 @@ function hoverDiscreto(g, items, { titulo } = {}) {
 }
 
 /** Histograma de una lista de rentabilidades anualizadas, en tramos de `paso`. */
-function histograma(host, datos, { paso = 5, titulo, etiqueta }) {
+function histograma(host, datos, { paso = 5, titulo, etiqueta, tabla: hostTabla = null }) {
   const min = Math.floor(Math.min(...datos) / paso) * paso;
   const max = Math.ceil(Math.max(...datos) / paso) * paso;
   const nb = Math.max(1, Math.round((max - min) / paso));
@@ -856,7 +923,7 @@ function histograma(host, datos, { paso = 5, titulo, etiqueta }) {
   for (const v of datos) bins[Math.min(nb - 1, Math.max(0, Math.floor((v - min) / paso)))].n++;
   const maxN = Math.max(...bins.map((b) => b.n));
 
-  const g = marco(host, { h: 230, ml: 44, mb: 34 });
+  const g = marco(host, { h: 230, ml: 44, mb: 34, titulo });
   const bw = (g.x1 - g.x0) / nb;
   const y = (n) => g.y1 - (n / maxN) * (g.y1 - g.y0);
   ejeY(g, ticksLineal(0, maxN, 4), y, (v) => String(Math.round(v)));
@@ -876,7 +943,7 @@ function histograma(host, datos, { paso = 5, titulo, etiqueta }) {
         `<div class="row"><span>${etiqueta}</span><b>${b.n}</b></div>` +
         `<div class="row"><span>del total</span><b>${nf(1).format((b.n / datos.length) * 100)} %</b></div>`,
     });
-    if (k % Math.ceil(nb / 12) === 0) {
+    if (k % Math.ceil(nb / nEtiquetas(g, 46)) === 0) {
       g.add(el("text", { x, y: g.y1 + 16, "text-anchor": "middle" })).textContent = pctS(b.a, 0).replace(" %", "");
     }
   });
@@ -884,7 +951,31 @@ function histograma(host, datos, { paso = 5, titulo, etiqueta }) {
   g.add(el("text", { x: (g.x0 + g.x1) / 2, y: g.y1 + 31, "text-anchor": "middle", class: "lbl" }))
     .textContent = "rentabilidad anualizada (%)";
   hoverDiscreto(g, items, { titulo });
+  if (hostTabla) {
+    tabla(hostTabla, ["Tramo", etiqueta.replace(/^\w/, (c) => c.toUpperCase()), "% del total"],
+      bins.map((b) => [`${pctS(b.a, 0)} a ${pctS(b.b, 0)}`, String(b.n),
+        `${nf(1).format((b.n / datos.length) * 100)} %`]), titulo);
+  }
   return bins;
+}
+
+/**
+ * Gemelo en tabla de un gráfico de líneas: una fila por diciembre (más el primer
+ * y el último mes), recortando a unas 40 filas para que se pueda leer.
+ */
+function tablaSerie(host, caption, series, i, fin) {
+  if (!host) return;
+  const puntos = [i];
+  for (let j = i + 1; j <= fin; j++) if (M[j].slice(5) === "12") puntos.push(j);
+  if (puntos.at(-1) !== fin) puntos.push(fin);
+  const paso = Math.max(1, Math.ceil(puntos.length / 40));
+  const sel = puntos.filter((_, k) => k % paso === 0 || k === puntos.length - 1);
+  tabla(
+    host,
+    ["Mes", ...series.map((s) => s.nombre)],
+    sel.map((j) => [mesCorto(M[j]), ...series.map((s) => (s.v[j] == null ? "—" : s.fmt(s.v[j], j)))]),
+    caption,
+  );
 }
 
 /* ===========================================================================
@@ -922,7 +1013,7 @@ registra(function titular() {
     <div class="tile hero">
       <div class="k">S&P 500 con dividendos · ${M[a].slice(0, 4)} – ${M[b].slice(0, 4)}</div>
       <div class="v">${pct(cagr(v, a, b), 1).replace(" %", " %")}</div>
-      <div class="s">al año, ${optica}${coste}. Es la media geométrica de ${Math.round((b - a) / 12)} años:
+      <div class="s">al año, ${optica}${coste}. Es la media geométrica de ${Math.floor((b - a) / 12)} años:
         el número que resume la frase entera.</div>
     </div>
     <div class="tile">
@@ -961,7 +1052,7 @@ registra(function titular() {
 registra(function anual() {
   const años = añosNaturales("sp500_tr");
   const host = $("#ch-anual");
-  const g = marco(host, { h: 330, ml: 46, mb: 30, mt: 18 });
+  const g = marco(host, { h: 330, ml: 46, mb: 30, mt: 18, titulo: "Rentabilidad del S&P 500 en cada año natural" });
 
   const min = Math.min(...años.map((d) => d.r), -10);
   const max = Math.max(...años.map((d) => d.r), 15);
@@ -991,16 +1082,20 @@ registra(function anual() {
         (d.r >= 8 && d.r <= 12 ? `<div class="row"><span>dentro de la franja del 8–12 %</span><b>sí</b></div>` : ""),
     });
     // Etiquetas directas solo en los dos extremos: el resto lo cuenta el eje.
+    // La del año malo se coloca justo debajo de la línea del cero, no al final
+    // de la barra, donde chocaría con las etiquetas de los años.
     if (d === peor || d === mejor) {
       g.add(el("text", {
-        x: cx, y: d.r >= 0 ? y(d.r) - 7 : y(d.r) + 15, "text-anchor": "middle", class: "lbl",
+        x: Math.min(Math.max(cx, g.x0 + 38), g.x1 - 38),
+        y: d.r >= 0 ? y(d.r) - 8 : y(0) + 15,
+        "text-anchor": "middle", class: "lbl-out",
       })).textContent = `${d.y}: ${pctS(d.r, 0)}`;
     }
   });
   ejeX(g, ticksTiempo(i0(`${años[0].y}-12`), i0(`${años.at(-1).y}-12`), (i) => {
     const k = años.findIndex((d) => d.y === +M[i].slice(0, 4));
     return g.x0 + (Math.max(0, k) + 0.5) * bw;
-  }));
+  }, nEtiquetas(g)));
   hoverDiscreto(g, items, { titulo: "Rentabilidad del S&P 500 por año natural" });
 
   const enFranja = años.filter((d) => d.r >= 8 && d.r <= 12);
@@ -1013,11 +1108,13 @@ registra(function anual() {
     `y <b>${extremos.length}</b> se movieron más de 20 puntos arriba o abajo. La media es un punto por el que la serie casi nunca pasa.`;
 
   tabla($("#tb-anual"), ["Año", "Rentabilidad", "¿En la franja 8–12 %?"],
-    años.slice().reverse().map((d) => [String(d.y), pctS(d.r), d.r >= 8 && d.r <= 12 ? "sí" : "no"]));
+    años.slice().reverse().map((d) => [String(d.y), pctS(d.r), d.r >= 8 && d.r <= 12 ? "sí" : "no"]),
+    "Rentabilidad del S&P 500 en cada año natural");
 
   // Histograma de los mismos años.
   histograma($("#ch-hist-anual"), años.map((d) => d.r), {
     paso: 5, etiqueta: "años", titulo: "Reparto de las rentabilidades anuales",
+    tabla: $("#tb-hist-anual"),
   });
   const moda = [[0, 10], [10, 20], [-10, 0], [20, 30]].map(([a2, b2]) =>
     ({ a: a2, b: b2, n: años.filter((d) => d.r >= a2 && d.r < b2).length }));
@@ -1046,7 +1143,9 @@ const mediana = (xs) => {
 
 registra(function rolling() {
   const años = +$("#horizonte").value;
-  $("#horizonte-val").textContent = `${años} ${años === 1 ? "año" : "años"}`;
+  const etiquetaAños = `${años} ${años === 1 ? "año" : "años"}`;
+  $("#horizonte-val").textContent = etiquetaAños;
+  $("#horizonte").setAttribute("aria-valuetext", etiquetaAños);
   const vs = ventanas("sp500_tr", años * 12);
   const rs = vs.map((d) => d.r);
   const peor = vs.reduce((p, c) => (c.r < p.r ? c : p));
@@ -1074,7 +1173,7 @@ registra(function rolling() {
         terminaron por debajo de lo invertido.</div></div>`;
 
   const host = $("#ch-rolling");
-  const g = marco(host, { h: 300, ml: 46, mb: 30, mt: 14 });
+  const g = marco(host, { h: 300, ml: 46, mb: 30, mt: 14, titulo: `Rentabilidad anualizada a ${años} años según el mes de entrada` });
   const min = Math.min(...rs, -2), max = Math.max(...rs, 12);
   const a = vs[0].i, b = vs.at(-1).i;
   const x = (i) => g.x0 + ((i - a) / Math.max(1, b - a)) * (g.x1 - g.x0);
@@ -1094,27 +1193,33 @@ registra(function rolling() {
   vs.forEach((d) => (serieV[d.i] = d.r));
   g.add(el("path", { d: camino(serieV, a, b, x, y), class: "ln", stroke: "var(--series-1)" }));
   g.add(el("line", { x1: g.x0, x2: g.x1, y1: y(0), y2: y(0), class: "ax" }));
-  if (max > 10 && min < 10) {
+  const hayRef = max > 10 && min < 10;
+  if (hayRef) {
     g.add(el("line", { x1: g.x0, x2: g.x1, y1: y(10), y2: y(10), class: "ln-ref" }));
     g.add(el("text", { x: g.x1 - 4, y: y(10) - 6, "text-anchor": "end" })).textContent = "el 10 % de la frase";
   }
-  ejeX(g, ticksTiempo(a, b, x));
+  ejeX(g, ticksTiempo(a, b, x, nEtiquetas(g)));
   g.add(el("text", { x: (g.x0 + g.x1) / 2, y: g.y1 + 30, "text-anchor": "middle", class: "lbl" }))
     .textContent = "mes de entrada";
   hoverLineas(g, {
     a, b, x, y, titulo: `Rentabilidad anualizada a ${años} años según el mes de entrada`,
     series: [{
       nombre: `Anualizado a ${años} ${años === 1 ? "año" : "años"}`, color: "var(--series-1)", v: serieV,
-      fmt: (v, i) => `${pctS(v)} <span style="color:var(--muted);font-weight:400">→ ${mesCorto(M[Math.min(N - 1, i + años * 12)])}</span>`,
+      fmt: (v, i) => `${pctS(v)} <span style="color:var(--muted-txt);font-weight:400">→ ${mesCorto(M[Math.min(N - 1, i + años * 12)])}</span>`,
     }],
   });
   leyenda($("#lg-rolling"), [
     { nombre: `Rentabilidad anualizada del S&P 500 a ${años} años`, color: "var(--series-1)" },
-    { nombre: "El 10 % de la frase", dash: true },
+    ...(hayRef ? [{ nombre: "El 10 % de la frase", dash: true }] : []),
   ]);
 
   const dif = mejor.r - peor.r;
+  const huecoIpc = S.real && D.ipc.indexOf(null, i0("2000-01")) > 0;
   $("#nota-vent").innerHTML =
+    (huecoIpc
+      ? `<b>Un aviso de los datos:</b> no hay IPC publicado para octubre de 2025, así que las series
+         reales llevan ahí un hueco de un mes; no se rellena con una estimación. `
+      : "") +
     `Entre la mejor y la peor entrada hay <b>${nf(1).format(dif)} puntos</b> de diferencia anual, y el
      inversor no eligió: le tocó. Aguantando ${años} ${años === 1 ? "año" : "años"}, la peor racha empezó en
      <b>${mesLargo(M[peor.i])}</b> y terminó en ${mesLargo(M[peor.i + años * 12])} con ${pctS(peor.r)} anual
@@ -1122,7 +1227,7 @@ registra(function rolling() {
 
   histograma($("#ch-hist-vent"), rs, {
     paso: años <= 3 ? 5 : 2, etiqueta: "ventanas",
-    titulo: `Reparto de las ventanas de ${años} años`,
+    titulo: `Reparto de las ventanas de ${años} años`, tabla: $("#tb-hist-vent"),
   });
   $("#s-hist-vent").innerHTML =
     `Las mismas ${new Intl.NumberFormat("es-ES").format(vs.length)} ventanas, contadas por tramos. ` +
@@ -1141,7 +1246,8 @@ registra(function rolling() {
       `${nf(1).format((neg / ws.length) * 100)} %`,
     ];
   });
-  tabla($("#tb-horizontes"), ["Plazo", "Peor", "Mediana", "Mejor", "Ventanas en pérdidas"], filas);
+  tabla($("#tb-horizontes"), ["Plazo", "Peor", "Mediana", "Mejor", "Ventanas en pérdidas"], filas,
+    "Resumen de todas las ventanas de entrada para cada plazo");
 });
 
 $("#horizonte").addEventListener("input", () => pintarTodo());
@@ -1160,12 +1266,27 @@ function rellenaMeses(node, desde, hasta, sel) {
   node.value = M[Math.min(Math.max(sel, desde), hasta)];
 }
 
-/** TIR mensual de una serie de flujos, por bisección. Devuelve % anual. */
+/**
+ * TIR mensual de una serie de flujos, por bisección; devuelve el % anual.
+ *
+ * El intervalo de búsqueda va de −5 % a +5 % mensual (de −46 % a +80 % anual),
+ * que cubre de sobra cualquier cosa que pueda salir de esta página. No se busca
+ * más abajo a propósito: con tipos cercanos a −100 % los descuentos
+ * `1/(1+r)^k` desbordan a infinito, el producto de signos sale NaN y una
+ * bisección ingenua se va al extremo del intervalo y publica una TIR de seis
+ * cifras. Si no hay cambio de signo dentro del intervalo se devuelve null y la
+ * página escribe "—".
+ */
 function tir(flujos) {
-  const vp = (r) => flujos.reduce((s, f, k) => s + f / Math.pow(1 + r, k), 0);
-  let lo = -0.99, hi = 1;
-  if (vp(lo) * vp(hi) > 0) return null;
-  for (let k = 0; k < 200; k++) {
+  const vp = (r) => {
+    let s = 0;
+    for (let k = 0; k < flujos.length; k++) s += flujos[k] / Math.pow(1 + r, k);
+    return s;
+  };
+  let lo = -0.05, hi = 0.05;
+  const vLo = vp(lo), vHi = vp(hi);
+  if (!Number.isFinite(vLo) || !Number.isFinite(vHi) || vLo * vHi > 0) return null;
+  for (let k = 0; k < 120; k++) {
     const m = (lo + hi) / 2;
     (vp(lo) * vp(m) <= 0 ? (hi = m) : (lo = m));
   }
@@ -1192,43 +1313,61 @@ registra(function simulador() {
   const maxAños = Math.floor((vmax - i) / 12);
   const inAños = $("#sim-anos");
   inAños.max = String(Math.max(1, maxAños));
-  let h = Math.min(Math.max(1, +inAños.value || 1), Math.max(1, maxAños));
-  if (+inAños.value !== h) inAños.value = String(h);
+  // Se acota para calcular, pero no se reescribe el campo mientras se teclea:
+  // hacerlo impide borrar el contenido para escribir otro número.
+  const h = Math.min(Math.max(1, +inAños.value || 1), Math.max(1, maxAños));
   const n = h * 12;
   const importe = Math.max(1, +$("#sim-importe").value || 1);
   const dca = SIM.modo === "dca";
 
-  // Trayectoria mes a mes de la cartera y de lo aportado.
+  // Trayectoria mes a mes de la cartera y de lo aportado. Un mes sin dato no
+  // corta la simulación: se salta (no se compra ese mes) y se sigue, porque el
+  // IPC de EE. UU. tiene un hueco real en octubre de 2025 y en modo real
+  // cortar ahí dejaría la cartera a medias sin decirlo.
   const valor = new Array(N).fill(null);
   const aportado = new Array(N).fill(null);
   let participaciones = 0, puesto = 0;
   for (let k = 0; k <= n; k++) {
     const j = i + k;
-    if (v[j] == null) break;
-    if (k === 0 || (dca && k < n)) {
-      const cuota = importe;
-      participaciones += cuota / v[j];
-      puesto += cuota;
+    if (v[j] == null) continue;
+    // De golpe: se compra en el primer mes con dato. Mensual: todos los meses
+    // con dato mientras dure el plazo.
+    if ((!dca && participaciones === 0) || (dca && k < n)) {
+      participaciones += importe / v[j];
+      puesto += importe;
     }
     valor[j] = participaciones * v[j];
     aportado[j] = puesto;
   }
-  const fin = i + n;
+  const iCompra = valor.findIndex((x, j) => j >= i && x != null);
+  // Si el último mes del plazo no tiene dato, se liquida en el último que sí lo
+  // tiene y la página lo dice, en vez de enseñar un resultado vacío.
+  const finPedido = i + n;
+  const fin = ultimoCon(valor, i, finPedido) ?? i;
+  const recortado = fin !== finPedido;
   const final = valor[fin];
+  const nReal = fin - i;
   const flujos = dca
-    ? [...Array(n).fill(-importe), 0].map((f, k) => (k === n ? final : f))
-    : [-importe, ...Array(n - 1).fill(0), final];
-  const rend = dca ? tir(flujos) : cagr(v, i, fin);
+    ? Array.from({ length: nReal + 1 }, (_, k) => (k === nReal ? final : k < n ? -importe : 0))
+    : [-importe, ...Array(Math.max(0, nReal - 1)).fill(0), final];
+  const rend = dca ? tir(flujos) : cagr(v, iCompra, fin);
 
-  // Peor caída desde un máximo y meses por debajo de lo aportado. El máximo que
-  // se guarda es el que precede al valle, no el último de la serie.
-  let pico = 0, mesUltimoPico = i, caida = 0, bajoAgua = 0, mesPico = i, mesValle = i;
-  for (let k = 0; k <= n; k++) {
-    const j = i + k;
-    if (valor[j] == null) continue;
-    if (valor[j] > pico) { pico = valor[j]; mesUltimoPico = j; }
-    const d = valor[j] / pico - 1;
+  // Dos cosas distintas que la gente confunde:
+  //  · la caída del ÍNDICE en el periodo, que es un hecho del mercado;
+  //  · los meses en que la cartera valía menos que el dinero puesto.
+  // La caída de la cartera en aportación mensual no sirve para lo primero: cada
+  // aportación sube el máximo de referencia y disimula el desplome.
+  let pico = -Infinity, mesUltimoPico = i, caida = 0, mesPico = i, mesValle = i;
+  for (let j = i; j <= fin; j++) {
+    if (v[j] == null) continue;
+    if (v[j] > pico) { pico = v[j]; mesUltimoPico = j; }
+    const d = v[j] / pico - 1;
     if (d < caida) { caida = d; mesValle = j; mesPico = mesUltimoPico; }
+  }
+  let bajoAgua = 0, evaluados = 0;
+  for (let j = i; j <= fin; j++) {
+    if (valor[j] == null) continue;
+    evaluados++;
     if (valor[j] < aportado[j]) bajoAgua++;
   }
 
@@ -1236,7 +1375,7 @@ registra(function simulador() {
   $("#tiles-sim").innerHTML = `
     <div class="tile hero">
       <div class="k">${dca ? `${dinero(importe)} $ al mes durante ${h} ${h === 1 ? "año" : "años"}` : `${dinero(importe)} $ en ${mesLargo(SIM.mes)}`}</div>
-      <div class="v">${dinero(final)} $</div>
+      <div class="v">${final == null ? "—" : dinero(final) + " $"}</div>
       <div class="s">En ${mesLargo(M[fin])}, tras poner ${dinero(puesto)} $ en total.
         ${S.real ? "En poder de compra de " + mesLargo(SIM.mes) + "." : "En dólares corrientes."}</div>
     </div>
@@ -1244,17 +1383,18 @@ registra(function simulador() {
       <div class="v ${rend < 0 ? "neg" : ""}">${pctS(rend)}</div>
       <div class="s">${S.real ? "Real, descontada la inflación." : "Nominal."} ${S.coste > 0 ? `Ya restado el ${nf(2).format(S.coste)} % de costes.` : ""}</div></div>
     <div class="tile"><div class="k">Multiplicó por</div>
-      <div class="v">${mult(final / puesto)}</div>
+      <div class="v">${mult(final == null ? null : final / puesto)}</div>
       <div class="s">Sobre el dinero puesto, sin anualizar.</div></div>
-    <div class="tile"><div class="k">Peor caída por el camino</div>
-      <div class="v neg">${pct(caida * 100)}</div>
-      <div class="s">De ${mesCorto(M[mesPico])} a ${mesCorto(M[mesValle])}. Había que seguir dentro.</div></div>
+    <div class="tile"><div class="k">Peor caída del índice</div>
+      <div class="v ${caida < 0 ? "neg" : ""}">${pct(caida * 100)}</div>
+      <div class="s">De ${mesCorto(M[mesPico])} a ${mesCorto(M[mesValle])}, sin sacar el dinero.
+        Es la caída del índice, no la de tu cartera.</div></div>
     <div class="tile"><div class="k">Meses en pérdidas</div>
       <div class="v">${bajoAgua}</div>
-      <div class="s">De ${n} meses, los que la cartera valía menos que lo aportado
-        (${nf(0).format((bajoAgua / n) * 100)} % del tiempo).</div></div>`;
+      <div class="s">De ${evaluados} meses, los que la cartera valía menos que lo aportado
+        (${nf(0).format((bajoAgua / Math.max(1, evaluados)) * 100)} % del tiempo).</div></div>`;
 
-  const g = marco($("#ch-sim"), { h: 280, ml: 62, mb: 30 });
+  const g = marco($("#ch-sim"), { h: 280, ml: 62, mb: 30, titulo: "Evolución de la cartera frente al dinero aportado" });
   const vals = [];
   for (let k = 0; k <= n; k++) if (valor[i + k] != null) vals.push(valor[i + k], aportado[i + k]);
   const min = 0, max = Math.max(...vals) * 1.06;
@@ -1268,7 +1408,7 @@ registra(function simulador() {
     g.add(el("text", { x: x(fin) - 6, y: y(valor[fin]) - 10, "text-anchor": "end", class: "lbl" }))
       .textContent = `${dinero(valor[fin])} $`;
   }
-  ejeX(g, ticksTiempo(i, fin, x, 8));
+  ejeX(g, ticksTiempo(i, fin, x, nEtiquetas(g)));
   hoverLineas(g, {
     a: i, b: fin, x, y, titulo: "Evolución de la cartera",
     series: [
@@ -1281,20 +1421,40 @@ registra(function simulador() {
     { nombre: "Dinero aportado", dash: true },
   ]);
 
-  const cagrIpc = cagr(ipc, i, fin);
+  const finIpc = ultimoCon(D.ipc, i, fin);
   $("#nota-sim").innerHTML =
-    `Entre ${mesLargo(SIM.mes)} y ${mesLargo(M[fin])} la inflación de EE.&nbsp;UU. fue del
-     <b>${pct(cagrIpc)} anual</b> (${mult(ipc[fin] / ipc[i])} los precios). ` +
+    (finIpc
+      ? `Entre ${mesLargo(SIM.mes)} y ${mesLargo(M[finIpc])} la inflación de EE.&nbsp;UU. fue del
+         <b>${pct(cagr(ipc, i, finIpc))} anual</b> (${mult(raz(ipc, i, finIpc))} los precios). `
+      : "") +
+    (recortado
+      ? `<b>El plazo se ha recortado</b> a ${mesLargo(M[fin])}: el mes que pedías no tiene dato
+         publicado en todas las series que hacen falta. `
+      : "") +
     (dca
       ? `Aportando cada mes, el momento de entrada pesa mucho menos: se compra caro y barato a la vez.
-         La TIR es la rentabilidad que iguala todos esos flujos, que no es lo mismo que la del índice.`
+         La TIR es la rentabilidad que iguala todos esos flujos, que no es la del índice. `
       : `Poner todo de golpe hace que el resultado dependa del mes exacto: prueba a mover la fecha
-         un año arriba o abajo y compara.`) +
-    ` Nada de esto descuenta impuestos: en España, la plusvalía tributa al 19-30 % al venderla.`;
+         un año arriba o abajo y compara. `) +
+    (dca && S.real
+      ? `Ojo con la aportación: en modo real, esos ${dinero(importe)} $ al mes son <b>poder de compra
+         de ${mesLargo(SIM.mes)}</b>, así que equivalen a un recibo que sube cada año con el IPC. `
+      : "") +
+    `Nada de esto descuenta impuestos: en España, la plusvalía tributa al 19-30 % al venderla.`;
+
+  tablaSerie($("#tb-sim"), "Evolución de la cartera y del dinero aportado, año a año", [
+    { nombre: "Valor de la cartera ($)", v: valor, fmt: (x) => dinero(x) },
+    { nombre: "Aportado ($)", v: aportado, fmt: (x) => dinero(x) },
+  ], i, fin);
 });
 
 $("#sim-mes").addEventListener("change", () => pintarTodo());
 $("#sim-anos").addEventListener("input", () => pintarTodo());
+$("#sim-anos").addEventListener("change", (ev) => { // al salir del campo sí se corrige
+  const maxAños = Math.max(1, Math.floor((rango(serie("sp500_tr"))[1] - i0($("#sim-mes").value)) / 12));
+  ev.target.value = String(Math.min(Math.max(1, Math.round(+ev.target.value) || 1), maxAños));
+  pintarTodo();
+});
 $("#sim-importe").addEventListener("input", () => pintarTodo());
 $("#md-unico").addEventListener("click", () => {
   SIM.modo = "unico";
@@ -1311,7 +1471,7 @@ $("#md-dca").addEventListener("click", () => {
   pintarTodo();
 });
 $("#presets").innerHTML = PRESETS
-  .map(([k, t, q]) => `<button class="btn btn-sm" data-mes="${k}">${t} <span style="color:var(--muted);font-weight:400">· ${q}</span></button>`)
+  .map(([k, t, q]) => `<button class="btn btn-sm" data-mes="${k}">${t} <span style="color:var(--muted-txt);font-weight:400">· ${q}</span></button>`)
   .join("");
 $$("#presets .btn").forEach((b) => b.addEventListener("click", () => {
   $("#sim-mes").value = b.dataset.mes;
@@ -1355,6 +1515,9 @@ registra(function comparativa() {
     CMP.activos.has(id) ? CMP.activos.delete(id) : CMP.activos.add(id);
     if (!CMP.activos.size) CMP.activos.add("sp500_tr");
     pintarTodo();
+    // El render rehace los botones, así que hay que devolver el foco al mismo
+    // activo o el teclado se queda tirado en el <body>.
+    $(`#cmp-picks .pick[data-id="${id}"]`)?.focus();
   }));
 
   const puestos = disponibles.filter((act) => CMP.activos.has(act.id));
@@ -1366,15 +1529,27 @@ registra(function comparativa() {
   const ipc = serie("ipc");
   const refIpc = ipc.map((x) => (x == null ? null : (x / ipc[i]) * 100));
 
-  const g = marco($("#ch-comp"), { h: 400, ml: 58, mb: 34 });
+  if (!lineas.length && S.real) {
+    $("#ch-comp").innerHTML =
+      `<p class="note" style="margin-top:0">No queda nada que dibujar: el único activo elegido no tiene
+       IPC de su moneda en estos datos, así que no se puede pasar a términos reales.
+       Vuelve a <b>Nominal</b> o elige otro activo.</p>`;
+    $("#lg-comp").innerHTML = "";
+    $("#tb-comp").innerHTML = "";
+    $("#nota-comp").innerHTML = "";
+    return;
+  }
+  const g = marco($("#ch-comp"), { h: 400, ml: 58, mb: 34, titulo: `Evolución de 100 $ desde ${mesLargo(CMP.mes)} en cada activo` });
   let lo = Infinity, hi = -Infinity;
   for (const L of [...lineas.map((l) => l.v), S.real ? null : refIpc].filter(Boolean)) {
     for (let j = i; j <= fin; j++) if (L[j] != null) { lo = Math.min(lo, L[j]); hi = Math.max(hi, L[j]); }
   }
-  lo = Math.max(1, lo * 0.85); hi = hi * 1.15;
+  // El suelo sale del dato más bajo, no de un 1 fijo: con la inflación
+  // descontada y un coste alto hay series que caen por debajo de la base 100/100.
+  lo = Math.max(1e-4, lo * 0.85); hi *= 1.15;
   const x = (j) => g.x0 + ((j - i) / Math.max(1, fin - i)) * (g.x1 - g.x0);
   const y = (val) => g.y1 - ((Math.log10(val) - Math.log10(lo)) / (Math.log10(hi) - Math.log10(lo))) * (g.y1 - g.y0);
-  ejeY(g, ticksLog(lo, hi), y, (val) => (val >= 1000 ? `×${nf(0).format(val / 100)}` : `×${nf(val < 300 ? 1 : 0).format(val / 100)}`));
+  ejeY(g, ticksLog(lo, hi), y, (val) => mult(val / 100));
   g.add(el("text", { x: g.x0 - 8, y: g.y0 - 4, "text-anchor": "end", class: "lbl" })).textContent = "×veces";
 
   if (!S.real) g.add(el("path", { d: camino(refIpc, i, fin, x, y), class: "ln-ref" }));
@@ -1397,7 +1572,7 @@ registra(function comparativa() {
       ultimaY = py;
     }
   }
-  ejeX(g, ticksTiempo(i, fin, x));
+  ejeX(g, ticksTiempo(i, fin, x, nEtiquetas(g)));
   hoverLineas(g, {
     a: i, b: fin, x, y, titulo: "Comparación de activos",
     series: [
@@ -1410,12 +1585,21 @@ registra(function comparativa() {
     ...(S.real ? [] : [{ nombre: "Inflación EE. UU. (referencia)", dash: true }]),
   ]);
 
-  const soloPrecio = puestos.filter((act) => !META(act.id).dividendos).map((act) => act.corto);
+  // El aviso de "solo precio" vale para lo que reparte rentas y aquí no se
+  // cuentan (bolsa, vivienda). El oro y el bitcoin no reparten nada: su precio
+  // ya es toda su rentabilidad, y meterlos en la misma frase sería falso.
+  const sinRentas = puestos.filter((act) => !META(act.id).dividendos && act.id !== "oro" && act.id !== "bitcoin");
+  const oroPatron = puestos.some((act) => act.id === "oro") && CMP.mes < "1968-04";
   $("#nota-comp").innerHTML =
-    (soloPrecio.length
-      ? `<b>Ojo con la comparación:</b> ${soloPrecio.join(", ")} ${soloPrecio.length === 1 ? "es una serie" : "son series"}
-         <b>solo de precio</b>. No incluye${soloPrecio.length === 1 ? "" : "n"} dividendos ni alquileres cobrados, así que
-         sale${soloPrecio.length === 1 ? "" : "n"} peor de lo que fue en realidad. El S&P 500 sí los lleva. `
+    (sinRentas.length
+      ? `<b>Ojo con la comparación:</b> ${sinRentas.map((a2) => a2.corto).join(", ")}
+         ${sinRentas.length === 1 ? "es una serie" : "son series"} <b>solo de precio</b>:
+         no llevan${sinRentas.length === 1 ? "" : ""} los dividendos ni los alquileres que fueron cobrando,
+         así que se quedan cortas frente al S&P 500, que sí los lleva. `
+      : "") +
+    (oroPatron
+      ? `<b>Y el oro de antes de 1968 no es un precio de mercado:</b> era el que fijaba el patrón oro
+         (20,67 $ la onza, y 35 $ desde 1934). Ese tramo plano no es rentabilidad, es una ley. `
       : "") +
     (tarde.length
       ? `Sin datos desde ${mesLargo(CMP.mes)}: ${tarde.map((act) => `${act.corto} (desde ${META(act.id).desde.slice(0, 4)})`).join(", ")}. `
@@ -1426,17 +1610,22 @@ registra(function comparativa() {
       : "") +
     `Cada índice va en su moneda${S.real ? " y deflactado con el IPC de esa moneda" : ""}, y sin impuestos.`;
 
-  const filas = [...puestos.map((act) => {
-    const v = serie(act.id);
+  // Cada fila se cierra en el último mes con dato de SU serie (la vivienda
+  // acaba dos meses antes que el resto), y la tabla lo dice en vez de callarlo.
+  const fila = (nombre, color, v, nota, moneda) => {
+    const j = ultimoCon(v, i, fin) ?? fin;
     return [
-      `<i class="dot-inline" style="background:${act.c}"></i>${esc(act.corto)}`,
-      pctS(cagr(v, i, fin)), mult(v[fin] / v[i]), esc(act.nota), META(act.id).moneda,
+      `<i class="dot-inline" style="background:${color}"></i>${esc(nombre)}`,
+      pctS(cagr(v, i, j)), mult(raz(v, i, j)), mesCorto(M[j]), esc(nota), moneda,
     ];
-  }), [
-    `<i class="dot-inline" style="background:var(--ref)"></i>Inflación EE. UU.`,
-    pctS(cagr(ipc, i, fin)), mult(ipc[fin] / ipc[i]), "IPC, no es un activo", "USD",
-  ]];
-  tabla($("#tb-comp"), [`Desde ${mesLargo(CMP.mes)}`, "Anualizado", "Multiplicó por", "Qué mide", "Moneda"], filas);
+  };
+  const filas = [
+    ...puestos.map((act) => fila(act.corto, act.c, serie(act.id), act.nota, META(act.id).moneda)),
+    fila("Inflación EE. UU.", "var(--ref)", ipc, "IPC, no es un activo", "USD"),
+  ];
+  tabla($("#tb-comp"),
+    [`Desde ${mesLargo(CMP.mes)}`, "Anualizado", "Multiplicó por", "Hasta", "Qué mide", "Moneda"],
+    filas, `Rentabilidad de cada activo desde ${mesLargo(CMP.mes)}`);
 });
 
 $("#cmp-mes").addEventListener("change", () => pintarTodo());
@@ -1449,22 +1638,22 @@ $$("#cmp-presets .btn").forEach((b) => b.addEventListener("click", () => {
 /* ----------------------------------------------------------- 6 · sesgo --- */
 
 /** Gráfico de líneas genérico, indexado a 100 en `i`, escala logarítmica. */
-function lineasIndexadas(host, hostLeyenda, { desde, series, alto = 260, ref = null }) {
+function lineasIndexadas(host, hostLeyenda, { desde, series, alto = 260, ref = null, tabla: hostTabla = null, titulo = "" }) {
   const i = i0(desde);
   let fin = i;
   for (const s of series) { const [, b] = rango(s.v); fin = Math.max(fin, b); }
   const norm = series.map((s) => ({ ...s, n: s.v.map((x) => (x == null ? null : (x / s.v[i]) * 100)) }));
   const refN = ref ? ref.v.map((x) => (x == null ? null : (x / ref.v[i]) * 100)) : null;
 
-  const g = marco(host, { h: alto, ml: 52, mb: 30 });
+  const g = marco(host, { h: alto, ml: 52, mb: 30, titulo });
   let lo = Infinity, hi = -Infinity;
   for (const L of [...norm.map((s) => s.n), refN].filter(Boolean)) {
     for (let j = i; j <= fin; j++) if (L[j] != null) { lo = Math.min(lo, L[j]); hi = Math.max(hi, L[j]); }
   }
-  lo = Math.max(1, lo * 0.9); hi *= 1.1;
+  lo = Math.max(1e-4, lo * 0.9); hi *= 1.1;
   const x = (j) => g.x0 + ((j - i) / Math.max(1, fin - i)) * (g.x1 - g.x0);
   const y = (val) => g.y1 - ((Math.log10(val) - Math.log10(lo)) / (Math.log10(hi) - Math.log10(lo))) * (g.y1 - g.y0);
-  ejeY(g, ticksLog(lo, hi), y, (val) => `×${nf(val < 300 ? 1 : 0).format(val / 100)}`);
+  ejeY(g, ticksLog(lo, hi), y, (val) => mult(val / 100));
   g.add(el("line", { x1: g.x0, x2: g.x1, y1: y(100), y2: y(100), class: "ax" }));
   if (refN) g.add(el("path", { d: camino(refN, i, fin, x, y), class: "ln-ref" }));
   for (const s of norm) g.add(el("path", { d: camino(s.n, i, fin, x, y), class: "ln", stroke: s.color }));
@@ -1473,7 +1662,7 @@ function lineasIndexadas(host, hostLeyenda, { desde, series, alto = 260, ref = n
     if (s.n[j] == null) continue;
     g.add(el("circle", { cx: x(j), cy: y(s.n[j]), r: 4, class: "dot", fill: s.color }));
   }
-  ejeX(g, ticksTiempo(i, fin, x, 7));
+  ejeX(g, ticksTiempo(i, fin, x, nEtiquetas(g)));
   hoverLineas(g, {
     a: i, b: fin, x, y, titulo: "Comparación",
     series: [
@@ -1485,6 +1674,12 @@ function lineasIndexadas(host, hostLeyenda, { desde, series, alto = 260, ref = n
     ...norm.map((s) => ({ nombre: s.nombre, color: s.color })),
     ...(ref ? [{ nombre: ref.nombre, dash: true }] : []),
   ]);
+  if (hostTabla) {
+    tablaSerie(hostTabla, titulo || "Datos del gráfico", [
+      ...norm.map((s) => ({ nombre: `${s.nombre} (×)`, v: s.n, fmt: (x) => mult(x / 100) })),
+      ...(refN ? [{ nombre: `${ref.nombre} (×)`, v: refN, fmt: (x) => mult(x / 100) }] : []),
+    ], i, fin);
+  }
   return { i, fin, norm };
 }
 
@@ -1493,9 +1688,14 @@ registra(function sesgo() {
      Siempre nominal: no hay IPC japonés en los datos y deflactar un índice en
      yenes con la inflación estadounidense no significaría nada. */
   const desdeJP = "1989-12";
-  const nk = serie("nikkei", { real: false }), px = serie("sp500_px", { real: false });
+  // Sin coste y en nominal: este panel enseña lo que hicieron dos índices, no
+  // una cartera. Con un coste del 5 % anual encima, la fecha en que el Nikkei
+  // recupera su máximo dejaría de ser un hecho y pasaría a ser una opinión.
+  const nk = serie("nikkei", { real: false, coste: 0 });
+  const px = serie("sp500_px", { real: false, coste: 0 });
   lineasIndexadas($("#ch-nikkei"), $("#lg-nikkei"), {
-    desde: desdeJP, alto: 250,
+    desde: desdeJP, alto: 250, tabla: $("#tb-nikkei"),
+    titulo: "Nikkei 225 y S&P 500 desde el máximo japonés de diciembre de 1989",
     series: [
       { nombre: "Nikkei 225 (yenes)", color: COLOR("nikkei"), v: nk },
       { nombre: "S&P 500 sin dividendos", color: COLOR("sp500_tr"), v: px },
@@ -1507,8 +1707,9 @@ registra(function sesgo() {
   let recupera = null;
   for (let j = jp + 1; j <= finNk; j++) if (nk[j] != null && nk[j] >= nk[jp]) { recupera = j; break; }
   $("#s-nikkei").innerHTML =
-    `Dos índices <b>solo de precio</b> y en términos nominales, cada uno en su moneda, para que la
-     comparación sea justa, desde el máximo japonés de diciembre de 1989. El Nikkei ${recupera
+    `Dos índices <b>solo de precio</b>, cada uno en su moneda y sin descontar inflación ni costes:
+     aquí se comparan dos índices, no dos carteras, y por eso este panel ignora los controles de
+     arriba. Desde el máximo japonés de diciembre de 1989, el Nikkei ${recupera
        ? `tardó <b>${Math.round((recupera - jp) / 12)} años</b> en volver a ese nivel (${mesLargo(M[recupera])})`
        : "todavía no ha vuelto a ese nivel"}; anualizado desde entonces, ${pctS(cagr(nk, jp, finNk))}
      frente al ${pctS(cagr(px, jp, finNk))} del S&P 500.`;
@@ -1517,7 +1718,8 @@ registra(function sesgo() {
   const ex = serie("mundo_exus"), tr = serie("sp500_tr");
   const desdeEx = META("mundo_exus").desde;
   lineasIndexadas($("#ch-exus"), $("#lg-exus"), {
-    desde: desdeEx, alto: 250,
+    desde: desdeEx, alto: 250, tabla: $("#tb-exus"),
+    titulo: "Bolsa desarrollada sin EE. UU. frente al S&P 500",
     series: [
       { nombre: "Mundo desarrollado sin EE. UU.", color: COLOR("mundo_exus"), v: ex },
       { nombre: "S&P 500 con dividendos", color: COLOR("sp500_tr"), v: tr },
@@ -1527,9 +1729,9 @@ registra(function sesgo() {
   $("#s-exus").innerHTML =
     `Europa, Japón y Australasia con dividendos (ETF de MSCI EAFE, en dólares) frente al S&P 500,
      desde ${mesLargo(desdeEx)}: <b>${pctS(cagr(ex, ie, finEx))}</b> contra
-     <b>${pctS(cagr(tr, ie, finEx))}</b> anual. Tres puntos menos cada año durante un cuarto de siglo
-     son ${mult(ex[finEx] / ex[ie])} el dinero frente a ${mult(tr[finEx] / tr[ie])}. La bolsa que ganó
-     es justo la que aparece en la frase.`;
+     <b>${pctS(cagr(tr, ie, finEx))}</b> anual. ${nf(1).format(Math.abs(cagr(tr, ie, finEx) - cagr(ex, ie, finEx)))}
+     puntos menos cada año durante ${Math.round((finEx - ie) / 12)} años son ${mult(raz(ex, ie, finEx))}
+     el dinero frente a ${mult(raz(tr, ie, finEx))}. La bolsa que ganó es justo la que aparece en la frase.`;
 
   /* --- Desde España: en euros, y con el IPC de aquí --- */
   const desdeEu = "1999-01";
@@ -1543,7 +1745,8 @@ registra(function sesgo() {
   const ib = deflactaEs(serie("ibex", { real: false }));
   const ipcEs = serie("ipc_es");
   lineasIndexadas($("#ch-euros"), $("#lg-euros"), {
-    desde: desdeEu, alto: 280,
+    desde: desdeEu, alto: 280, tabla: $("#tb-euros"),
+    titulo: "S&P 500 en euros frente al IBEX 35",
     series: [
       { nombre: "S&P 500 sin dividendos, en euros", color: COLOR("sp500_tr"), v: pxEur },
       { nombre: "IBEX 35 (sin dividendos, en euros)", color: COLOR("ibex"), v: ib },
@@ -1574,8 +1777,8 @@ registra(function sesgo() {
   $("#nota-euros").innerHTML =
     `<b>La divisa también cuenta.</b> El S&P 500 con dividendos dio ${pctS(cagrUsd)} anual nominal en
      dólares desde ${mesLargo(desdeEu)} y ${pctS(cagrEur)} en euros: de punta a punta casi lo mismo,
-     porque el cambio ha vuelto a donde estaba. Por el medio no: el euro pasó de
-     ${nf(2).format(minC[0])} $ (${mesCorto(M[minC[1]])}) a ${nf(2).format(maxC[0])} $
+     porque el cambio ha vuelto a donde estaba. Por el medio no: el euro osciló entre
+     ${nf(2).format(minC[0])} $ (${mesCorto(M[minC[1]])}) y ${nf(2).format(maxC[0])} $
      (${mesCorto(M[maxC[1]])}). Quien invirtió diez años desde ${mesLargo(M[peorDec.j])} se dejó
      <b>${nf(1).format(Math.abs(peorDec.dif))} puntos anuales</b> solo por el tipo de cambio;
      quien lo hizo desde ${mesLargo(M[mejorDec.j])} se llevó ${nf(1).format(mejorDec.dif)} de regalo.
@@ -1589,7 +1792,8 @@ registra(function btc() {
   const desde = META("bitcoin").desde;
   const b = serie("bitcoin"), tr = serie("sp500_tr");
   lineasIndexadas($("#ch-btc"), $("#lg-btc"), {
-    desde, alto: 300,
+    desde, alto: 300, tabla: $("#tb-btc"),
+    titulo: "Bitcoin frente al S&P 500",
     series: [
       { nombre: "Bitcoin", color: "var(--series-8)", v: b },
       { nombre: "S&P 500 con dividendos", color: COLOR("sp500_tr"), v: tr },
@@ -1693,9 +1897,11 @@ function pintarTodo() {
 $("#op-nom").addEventListener("click", () => { S.real = false; sincroniza(); });
 $("#op-real").addEventListener("click", () => { S.real = true; sincroniza(); });
 $("#coste").addEventListener("input", (ev) => {
-  const v = Math.min(5, Math.max(0, +ev.target.value || 0));
-  S.coste = v;
+  S.coste = Math.min(5, Math.max(0, +ev.target.value || 0));
   pintarTodo();
+});
+$("#coste").addEventListener("change", (ev) => { // que el campo no diga 9 si se aplica 5
+  ev.target.value = String(S.coste);
 });
 function sincroniza() {
   $("#op-nom").setAttribute("aria-pressed", String(!S.real));

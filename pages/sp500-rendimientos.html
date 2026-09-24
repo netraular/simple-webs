@@ -333,7 +333,7 @@ footer a{color:var(--muted-txt)}
     <div class="card">
       <div class="card-head">
         <div>
-          <h3>Rentabilidad anualizada según el mes de entrada</h3>
+          <h3 id="h-vent">Rentabilidad anualizada según el mes de entrada</h3>
           <p class="sub" id="s-vent"></p>
         </div>
         <div class="field">
@@ -1275,6 +1275,9 @@ registra(function rolling() {
   const negativas = vs.filter((d) => d.r < 0).length;
   const empezar = dca ? "Empezando a aportar en" : "Entrando en";
 
+  $("#h-vent").textContent = dca
+    ? "TIR anualizada según el mes en que se empezó a aportar"
+    : "Rentabilidad anualizada según el mes de entrada";
   $("#s-vent").innerHTML =
     `${new Intl.NumberFormat("es-ES").format(vs.length)} ventanas de ${años} ${años === 1 ? "año" : "años"}, ` +
     (dca
@@ -1912,8 +1915,14 @@ registra(function comparativaDca() {
 
   // La base: el dinero aportado, que no es cero sino ×1.
   g.add(el("line", { x1: g.x0, x2: g.x1, y1: y(1), y2: y(1), class: "ax" }));
-  g.add(el("text", { x: g.x1 - 4, y: y(1) - 6, "text-anchor": "end", class: "lbl" }))
-    .textContent = S.real ? "lo aportado (poder de compra)" : "lo aportado";
+  // La etiqueta solo se escribe si no cae encima de ninguna línea en ese borde;
+  // si no hay sitio, el eje ya marca el ×1 y el subtítulo explica qué significa.
+  const cercaDelUno = [...planes.map((o) => o.p.x), ...(planIpc ? [planIpc.x] : [])]
+    .some((val) => Math.abs(y(val) - y(1)) < 16);
+  if (!cercaDelUno) {
+    g.add(el("text", { x: g.x1 - 4, y: y(1) - 6, "text-anchor": "end", class: "lbl" }))
+      .textContent = S.real ? "lo aportado (poder de compra)" : "lo aportado";
+  }
   if (planIpc) g.add(el("path", { d: camino(planIpc.ratio, i, fin, x, y), class: "ln-ref" }));
   for (const o of planes) {
     g.add(el("path", {

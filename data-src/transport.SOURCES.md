@@ -2,8 +2,8 @@
 
 La pàgina no respon «quant es triga des d'aquí», sinó la pregunta inversa:
 poses condicions de viatge (quant camines, on has d'arribar, en quant de temps) i
-el mapa deixa encesos els municipis o barris que les compleixen, amb la xarxa
-dibuixada a sota.
+et torna **les zones més barates que les compleixen**, ordenades per preu, sobre
+un mapa amb la xarxa dibuixada a sota.
 
 Hi ha **dos models de temps** que no són intercanviables: els **sis destins
 exactes**, que són itineraris reals del router, i el **punt lliure** del mapa,
@@ -19,14 +19,61 @@ i l'apartat 3 diu quant s'equivoca el segon.
 | `data-src/transit.json` | `fetch-transit.py` | temps porta a porta cap als 6 destins, amb el desglossament per tram |
 | `data-src/isocrones.json` | `fetch-isocronas.py` | abast `one-to-all` de cada origen, quantitzat a una graella de 600 m |
 | `data-src/linies.json` | `fetch-linies.mjs` | traçat i parades de la xarxa, des d'OpenStreetMap |
-| `pages/data/transporte-muni.json` | `build-transport.mjs` | 92 municipis: atributs (preu, població, renda…) + els 6 destins |
-| `pages/data/transporte-barris.json` | `build-transport.mjs` | 73 barris de Barcelona, el mateix |
+| `pages/data/zonas.json` | `build-transport.mjs` | **164 zones**: atributs (preu, població, renda…) + els 6 destins |
+| `pages/data/zonas-geo.json` | `build-transport.mjs` | la geometria de les 164, fusionada i simplificada a 20 m |
 | `pages/data/linies.json` | `build-transport.mjs` | còpia de `linies.json` |
-| `pages/data/iso-ancores.json` | `build-transport.mjs` | la graella d'ancoratges, comuna a les dues escales |
-| `pages/data/iso-muni.json`, `iso-barris.json` | `build-transport.mjs` | matriu de minuts, **1 byte per (origen, ancoratge)** |
+| `pages/data/rutas.json` | `build-transport.mjs` | l'itinerari **tram a tram** de cada zona × destí |
+| `pages/data/iso-ancores.json` | `build-transport.mjs` | la graella d'ancoratges |
+| `pages/data/iso-zonas.json` | `build-transport.mjs` | matriu de minuts, **1 byte per (origen, ancoratge)** |
 
-Els tres `iso-*` van separats a propòsit: només calen si l'usuari clica un punt
-propi, i la pàgina els demana en aquell moment. La càrrega inicial no els porta.
+### Una sola escala de 164 zones
+
+La pàgina va tenir dues escales separades —92 municipis **o** 73 barris— i
+obligava a triar-ne una abans de començar. Ara n'hi ha una: els **91 municipis**
+de l'àrea més els **73 barris** de Barcelona. La ciutat surt de la capa municipal
+(`08019` no hi és) perquè els seus barris la substitueixen; deixar-hi les dues
+coses la comptaria dues vegades al rànquing i al mapa li pintaria el bloc sencer
+per sobre dels seus propis barris.
+
+Els identificadors ho fan explícit: municipis amb el codi INE de 5 xifres, barris
+amb `B01`…`B73`. El prefix no és decoratiu — sense ell, un barri `01` i un INE
+truncat es confondrien, i qualsevol creuament mal fet entre fitxers passaria
+desapercebut en comptes de petar.
+
+**Només Barcelona va desglossada, i no és una tria de disseny.** Incasòl, Idescat
+i l'INE publiquen compra i lloguer **per municipi**; només l'Ajuntament de
+Barcelona publica per barri. Per a Terrassa o Sabadell no hi ha dada submunicipal
+que creuar. La conseqüència pràctica: les zones **no són comparables en mida**, i
+això queda dit a la pàgina.
+
+### Què es carrega quan
+
+| | fitxers | pes |
+|---|---|---|
+| **En obrir** | `zonas.json` + `zonas-geo.json` + `linies.json` | **494 kB** (pressupost 600) |
+| En clicar una zona | `rutas.json` | 470 kB |
+| En posar un punt propi | `iso-ancores.json` + `iso-zonas.json` | 457 kB |
+
+El repartiment és el que mana en el pes. L'itinerari tram a tram —les coordenades
+de pujada i baixada de cada tram— era el gruix del fitxer principal i la majoria
+de visites no n'obre ni un; la matriu d'isòcrones, igual. El test comprova el
+pressupost de 600 kB perquè no s'esmunyi res a la càrrega inicial sense adonar-se.
+
+### La geometria va simplificada
+
+Els polígons originals (`municipis-geo.json` i `bcn-barris-geo.json`, que
+segueixen sent la font i els fa servir `pisos-vs-distancia.html`) porten 37.547
+vèrtexs i 739 kB. `zonas-geo.json` en té **9.365 i 187 kB**: Douglas-Peucker
+mètric a **20 m**, amb la longitud corregida pel cosinus de la latitud.
+
+20 m és el que no es veu: el llenç fa 900 px per a uns 55 km, o sigui ~60 m per
+píxel al zoom per defecte i ~7,5 m al zoom màxim (×8). La desviació màxima
+mesurada és de 20,0 m als municipis i 19,9 m als barris — exactament la que
+promet. **Les fronteres són les oficials redibuixades amb menys vèrtexs: no
+feu servir aquest fitxer per mesurar superfícies ni per a llindes.**
+
+El Douglas-Peucker viu a `data-src/geom.mjs`, compartit amb `fetch-linies.mjs`,
+que el fa servir per als traçats. Abans n'hi havia una còpia a cada script.
 
 ### Ordre i temps
 
@@ -130,8 +177,15 @@ Aquestes ~18.000 parades per origen no es guarden una per una: es **quantitzen a
 una graella de 600 m** (bbox `41.18, 1.63, 41.77, 2.58`; `dlat 0.00538987`,
 `dlon 0.00719096`, 134 columnes) i de cada cel·la es guarda el **mínim**. Les
 cel·les que algun origen assoleix són els **ancoratges**: n'hi ha **2.082**. La
-matriu és 1 byte per parella, amb **255 = inabastable**: 92 × 2.082 = 191.544
-bytes per als municipis i 73 × 2.082 = 151.986 per als barris.
+matriu és 1 byte per parella, amb **255 = inabastable**: 164 × 2.082 = **341.448
+bytes**.
+
+Les dues escales velles compartien ancoratges (surten de la mateixa tanda de
+consultes), o sigui que fusionar-les va ser reordenar files, no tornar a
+consultar res. Les files van **en el mateix ordre que `zones`** a `zonas.json`,
+perquè la pàgina hi indexi per posició sense portar un mapa d'identificadors a
+memòria; el test comprova aquest ordre, perquè si es desincronitza cap estimació
+falla de manera visible — totes són plausibles i totes són d'una altra zona.
 
 El temps estimat d'un origen M fins a un punt P és
 
@@ -303,21 +357,12 @@ la identifica.
 
 ## 6. Cobertura
 
-**Municipis** (92), cada destí:
+**163 de les 164 zones** tenen dada als sis destins (**99 %**). Els 91 municipis
+van a 90/91 i els 73 barris a 73/73; els barris no tenen cap `arriba_tard`, però
+sí molts **trivials**: 21 amb plaça de Catalunya i 17 amb Sants.
 
-| destí | amb dada | cobertura | `arriba_tard` | trivial |
-|---|---|---|---|---|
-| `roche-sant-cugat` | 91/92 | 98,9 % | 2 | 1 |
-| `pl-catalunya` | 91/92 | 98,9 % | 1 | 1 |
-| `sants` | 91/92 | 98,9 % | 1 | 0 |
-| `aeroport` | 91/92 | 98,9 % | 2 | 0 |
-| `castelldefels` | 91/92 | 98,9 % | 2 | 1 |
-| `sant-cugat-estacio` | 91/92 | 98,9 % | 2 | 1 |
-
-**Barris de Barcelona** (73): **100 % als sis destins**, cap `arriba_tard`. Sí que
-hi ha molts **trivials**: 21 barris amb plaça de Catalunya i 17 amb Sants.
-
-- **L'únic `null` és Olivella**, i ho és als sis destins. `sortides_hora_punta: 0`.
+- **L'única zona sense cap dada és Olivella**, i ho és als sis destins.
+  `sortides_hora_punta: 0`.
   No és un forat de dades: Olivella és un disseminat sense estació i amb un servei
   de bus testimonial; no hi ha cap combinació que surti després de les 05:30 i
   arribi abans de les 10:00. El `null` és la resposta honesta.
@@ -328,16 +373,21 @@ hi ha molts **trivials**: 21 barris amb plaça de Catalunya i 17 amb Sants.
   → estació de Sant Cugat, Rubí → Roche. Són certs però no informen de res i es
   mengen l'escala dels gràfics i dels filtres; per això van marcats.
 
-**Pes del que carrega la pàgina** (el test ho vigila contra un límit tou d'1,2 MB):
+**Preu publicat:** 158 de les 164 zones en tenen. Les sis que no (Santa Maria de
+Martorelles, la Palma de Cervelló, Òrrius, i els barris de la Clota, Can Peguera
+i Baró de Viver) registren massa poques operacions per publicar-ne una mitjana.
+Una zona sense preu pot complir les condicions i **no sortir al rànquing**: el
+rànquing és de preu, i sense preu no hi ha lloc. La pàgina ho diu.
+
+**Pes** — el test vigila el pressupost de **600 kB de càrrega inicial**:
 
 ```
-transporte-muni.json      296,9 kB       iso-ancores.json    11,4 kB
-transporte-barris.json    219,4 kB       iso-muni.json      250,1 kB
-linies.json               171,4 kB       iso-barris.json    198,3 kB
-                                         TOTAL            1.147,5 kB  (97,9 %)
+CÀRREGA INICIAL                        DIFERIT
+zonas.json          136 kB             rutas.json         470 kB   ← en clicar
+zonas-geo.json      187 kB             iso-ancores.json    11 kB   ┐ amb punt
+linies.json         171 kB             iso-zonas.json     446 kB   ┘ propi
+TOTAL               494 kB  (82 %)
 ```
-
-`node test-transport.mjs` passa **58/58 comprovacions**.
 
 ---
 

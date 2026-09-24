@@ -56,9 +56,15 @@ cd data-src
 python3 fetch-transit.py     # ~1.150 routing queries, ~1 h
 python3 fetch-isocronas.py   # 165 one-to-all queries, ~6 min
 node fetch-linies.mjs        # OpenStreetMap; needs transit.json to pick the buses
-node build-transport.mjs     # writes pages/data/
+node build-transport.mjs     # merges into pages/data/ — downloads nothing
 node test-transport.mjs      # contract, coverage and estimator error
 ```
+
+`build-transport.mjs` only reorganises what the three fetch steps produced: it
+merges the 91 municipalities and the 73 Barcelona neighbourhoods into one set of
+164 zones, simplifies their geometry, and splits the output by when the page
+needs it (≈500 kB up front, the itineraries and the isochrone matrix on demand).
+Re-run it on its own after touching any of its inputs.
 
 Behind a TLS-intercepting proxy, prefix those with
 `NODE_EXTRA_CA_CERTS=/etc/ssl/certs/ca-certificates.crt`.

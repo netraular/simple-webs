@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>¿El S&P 500 renta un 10 % al año? · 155 años de datos</title>
-<meta name="description" content="La frase 'el S&P 500 ha dado un 10 % anual' contrastada con los datos mensuales de Shiller desde 1871: año a año, ventanas móviles, inflación descontada y comparación con bonos, letras, oro, vivienda, Nikkei, IBEX 35 y bitcoin.">
+<meta name="description" content="La frase 'el S&P 500 ha dado un 10 % anual' contrastada con los datos mensuales de Shiller desde 1871: año a año, ventanas móviles, inflación descontada y comparación con el oro, la vivienda y la bolsa mundial.">
 <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f9f9f7">
 <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0d0d0d">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='88'>📈</text></svg>">
@@ -20,8 +20,8 @@
      posición en la lista, así que filtrar no repinta a los supervivientes.
    - Polaridad (ganar o perder): par divergente azul↔rojo con gris neutro.
    - La inflación nunca es una serie: es la línea de referencia, en gris.
-   Bitcoin y el IBEX 35 comparten la ranura roja porque nunca aparecen en el
-   mismo gráfico; cada uno lleva leyenda y etiqueta directa.
+   El Nikkei y el IBEX 35 conservan su ranura aunque estén fuera del
+   comparador: cada uno tiene su propio panel en la sección del sesgo.
    =========================================================================== */
 
 :root{
@@ -46,10 +46,16 @@
   --series-5:#e87ba4;  /* Nikkei 225 */
   --series-6:#008300;  /* letras 3 meses */
   --series-7:#4a3aa7;  /* desarrollados sin EE. UU. */
-  --series-8:#e34948;  /* IBEX 35 / bitcoin */
+  --series-8:#e34948;  /* IBEX 35 */
 
-  /* --- par divergente para el signo de la rentabilidad --- */
-  --pos:#2a78d6;  --neg:#e34948;
+  /* --- par divergente para el signo de la rentabilidad, con un escalón
+     intermedio para el año que gana pero se queda por debajo de la media.
+     El verde sale del validador de paleta: es el único candidato que pasa las
+     seis comprobaciones contra el azul y el rojo. Su separación con el rojo en
+     deuteranopia queda en la banda 6–8, admisible aquí porque el signo también
+     está codificado por la posición (encima o debajo del cero) y cada gráfico
+     tiene su gemelo en tabla. --- */
+  --pos:#2a78d6;  --pos-baja:#189b6b;  --neg:#e34948;
 
   /* --- referencia: la inflación y las líneas de contexto no son series --- */
   --ref:#898781;
@@ -62,7 +68,7 @@
     --focus:#3987e5;
     --series-1:#3987e5; --series-2:#d95926; --series-3:#199e70; --series-4:#c98500;
     --series-5:#d55181; --series-6:#008300; --series-7:#9085e9; --series-8:#e66767;
-    --pos:#3987e5; --neg:#e66767;
+    --pos:#3987e5; --pos-baja:#199e70; --neg:#e66767;
     --muted-txt:#9d9b95;
   }
 }
@@ -73,7 +79,7 @@
   --focus:#3987e5;
   --series-1:#3987e5; --series-2:#d95926; --series-3:#199e70; --series-4:#c98500;
   --series-5:#d55181; --series-6:#008300; --series-7:#9085e9; --series-8:#e66767;
-  --pos:#3987e5; --neg:#e66767;
+  --pos:#3987e5; --pos-baja:#199e70; --neg:#e66767;
   --muted-txt:#9d9b95;
 }
 
@@ -252,10 +258,6 @@ footer a{color:var(--muted-txt)}
     <p class="lede">Sí, más o menos, si uno mide desde 1928, en dólares, sin descontar la inflación,
       reinvirtiendo cada dividendo y sin pagar comisiones ni impuestos. Casi ninguna de esas
       condiciones describe a un inversor real.</p>
-    <p class="lede">Esta página coge las series mensuales de Robert Shiller y las de la Reserva Federal
-      y deja que cada cual mire el dato por su cuenta: <b>año a año</b>, por <b>ventana de entrada y
-      salida</b>, con la <b>inflación descontada</b> y al lado de los activos con los que se compara.
-      Ningún número está inventado; los dos que están calculados llevan su fórmula escrita.</p>
     <p class="stamp" id="stamp">Cargando datos…</p>
   </header>
 </div>
@@ -263,18 +265,25 @@ footer a{color:var(--muted-txt)}
 <div class="filters">
   <div class="wrap filters-inner">
     <div class="field">
+      <span class="lbl" id="lbl-forma">Forma de invertir</span>
+      <div class="btn-group" role="group" aria-labelledby="lbl-forma">
+        <button class="btn" id="op-dca" aria-pressed="true">Aportación mensual</button>
+        <button class="btn" id="op-golpe" aria-pressed="false">Todo de golpe</button>
+      </div>
+    </div>
+    <div class="field">
       <span class="lbl" id="lbl-optica">Cómo se mide</span>
       <div class="btn-group" role="group" aria-labelledby="lbl-optica">
-        <button class="btn" id="op-nom" aria-pressed="true">Nominal</button>
-        <button class="btn" id="op-real" aria-pressed="false">Real (sin inflación)</button>
+        <button class="btn" id="op-real" aria-pressed="true">Real (sin inflación)</button>
+        <button class="btn" id="op-nom" aria-pressed="false">Nominal</button>
       </div>
     </div>
     <div class="field">
       <label for="coste">Coste anual %</label>
-      <input type="number" id="coste" min="0" max="5" step="0.05" value="0" inputmode="decimal">
+      <input type="number" id="coste" min="0" max="5" step="0.05" value="0.1" inputmode="decimal">
     </div>
-    <p class="hint">Lo real descuenta el IPC de EE.&nbsp;UU.: mide poder de compra, no dólares.
-      El coste anual resta comisiones de fondo, custodia o lo que quieras suponer, mes a mes.</p>
+    <p class="hint">Estos tres mandos gobiernan toda la página. Real descuenta el IPC de
+      EE.&nbsp;UU.; el coste anual se resta mes a mes.</p>
   </div>
 </div>
 
@@ -284,14 +293,11 @@ footer a{color:var(--muted-txt)}
   <!-- ====================== 1 · el titular ====================== -->
   <section id="titular">
     <div class="tiles" id="tiles-hero"></div>
-    <div class="note" id="nota-hero"></div>
   </section>
 
   <!-- ====================== 2 · año a año ====================== -->
   <div class="sec-head">
     <h2>Un 10&nbsp;% de media, pero casi ningún año del 10&nbsp;%</h2>
-    <p>La media es un resumen, no una experiencia. Esto es lo que hizo el índice cada año natural
-      desde 1871. La franja azul marca la zona “normal” que la frase sugiere, del 8&nbsp;% al 12&nbsp;%.</p>
   </div>
   <section id="anual">
     <div class="card">
@@ -302,11 +308,7 @@ footer a{color:var(--muted-txt)}
         </div>
       </div>
       <div class="chart" id="ch-anual"></div>
-      <div class="legend">
-        <span class="it"><i class="key" style="background:var(--pos)"></i>Año en positivo</span>
-        <span class="it"><i class="key" style="background:var(--neg)"></i>Año en negativo</span>
-        <span class="it"><i class="key" style="background:var(--series-1);opacity:.35"></i>Franja del 8&nbsp;% al 12&nbsp;%</span>
-      </div>
+      <div class="legend" id="lg-anual"></div>
       <details class="tbl"><summary>Ver los datos en tabla</summary>
         <div class="table-scroll" id="tb-anual"></div>
       </details>
@@ -315,6 +317,7 @@ footer a{color:var(--muted-txt)}
       <h3>La misma serie, ordenada por tramos</h3>
       <p class="sub" id="s-hist-anual"></p>
       <div class="chart" id="ch-hist-anual"></div>
+      <div class="legend" id="lg-hist-anual"></div>
       <details class="tbl"><summary>Ver el reparto en tabla</summary>
         <div class="table-scroll" id="tb-hist-anual"></div>
       </details>
@@ -324,10 +327,6 @@ footer a{color:var(--muted-txt)}
   <!-- ====================== 3 · ventanas móviles ====================== -->
   <div class="sec-head">
     <h2>Lo que importa no es la media: es cuándo entraste y cuándo saliste</h2>
-    <p>Aquí no se elige un periodo bonito. Se calculan <b>todas</b> las ventanas posibles de la
-      duración que marques, mes a mes, y se muestran todas a la vez. Cada punto es un inversor que
-      empezó ese mes y aguantó exactamente ese tiempo, ya pusiera el dinero <b>de golpe</b> o
-      <b>aportando cada mes</b>.</p>
   </div>
   <section id="ventanas">
     <div class="card">
@@ -337,18 +336,28 @@ footer a{color:var(--muted-txt)}
           <p class="sub" id="s-vent"></p>
         </div>
         <div class="field">
-          <span class="lbl" id="lbl-modo-vent">Forma de invertir</span>
-          <div class="btn-group" role="group" aria-labelledby="lbl-modo-vent">
-            <button class="btn btn-sm" id="vt-unico" aria-pressed="true">Todo de golpe</button>
-            <button class="btn btn-sm" id="vt-dca" aria-pressed="false">Aportación mensual</button>
-          </div>
-        </div>
-        <div class="field">
           <label for="horizonte">Años aguantando</label>
           <div class="btn-group" style="align-items:center;gap:10px">
-            <input type="range" id="horizonte" min="1" max="40" step="1" value="10"
-                   aria-valuetext="10 años" style="width:190px;accent-color:var(--series-1)">
-            <b id="horizonte-val" style="font-variant-numeric:tabular-nums;min-width:62px">10 años</b>
+            <input type="range" id="horizonte" min="1" max="40" step="1" value="20"
+                   aria-valuetext="20 años" style="width:190px;accent-color:var(--series-1)">
+            <b id="horizonte-val" style="font-variant-numeric:tabular-nums;min-width:62px">20 años</b>
+          </div>
+        </div>
+      </div>
+      <div class="filters-inner" style="margin:2px 0 6px">
+        <div class="field">
+          <label for="vent-desde">Entradas desde</label>
+          <select id="vent-desde"></select>
+        </div>
+        <div class="field">
+          <label for="vent-hasta">hasta</label>
+          <select id="vent-hasta"></select>
+        </div>
+        <div class="field">
+          <span class="lbl" id="lbl-curso">Entradas sin cumplir el plazo</span>
+          <div class="btn-group" role="group" aria-labelledby="lbl-curso">
+            <button class="btn btn-sm" id="vt-curso" aria-pressed="true">Incluirlas</button>
+            <button class="btn btn-sm" id="vt-completas" aria-pressed="false">Solo completas</button>
           </div>
         </div>
       </div>
@@ -373,30 +382,21 @@ footer a{color:var(--muted-txt)}
   <!-- ====================== 4 · simulador ====================== -->
   <div class="sec-head">
     <h2>Ponle tu fecha y tu dinero</h2>
-    <p>Elige cuándo entraste, cuánto pusiste y cuánto tiempo aguantaste. Los casos de abajo son los
-      momentos que se suelen citar; los tres primeros son los peores de la historia del índice.</p>
   </div>
   <section id="simulador">
     <div class="card">
       <div class="filters-inner" style="margin-bottom:6px">
         <div class="field">
-          <label for="sim-mes">Mes de entrada</label>
-          <select id="sim-mes"></select>
+          <label for="sim-ano">Año de entrada</label>
+          <select id="sim-ano"></select>
         </div>
         <div class="field">
           <label for="sim-anos">Años invertido</label>
           <input type="number" id="sim-anos" min="1" max="155" step="1" value="20">
         </div>
         <div class="field">
-          <span class="lbl" id="lbl-modo">Forma de invertir</span>
-          <div class="btn-group" role="group" aria-labelledby="lbl-modo">
-            <button class="btn btn-sm" id="md-unico" aria-pressed="true">Todo de golpe</button>
-            <button class="btn btn-sm" id="md-dca" aria-pressed="false">Aportación mensual</button>
-          </div>
-        </div>
-        <div class="field">
-          <label for="sim-importe" id="lbl-importe">Importe inicial $</label>
-          <input type="number" id="sim-importe" min="1" step="100" value="10000">
+          <label for="sim-importe" id="lbl-importe">Aportación mensual $</label>
+          <input type="number" id="sim-importe" min="1" step="100" value="200">
         </div>
       </div>
       <div class="btn-group" id="presets" style="margin-bottom:4px"></div>
@@ -414,9 +414,7 @@ footer a{color:var(--muted-txt)}
   <!-- ====================== 5 · comparativa ====================== -->
   <div class="sec-head">
     <h2>¿Y comparado con qué?</h2>
-    <p>Un 10&nbsp;% no significa nada suelto. Esto es el mismo dinero, desde el mismo mes, en cada
-      activo del que hay serie pública. Escala logarítmica: la misma pendiente es la misma
-      rentabilidad, y así los años recientes no aplastan a los antiguos.</p>
+    <p>Escala logarítmica: la misma pendiente es la misma rentabilidad.</p>
   </div>
   <section id="comparativa">
     <div class="card">
@@ -428,6 +426,8 @@ footer a{color:var(--muted-txt)}
         <div class="btn-group" id="cmp-presets"></div>
       </div>
       <div class="picks" id="cmp-picks"></div>
+      <h3 id="h-comp" style="margin-top:14px"></h3>
+      <p class="sub" id="s-comp"></p>
       <div class="chart" id="ch-comp"></div>
       <div class="legend" id="lg-comp"></div>
       <div class="note warn" id="nota-comp"></div>
@@ -435,24 +435,11 @@ footer a{color:var(--muted-txt)}
         <div class="table-scroll" id="tb-comp"></div>
       </details>
     </div>
-    <div class="card">
-      <h3>Los mismos activos, aportando 100&nbsp;$ cada mes</h3>
-      <p class="sub" id="s-cmp-dca"></p>
-      <div class="chart" id="ch-cmp-dca"></div>
-      <div class="legend" id="lg-cmp-dca"></div>
-      <div class="note" id="nota-cmp-dca"></div>
-      <details class="tbl" open><summary>Ver los datos en tabla</summary>
-        <div class="table-scroll" id="tb-cmp-dca"></div>
-      </details>
-    </div>
   </section>
 
   <!-- ====================== 6 · el sesgo ====================== -->
   <div class="sec-head">
     <h2>El país que salió bien</h2>
-    <p>Toda esta página trata de EE.&nbsp;UU., que es el mercado que mejor terminó el siglo XX. Esa
-      es exactamente la razón por la que tenemos la frase del 10&nbsp;%. Tres contraejemplos, con la
-      misma escala y el mismo método.</p>
   </div>
   <section id="sesgo">
     <div class="grid-2">
@@ -488,45 +475,19 @@ footer a{color:var(--muted-txt)}
     </div>
     <div class="card prose">
       <h3 style="margin-top:0">Y el dato que no sale de esta página</h3>
-      <p>Los únicos que han reconstruido más de un siglo de bolsa en muchos países a la vez son
-        Dimson, Marsh y Staunton, en el <i>Global Investment Returns Yearbook</i> que publica UBS.
-        Sus cifras, que no salen de los datos de aquí sino de su propio trabajo, ponen la frase en su
-        sitio: entre 1900 y 2024, la bolsa <b>mundial</b> rindió un <b>5,2&nbsp;% real anual</b>; los
-        bonos, un 1,7&nbsp;%; las letras, un 0,5&nbsp;%. Y para 1900–2023 sitúan a
-        <b>EE.&nbsp;UU. en el 6,5&nbsp;% real, el más alto de los 21 países</b> con serie continua,
-        con Japón en el 4,4&nbsp;% y la mediana de los países cerca del 4,5&nbsp;%.</p>
-      <p>Dicho de otra forma: el número que todo el mundo repite es el del país que quedó primero,
-        contado después de saber quién quedó primero. La bolsa mundial también ganó a los bonos en los
-        21 países, que es la parte de la frase que sí aguanta; lo que no aguanta es el 10&nbsp;%.</p>
+      <p>Dimson, Marsh y Staunton (<i>Global Investment Returns Yearbook</i>, UBS), 1900–2024:
+        la bolsa <b>mundial</b> rindió un <b>5,2&nbsp;% real anual</b>; los bonos, un 1,7&nbsp;%.
+        Para 1900–2023, <b>EE.&nbsp;UU. es el más alto de los 21 países</b> con serie continua
+        (6,5&nbsp;% real), con Japón en el 4,4&nbsp;% y la mediana cerca del 4,5&nbsp;%.</p>
     </div>
   </section>
 
-  <!-- ====================== 7 · bitcoin ====================== -->
-  <div class="sec-head">
-    <h2>El activo que rompe la escala</h2>
-    <p>Bitcoin va aparte porque no cabe en el mismo gráfico sin deformarlo todo, y porque doce años
-      no son una serie histórica: son un tramo.</p>
-  </div>
-  <section id="bitcoin">
-    <div class="card">
-      <h3 id="t-btc">Bitcoin frente al S&amp;P 500, misma fecha de partida</h3>
-      <p class="sub" id="s-btc"></p>
-      <div class="chart" id="ch-btc"></div>
-      <div class="legend" id="lg-btc"></div>
-      <div class="note warn" id="nota-btc"></div>
-      <details class="tbl"><summary>Ver los datos en tabla</summary>
-        <div class="table-scroll" id="tb-btc"></div>
-      </details>
-
-    </div>
-  </section>
-
-  <!-- ====================== 8 · método ====================== -->
-  <div class="sec-head">
-    <h2>Qué hay detrás de estos números</h2>
-  </div>
+  <!-- ====================== 7 · método ====================== -->
   <section id="metodo">
-    <div class="card prose" id="prosa-metodo"></div>
+    <details class="tbl">
+      <summary>Qué hay detrás de estos números: fuentes, método y lo que no está contado</summary>
+      <div class="card prose" id="prosa-metodo" style="margin-top:12px"></div>
+    </details>
   </section>
 
 </main>
@@ -585,8 +546,11 @@ IDX = new Map(M.map((m, i) => [m, i]));
 const i0 = (k) => IDX.get(k);
 const N = M.length;
 
-/* ---------- estado global (la barra de arriba lo gobierna todo) ---------- */
-const S = { real: false, coste: 0 };
+/* ---------- estado global (la barra de arriba lo gobierna todo) ----------
+ * Los valores por defecto son los que describen a quien invierte de verdad:
+ * aportar cada mes, mirar el poder de compra y pagar algo de comisión. La
+ * versión cómoda (todo de golpe, nominal, gratis) hay que pedirla a mano. */
+const S = { real: true, coste: 0.1, dca: true };
 
 /**
  * Cada serie se deflacta con el IPC de SU moneda: el del dólar para las
@@ -668,20 +632,23 @@ function rango(v) {
 const ACTIVOS = [
   { id: "sp500_tr",   c: "var(--series-1)", corto: "S&P 500", nota: "con dividendos" },
   { id: "oro",        c: "var(--series-2)", corto: "Oro", nota: "precio del metal" },
-  { id: "bonos10",    c: "var(--series-3)", corto: "Bonos 10a EE. UU.", nota: "cupón + precio" },
   { id: "vivienda_us",c: "var(--series-4)", corto: "Vivienda EE. UU.", nota: "solo precio" },
-  { id: "nikkei",     c: "var(--series-5)", corto: "Nikkei 225", nota: "solo precio, en yenes" },
-  { id: "letras3m",   c: "var(--series-6)", corto: "Letras 3m", nota: "el “no invertir”" },
   // MSCI World y MSCI EAFE son el mismo tono a propósito: la paleta tiene ocho
   // ranuras validadas para daltonismo y un noveno tono inventado no lo estaría.
   // Se distinguen por el trazo (continuo / discontinuo), que es codificación
   // compuesta y no depende del color.
   { id: "mundo_exus", c: "var(--series-7)", corto: "Mundo sin EE. UU.", nota: "con dividendos" },
   { id: "mundo",      c: "var(--series-7)", rayada: true, corto: "Mundo (MSCI World)", nota: "con dividendos" },
-  { id: "ibex",       c: "var(--series-8)", corto: "IBEX 35", nota: "solo precio, en euros" },
 ];
 const META = (id) => D.series[id];
-const COLOR = (id) => ACTIVOS.find((a) => a.id === id)?.c || "var(--series-1)";
+/**
+ * Color de una entidad. El Nikkei y el IBEX ya no están en el comparador, pero
+ * siguen teniendo su panel propio en la sección del sesgo, así que conservan su
+ * ranura de la paleta aquí: si se resolvieran por `ACTIVOS` caerían en el azul
+ * por defecto y se confundirían con el S&P 500 en su propio gráfico.
+ */
+const EXTRA = { nikkei: "var(--series-5)", ibex: "var(--series-8)" };
+const COLOR = (id) => ACTIVOS.find((a) => a.id === id)?.c || EXTRA[id] || "var(--series-1)";
 
 /* ===========================================================================
    Primitivas de dibujo. SVG a mano: viewBox fijo, ancho 100 %.
@@ -945,8 +912,12 @@ function hoverDiscreto(g, items, { titulo } = {}) {
   });
 }
 
-/** Histograma de una lista de rentabilidades anualizadas, en tramos de `paso`. */
-function histograma(host, datos, { paso = 5, titulo, etiqueta, tabla: hostTabla = null }) {
+/**
+ * Histograma de una lista de rentabilidades anualizadas, en tramos de `paso`.
+ * Con `umbral` los tramos en positivo se parten en dos colores: por debajo y
+ * por encima de esa cifra (la media de largo plazo).
+ */
+function histograma(host, datos, { paso = 5, titulo, etiqueta, tabla: hostTabla = null, umbral = null }) {
   const min = Math.floor(Math.min(...datos) / paso) * paso;
   const max = Math.ceil(Math.max(...datos) / paso) * paso;
   const nb = Math.max(1, Math.round((max - min) / paso));
@@ -966,7 +937,12 @@ function histograma(host, datos, { paso = 5, titulo, etiqueta, tabla: hostTabla 
     const w = Math.max(1, bw - 2); // separación de 2 px en el color de la superficie
     const nodo = g.add(el("rect", {
       x, y: y(b.n), width: w, height: Math.max(b.n ? 1 : 0, alto),
-      fill: b.b <= 0 ? "var(--neg)" : "var(--pos)", rx: Math.min(4, w / 2),
+      // El tramo que cruza el umbral se decide por su punto medio: con tramos
+      // de cinco puntos y una media del 9,4 %, el 5–10 cae por debajo.
+      fill: b.b <= 0 ? "var(--neg)"
+        : umbral != null && (b.a + b.b) / 2 <= umbral ? "var(--pos-baja)"
+        : "var(--pos)",
+      rx: Math.min(4, w / 2),
     }));
     items.push({
       nodo, cx: x + w / 2,
@@ -1033,49 +1009,24 @@ function añosNaturales(id) {
 registra(function titular() {
   const v = serie("sp500_tr");
   const [a, b] = rango(v);
-  const años = añosNaturales("sp500_tr");
-  const enLaFranja = años.filter((x) => x.r >= 8 && x.r <= 12).length;
-  const i1928 = i0("1928-01");
-  const veces = v[b] / v[a];
-  const optica = S.real ? "descontada la inflación" : "en dólares corrientes";
-  const coste = S.coste > 0 ? `, menos ${nf(2).format(S.coste)} % anual de costes` : "";
+  const optica = S.real ? "real, descontada la inflación" : "en dólares corrientes";
 
   $("#tiles-hero").innerHTML = `
     <div class="tile hero">
       <div class="k">S&P 500 con dividendos · ${M[a].slice(0, 4)} – ${M[b].slice(0, 4)}</div>
-      <div class="v">${pct(cagr(v, a, b), 1).replace(" %", " %")}</div>
-      <div class="s">al año, ${optica}${coste}. Es la media geométrica de ${Math.floor((b - a) / 12)} años:
-        el número que resume la frase entera.</div>
+      <div class="v">${pct(cagr(v, a, b), 1)}</div>
+      <div class="s">al año, ${optica}.</div>
     </div>
     <div class="tile">
       <div class="k">Desde 1928</div>
-      <div class="v">${pct(cagr(v, i1928, b))}</div>
-      <div class="s">El periodo que suele citarse, y el más generoso de los tres.</div>
+      <div class="v">${pct(cagr(v, i0("1928-01"), b))}</div>
+      <div class="s">El periodo que suele citarse.</div>
     </div>
     <div class="tile">
       <div class="k">Últimos 30 años</div>
       <div class="v">${pct(cagr(v, b - 360, b))}</div>
       <div class="s">Desde ${mesLargo(M[b - 360])}.</div>
-    </div>
-    <div class="tile">
-      <div class="k">Años “del 10 %”</div>
-      <div class="v">${enLaFranja} de ${años.length}</div>
-      <div class="s">Años naturales que acabaron entre +8 % y +12 %: el
-        ${nf(0).format((enLaFranja / años.length) * 100)} % de las veces.</div>
-    </div>
-    <div class="tile">
-      <div class="k">1 $ de ${M[a].slice(0, 4)}</div>
-      <div class="v">${mult(veces)}</div>
-      <div class="s">${S.real ? "En poder de compra de hoy." : "En dólares de hoy, sin descontar la inflación."}</div>
     </div>`;
-
-  const ipc = serie("ipc");
-  $("#nota-hero").innerHTML = S.real
-    ? `Estás mirando <b>rentabilidad real</b>: lo que queda después de la inflación, que en este
-       periodo fue del ${pct(cagr(ipc, a, b))} anual. Es lo que de verdad cambia tu poder de compra,
-       y es entre dos y tres puntos menos que la cifra que se suele repetir.`
-    : `Estás mirando <b>rentabilidad nominal</b>. La inflación de EE.&nbsp;UU. se comió un
-       ${pct(cagr(ipc, a, b))} anual en el mismo periodo: pulsa <b>Real</b> arriba para ver qué queda.`;
 });
 
 /* ------------------------------------------------------- 2 · año a año --- */
@@ -1090,8 +1041,13 @@ registra(function anual() {
   const y = (r) => g.y1 - ((r - min) / (max - min)) * (g.y1 - g.y0);
   ejeY(g, ticksLineal(min, max, 6), y, (v) => pctS(v, 0), { cero: 0 });
 
-  // Franja del 8 % al 12 %: la "normalidad" que sugiere la frase.
-  g.add(el("rect", { x: g.x0, y: y(12), width: g.x1 - g.x0, height: y(8) - y(12), class: "band" }));
+  // El umbral que parte los años en positivo es la media de largo plazo: la
+  // misma cifra del titular, dibujada para que el color no sea el único aviso.
+  const [ra, rb] = rango(serie("sp500_tr"));
+  const media = cagr(serie("sp500_tr"), ra, rb);
+  // Sin etiqueta sobre la línea: las barras llegan hasta el borde derecho y la
+  // cifra se pisaría con ellas. La leyenda ya lleva el número.
+  g.add(el("line", { x1: g.x0, x2: g.x1, y1: y(media), y2: y(media), class: "ln-ref" }));
   g.add(el("line", { x1: g.x0, x2: g.x1, y1: y(0), y2: y(0), class: "ax" }));
 
   const bw = (g.x1 - g.x0) / años.length;
@@ -1105,12 +1061,14 @@ registra(function anual() {
     const alto = Math.abs(y(d.r) - y(0));
     const nodo = g.add(el("rect", {
       x: cx - w / 2, y: Math.min(y(d.r), y(0)), width: w, height: Math.max(1, alto),
-      fill: d.r >= 0 ? "var(--pos)" : "var(--neg)", rx: Math.min(4, w / 2),
+      fill: d.r < 0 ? "var(--neg)" : d.r < media ? "var(--pos-baja)" : "var(--pos)",
+      rx: Math.min(4, w / 2),
     }));
     items.push({
       nodo, cx,
       html: `<b>${d.y}</b><div class="row"><span>S&P 500 con dividendos</span><b>${pctS(d.r)}</b></div>` +
-        (d.r >= 8 && d.r <= 12 ? `<div class="row"><span>dentro de la franja del 8–12 %</span><b>sí</b></div>` : ""),
+        `<div class="row"><span>frente a la media de ${pctS(media)}</span><b>${
+          d.r < 0 ? "en pérdidas" : d.r < media ? "por debajo" : "por encima"}</b></div>`,
     });
     // Etiquetas directas solo en los dos extremos: el resto lo cuenta el eje.
     // La del año malo se coloca justo debajo de la línea del cero, no al final
@@ -1129,30 +1087,36 @@ registra(function anual() {
   }, nEtiquetas(g)));
   hoverDiscreto(g, items, { titulo: "Rentabilidad del S&P 500 por año natural" });
 
-  const enFranja = años.filter((d) => d.r >= 8 && d.r <= 12);
-  const negativos = años.filter((d) => d.r < 0);
-  const extremos = años.filter((d) => Math.abs(d.r) > 20);
+  const bajos = años.filter((d) => d.r >= 0 && d.r < media).length;
+  const negativos = años.filter((d) => d.r < 0).length;
   $("#t-anual").textContent = `Rentabilidad de cada año natural (${años[0].y}–${años.at(-1).y})`;
   $("#s-anual").innerHTML =
-    `${años.length} años completos, de diciembre a diciembre, ${S.real ? "descontada la inflación" : "en dólares corrientes"}. ` +
-    `<b>${enFranja.length}</b> cayeron dentro de la franja del 8 al 12 %; <b>${negativos.length}</b> acabaron en pérdidas ` +
-    `y <b>${extremos.length}</b> se movieron más de 20 puntos arriba o abajo. La media es un punto por el que la serie casi nunca pasa.`;
+    `${años.length} años · ${años.length - bajos - negativos} por encima de la media · ` +
+    `${bajos} en positivo por debajo · ${negativos} en pérdidas`;
+  leyenda($("#lg-anual"), [
+    { nombre: `Por encima de la media (${pctS(media)})`, color: "var(--pos)" },
+    { nombre: "En positivo, por debajo de la media", color: "var(--pos-baja)" },
+    { nombre: "En pérdidas", color: "var(--neg)" },
+    { nombre: "Media de largo plazo", dash: true },
+  ]);
 
-  tabla($("#tb-anual"), ["Año", "Rentabilidad", "¿En la franja 8–12 %?"],
-    años.slice().reverse().map((d) => [String(d.y), pctS(d.r), d.r >= 8 && d.r <= 12 ? "sí" : "no"]),
+  tabla($("#tb-anual"), ["Año", "Rentabilidad", `Frente a la media (${pctS(media)})`],
+    años.slice().reverse().map((d) => [
+      String(d.y), pctS(d.r), d.r < 0 ? "en pérdidas" : d.r < media ? "por debajo" : "por encima",
+    ]),
     "Rentabilidad del S&P 500 en cada año natural");
 
-  // Histograma de los mismos años.
+  // Histograma de los mismos años, con el mismo corte de color.
   histograma($("#ch-hist-anual"), años.map((d) => d.r), {
     paso: 5, etiqueta: "años", titulo: "Reparto de las rentabilidades anuales",
-    tabla: $("#tb-hist-anual"),
+    tabla: $("#tb-hist-anual"), umbral: media,
   });
-  const moda = [[0, 10], [10, 20], [-10, 0], [20, 30]].map(([a2, b2]) =>
-    ({ a: a2, b: b2, n: años.filter((d) => d.r >= a2 && d.r < b2).length }));
-  $("#s-hist-anual").innerHTML =
-    `Cuántos años cayeron en cada tramo de cinco puntos. El montón no está en el 10 %: está repartido. ` +
-    `Entre 0 y +10 % hubo ${moda[0].n} años, entre +10 y +20 % otros ${moda[1].n}, y ${moda[2].n} entre −10 y 0 %. ` +
-    `Con datos ${S.real ? "reales" : "nominales"}.`;
+  $("#s-hist-anual").innerHTML = `Cuántos años cayeron en cada tramo de cinco puntos.`;
+  leyenda($("#lg-hist-anual"), [
+    { nombre: `Por encima de la media (${pctS(media)})`, color: "var(--pos)" },
+    { nombre: "En positivo, por debajo", color: "var(--pos-baja)" },
+    { nombre: "En pérdidas", color: "var(--neg)" },
+  ]);
 });
 
 /* --------------------------------------------------- 3 · ventanas móviles */
@@ -1248,60 +1212,162 @@ function ventanasDca(id, meses) {
   return out;
 }
 
-const VENT = { modo: "unico" };
+/**
+ * Ventanas **en curso**: meses de entrada tan recientes que el plazo todavía no
+ * se ha cumplido. Se anualizan sobre el tiempo transcurrido de verdad, con un
+ * mínimo de un año (por debajo, anualizar convierte un vaivén de tres meses en
+ * una cifra de tres dígitos y solo engaña).
+ *
+ * Sin esto, con un plazo de 20 años el gráfico se cortaba en 2006 y parecía que
+ * de los últimos veinte años no hubiera nada que decir. Se dibujan aparte, con
+ * trazo discontinuo, porque no son comparables con las completas.
+ */
+const cacheCurso = new Map();
+function ventanasCurso(id, meses) {
+  const clave = `${id}|${meses}|${S.real}|${S.coste}|${S.dca}`;
+  if (cacheCurso.has(clave)) return cacheCurso.get(clave);
+  const v = serie(id);
+  const [vmin, vmax] = rango(v);
+  const out = [];
+  const MIN = 12;
+  for (let i = Math.max(vmin, vmax - meses + 1); i + MIN <= vmax; i++) {
+    if (v[i] == null) continue;
+    if (S.dca) {
+      const p = dcaCamino(v, i, vmax);
+      if (p && p.tir != null && p.fin - i >= MIN) out.push({ i, r: p.tir, x: p.x, m: p.fin - i });
+    } else {
+      const fin = ultimoCon(v, i, vmax);
+      const r = fin == null ? null : cagr(v, i, fin);
+      if (r != null && Number.isFinite(r)) out.push({ i, r, x: v[fin] / v[i], m: fin - i });
+    }
+  }
+  if (cacheCurso.size > 200) cacheCurso.clear();
+  cacheCurso.set(clave, out);
+  return out;
+}
+
+/**
+ * Rellena un <select> con años enteros y deja `sel` elegido (acotado al rango).
+ * Si el rango no ha cambiado no se rehacen las opciones: estos desplegables se
+ * repintan en cada render y rehacerlos tira el desplegable abierto al suelo.
+ */
+function rellenaAños(node, desde, hasta, sel) {
+  if (node.dataset.rango !== `${desde}-${hasta}`) {
+    node.innerHTML = "";
+    for (let a = desde; a <= hasta; a++) {
+      const o = document.createElement("option");
+      o.value = String(a);
+      o.textContent = String(a);
+      node.appendChild(o);
+    }
+    node.dataset.rango = `${desde}-${hasta}`;
+  }
+  node.value = String(Math.min(Math.max(sel, desde), hasta));
+}
+
+const VENT = { curso: true, desde: null, hasta: null };
+const añoDe = (i) => +M[i].slice(0, 4);
 
 registra(function rolling() {
   const años = +$("#horizonte").value;
   const etiquetaAños = `${años} ${años === 1 ? "año" : "años"}`;
   $("#horizonte-val").textContent = etiquetaAños;
   $("#horizonte").setAttribute("aria-valuetext", etiquetaAños);
-  const dca = VENT.modo === "dca";
+  const dca = S.dca;
   const meses = años * 12;
-  const vs = dca ? ventanasDca("sp500_tr", meses) : ventanas("sp500_tr", meses);
+  const todasComp = dca ? ventanasDca("sp500_tr", meses) : ventanas("sp500_tr", meses);
+  const todasCurso = VENT.curso ? ventanasCurso("sp500_tr", meses) : [];
   // El otro modo, calculado siempre: es la referencia contra la que se compara.
-  const otras = dca ? ventanas("sp500_tr", meses) : ventanasDca("sp500_tr", meses);
-  if (!vs.length) {
+  const todasOtras = dca ? ventanas("sp500_tr", meses) : ventanasDca("sp500_tr", meses);
+
+  // Los dos desplegables acotan el mes de ENTRADA, no el de salida: la pregunta
+  // que contestan es "y si solo miro a quien entró entre tal año y tal otro".
+  const universo = [...todasComp, ...todasCurso];
+  if (!universo.length) {
     $("#s-vent").textContent = "";
     $("#tiles-vent").innerHTML = "";
     $("#ch-rolling").innerHTML =
       `<p class="note" style="margin-top:0">No hay ninguna ventana de ${etiquetaAños} que se pueda
        calcular con los datos disponibles en este modo.</p>`;
     $("#lg-rolling").innerHTML = ""; $("#nota-vent").innerHTML = "";
+    $("#ch-hist-vent").innerHTML = ""; $("#s-hist-vent").innerHTML = ""; $("#tb-hist-vent").innerHTML = "";
+    return;
+  }
+  const aMin = añoDe(Math.min(...universo.map((d) => d.i)));
+  const aMax = añoDe(Math.max(...universo.map((d) => d.i)));
+  VENT.desde = Math.min(Math.max(VENT.desde ?? aMin, aMin), aMax);
+  VENT.hasta = Math.min(Math.max(VENT.hasta ?? aMax, VENT.desde), aMax);
+  rellenaAños($("#vent-desde"), aMin, aMax, VENT.desde);
+  rellenaAños($("#vent-hasta"), VENT.desde, aMax, VENT.hasta);
+  $("#vt-curso").setAttribute("aria-pressed", String(VENT.curso));
+  $("#vt-completas").setAttribute("aria-pressed", String(!VENT.curso));
+  const dentro = (d) => añoDe(d.i) >= VENT.desde && añoDe(d.i) <= VENT.hasta;
+  const recorte = VENT.desde > aMin || VENT.hasta < aMax;
+
+  const vs = todasComp.filter(dentro);
+  const cur = todasCurso.filter(dentro);
+  const otras = todasOtras.filter(dentro);
+  if (!vs.length && !cur.length) {
+    $("#s-vent").textContent = "";
+    $("#tiles-vent").innerHTML = "";
+    $("#ch-rolling").innerHTML =
+      `<p class="note" style="margin-top:0">Entre ${VENT.desde} y ${VENT.hasta} no hay ninguna entrada
+       con datos para un plazo de ${etiquetaAños}. Amplía el rango de años.</p>`;
+    $("#lg-rolling").innerHTML = ""; $("#nota-vent").innerHTML = "";
+    $("#ch-hist-vent").innerHTML = ""; $("#s-hist-vent").innerHTML = ""; $("#tb-hist-vent").innerHTML = "";
     return;
   }
   const rs = vs.map((d) => d.r);
-  const peor = vs.reduce((p, c) => (c.r < p.r ? c : p));
-  const mejor = vs.reduce((p, c) => (c.r > p.r ? c : p));
-  const negativas = vs.filter((d) => d.r < 0).length;
   const empezar = dca ? "Empezando a aportar en" : "Entrando en";
+  const nEs = (n) => new Intl.NumberFormat("es-ES").format(n);
 
   $("#h-vent").textContent = dca
     ? "TIR anualizada según el mes en que se empezó a aportar"
     : "Rentabilidad anualizada según el mes de entrada";
-  $("#s-vent").innerHTML =
-    `${new Intl.NumberFormat("es-ES").format(vs.length)} ventanas de ${años} ${años === 1 ? "año" : "años"}, ` +
-    (dca
-      ? `una por cada mes en que se pudo empezar a aportar, entre ${mesLargo(M[vs[0].i])} y ${mesLargo(M[vs.at(-1).i])}, `
-      : `una por cada mes de entrada entre ${mesLargo(M[vs[0].i])} y ${mesLargo(M[vs.at(-1).i])}, `) +
-    `${S.real ? "con la inflación descontada" : "en dólares corrientes"}.`;
+  $("#s-vent").innerHTML = vs.length
+    ? `${nEs(vs.length)} ventanas completas de ${etiquetaAños}, ` +
+      (dca
+        ? `una por cada mes en que se pudo empezar a aportar, entre ${mesLargo(M[vs[0].i])} y ${mesLargo(M[vs.at(-1).i])}`
+        : `una por cada mes de entrada entre ${mesLargo(M[vs[0].i])} y ${mesLargo(M[vs.at(-1).i])}`) +
+      (cur.length ? `, más ${nEs(cur.length)} en curso` : "") +
+      `, ${S.real ? "con la inflación descontada" : "en dólares corrientes"}.`
+    : `Ninguna ventana de ${etiquetaAños} ha llegado a cumplirse en este rango: solo hay
+       ${nEs(cur.length)} en curso, ${S.real ? "con la inflación descontada" : "en dólares corrientes"}.`;
 
-  $("#tiles-vent").innerHTML = `
-    <div class="tile"><div class="k">Peor ${dca ? "arranque" : "entrada"}</div>
-      <div class="v ${peor.r < 0 ? "neg" : ""}">${pctS(peor.r)}</div>
-      <div class="s">${empezar} ${mesLargo(M[peor.i])}.</div></div>
-    <div class="tile"><div class="k">Mediana</div>
-      <div class="v">${pctS(mediana(rs))}</div>
-      <div class="s">La mitad de ${dca ? "los planes" : "las entradas"} lo hizo mejor; la otra mitad, peor.</div></div>
-    <div class="tile"><div class="k">Mejor ${dca ? "arranque" : "entrada"}</div>
-      <div class="v">${pctS(mejor.r)}</div>
-      <div class="s">${empezar} ${mesLargo(M[mejor.i])}.</div></div>
-    <div class="tile"><div class="k">Acabaron perdiendo</div>
-      <div class="v ${negativas ? "neg" : ""}">${nf(negativas / vs.length >= 0.1 ? 0 : 1).format((negativas / vs.length) * 100)} %</div>
-      <div class="s">${new Intl.NumberFormat("es-ES").format(negativas)} de ${new Intl.NumberFormat("es-ES").format(vs.length)} ventanas
-        terminaron por debajo de lo ${dca ? "aportado" : "invertido"}.</div></div>
-    ${dca ? `<div class="tile"><div class="k">Sobre lo aportado</div>
-      <div class="v">${mult(mediana(vs.map((d) => d.x)))}</div>
-      <div class="s">La ventana mediana, sin anualizar: por cada ${S.real ? "dólar de poder de compra" : "dólar"} puesto.</div></div>` : ""}`;
+  // Las cifras resumen se calculan SOLO con las ventanas completas: mezclar en
+  // la misma mediana un plazo de 20 años y otro de 3 sería comparar dos cosas
+  // distintas. Las en curso viven en el gráfico y en su propio recuadro.
+  if (vs.length) {
+    const peor = vs.reduce((p, c) => (c.r < p.r ? c : p));
+    const mejor = vs.reduce((p, c) => (c.r > p.r ? c : p));
+    const negativas = vs.filter((d) => d.r < 0).length;
+    $("#tiles-vent").innerHTML = `
+      <div class="tile"><div class="k">Peor ${dca ? "arranque" : "entrada"}</div>
+        <div class="v ${peor.r < 0 ? "neg" : ""}">${pctS(peor.r)}</div>
+        <div class="s">${empezar} ${mesLargo(M[peor.i])}.</div></div>
+      <div class="tile"><div class="k">Mediana</div>
+        <div class="v">${pctS(mediana(rs))}</div>
+        <div class="s">La mitad de ${dca ? "los planes" : "las entradas"} lo hizo mejor; la otra mitad, peor.</div></div>
+      <div class="tile"><div class="k">Mejor ${dca ? "arranque" : "entrada"}</div>
+        <div class="v">${pctS(mejor.r)}</div>
+        <div class="s">${empezar} ${mesLargo(M[mejor.i])}.</div></div>
+      <div class="tile"><div class="k">Acabaron perdiendo</div>
+        <div class="v ${negativas ? "neg" : ""}">${nf(negativas / vs.length >= 0.1 ? 0 : 1).format((negativas / vs.length) * 100)} %</div>
+        <div class="s">${nEs(negativas)} de ${nEs(vs.length)} ventanas completas
+          terminaron por debajo de lo ${dca ? "aportado" : "invertido"}.</div></div>
+      ${dca ? `<div class="tile"><div class="k">Sobre lo aportado</div>
+        <div class="v">${mult(mediana(vs.map((d) => d.x)))}</div>
+        <div class="s">La ventana mediana, sin anualizar: por cada ${S.real ? "dólar de poder de compra" : "dólar"} puesto.</div></div>` : ""}
+      ${cur.length ? `<div class="tile"><div class="k">En curso ahora mismo</div>
+        <div class="v">${pctS(mediana(cur.map((d) => d.r)))}</div>
+        <div class="s">Mediana de las ${nEs(cur.length)} entradas que aún no han cumplido el plazo
+          (llevan de ${nf(1).format(Math.min(...cur.map((d) => d.m)) / 12)} a ${nf(1).format(Math.max(...cur.map((d) => d.m)) / 12)} años).</div></div>` : ""}`;
+  } else {
+    $("#tiles-vent").innerHTML = `
+      <div class="tile"><div class="k">En curso ahora mismo</div>
+        <div class="v">${pctS(mediana(cur.map((d) => d.r)))}</div>
+        <div class="s">Mediana de las ${nEs(cur.length)} entradas que aún no han cumplido el plazo.</div></div>`;
+  }
 
   const host = $("#ch-rolling");
   const g = marco(host, {
@@ -1313,17 +1379,17 @@ registra(function rolling() {
   // Las dos curvas comparten eje: son la misma pregunta con dos formas de poner
   // el dinero. Aquí el color no distingue activos (solo hay uno), sino modos.
   const rsOtras = otras.map((d) => d.r);
-  const min = Math.min(...rs, ...rsOtras, -2), max = Math.max(...rs, ...rsOtras, 12);
-  const a = Math.min(vs[0].i, otras.length ? otras[0].i : vs[0].i);
-  const b = Math.max(vs.at(-1).i, otras.length ? otras.at(-1).i : vs.at(-1).i);
+  const rsCurso = cur.map((d) => d.r);
+  const min = Math.min(...rs, ...rsOtras, ...rsCurso, -2);
+  const max = Math.max(...rs, ...rsOtras, ...rsCurso, 12);
+  const iss = [...vs, ...cur, ...otras].map((d) => d.i);
+  const a = Math.min(...iss), b = Math.max(...iss);
   const x = (i) => g.x0 + ((i - a) / Math.max(1, b - a)) * (g.x1 - g.x0);
   const y = (r) => g.y1 - ((r - min) / (max - min)) * (g.y1 - g.y0);
   ejeY(g, ticksLineal(min, max, 6), y, (v) => pctS(v, 0), { cero: 0 });
 
   // Relleno bajo cero: donde aguantar ese plazo no bastó.
-  const bajoCero = [];
-  vs.forEach((d, k) => { if (d.r < 0) bajoCero.push(k); });
-  if (bajoCero.length) {
+  if (vs.some((d) => d.r < 0)) {
     let d = `M${x(vs[0].i)} ${y(0)}`;
     for (const p of vs) d += `L${x(p.i).toFixed(1)} ${y(Math.min(0, p.r)).toFixed(1)}`;
     d += `L${x(vs.at(-1).i)} ${y(0)}Z`;
@@ -1333,24 +1399,46 @@ registra(function rolling() {
   vs.forEach((d) => (serieV[d.i] = d.r));
   const serieO = new Array(N).fill(null);
   otras.forEach((d) => (serieO[d.i] = d.r));
+  const serieC = new Array(N).fill(null);
+  cur.forEach((d) => (serieC[d.i] = d.r));
+  // La cola en curso arranca en el último mes completo para que no quede un
+  // salto en blanco entre las dos líneas: es la misma serie, no otra.
+  if (cur.length && vs.length && cur[0].i === vs.at(-1).i + 1) serieC[vs.at(-1).i] = vs.at(-1).r;
   // El modo que no está activo se dibuja detrás y más fino: está para comparar,
   // no para leerlo punto a punto.
   g.add(el("path", {
     d: camino(serieO, a, b, x, y), class: "ln", stroke: "var(--series-2)",
     "stroke-width": 1.4, opacity: 0.75,
   }));
-  g.add(el("path", { d: camino(serieV, a, b, x, y), class: "ln", stroke: "var(--series-1)" }));
+  if (cur.length) {
+    g.add(el("path", {
+      d: camino(serieC, a, b, x, y), class: "ln", stroke: "var(--series-1)",
+      "stroke-dasharray": "6 4", opacity: 0.85,
+    }));
+  }
+  if (vs.length) g.add(el("path", { d: camino(serieV, a, b, x, y), class: "ln", stroke: "var(--series-1)" }));
   g.add(el("line", { x1: g.x0, x2: g.x1, y1: y(0), y2: y(0), class: "ax" }));
   const hayRef = max > 10 && min < 10;
   if (hayRef) {
     g.add(el("line", { x1: g.x0, x2: g.x1, y1: y(10), y2: y(10), class: "ln-ref" }));
-    g.add(el("text", { x: g.x1 - 4, y: y(10) - 6, "text-anchor": "end" })).textContent = "el 10 % de la frase";
+    // La etiqueta solo se escribe si el último tramo de las curvas no pasa por
+    // ahí; si pasa, se calla y lo cuenta la leyenda, que ya lleva la referencia.
+    const cola = [...vs, ...cur].filter((d) => x(d.i) > g.x1 - 130);
+    if (!cola.some((d) => Math.abs(y(d.r) - y(10)) < 14)) {
+      g.add(el("text", { x: g.x1 - 4, y: y(10) - 6, "text-anchor": "end" })).textContent = "el 10 % de la frase";
+    }
   }
   ejeX(g, ticksTiempo(a, b, x, nEtiquetas(g)));
   g.add(el("text", { x: (g.x0 + g.x1) / 2, y: g.y1 + 30, "text-anchor": "middle", class: "lbl" }))
     .textContent = dca ? "mes de la primera aportación" : "mes de entrada";
   const salida = (v, i) =>
     `${pctS(v)} <span style="color:var(--muted-txt);font-weight:400">→ ${mesCorto(M[Math.min(N - 1, i + meses)])}</span>`;
+  const mesesCurso = new Map(cur.map((d) => [d.i, d.m]));
+  const salidaCurso = (v, i) => {
+    const m = mesesCurso.get(i);
+    return `${pctS(v)} <span style="color:var(--muted-txt);font-weight:400">` +
+      (m ? `lleva ${nf(1).format(m / 12)} años` : "en curso") + `</span>`;
+  };
   const nomActivo = dca ? `Aportando cada mes ${etiquetaAños}` : `De golpe, ${etiquetaAños}`;
   const nomOtro = dca ? `De golpe, ${etiquetaAños}` : `Aportando cada mes ${etiquetaAños}`;
   hoverLineas(g, {
@@ -1360,64 +1448,46 @@ registra(function rolling() {
       : `Rentabilidad anualizada a ${años} años según el mes de entrada`,
     series: [
       { nombre: nomActivo, color: "var(--series-1)", v: serieV, fmt: salida },
+      ...(cur.length ? [{ nombre: "Todavía en curso", color: "var(--series-1)", v: serieC, fmt: salidaCurso }] : []),
       { nombre: nomOtro, color: "var(--series-2)", v: serieO, fmt: salida },
     ],
   });
   leyenda($("#lg-rolling"), [
     { nombre: `${nomActivo} (S&P 500 con dividendos)`, color: "var(--series-1)" },
+    ...(cur.length ? [{ nombre: "Todavía en curso: anualizado sobre lo transcurrido", color: "var(--series-1)", rayada: true }] : []),
     { nombre: `${nomOtro}, para comparar`, color: "var(--series-2)" },
     ...(hayRef ? [{ nombre: "El 10 % de la frase", dash: true }] : []),
   ]);
 
-  const dif = mejor.r - peor.r;
-  const peorOtro = otras.length ? otras.reduce((p, c) => (c.r < p.r ? c : p)) : null;
+  const dif = rs.length ? Math.max(...rs) - Math.min(...rs) : null;
   const difOtro = otras.length ? Math.max(...rsOtras) - Math.min(...rsOtras) : null;
   const huecoIpc = S.real && D.ipc.indexOf(null, i0("2000-01")) > 0;
   $("#nota-vent").innerHTML =
-    (huecoIpc
-      ? `<b>Un aviso de los datos:</b> no hay IPC publicado para octubre de 2025, así que las series
-         reales llevan ahí un hueco de un mes; no se rellena con una estimación. `
+    (dif != null
+      ? `Abanico de las completas: <b>${nf(1).format(dif)} puntos</b> ${dca ? "aportando cada mes" : "de golpe"}` +
+        (difOtro != null ? ` · ${nf(1).format(difOtro)} ${dca ? "de golpe" : "aportando cada mes"}` : "")
       : "") +
-    `Entre ${dca ? "el mejor y el peor arranque" : "la mejor y la peor entrada"} hay
-     <b>${nf(1).format(dif)} puntos</b> de diferencia anual` +
-    (difOtro != null
-      ? ` (${dca ? "poniéndolo de golpe" : "aportando cada mes"} eran ${nf(1).format(difOtro)})`
-      : "") +
-    `, y el inversor no eligió: le tocó. ` +
-    (dca
-      ? `Aguantando ${etiquetaAños}, el peor plan empezó a aportar en <b>${mesLargo(M[peor.i])}</b> y
-         liquidó en ${mesLargo(M[peor.i + meses])} con ${pctS(peor.r)} anual (${mult(peor.x)} lo aportado)` +
-        (peorOtro ? `; de golpe, el peor mes de entrada fue ${mesLargo(M[peorOtro.i])}, con ${pctS(peorOtro.r)} anual` : "") +
-        `. ` +
-        (difOtro != null && dif > difOtro
-          ? `Aquí conviene desmontar un tópico: aportar cada mes quita el riesgo de <b>acertar el mes
-             de entrada</b>, pero a este plazo <b>no</b> estrecha el resultado, lo ensancha. Como la
-             mayor parte del dinero lleva poco tiempo invertido, lo que manda es dónde esté el mercado
-             el día de liquidar. `
-          : `A este plazo, aportar cada mes sí estrecha el abanico: ninguna aportación concentra todo
-             el riesgo en un único precio de entrada. `) +
-        `La <b>TIR</b> es la rentabilidad que iguala todas las aportaciones con el valor final, y no
-         es la del índice. `
-      : `Aguantando ${etiquetaAños}, la peor racha empezó en <b>${mesLargo(M[peor.i])}</b> y terminó en
-         ${mesLargo(M[peor.i + meses])} con ${pctS(peor.r)} anual (${mult(Math.pow(1 + peor.r / 100, años))} el dinero)` +
-        (peorOtro ? `; aportando cada mes, el peor arranque dio ${pctS(peorOtro.r)} anual` : "") +
-        `. `) +
-    (S.real
-      ? `Todas estas cifras van <b>con la inflación descontada</b>: son poder de compra, no dólares.`
-      : `Estas cifras son <b>nominales</b>: pulsa <b>Real</b> arriba para descontar la inflación.`);
+    (cur.length ? `${dif != null ? " · " : ""}Las de trazo discontinuo no han cumplido el plazo: su cifra
+      está anualizada sobre el tiempo que llevan, y por eso salta más.` : "") +
+    (recorte ? ` · Solo entradas de ${VENT.desde} a ${VENT.hasta}.` : "") +
+    (huecoIpc ? ` · Sin IPC de octubre de 2025, las series reales llevan ahí un hueco de un mes.` : "");
 
-  histograma($("#ch-hist-vent"), rs, {
-    paso: años <= 3 ? 5 : 2, etiqueta: "ventanas",
-    titulo: dca
-      ? `Reparto de las ventanas de aportación mensual de ${años} años`
-      : `Reparto de las ventanas de ${años} años`,
-    tabla: $("#tb-hist-vent"),
-  });
-  $("#s-hist-vent").innerHTML =
-    `Las mismas ${new Intl.NumberFormat("es-ES").format(vs.length)} ventanas ` +
-    `${dca ? "de aportación mensual" : "de entrada única"}, contadas por tramos. ` +
-    `Cuanto más largo el plazo, más se estrecha el montón: eso, y no la media, es lo que de verdad
-     mejora con el tiempo.`;
+  // El reparto es de las ventanas COMPLETAS: un histograma que mezclara plazos
+  // distintos no repartiría nada comparable.
+  if (rs.length) {
+    histograma($("#ch-hist-vent"), rs, {
+      paso: 1, etiqueta: "ventanas",
+      titulo: dca
+        ? `Reparto de las ventanas de aportación mensual de ${años} años`
+        : `Reparto de las ventanas de ${años} años`,
+      tabla: $("#tb-hist-vent"),
+    });
+  } else {
+    $("#ch-hist-vent").innerHTML = ""; $("#tb-hist-vent").innerHTML = "";
+  }
+  $("#s-hist-vent").innerHTML = rs.length
+    ? `Las mismas ${nEs(rs.length)} ventanas completas, punto a punto.`
+    : `Sin ventanas completas en este rango de años: no hay reparto que enseñar.`;
 
   // Tabla resumen de todos los horizontes, que es la vista accesible del mando:
   // enseña los dos modos a la vez, que es justo lo que el gráfico compara.
@@ -1441,14 +1511,14 @@ registra(function rolling() {
 });
 
 $("#horizonte").addEventListener("input", () => pintarTodo());
-for (const [id, modo] of [["vt-unico", "unico"], ["vt-dca", "dca"]]) {
-  $(`#${id}`).addEventListener("click", () => {
-    VENT.modo = modo;
-    $("#vt-unico").setAttribute("aria-pressed", String(modo === "unico"));
-    $("#vt-dca").setAttribute("aria-pressed", String(modo === "dca"));
-    pintarTodo();
-  });
-}
+$("#vent-desde").addEventListener("change", (ev) => {
+  VENT.desde = +ev.target.value;
+  if (VENT.hasta != null && VENT.hasta < VENT.desde) VENT.hasta = VENT.desde;
+  pintarTodo();
+});
+$("#vent-hasta").addEventListener("change", (ev) => { VENT.hasta = +ev.target.value; pintarTodo(); });
+$("#vt-curso").addEventListener("click", () => { VENT.curso = true; pintarTodo(); });
+$("#vt-completas").addEventListener("click", () => { VENT.curso = false; pintarTodo(); });
 
 /* ------------------------------------------------------- 4 · simulador --- */
 
@@ -1491,7 +1561,7 @@ function tir(flujos) {
   return (Math.pow(1 + (lo + hi) / 2, 12) - 1) * 100;
 }
 
-const SIM = { mes: "2000-08", modo: "unico" };
+const SIM = { mes: "2000-08" };
 const PRESETS = [
   ["1929-09", "Septiembre de 1929", "el crac"],
   ["1966-01", "Enero de 1966", "los 16 años planos"],
@@ -1504,10 +1574,15 @@ registra(function simulador() {
   const v = serie("sp500_tr");
   const ipc = serie("ipc");
   const [vmin, vmax] = rango(v);
-  const sel = $("#sim-mes");
-  if (!sel.options.length) rellenaMeses(sel, vmin, vmax - 12, i0(SIM.mes));
-  SIM.mes = sel.value;
-  const i = i0(SIM.mes);
+  // El mando es el año; el mes solo lo fija un atajo de los de abajo (el crac
+  // fue en septiembre de 1929, no en enero). Si el año se cambia a mano se
+  // entra en enero, que es lo que casi siempre se quiere decir con "en 1929".
+  const aMin = añoDe(vmin), aMax = añoDe(vmax - 12);
+  const año = Math.min(Math.max(+SIM.mes.slice(0, 4), aMin), aMax);
+  if (año !== +SIM.mes.slice(0, 4)) SIM.mes = `${año}-01`;
+  rellenaAños($("#sim-ano"), aMin, aMax, año);
+  const i = Math.min(Math.max(i0(SIM.mes) ?? vmin, vmin), vmax - 12);
+  SIM.mes = M[i];
   const maxAños = Math.floor((vmax - i) / 12);
   const inAños = $("#sim-anos");
   inAños.max = String(Math.max(1, maxAños));
@@ -1516,7 +1591,7 @@ registra(function simulador() {
   const h = Math.min(Math.max(1, +inAños.value || 1), Math.max(1, maxAños));
   const n = h * 12;
   const importe = Math.max(1, +$("#sim-importe").value || 1);
-  const dca = SIM.modo === "dca";
+  const dca = S.dca;
 
   // Trayectoria mes a mes de la cartera y de lo aportado. Un mes sin dato no
   // corta la simulación: se salta (no se compra ese mes) y se sigue, porque el
@@ -1621,24 +1696,9 @@ registra(function simulador() {
 
   const finIpc = ultimoCon(D.ipc, i, fin);
   $("#nota-sim").innerHTML =
-    (finIpc
-      ? `Entre ${mesLargo(SIM.mes)} y ${mesLargo(M[finIpc])} la inflación de EE.&nbsp;UU. fue del
-         <b>${pct(cagr(ipc, i, finIpc))} anual</b> (${mult(raz(ipc, i, finIpc))} los precios). `
-      : "") +
-    (recortado
-      ? `<b>El plazo se ha recortado</b> a ${mesLargo(M[fin])}: el mes que pedías no tiene dato
-         publicado en todas las series que hacen falta. `
-      : "") +
-    (dca
-      ? `Aportando cada mes, el momento de entrada pesa mucho menos: se compra caro y barato a la vez.
-         La TIR es la rentabilidad que iguala todos esos flujos, que no es la del índice. `
-      : `Poner todo de golpe hace que el resultado dependa del mes exacto: prueba a mover la fecha
-         un año arriba o abajo y compara. `) +
-    (dca && S.real
-      ? `Ojo con la aportación: en modo real, esos ${dinero(importe)} $ al mes son <b>poder de compra
-         de ${mesLargo(SIM.mes)}</b>, así que equivalen a un recibo que sube cada año con el IPC. `
-      : "") +
-    `Nada de esto descuenta impuestos: en España, la plusvalía tributa al 19-30 % al venderla.`;
+    (finIpc ? `Inflación en el periodo: <b>${pct(cagr(ipc, i, finIpc))} anual</b> (${mult(raz(ipc, i, finIpc))} los precios). ` : "") +
+    (recortado ? `Plazo recortado a ${mesLargo(M[fin])}: el mes pedido no tiene dato publicado. ` : "") +
+    `Sin impuestos.`;
 
   tablaSerie($("#tb-sim"), "Evolución de la cartera y del dinero aportado, año a año", [
     { nombre: "Valor de la cartera ($)", v: valor, fmt: (x) => dinero(x) },
@@ -1646,33 +1706,19 @@ registra(function simulador() {
   ], i, fin);
 });
 
-$("#sim-mes").addEventListener("change", () => pintarTodo());
+$("#sim-ano").addEventListener("change", (ev) => { SIM.mes = `${ev.target.value}-01`; pintarTodo(); });
 $("#sim-anos").addEventListener("input", () => pintarTodo());
 $("#sim-anos").addEventListener("change", (ev) => { // al salir del campo sí se corrige
-  const maxAños = Math.max(1, Math.floor((rango(serie("sp500_tr"))[1] - i0($("#sim-mes").value)) / 12));
+  const maxAños = Math.max(1, Math.floor((rango(serie("sp500_tr"))[1] - i0(SIM.mes)) / 12));
   ev.target.value = String(Math.min(Math.max(1, Math.round(+ev.target.value) || 1), maxAños));
   pintarTodo();
 });
 $("#sim-importe").addEventListener("input", () => pintarTodo());
-$("#md-unico").addEventListener("click", () => {
-  SIM.modo = "unico";
-  $("#md-unico").setAttribute("aria-pressed", "true");
-  $("#md-dca").setAttribute("aria-pressed", "false");
-  $("#sim-importe").value = "10000";
-  pintarTodo();
-});
-$("#md-dca").addEventListener("click", () => {
-  SIM.modo = "dca";
-  $("#md-dca").setAttribute("aria-pressed", "true");
-  $("#md-unico").setAttribute("aria-pressed", "false");
-  $("#sim-importe").value = "200";
-  pintarTodo();
-});
 $("#presets").innerHTML = PRESETS
   .map(([k, t, q]) => `<button class="btn btn-sm" data-mes="${k}">${t} <span style="color:var(--muted-txt);font-weight:400">· ${q}</span></button>`)
   .join("");
 $$("#presets .btn").forEach((b) => b.addEventListener("click", () => {
-  $("#sim-mes").value = b.dataset.mes;
+  SIM.mes = b.dataset.mes;
   pintarTodo();
 }));
 
@@ -1680,7 +1726,7 @@ $$("#presets .btn").forEach((b) => b.addEventListener("click", () => {
 
 const CMP = {
   mes: "1971-01",
-  activos: new Set(["sp500_tr", "bonos10", "oro", "letras3m"]),
+  activos: new Set(["sp500_tr", "oro", "vivienda_us", "mundo_exus", "mundo"]),
 };
 // 2012 no es una fecha redonda cualquiera: es el primer mes de MSCI World en
 // estos datos, así que es el único tramo en el que se le puede comparar.
@@ -1694,21 +1740,25 @@ registra(function comparativa() {
   CMP.mes = sel.value;
   const i = i0(CMP.mes);
   const fin = smax;
+  const dca = S.dca;
 
-  // Un activo solo entra si ya cotizaba el mes elegido: nada de empezar a
-  // media curva en base 100, que haría parecer que todos salieron del mismo sitio.
-  const disponibles = ACTIVOS.filter((act) => serie(act.id)[i] != null);
-  const tarde = ACTIVOS.filter((act) => !disponibles.includes(act) && !sinReal(act.id));
-  const sinIpc = ACTIVOS.filter((act) => sinReal(act.id));
+  // Un activo que empieza más tarde ya no se retira del gráfico: se dibuja
+  // vacío hasta su primer dato y su ×1 es SU primer mes, no el del resto. Es la
+  // única forma de ver el MSCI World (2012) junto al S&P 500 sin fingir que
+  // salieron del mismo sitio; la nota de debajo lo dice con todas las letras.
+  const primerDato = (v) => { for (let j = i; j <= fin; j++) if (v[j] != null) return j; return null; };
+  const base = new Map(ACTIVOS.map((act) => [act.id, sinReal(act.id) ? null : primerDato(serie(act.id))]));
   const porQue = (act) => sinReal(act.id)
     ? `No hay IPC de ${META(act.id).moneda === "JPY" ? "Japón" : "su país"} en los datos: no se puede pasar a términos reales`
-    : `Sin datos antes de ${mesLargo(META(act.id).desde)}`;
+    : `Sin datos después de ${mesLargo(CMP.mes)}`;
   $("#cmp-picks").innerHTML = ACTIVOS.map((act) => {
-    const ok = disponibles.includes(act);
-    const on = ok && CMP.activos.has(act.id);
-    return `<button class="pick" data-id="${act.id}" aria-pressed="${on}" ${ok ? "" : "disabled"}
-      style="--c:${act.c}${ok ? "" : ";opacity:.4;cursor:not-allowed"}"
-      title="${ok ? esc(META(act.id).nombre) : esc(porQue(act))}">
+    const b = base.get(act.id);
+    const on = b != null && CMP.activos.has(act.id);
+    const tit = b == null ? porQue(act)
+      : META(act.id).nombre + (b > i ? ` · en estos datos, desde ${mesLargo(M[b])}` : "");
+    return `<button class="pick" data-id="${act.id}" aria-pressed="${on}" ${b == null ? "disabled" : ""}
+      style="--c:${act.c}${b == null ? ";opacity:.4;cursor:not-allowed" : ""}"
+      title="${esc(tit)}">
       <i class="key${act.rayada ? " rayada" : ""}"></i>${esc(act.corto)}</button>`;
   }).join("");
   $$("#cmp-picks .pick").forEach((b) => b.addEventListener("click", () => {
@@ -1721,42 +1771,86 @@ registra(function comparativa() {
     $(`#cmp-picks .pick[data-id="${id}"]`)?.focus();
   }));
 
-  const puestos = disponibles.filter((act) => CMP.activos.has(act.id));
-  const lineas = puestos.map((act) => {
-    const v = serie(act.id);
-    return {
-      id: act.id, nombre: act.corto, color: act.c, rayada: !!act.rayada,
-      v: v.map((x) => (x == null ? null : (x / v[i]) * 100)),
-    };
-  });
-  // La inflación no es una serie más: es la referencia contra la que se mide todo.
-  const ipc = serie("ipc");
-  const refIpc = ipc.map((x) => (x == null ? null : (x / ipc[i]) * 100));
+  const puestos = ACTIVOS.filter((act) => CMP.activos.has(act.id) && base.get(act.id) != null);
+  const sinIpc = ACTIVOS.filter((act) => sinReal(act.id));
+  const tarde = puestos.filter((act) => base.get(act.id) > i);
 
-  if (!lineas.length && S.real) {
+  // Las dos lecturas comparten gráfico y eje: es la misma pregunta con dos
+  // formas de poner el dinero. En base 100 = ×1, así que el eje no cambia.
+  //  · de golpe → veces el dinero puesto el primer mes;
+  //  · aportando → veces lo aportado hasta ese momento.
+  const lineas = puestos.map((act) => {
+    const v = serie(act.id), b = base.get(act.id);
+    const comun = { id: act.id, nombre: act.corto, color: act.c, rayada: !!act.rayada, desde: b, act };
+    if (!dca) return { ...comun, v: v.map((x, j) => (x == null || j < b ? null : (x / v[b]) * 100)), p: null };
+    const p = dcaCamino(v, b, fin);
+    return p && { ...comun, v: p.ratio.map((x) => (x == null ? null : x * 100)), p };
+  }).filter(Boolean);
+
+  // La inflación no es una serie más: es la referencia contra la que se mide
+  // todo. En modo real esa línea sería plana en ×1, así que ahí no se dibuja.
+  const ipc = serie("ipc");
+  const planIpc = S.real ? null : (dca ? dcaCamino(ipc, i, fin) : null);
+  let refIpc = null;
+  if (!S.real) {
+    if (dca) refIpc = planIpc ? planIpc.ratio.map((x) => (x == null ? null : x * 100)) : null;
+    else { const b = primerDato(ipc); refIpc = b == null ? null : ipc.map((x, j) => (x == null || j < b ? null : (x / ipc[b]) * 100)); }
+  }
+
+  $("#h-comp").textContent = dca
+    ? `Aportando ${CUOTA} $ cada mes desde ${mesLargo(CMP.mes)}`
+    : `100 $ puestos de una vez en ${mesLargo(CMP.mes)}`;
+  $("#s-comp").innerHTML = (dca
+    ? `Cuánto vale la cartera por cada dólar aportado; ×1 es no ganar ni perder sobre lo puesto`
+    : `Veces el dinero inicial`) + (S.real ? `, con la inflación descontada.` : `.`);
+
+  if (!lineas.length) {
     $("#ch-comp").innerHTML =
-      `<p class="note" style="margin-top:0">No queda nada que dibujar: el único activo elegido no tiene
-       IPC de su moneda en estos datos, así que no se puede pasar a términos reales.
-       Vuelve a <b>Nominal</b> o elige otro activo.</p>`;
-    $("#lg-comp").innerHTML = "";
-    $("#tb-comp").innerHTML = "";
-    $("#nota-comp").innerHTML = "";
+      `<p class="note" style="margin-top:0">No queda nada que dibujar: ${S.real
+        ? `el único activo elegido no tiene IPC de su moneda en estos datos, así que no se puede pasar
+           a términos reales. Vuelve a <b>Nominal</b> o elige otro activo.`
+        : `ningún activo elegido tiene datos después de ${mesLargo(CMP.mes)}.`}</p>`;
+    $("#lg-comp").innerHTML = ""; $("#tb-comp").innerHTML = ""; $("#nota-comp").innerHTML = "";
     return;
   }
-  const g = marco($("#ch-comp"), { h: 400, ml: 58, mb: 34, titulo: `Evolución de 100 $ desde ${mesLargo(CMP.mes)} en cada activo` });
+
+  const g = marco($("#ch-comp"), {
+    // Margen derecho ancho: ahí van las etiquetas directas (×16,6 y compañía),
+    // y con el margen por defecto se salían del gráfico.
+    h: 400, ml: 58, mr: 52, mb: 34,
+    titulo: dca
+      ? `Valor por cada dólar aportado, aportando cada mes desde ${mesLargo(CMP.mes)}`
+      : `Evolución de 100 $ desde ${mesLargo(CMP.mes)} en cada activo`,
+  });
   let lo = Infinity, hi = -Infinity;
-  for (const L of [...lineas.map((l) => l.v), S.real ? null : refIpc].filter(Boolean)) {
+  for (const L of [...lineas.map((l) => l.v), refIpc].filter(Boolean)) {
     for (let j = i; j <= fin; j++) if (L[j] != null) { lo = Math.min(lo, L[j]); hi = Math.max(hi, L[j]); }
   }
-  // El suelo sale del dato más bajo, no de un 1 fijo: con la inflación
-  // descontada y un coste alto hay series que caen por debajo de la base 100/100.
-  lo = Math.max(1e-4, lo * 0.85); hi *= 1.15;
+  // El suelo sale del dato más bajo, no de un 100 fijo: con la inflación
+  // descontada y un coste alto hay series que caen por debajo de la base.
+  lo = Math.max(1e-4, Math.min(lo, 100) * 0.85); hi = Math.max(hi, 100) * 1.15;
   const x = (j) => g.x0 + ((j - i) / Math.max(1, fin - i)) * (g.x1 - g.x0);
   const y = (val) => g.y1 - ((Math.log10(val) - Math.log10(lo)) / (Math.log10(hi) - Math.log10(lo))) * (g.y1 - g.y0);
   ejeY(g, ticksLog(lo, hi), y, (val) => mult(val / 100));
   g.add(el("text", { x: g.x0 - 8, y: g.y0 - 4, "text-anchor": "end", class: "lbl" })).textContent = "×veces";
 
-  if (!S.real) g.add(el("path", { d: camino(refIpc, i, fin, x, y), class: "ln-ref" }));
+  // La base no es cero: es el dinero puesto, ×1.
+  g.add(el("line", { x1: g.x0, x2: g.x1, y1: y(100), y2: y(100), class: "ax" }));
+  // La etiqueta del ×1 ocupa el tramo derecho del eje, así que se calla si
+  // CUALQUIER línea lo cruza ahí, no solo si acaba cerca: en escala log dos
+  // series pueden pasar por el ×1 y salir del cuadro por sitios muy distintos.
+  const jTexto = i + Math.ceil(((g.x1 - 210 - g.x0) / (g.x1 - g.x0)) * (fin - i));
+  const cercaDelUno = lineas.some((L) => {
+    for (let j = Math.max(i, jTexto); j <= fin; j++) {
+      if (L.v[j] != null && Math.abs(y(L.v[j]) - y(100)) < 16) return true;
+    }
+    return false;
+  });
+  if (!cercaDelUno) {
+    g.add(el("text", { x: g.x1 - 4, y: y(100) - 6, "text-anchor": "end", class: "lbl" }))
+      .textContent = dca ? (S.real ? "lo aportado (poder de compra)" : "lo aportado") : "el punto de partida";
+  }
+  if (refIpc) g.add(el("path", { d: camino(refIpc, i, fin, x, y), class: "ln-ref" }));
   for (const L of lineas) {
     g.add(el("path", {
       d: camino(L.v, i, fin, x, y), class: "ln", stroke: L.color,
@@ -1767,10 +1861,9 @@ registra(function comparativa() {
   // Etiqueta directa en el extremo derecho, y solo donde no se pisan: si dos
   // líneas llegan juntas, la de abajo se queda sin etiqueta y lo cuentan la
   // leyenda, el tooltip y la tabla.
-  const ultimoDato = (L) => { let j = fin; while (j > i && L.v[j] == null) j--; return j; };
   const finales = lineas
-    .map((L) => ({ L, j: ultimoDato(L) }))
-    .filter((o) => o.L.v[o.j] != null)
+    .map((L) => ({ L, j: ultimoCon(L.v, i, fin) }))
+    .filter((o) => o.j != null)
     .sort((a, b) => b.L.v[b.j] - a.L.v[a.j]);
   let ultimaY = -Infinity;
   for (const o of finales) {
@@ -1785,58 +1878,77 @@ registra(function comparativa() {
   }
   ejeX(g, ticksTiempo(i, fin, x, nEtiquetas(g)));
   hoverLineas(g, {
-    a: i, b: fin, x, y, titulo: "Comparación de activos",
+    a: i, b: fin, x, y, titulo: dca ? "Aportando cada mes" : "Comparación de activos",
     series: [
       ...lineas.map((L) => ({ nombre: L.nombre, color: L.color, v: L.v, fmt: (val) => mult(val / 100) })),
-      ...(S.real ? [] : [{ nombre: "Inflación EE. UU.", color: "var(--ref)", v: refIpc, fmt: (val) => mult(val / 100) }]),
+      ...(refIpc ? [{
+        nombre: dca ? "Seguir a la inflación" : "Inflación EE. UU.",
+        color: "var(--ref)", v: refIpc, fmt: (val) => mult(val / 100),
+      }] : []),
     ],
   });
   leyenda($("#lg-comp"), [
     ...lineas.map((L) => ({ nombre: L.nombre, color: L.color, rayada: L.rayada })),
-    ...(S.real ? [] : [{ nombre: "Inflación EE. UU. (referencia)", dash: true }]),
+    ...(refIpc ? [{ nombre: dca ? "Seguir a la inflación (referencia)" : "Inflación EE. UU. (referencia)", dash: true }] : []),
   ]);
 
   // El aviso de "solo precio" vale para lo que reparte rentas y aquí no se
-  // cuentan (bolsa, vivienda). El oro y el bitcoin no reparten nada: su precio
-  // ya es toda su rentabilidad, y meterlos en la misma frase sería falso.
-  const sinRentas = puestos.filter((act) => !META(act.id).dividendos && act.id !== "oro" && act.id !== "bitcoin");
+  // cuentan (bolsa, vivienda). El oro no reparte nada: su precio ya es toda su
+  // rentabilidad, y meterlo en la misma frase sería falso.
+  const sinRentas = puestos.filter((act) => !META(act.id).dividendos && act.id !== "oro");
   const oroPatron = puestos.some((act) => act.id === "oro") && CMP.mes < "1968-04";
   $("#nota-comp").innerHTML =
-    (sinRentas.length
-      ? `<b>Ojo con la comparación:</b> ${sinRentas.map((a2) => a2.corto).join(", ")}
-         ${sinRentas.length === 1 ? "es una serie" : "son series"} <b>solo de precio</b>:
-         no llevan${sinRentas.length === 1 ? "" : ""} los dividendos ni los alquileres que fueron cobrando,
-         así que se quedan cortas frente al S&P 500, que sí los lleva. `
-      : "") +
-    (oroPatron
-      ? `<b>Y el oro de antes de 1968 no es un precio de mercado:</b> era el que fijaba el patrón oro
-         (20,67 $ la onza, y 35 $ desde 1934). Ese tramo plano no es rentabilidad, es una ley. `
-      : "") +
     (tarde.length
-      ? `Sin datos desde ${mesLargo(CMP.mes)}: ${tarde.map((act) => `${act.corto} (desde ${META(act.id).desde.slice(0, 4)})`).join(", ")}. `
+      ? `<b>${tarde.map((act) => `${act.corto} (desde ${mesLargo(M[base.get(act.id)])})`).join(", ")}</b>
+         empieza${tarde.length > 1 ? "n" : ""} más tarde: su ×1 es su propio primer mes, no
+         ${mesLargo(CMP.mes)}, así que su altura no se puede comparar con la del resto.
+         Para compararlas de verdad, pon la fecha de arranque en la más tardía. `
       : "") +
-    (sinIpc.length
-      ? `Fuera del modo real: ${sinIpc.map((act) => act.corto).join(", ")}, porque su moneda no tiene IPC en estos datos
-         y deflactarla con el estadounidense sería inventar. `
+    (sinRentas.length
+      ? `${sinRentas.map((a2) => a2.corto).join(", ")}: <b>solo precio</b>, sin las rentas que fue pagando. `
       : "") +
-    `Cada índice va en su moneda${S.real ? " y deflactado con el IPC de esa moneda" : ""}, y sin impuestos.`;
+    (oroPatron ? `El oro antes de 1968 no es precio de mercado: lo fijaba el patrón oro. ` : "") +
+    (sinIpc.length ? `Fuera del modo real: ${sinIpc.map((act) => act.corto).join(", ")}. ` : "") +
+    `Sin impuestos.`;
 
   // Cada fila se cierra en el último mes con dato de SU serie (la vivienda
   // acaba dos meses antes que el resto), y la tabla lo dice en vez de callarlo.
-  const fila = (nombre, color, v, nota, moneda, rayada = false) => {
-    const j = ultimoCon(v, i, fin) ?? fin;
+  const punto = (nombre, color, v, nota, moneda, rayada = false, desde = i) => {
+    const b = desde;
+    const j = ultimoCon(v, b, fin) ?? fin;
     return [
       `<i class="dot-inline" style="${rayada ? `border:2px dashed ${color}` : `background:${color}`}"></i>${esc(nombre)}`,
-      pctS(cagr(v, i, j)), mult(raz(v, i, j)), mesCorto(M[j]), esc(nota), moneda,
+      pctS(cagr(v, b, j)), mult(raz(v, b, j)), mesCorto(M[b]), mesCorto(M[j]), esc(nota), moneda,
     ];
   };
-  const filas = [
-    ...puestos.map((act) => fila(act.corto, act.c, serie(act.id), act.nota, META(act.id).moneda, act.rayada)),
-    fila("Inflación EE. UU.", "var(--ref)", ipc, "IPC, no es un activo", "USD"),
+  const plan = (nombre, color, p, nota, rayada = false, desde = i) => [
+    `<i class="dot-inline" style="${rayada ? `border:2px dashed ${color}` : `background:${color}`}"></i>${esc(nombre)}`,
+    p.tir == null ? "—" : pctS(p.tir),
+    mult(p.x),
+    `${dinero(p.aportes * CUOTA)} $`,
+    `${dinero(p.x * p.aportes * CUOTA)} $`,
+    mesCorto(M[desde]), mesCorto(M[p.fin]),
+    esc(nota),
   ];
-  tabla($("#tb-comp"),
-    [`Desde ${mesLargo(CMP.mes)}`, "Anualizado", "Multiplicó por", "Hasta", "Qué mide", "Moneda"],
-    filas, `Rentabilidad de cada activo desde ${mesLargo(CMP.mes)}`);
+  const cola = ` (${S.real ? "con la inflación descontada" : "en dólares corrientes"})`;
+  if (dca) {
+    tabla($("#tb-comp"),
+      [`Aportando ${CUOTA} $/mes`, "TIR anual", "Veces lo aportado", "Total aportado", "Valor final",
+        "Desde", "Hasta", "Qué mide"],
+      [
+        ...lineas.map((L) => plan(L.nombre, L.color, L.p, L.act.nota, L.rayada, L.desde)),
+        ...(planIpc ? [plan("Seguir a la inflación", "var(--ref)", planIpc, "IPC, no es un activo")] : []),
+      ],
+      `Resultado de aportar ${CUOTA} $ al mes en cada activo desde ${mesLargo(CMP.mes)}${cola}`);
+  } else {
+    tabla($("#tb-comp"),
+      [`Desde ${mesLargo(CMP.mes)}`, "Anualizado", "Multiplicó por", "Desde", "Hasta", "Qué mide", "Moneda"],
+      [
+        ...puestos.map((act) => punto(act.corto, act.c, serie(act.id), act.nota, META(act.id).moneda, act.rayada, base.get(act.id))),
+        ...(S.real ? [] : [punto("Inflación EE. UU.", "var(--ref)", ipc, "IPC, no es un activo", "USD", false, primerDato(ipc) ?? i)]),
+      ],
+      `Rentabilidad de cada activo desde ${mesLargo(CMP.mes)}${cola}`);
+  }
 });
 
 $("#cmp-mes").addEventListener("change", () => pintarTodo());
@@ -1868,125 +1980,7 @@ function dcaCamino(v, i, fin) {
   return { ratio, fin: ult, x: F / n, aportes: n, tir: tirDca(F, m, huecos.filter((k) => k < m)) };
 }
 
-const CUOTA = 100; // $ al mes: solo para poner cifras en euros a la tabla
-
-registra(function comparativaDca() {
-  const i = i0($("#cmp-mes").value);
-  const fin = rango(serie("sp500_tr"))[1];
-  const puestos = ACTIVOS.filter((act) => CMP.activos.has(act.id) && serie(act.id)[i] != null);
-  const planes = puestos
-    .map((act) => ({ act, p: dcaCamino(serie(act.id), i, fin) }))
-    .filter((o) => o.p);
-  // La inflación entra como un "activo" más: aportar al IPC es exactamente
-  // mantener el poder de compra. En modo real esa línea sería plana en ×1, así
-  // que ahí se dibuja como base y no como serie.
-  const planIpc = S.real ? null : dcaCamino(serie("ipc"), i, fin);
-
-  if (!planes.length) {
-    $("#s-cmp-dca").textContent = "";
-    $("#ch-cmp-dca").innerHTML =
-      `<p class="note" style="margin-top:0">No hay ningún activo elegido con datos desde
-       ${mesLargo(M[i])} que se pueda mostrar en este modo.</p>`;
-    $("#lg-cmp-dca").innerHTML = ""; $("#nota-cmp-dca").innerHTML = ""; $("#tb-cmp-dca").innerHTML = "";
-    return;
-  }
-
-  $("#s-cmp-dca").innerHTML =
-    `En vez de poner el dinero de golpe, se aportan ${CUOTA}&nbsp;$ el primer día de cada mes desde
-     ${mesLargo(M[i])}. La línea dice <b>cuánto vale la cartera por cada dólar aportado</b> hasta ese
-     momento: ×1 es no haber ganado ni perdido nada sobre lo puesto. ` +
-    (S.real
-      ? `Con la inflación descontada, así que ×1 es <b>conservar el poder de compra</b>.`
-      : `En dólares corrientes; la línea gris es lo que haría falta solo para <b>seguir a la inflación</b>.`);
-
-  const g = marco($("#ch-cmp-dca"), {
-    h: 340, ml: 58, mb: 34,
-    titulo: `Valor por cada dólar aportado, aportando cada mes desde ${mesLargo(M[i])}`,
-  });
-  let lo = Infinity, hi = -Infinity;
-  for (const L of [...planes.map((o) => o.p.ratio), planIpc?.ratio].filter(Boolean)) {
-    for (let j = i; j <= fin; j++) if (L[j] != null) { lo = Math.min(lo, L[j]); hi = Math.max(hi, L[j]); }
-  }
-  lo = Math.max(1e-4, Math.min(lo, 1) * 0.85); hi = Math.max(hi, 1) * 1.15;
-  const x = (j) => g.x0 + ((j - i) / Math.max(1, fin - i)) * (g.x1 - g.x0);
-  const y = (val) => g.y1 - ((Math.log10(val) - Math.log10(lo)) / (Math.log10(hi) - Math.log10(lo))) * (g.y1 - g.y0);
-  ejeY(g, ticksLog(lo, hi), y, (val) => mult(val));
-  g.add(el("text", { x: g.x0 - 8, y: g.y0 - 4, "text-anchor": "end", class: "lbl" })).textContent = "×veces";
-
-  // La base: el dinero aportado, que no es cero sino ×1.
-  g.add(el("line", { x1: g.x0, x2: g.x1, y1: y(1), y2: y(1), class: "ax" }));
-  // La etiqueta solo se escribe si no cae encima de ninguna línea en ese borde;
-  // si no hay sitio, el eje ya marca el ×1 y el subtítulo explica qué significa.
-  const cercaDelUno = [...planes.map((o) => o.p.x), ...(planIpc ? [planIpc.x] : [])]
-    .some((val) => Math.abs(y(val) - y(1)) < 16);
-  if (!cercaDelUno) {
-    g.add(el("text", { x: g.x1 - 4, y: y(1) - 6, "text-anchor": "end", class: "lbl" }))
-      .textContent = S.real ? "lo aportado (poder de compra)" : "lo aportado";
-  }
-  if (planIpc) g.add(el("path", { d: camino(planIpc.ratio, i, fin, x, y), class: "ln-ref" }));
-  for (const o of planes) {
-    g.add(el("path", {
-      d: camino(o.p.ratio, i, fin, x, y), class: "ln", stroke: o.act.c,
-      ...(o.act.rayada ? { "stroke-dasharray": "7 4" } : {}),
-    }));
-  }
-  const finales = planes.slice().sort((a, b) => b.p.x - a.p.x);
-  let ultimaY = -Infinity;
-  for (const o of finales) {
-    const py = y(o.p.x);
-    g.add(el("circle", o.act.rayada
-      ? { cx: x(o.p.fin), cy: py, r: 4, class: "dot", fill: "var(--surface)", stroke: o.act.c, "stroke-width": 2 }
-      : { cx: x(o.p.fin), cy: py, r: 4, class: "dot", fill: o.act.c }));
-    if (Math.abs(py - ultimaY) > 13) {
-      g.add(el("text", { x: x(o.p.fin) + 7, y: py + 4, class: "lbl" })).textContent = mult(o.p.x);
-      ultimaY = py;
-    }
-  }
-  ejeX(g, ticksTiempo(i, fin, x, nEtiquetas(g)));
-  hoverLineas(g, {
-    a: i, b: fin, x, y, titulo: "Aportando cada mes",
-    series: [
-      ...planes.map((o) => ({ nombre: o.act.corto, color: o.act.c, v: o.p.ratio, fmt: (val) => mult(val) })),
-      ...(planIpc ? [{ nombre: "Seguir a la inflación", color: "var(--ref)", v: planIpc.ratio, fmt: (val) => mult(val) }] : []),
-    ],
-  });
-  leyenda($("#lg-cmp-dca"), [
-    ...planes.map((o) => ({ nombre: o.act.corto, color: o.act.c, rayada: o.act.rayada })),
-    ...(planIpc ? [{ nombre: "Seguir a la inflación (referencia)", dash: true }] : []),
-  ]);
-
-  const mejor = finales[0];
-  const meses = mejor.p.aportes;
-  $("#nota-cmp-dca").innerHTML =
-    `Aportando ${CUOTA}&nbsp;$ al mes durante ${nf(0).format(meses)} meses se ponen
-     ${dinero(meses * CUOTA)}&nbsp;$ en total. La <b>TIR</b> de la tabla es la rentabilidad anual que
-     iguala todas esas aportaciones con el valor final: no es la rentabilidad del índice, porque cada
-     aportación estuvo invertida un tiempo distinto y las últimas casi no dieron tiempo a nada. ` +
-    (S.real
-      ? `Todo va <b>con la inflación descontada</b> y la aportación es constante en poder de compra,
-         es decir, un recibo que sube cada año con el IPC.`
-      : `Todo va en <b>dólares corrientes</b>: pulsa <b>Real</b> arriba para descontar la inflación y
-         ver el poder de compra.`);
-
-  const fila = (nombre, color, p, nota, rayada = false) => [
-    `<i class="dot-inline" style="${rayada ? `border:2px dashed ${color}` : `background:${color}`}"></i>${esc(nombre)}`,
-    p.tir == null ? "—" : pctS(p.tir),
-    mult(p.x),
-    `${dinero(p.aportes * CUOTA)} $`,
-    `${dinero(p.x * p.aportes * CUOTA)} $`,
-    mesCorto(M[p.fin]),
-    esc(nota),
-  ];
-  tabla($("#tb-cmp-dca"),
-    [`Aportando ${CUOTA} $/mes desde ${mesLargo(M[i])}`, "TIR anual", "Veces lo aportado",
-      "Total aportado", "Valor final", "Hasta", "Qué mide"],
-    [
-      ...planes.map((o) => fila(o.act.corto, o.act.c, o.p, o.act.nota, o.act.rayada)),
-      ...(planIpc ? [fila("Seguir a la inflación", "var(--ref)", planIpc, "IPC, no es un activo")] : []),
-    ],
-    `Resultado de aportar ${CUOTA} $ al mes en cada activo desde ${mesLargo(M[i])}` +
-    ` (${S.real ? "con la inflación descontada" : "en dólares corrientes"})`);
-});
+const CUOTA = 100; // $ al mes: solo para poner cifras concretas en la tabla
 
 /* ----------------------------------------------------------- 6 · sesgo --- */
 
@@ -2060,12 +2054,11 @@ registra(function sesgo() {
   let recupera = null;
   for (let j = jp + 1; j <= finNk; j++) if (nk[j] != null && nk[j] >= nk[jp]) { recupera = j; break; }
   $("#s-nikkei").innerHTML =
-    `Dos índices <b>solo de precio</b>, cada uno en su moneda y sin descontar inflación ni costes:
-     aquí se comparan dos índices, no dos carteras, y por eso este panel ignora los controles de
-     arriba. Desde el máximo japonés de diciembre de 1989, el Nikkei ${recupera
-       ? `tardó <b>${Math.round((recupera - jp) / 12)} años</b> en volver a ese nivel (${mesLargo(M[recupera])})`
-       : "todavía no ha vuelto a ese nivel"}; anualizado desde entonces, ${pctS(cagr(nk, jp, finNk))}
-     frente al ${pctS(cagr(px, jp, finNk))} del S&P 500.`;
+    (recupera
+      ? `<b>${Math.round((recupera - jp) / 12)} años</b> en recuperar el máximo (${mesCorto(M[recupera])})`
+      : "Todavía por debajo del máximo") +
+    ` · ${pctS(cagr(nk, jp, finNk))} anual frente al ${pctS(cagr(px, jp, finNk))} del S&P 500 ·
+      solo precio, sin inflación ni costes (este panel ignora los mandos de arriba)`;
 
   /* --- El resto de desarrollados --- */
   const ex = serie("mundo_exus"), tr = serie("sp500_tr");
@@ -2080,11 +2073,9 @@ registra(function sesgo() {
   });
   const ie = i0(desdeEx), [, finEx] = rango(ex);
   $("#s-exus").innerHTML =
-    `Europa, Japón y Australasia con dividendos (ETF de MSCI EAFE, en dólares) frente al S&P 500,
-     desde ${mesLargo(desdeEx)}: <b>${pctS(cagr(ex, ie, finEx))}</b> contra
-     <b>${pctS(cagr(tr, ie, finEx))}</b> anual. ${nf(1).format(Math.abs(cagr(tr, ie, finEx) - cagr(ex, ie, finEx)))}
-     puntos menos cada año durante ${Math.round((finEx - ie) / 12)} años son ${mult(raz(ex, ie, finEx))}
-     el dinero frente a ${mult(raz(tr, ie, finEx))}. La bolsa que ganó es justo la que aparece en la frase.`;
+    `Desde ${mesLargo(desdeEx)}: <b>${pctS(cagr(ex, ie, finEx))}</b> contra
+     <b>${pctS(cagr(tr, ie, finEx))}</b> anual · ${mult(raz(ex, ie, finEx))} el dinero frente a
+     ${mult(raz(tr, ie, finEx))}`;
 
   /* --- Desde España: en euros, y con el IPC de aquí --- */
   const desdeEu = "1999-01";
@@ -2109,10 +2100,8 @@ registra(function sesgo() {
   const [, finEu] = rango(ib);
   const cagrUsd = cagr(trNom, ieu, finEu), cagrEur = cagr(trEur, ieu, finEu);
   $("#s-euros").innerHTML =
-    `Desde que existe el euro, ${S.real ? "descontando el IPC español" : "en euros corrientes"}. Los dos
-     índices van <b>sin dividendos</b> porque del IBEX 35 no hay serie pública con ellos, y mezclarlas
-     sería tramposo: con dividendos ambos suben, y el IBEX más, porque históricamente reparte bastante
-     más que el S&P 500.`;
+    `Desde que existe el euro, ${S.real ? "descontando el IPC español" : "en euros corrientes"} ·
+     los dos <b>sin dividendos</b>, porque del IBEX 35 no hay serie pública con ellos`;
   // El efecto divisa en el largo plazo casi se cancela; lo interesante es
   // cuánto pesa dentro de una década concreta, que es el plazo de la gente.
   let peorDec = { dif: Infinity, j: null }, mejorDec = { dif: -Infinity, j: null };
@@ -2128,52 +2117,13 @@ registra(function sesgo() {
   const minC = cambios.reduce((p, c) => (c[0] < p[0] ? c : p));
   const maxC = cambios.reduce((p, c) => (c[0] > p[0] ? c : p));
   $("#nota-euros").innerHTML =
-    `<b>La divisa también cuenta.</b> El S&P 500 con dividendos dio ${pctS(cagrUsd)} anual nominal en
-     dólares desde ${mesLargo(desdeEu)} y ${pctS(cagrEur)} en euros: de punta a punta casi lo mismo,
-     porque el cambio ha vuelto a donde estaba. Por el medio no: el euro osciló entre
-     ${nf(2).format(minC[0])} $ (${mesCorto(M[minC[1]])}) y ${nf(2).format(maxC[0])} $
-     (${mesCorto(M[maxC[1]])}). Quien invirtió diez años desde ${mesLargo(M[peorDec.j])} se dejó
-     <b>${nf(1).format(Math.abs(peorDec.dif))} puntos anuales</b> solo por el tipo de cambio;
-     quien lo hizo desde ${mesLargo(M[mejorDec.j])} se llevó ${nf(1).format(mejorDec.dif)} de regalo.
-     Y lo que hay que batir aquí no es el IPC estadounidense, sino el español
-     (${pct(cagr(ipcEs, ieu, finEu))} anual en el periodo).`;
+    `Efecto divisa: S&P 500 con dividendos, ${pctS(cagrUsd)} anual en dólares y ${pctS(cagrEur)} en euros.
+     A diez años llegó a restar <b>${nf(1).format(Math.abs(peorDec.dif))} puntos anuales</b>
+     (desde ${mesCorto(M[peorDec.j])}) y a sumar ${nf(1).format(mejorDec.dif)} (desde ${mesCorto(M[mejorDec.j])}).
+     IPC español en el periodo: ${pct(cagr(ipcEs, ieu, finEu))} anual.`;
 });
 
-/* --------------------------------------------------------- 7 · bitcoin --- */
-
-registra(function btc() {
-  const desde = META("bitcoin").desde;
-  const b = serie("bitcoin"), tr = serie("sp500_tr");
-  lineasIndexadas($("#ch-btc"), $("#lg-btc"), {
-    desde, alto: 300, tabla: $("#tb-btc"),
-    titulo: "Bitcoin frente al S&P 500",
-    series: [
-      { nombre: "Bitcoin", color: "var(--series-8)", v: b },
-      { nombre: "S&P 500 con dividendos", color: COLOR("sp500_tr"), v: tr },
-    ],
-  });
-  const i = i0(desde), [, fin] = rango(b);
-  // Peor caída del bitcoin en el periodo, para poner la cifra al lado del brillo.
-  let pico = -Infinity, caida = 0;
-  for (let j = i; j <= fin; j++) {
-    if (b[j] == null) continue;
-    pico = Math.max(pico, b[j]);
-    caida = Math.min(caida, b[j] / pico - 1);
-  }
-  $("#t-btc").textContent = `Bitcoin frente al S&P 500 desde ${mesLargo(desde)}`;
-  $("#s-btc").innerHTML =
-    `Escala logarítmica, ${S.real ? "con la inflación descontada" : "en dólares corrientes"}:
-     <b>${pctS(cagr(b, i, fin))}</b> anual frente al <b>${pctS(cagr(tr, i, fin))}</b> del S&P 500.
-     Multiplicó por ${mult(b[fin] / b[i])} lo invertido; el índice, por ${mult(tr[fin] / tr[i])}.`;
-  $("#nota-btc").innerHTML =
-    `Y por el camino, una caída máxima del <b>${pct(caida * 100)}</b> desde máximos. Doce años no
-     permiten calcular nada parecido a una rentabilidad esperada: en el S&P 500, cualquier tramo de
-     doce años elegido a dedo da entre ${pctS(Math.min(...ventanas("sp500_tr", 144).map((d) => d.r)))} y
-     ${pctS(Math.max(...ventanas("sp500_tr", 144).map((d) => d.r)))} anual. Aquí solo hay un tramo, y
-     encima es el primero de la vida del activo.`;
-});
-
-/* ---------------------------------------------------------- 8 · método --- */
+/* ---------------------------------------------------------- 7 · método --- */
 
 $("#prosa-metodo").innerHTML = `
   <h3>De dónde sale cada número</h3>
@@ -2191,7 +2141,7 @@ $("#prosa-metodo").innerHTML = `
       St. Louis, y el IPC armonizado de España de Eurostat para la parte en euros.</li>
     <li><b>Letras a 3 meses, vivienda (Case-Shiller) y tipo de cambio</b>: FRED.
       <b>Oro</b>: precio en dólares por onza (fijado por el patrón oro hasta 1968, mercado libre después).
-      <b>Nikkei 225, IBEX 35, MSCI World, MSCI EAFE y bitcoin</b>: Yahoo Finance.</li>
+      <b>Nikkei 225, IBEX 35, MSCI World y MSCI EAFE</b>: Yahoo Finance.</li>
     <li><b>Aportación mensual (DCA).</b> Se pone la misma cantidad el primer día de cada mes y se
       liquida al final del tramo. La cifra anual que se enseña es la <b>TIR</b>: el tipo
       <code>r</code> que cumple <code>V = Σ c·(1+r)^(m−k)</code> sobre todas las aportaciones, resuelto
@@ -2199,6 +2149,16 @@ $("#prosa-metodo").innerHTML = `
       aportación estuvo invertida un tiempo distinto, y las últimas casi no dieron tiempo a nada. En
       modo real la aportación es constante <b>en poder de compra</b> (un recibo que sube con el IPC),
       que es la única forma de sumar dinero de años distintos sin mezclar peras con manzanas.</li>
+    <li><b>Ventanas en curso.</b> Con un plazo de 20 años, la última ventana <i>completa</i> arranca en
+      2006: de ahí en adelante no ha pasado el tiempo suficiente. Esas entradas se dibujan igual, con
+      trazo discontinuo y anualizadas sobre los meses que llevan de verdad (mínimo doce; por debajo,
+      anualizar un vaivén de tres meses da cifras de tres dígitos que no significan nada). No entran en
+      la mediana, ni en el reparto, ni en el “acabaron perdiendo”: eso se calcula solo con las
+      completas, porque mezclar 20 años con 3 no repartiría nada comparable.</li>
+    <li><b>Series que empiezan más tarde.</b> En el comparador, un activo sin datos en la fecha elegida
+      ya no se retira: se dibuja vacío hasta su primer mes y su ×1 es <b>ese</b> mes, no el del resto.
+      Así se ve el MSCI World (2012) junto al S&P&nbsp;500, pero sus alturas no se pueden comparar entre
+      sí: para eso hay que llevar la fecha de arranque a la serie más tardía.</li>
   </ul>
   <p>Todo el detalle, con las URL exactas y las comprobaciones de empalme, está en
     <code>data-src/mercados.SOURCES.md</code> del repositorio. El fichero que lee esta página es
@@ -2256,6 +2216,17 @@ function pintarTodo() {
 
 $("#op-nom").addEventListener("click", () => { S.real = false; sincroniza(); });
 $("#op-real").addEventListener("click", () => { S.real = true; sincroniza(); });
+// Cambiar de forma de invertir cambia también el importe por defecto del
+// simulador: 200 $ al mes y 10.000 $ de golpe son cantidades comparables para
+// un plazo largo, y dejar 10.000 $ *al mes* daría cifras sin sentido.
+for (const [id, dca, importe] of [["op-dca", true, "200"], ["op-golpe", false, "10000"]]) {
+  $(`#${id}`).addEventListener("click", () => {
+    if (S.dca === dca) return;
+    S.dca = dca;
+    $("#sim-importe").value = importe;
+    sincroniza();
+  });
+}
 $("#coste").addEventListener("input", (ev) => {
   S.coste = Math.min(5, Math.max(0, +ev.target.value || 0));
   pintarTodo();
@@ -2266,6 +2237,8 @@ $("#coste").addEventListener("change", (ev) => { // que el campo no diga 9 si se
 function sincroniza() {
   $("#op-nom").setAttribute("aria-pressed", String(!S.real));
   $("#op-real").setAttribute("aria-pressed", String(S.real));
+  $("#op-dca").setAttribute("aria-pressed", String(S.dca));
+  $("#op-golpe").setAttribute("aria-pressed", String(!S.dca));
   pintarTodo();
 }
 
@@ -2273,8 +2246,7 @@ $("#stamp").innerHTML =
   `Series mensuales de <b>${M[0].slice(0, 4)}</b> a <b>${mesLargo(M[N - 1])}</b> · ` +
   `${new Intl.NumberFormat("es-ES").format(N)} meses · datos generados el ${D.meta.generado}`;
 $("#pie-fuentes").innerHTML =
-  "Fuentes: Robert Shiller (Yale), S&P Dow Jones Indices, Reserva Federal de St. Louis (FRED), " +
-  "Eurostat, LBMA y Yahoo Finance. Método y URL exactas en la sección “Qué hay detrás de estos números”.";
+  "Fuentes: Shiller (Yale), S&P Dow Jones Indices, FRED, Eurostat, LBMA y Yahoo Finance.";
 
 $("#cargando").hidden = true;
 $("#app").hidden = false;

@@ -1,0 +1,1537 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>¿Dónde puedo vivir? · Transporte público del área de Barcelona</title>
+<meta name="description" content="Pon tus condiciones de viaje —cuánto quieres caminar, a dónde tienes que llegar y en cuánto tiempo— y mira qué municipios del área de Barcelona las cumplen, con la red de tren, metro y bus dibujada y el precio de la vivienda al lado.">
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="#f9f9f7">
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0d0d0d">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='88'>🚆</text></svg>">
+<style>
+/* ===========================================================================
+   ¿Dónde puedo vivir? — página autocontenida, sin librerías externas.
+
+   Hermana de pisos-vs-distancia.html, con la que comparte paleta, proyección y
+   maquetación. La pregunta es la inversa: allí eliges un punto y ves el precio
+   contra el tiempo; aquí pones las condiciones de tu viaje y la página te deja
+   encendidos los sitios donde podrías vivir cumpliéndolas.
+
+   El mapa es SVG generado a mano desde GeoJSON (proyección equirectangular con
+   corrección de coseno): no hay tiles, ni peticiones a terceros, ni seguimiento.
+   =========================================================================== */
+
+:root{
+  color-scheme: light dark;
+
+  /* --- superficies y tinta (chrome) --- */
+  --plane:#f9f9f7;  --surface:#fcfcfb;  --surface-2:#f2f1ee;
+  --ink:#0b0b0b;    --ink-2:#52514e;    --muted:#898781;
+  --grid:#e1e0d9;   --axis:#c3c2b7;     --hairline:rgba(11,11,11,.10);
+  --focus:#2a78d6;
+
+  /* --- rampa secuencial (azul 100→700), para el tiempo de viaje --- */
+  --seq-100:#cde2fb; --seq-200:#9ec5f4; --seq-300:#6da7ec; --seq-400:#3987e5;
+  --seq-500:#256abf; --seq-600:#184f95; --seq-700:#0d366b;
+  --seq-null:#e6e5e0;               /* sin dato — gris, nunca un tono de la rampa */
+
+  --series-1:#2a78d6;               /* marca de énfasis / selección */
+  --ok:#189b6b;                     /* cumple las condiciones */
+
+  /* --- redes de transporte ---
+     Identidad, no magnitud: son categorías, así que no salen de la rampa
+     secuencial. Son los mismos tonos de la paleta de series validada que usa
+     sp500-rendimientos.html. NO se usan los colores oficiales de cada línea
+     (L3 verde, L5 azul…): son cinco redes, no cuarenta líneas, y los oficiales
+     no pasan las comprobaciones de daltonismo entre sí. El código de la línea
+     va escrito al lado del trazo, que es lo que de verdad la identifica. */
+  --net-rodalies:#2a78d6;  --net-fgc:#d95926;  --net-metro:#189b6b;
+  --net-tram:#7a5cd6;      --net-bus:#898781;
+}
+@media (prefers-color-scheme: dark){
+  :root:where(:not([data-theme="light"])){
+    --plane:#0d0d0d;  --surface:#1a1a19;  --surface-2:#232321;
+    --ink:#ffffff;    --ink-2:#c3c2b7;    --muted:#898781;
+    --grid:#2c2c2a;   --axis:#383835;     --hairline:rgba(255,255,255,.10);
+    --focus:#3987e5;
+    --seq-100:#0d366b; --seq-200:#184f95; --seq-300:#256abf; --seq-400:#2a78d6;
+    --seq-500:#3987e5; --seq-600:#6da7ec; --seq-700:#9ec5f4;
+    --seq-null:#2a2a28;
+    --series-1:#3987e5; --ok:#199e70;
+    --net-rodalies:#3987e5;  --net-fgc:#e07a4e;  --net-metro:#199e70;
+    --net-tram:#9085e9;      --net-bus:#9d9b95;
+  }
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{
+  font-family:system-ui,-apple-system,"Segoe UI",sans-serif;
+  background:var(--plane); color:var(--ink); line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:1220px;margin:0 auto;padding:0 20px}
+
+/* ---------- cabecera ---------- */
+header{padding:56px 0 8px}
+.eyebrow{font-size:.72rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+h1{font-size:clamp(2rem,4.4vw,3.1rem);font-weight:700;letter-spacing:-.02em;line-height:1.08;margin:14px 0 0}
+.lede{margin:16px 0 0;max-width:62ch;color:var(--ink-2);font-size:1.02rem}
+.stamp{margin:18px 0 0;font-size:.78rem;color:var(--muted)}
+
+/* ---------- barra de filtros ---------- */
+.filters{
+  position:sticky; top:0; z-index:40;
+  background:color-mix(in srgb,var(--plane) 92%,transparent);
+  backdrop-filter:blur(8px);
+  border-bottom:1px solid var(--hairline);
+  margin-top:28px; padding:14px 0;
+}
+.filters-inner{display:flex;flex-wrap:wrap;gap:14px 20px;align-items:flex-start}
+.field{display:flex;flex-direction:column;gap:5px;min-width:0}
+.field > label,.field > .lbl{font-size:.7rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+.field select,.field input[type=number]{
+  font:inherit;font-size:.9rem;background:var(--surface);color:var(--ink);
+  border:1px solid var(--axis);border-radius:6px;padding:7px 9px;min-height:36px;
+}
+.field input[type=number]{width:78px;text-align:right;font-variant-numeric:tabular-nums}
+.field select:focus-visible,.field input:focus-visible,button:focus-visible{
+  outline:2px solid var(--focus);outline-offset:2px
+}
+.slider-field{min-width:210px}
+.slider-row{display:flex;align-items:center;gap:10px}
+.slider-row input[type=range]{flex:1;accent-color:var(--series-1);min-height:36px}
+.slider-val{font-variant-numeric:tabular-nums;font-weight:700;font-size:.9rem;min-width:70px;text-align:right}
+.btn{
+  font:inherit;font-size:.85rem;font-weight:600;background:var(--surface);color:var(--ink);
+  border:1px solid var(--axis);border-radius:6px;padding:8px 13px;cursor:pointer;min-height:36px;
+}
+.btn:hover{border-color:var(--ink-2)}
+.btn[aria-pressed=true]{background:var(--series-1);border-color:var(--series-1);color:#fff}
+.btn-sm{padding:5px 9px;font-size:.78rem;min-height:30px}
+.btn-group{display:flex;gap:6px;flex-wrap:wrap}
+
+/* ---------- condiciones de viaje: el corazón de la página ---------- */
+.cond-field{flex:1 1 430px;min-width:300px}
+.conds{display:flex;flex-direction:column;gap:5px;margin-top:2px}
+.cond{
+  display:flex;align-items:center;gap:9px;font-size:.86rem;
+  background:var(--surface);border:1px solid var(--hairline);border-radius:7px;padding:5px 9px;
+}
+.cond.is-on{border-color:var(--series-1)}
+.cond input[type=checkbox]{width:16px;height:16px;accent-color:var(--series-1);flex:none;cursor:pointer}
+.cond .cn{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer}
+.cond .ct{display:flex;align-items:center;gap:5px;color:var(--ink-2);font-size:.8rem;flex:none}
+.cond input[type=number]{width:66px;padding:4px 6px;min-height:28px}
+.cond.is-off{opacity:.55}
+.cond .est{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+
+/* ---------- tarjetas ---------- */
+main{padding:28px 0 72px}
+.card{
+  background:var(--surface);border:1px solid var(--hairline);border-radius:12px;
+  padding:22px 22px 18px;margin-bottom:22px;
+}
+.card > h2{font-size:1.06rem;font-weight:700;letter-spacing:-.01em}
+.card > .sub{margin-top:5px;font-size:.84rem;color:var(--ink-2);max-width:74ch}
+.card-head{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:flex-start;justify-content:space-between}
+
+/* ---------- stat tiles ---------- */
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(178px,1fr));gap:14px;margin-bottom:22px}
+.tile{background:var(--surface);border:1px solid var(--hairline);border-radius:12px;padding:16px 18px}
+.tile .k{font-size:.7rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+.tile .v{font-size:1.72rem;font-weight:700;letter-spacing:-.02em;margin-top:7px;line-height:1.1}
+.tile .n{font-size:.78rem;color:var(--ink-2);margin-top:3px}
+.tile.is-hero{border-color:var(--ok);border-width:2px;padding:15px 17px}
+.tile.is-hero .v{color:var(--ok)}
+
+/* ---------- mapa ---------- */
+.map-layout{display:grid;grid-template-columns:minmax(0,1fr) 262px;gap:22px;margin-top:18px;align-items:start}
+@media (max-width:900px){.map-layout{grid-template-columns:minmax(0,1fr)}}
+.map-box{position:relative;background:var(--surface-2);border-radius:10px;overflow:hidden;touch-action:none}
+.map-box svg{display:block;width:100%;height:auto;cursor:crosshair}
+.muni{stroke:var(--surface);stroke-width:.9;vector-effect:non-scaling-stroke;transition:fill .18s ease}
+.muni:hover{stroke:var(--ink);stroke-width:1.8}
+.muni.is-dim{opacity:.16}
+.muni.is-sel{stroke:var(--ink);stroke-width:2.4}
+/* Contorno verde de los que cumplen: el color de relleno ya codifica el tiempo,
+   así que "cumple" no puede ser otro relleno. Va al borde. */
+.muni.is-ok{stroke:var(--ok);stroke-width:1.6}
+
+.linia{fill:none;vector-effect:non-scaling-stroke;pointer-events:none;stroke-linejoin:round;stroke-linecap:round}
+.l-Rodalies{stroke:var(--net-rodalies);stroke-width:2.1}
+.l-FGC{stroke:var(--net-fgc);stroke-width:2.1}
+.l-Metro{stroke:var(--net-metro);stroke-width:1.7}
+.l-Tram{stroke:var(--net-tram);stroke-width:1.5}
+.l-Bus{stroke:var(--net-bus);stroke-width:.9;stroke-opacity:.5}
+.parada{fill:var(--surface);stroke:var(--ink-2);stroke-width:.9;vector-effect:non-scaling-stroke;pointer-events:none}
+.parada-lbl{fill:var(--ink-2);font-size:8.5px;paint-order:stroke;stroke:var(--plane);stroke-width:2.6;pointer-events:none}
+
+/* El itinerario del municipio seleccionado, por encima de todo. */
+.ruta{fill:none;stroke:var(--ink);stroke-width:3.4;vector-effect:non-scaling-stroke;
+      stroke-linecap:round;pointer-events:none;stroke-opacity:.85}
+.ruta-peu{stroke-dasharray:1 5}
+.ruta-nod{fill:var(--ink);stroke:var(--surface);stroke-width:1.6;pointer-events:none}
+
+.poi-dot{fill:var(--ink);stroke:var(--surface);stroke-width:2;pointer-events:none}
+.poi-ring{fill:none;stroke:var(--ink);stroke-width:1.5;stroke-opacity:.5;pointer-events:none}
+.poi-lbl{fill:var(--ink);font-size:11px;font-weight:700;paint-order:stroke;stroke:var(--surface);stroke-width:3;pointer-events:none}
+.map-zoom{position:absolute;right:10px;top:10px;display:flex;flex-direction:column;gap:6px}
+.map-zoom button{width:32px;height:32px;padding:0;font-size:1.05rem;line-height:1}
+#btn-pick{display:inline-flex;align-items:center;gap:8px}
+.pin{width:11px;height:11px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:var(--series-1);flex:none}
+#btn-pick[aria-pressed=true] .pin{background:#fff}
+
+/* ---------- leyenda y panel lateral ---------- */
+.legend h3{font-size:.7rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);margin-bottom:9px}
+.legend + .legend{margin-top:22px}
+.ramp{display:flex;height:13px;border-radius:3px;overflow:hidden}
+.ramp span{flex:1}
+.ramp-ticks{display:flex;justify-content:space-between;margin-top:5px;font-size:.72rem;color:var(--ink-2);font-variant-numeric:tabular-nums}
+.legend-note{margin-top:9px;font-size:.75rem;color:var(--muted);line-height:1.45}
+.swatch-row{display:flex;align-items:center;gap:8px;font-size:.78rem;color:var(--ink-2);margin-top:7px}
+.swatch{width:13px;height:13px;border-radius:3px;flex:none;border:1px solid var(--hairline)}
+.net-row{display:flex;align-items:center;gap:8px;font-size:.78rem;color:var(--ink-2);margin-top:6px}
+.net-line{width:22px;height:0;border-top-width:3px;border-top-style:solid;flex:none;border-radius:2px}
+
+/* ---------- itinerario ---------- */
+.itin{margin-top:10px;font-size:.8rem}
+.itin ol{list-style:none;margin:0}
+.itin li{display:flex;gap:9px;align-items:baseline;padding:4px 0;border-bottom:1px solid var(--hairline)}
+.itin li:last-child{border-bottom:0}
+.itin .badge{
+  flex:none;min-width:38px;text-align:center;font-weight:700;font-size:.72rem;
+  color:#fff;border-radius:4px;padding:2px 5px;
+}
+.itin .badge.peu{background:var(--muted)}
+.itin .b-Rodalies{background:var(--net-rodalies)} .itin .b-FGC{background:var(--net-fgc)}
+.itin .b-Metro{background:var(--net-metro)}       .itin .b-Tram{background:var(--net-tram)}
+.itin .b-Bus{background:var(--net-bus)}
+.itin .txt{flex:1;min-width:0;color:var(--ink-2);line-height:1.35}
+.itin .mn{flex:none;font-variant-numeric:tabular-nums;font-weight:700;color:var(--ink)}
+.itin-tot{margin-top:9px;padding-top:8px;border-top:1px solid var(--axis);display:flex;justify-content:space-between;font-weight:700;font-size:.86rem}
+
+/* ---------- tooltip ---------- */
+.tip{
+  position:fixed;z-index:80;pointer-events:none;opacity:0;transition:opacity .12s ease;
+  background:var(--surface);border:1px solid var(--hairline);border-radius:9px;
+  box-shadow:0 10px 30px rgba(0,0,0,.22);padding:11px 13px;min-width:200px;max-width:280px;
+}
+.tip.on{opacity:1}
+.tip .t-name{font-weight:700;font-size:.92rem;line-height:1.25}
+.tip .t-sub{font-size:.74rem;color:var(--muted);margin-top:2px}
+.tip dl{display:grid;grid-template-columns:1fr auto;gap:3px 12px;margin-top:9px;font-size:.8rem}
+.tip dt{color:var(--ink-2)}
+.tip dd{font-weight:700;font-variant-numeric:tabular-nums;text-align:right}
+.tip .t-flag{margin-top:8px;padding-top:7px;border-top:1px solid var(--hairline);font-size:.76rem;font-weight:600}
+
+/* ---------- tabla ---------- */
+.table-scroll{overflow-x:auto;margin-top:14px;-webkit-overflow-scrolling:touch}
+table{border-collapse:collapse;width:100%;font-size:.85rem;font-variant-numeric:tabular-nums}
+th,td{padding:8px 11px;text-align:right;white-space:nowrap;border-bottom:1px solid var(--hairline)}
+th:first-child,td:first-child{text-align:left;position:sticky;left:0;background:var(--surface)}
+thead th{
+  position:sticky;top:0;background:var(--surface);z-index:2;
+  font-size:.7rem;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);
+  cursor:pointer;user-select:none;border-bottom:1px solid var(--axis);
+}
+thead th:first-child{z-index:3}
+thead th:hover{color:var(--ink)}
+thead th .arrow{opacity:.45;font-size:.62rem;margin-left:3px}
+tbody tr:hover td,tbody tr:hover td:first-child{background:var(--surface-2)}
+tbody tr.is-sel td,tbody tr.is-sel td:first-child{background:color-mix(in srgb,var(--series-1) 12%,transparent)}
+tbody tr.no-ok{opacity:.45}
+td.na{color:var(--muted)}
+.ok-dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:7px;background:var(--ok)}
+.ok-dot.off{background:transparent;border:1px solid var(--axis)}
+
+/* ---------- pie / metodología ---------- */
+details{border-top:1px solid var(--hairline);padding-top:16px;margin-top:8px}
+details + details{margin-top:0}
+summary{cursor:pointer;font-weight:600;font-size:.92rem;padding:7px 0;list-style-position:outside}
+summary:focus-visible{outline:2px solid var(--focus);outline-offset:3px;border-radius:3px}
+.prose{font-size:.87rem;color:var(--ink-2);max-width:78ch;padding:6px 0 14px}
+.prose p{margin-bottom:10px}
+.prose ul{margin:0 0 10px 1.1rem}
+.prose li{margin-bottom:5px}
+.prose a{color:var(--focus)}
+.prose code{background:var(--surface-2);padding:1px 5px;border-radius:4px;font-size:.92em}
+.prose table{font-size:.82rem;margin:4px 0 12px}
+.prose th,.prose td{padding:5px 9px}
+footer{border-top:1px solid var(--hairline);padding:22px 0 44px;font-size:.8rem;color:var(--muted)}
+footer a{color:var(--focus)}
+.state{padding:56px 20px;text-align:center;color:var(--muted)}
+.visually-hidden{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+@media (max-width:900px){
+  .filters{position:static;backdrop-filter:none}
+  .filters-inner{gap:12px 14px}
+  .cond-field{flex:1 1 100%}
+  .slider-field{flex:1 1 100%}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+@media print{.filters,.map-zoom{display:none}.card{break-inside:avoid}}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <span class="eyebrow">Àrea metropolitana de Barcelona</span>
+    <h1>¿Dónde puedo vivir, si tengo que ir ahí cada día?</h1>
+    <p class="lede">
+      Pon tus condiciones —cuánto estás dispuesto a caminar, a qué sitios tienes que
+      llegar y en cuánto tiempo— y el mapa deja encendidos los municipios que las
+      cumplen, con la red de tren, metro, tranvía y bus dibujada encima. Los tiempos
+      son trayectos reales <strong>puerta a puerta</strong>, encaminados sobre los
+      horarios oficiales: incluyen lo que caminas hasta la parada, los transbordos y
+      la espera. Pincha un municipio y verás su itinerario tramo a tramo; pincha un
+      punto cualquiera del mapa y tendrás una estimación hasta ahí.
+    </p>
+    <p class="stamp" id="stamp"></p>
+  </header>
+</div>
+
+<div class="filters">
+  <div class="wrap filters-inner" id="filters" hidden>
+
+    <div class="field">
+      <span class="lbl" id="f-view-label">Escala</span>
+      <div class="btn-group" role="group" aria-labelledby="f-view-label" id="f-view">
+        <button class="btn" type="button" data-view="municipis" aria-pressed="true">Área de Barcelona</button>
+        <button class="btn" type="button" data-view="barris" aria-pressed="false">Barcelona por barrios</button>
+      </div>
+    </div>
+
+    <div class="field cond-field">
+      <span class="lbl" id="f-cond-label">Tengo que llegar a… (minutos como mucho)</span>
+      <div class="conds" id="f-conds" role="group" aria-labelledby="f-cond-label"></div>
+      <div class="btn-group" style="margin-top:6px">
+        <button class="btn btn-sm" type="button" id="f-comb-algun" aria-pressed="true">Con uno me basta</button>
+        <button class="btn btn-sm" type="button" id="f-comb-tots" aria-pressed="false">Los quiero todos</button>
+      </div>
+    </div>
+
+    <div class="field slider-field">
+      <label for="f-peu">Camino como mucho</label>
+      <div class="slider-row">
+        <input type="range" id="f-peu" min="0" max="45" step="1" value="30">
+        <span class="slider-val" id="f-peu-v">30 min</span>
+      </div>
+    </div>
+
+    <div class="field slider-field">
+      <label for="f-tr">Transbordos como mucho</label>
+      <div class="slider-row">
+        <input type="range" id="f-tr" min="0" max="5" step="1" value="5">
+        <span class="slider-val" id="f-tr-v">los que sea</span>
+      </div>
+    </div>
+
+    <div class="field">
+      <span class="lbl" id="f-capes-label">Dibujar</span>
+      <div class="btn-group" role="group" aria-labelledby="f-capes-label" id="f-capes">
+        <button class="btn btn-sm" type="button" data-capa="ferro" aria-pressed="true">Tren y metro</button>
+        <button class="btn btn-sm" type="button" data-capa="bus" aria-pressed="false">Bus</button>
+        <button class="btn btn-sm" type="button" data-capa="parades" aria-pressed="true">Paradas</button>
+      </div>
+    </div>
+
+    <div class="field">
+      <span class="lbl">&nbsp;</span>
+      <button class="btn" id="f-reset" type="button">Reiniciar</button>
+    </div>
+  </div>
+</div>
+
+<div class="state" id="state">Cargando datos…</div>
+
+<main id="main" hidden>
+  <div class="wrap">
+
+    <div class="tiles" id="tiles"></div>
+
+    <!-- ===================== MAPA ===================== -->
+    <section class="card">
+      <div class="card-head">
+        <div>
+          <h2 id="map-title">Dónde se cumple</h2>
+          <p class="sub" id="map-sub"></p>
+        </div>
+        <div class="btn-group">
+          <button class="btn" id="btn-pick" type="button" aria-pressed="false">
+            <span class="pin" aria-hidden="true"></span> Poner mi punto
+          </button>
+        </div>
+      </div>
+
+      <div class="map-layout">
+        <div class="map-box" id="map-box">
+          <svg id="map" role="img" aria-labelledby="map-title" aria-describedby="map-desc"></svg>
+          <desc id="map-desc" class="visually-hidden">
+            Mapa del área de Barcelona con la red de cercanías, metro, tranvía y bus.
+            Los municipios que cumplen las condiciones de viaje elegidas aparecen
+            resaltados y coloreados por el tiempo de trayecto. Los mismos valores
+            están en la tabla del final de la página.
+          </desc>
+          <div class="map-zoom">
+            <button class="btn" id="z-in" type="button" aria-label="Acercar">+</button>
+            <button class="btn" id="z-out" type="button" aria-label="Alejar">−</button>
+            <button class="btn" id="z-fit" type="button" aria-label="Ver todo">⤢</button>
+          </div>
+        </div>
+
+        <aside>
+          <div class="legend">
+            <h3 id="legend-title">Tiempo de viaje</h3>
+            <div class="ramp" id="legend-ramp"></div>
+            <div class="ramp-ticks"><span id="legend-lo"></span><span id="legend-hi"></span></div>
+            <p class="legend-note" id="legend-note"></p>
+            <div class="swatch-row">
+              <span class="swatch" style="background:var(--seq-null)"></span> Sin ruta viable
+            </div>
+            <div class="swatch-row">
+              <span class="swatch" style="background:transparent;border:2px solid var(--ok)"></span> Cumple tus condiciones
+            </div>
+          </div>
+
+          <div class="legend" id="legend-xarxes">
+            <h3>Redes</h3>
+          </div>
+
+          <div class="legend" id="panel-itin" hidden>
+            <h3 id="itin-title">Itinerario</h3>
+            <div class="itin" id="itin"></div>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <!-- ===================== TABLA ===================== -->
+    <section class="card">
+      <div class="card-head">
+        <div>
+          <h2>Todos los datos</h2>
+          <p class="sub" id="tbl-sub"></p>
+        </div>
+        <div class="btn-group">
+          <button class="btn btn-sm" id="f-nomes" type="button" aria-pressed="false">Solo los que cumplen</button>
+        </div>
+      </div>
+      <div class="table-scroll">
+        <table>
+          <thead id="thead"></thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ===================== METODOLOGÍA ===================== -->
+    <section class="card">
+      <h2>Cómo se ha hecho, y cuándo no fiarse</h2>
+
+      <details open>
+        <summary>Qué es exactamente cada número</summary>
+        <div class="prose">
+          <p>
+            Los tiempos hacia los <strong id="m-ndest">seis</strong> destinos de la lista
+            son <strong>exactos</strong>: cada uno sale de un itinerario concreto que un
+            router ha encontrado en un horario publicado. Nada está estimado ni
+            interpolado. Lo que el router no resuelve se queda en blanco.
+          </p>
+          <p id="m-hora"></p>
+          <p>
+            El número es <strong>de portal a portal</strong>: caminar hasta la parada, el
+            viaje, las esperas en los transbordos y caminar desde la última parada hasta
+            el destino. No incluye la espera en casa antes de salir, ni margen de
+            seguridad, ni retrasos: es horario <strong>teórico programado</strong>.
+          </p>
+          <p>
+            <strong>«Camino como mucho»</strong> se mide sobre el total a pie de
+            <em>la ruta más rápida</em>: la caminata hasta la primera parada, más la de
+            los transbordos, más la del final. Ojo con la letra pequeña: es lo que
+            caminas en la mejor ruta, <strong>no el mínimo posible</strong>. Podría
+            existir una alternativa más lenta y con menos caminata que el router
+            descarta por ser más lenta.
+          </p>
+          <p id="m-punta"></p>
+        </div>
+      </details>
+
+      <details>
+        <summary>El punto libre: esto sí es una estimación</summary>
+        <div class="prose">
+          <p id="m-iso"></p>
+          <p>
+            Para un punto cualquiera <em>P</em> el tiempo se calcula así: de cada
+            municipio conocemos, gracias a una consulta de alcance, el tiempo hasta
+            <strong>todas</strong> las paradas a su alcance. El tiempo hasta <em>P</em> es
+            el menor de <em>(llegar a una parada cercana a P) + (caminar de esa parada a
+            P)</em>. Lo único estimado es ese último tramo a pie, en línea recta con un
+            factor de rodeo de 1,3 y a 4,5 km/h.
+          </p>
+          <p>
+            Hay tres cosas que conviene saber. Primero, las paradas están
+            <strong>cuantizadas a una rejilla de 600 m</strong>, lo que añade hasta unos
+            5 minutos de error en la caminata final. Segundo, si no hay ninguna parada a
+            menos de 2,5 km del punto, no se da número: decir algo sería inventárselo.
+            Y tercero, el alcance se calcula <strong>saliendo a una hora fija</strong>
+            (07:15), mientras que los seis destinos exactos son «llegar a las 09:00»; un
+            pueblo con un único autobús justo antes de esa hora sale peor parado de lo
+            que le corresponde.
+          </p>
+          <p id="m-error"></p>
+        </div>
+      </details>
+
+      <details>
+        <summary>Las líneas dibujadas, y las que faltan</summary>
+        <div class="prose">
+          <p id="m-linies"></p>
+          <p>
+            La capa ferroviaria —metro, FGC, Rodalies y tranvía— está entera. Se ha
+            dejado fuera la <strong>larga distancia</strong> (AVE, Ouigo, Iryo, Alvia):
+            comparte vía con Rodalies pero no es transporte de cercanías.
+          </p>
+          <p>
+            Con el bus la decisión es otra. En este rectángulo hay <strong>670 líneas de
+            autobús distintas</strong>: dibujarlas todas sería una mancha ilegible de
+            varios megabytes. Se dibujan solo las que <strong>aparecen en algún
+            itinerario óptimo</strong> de los calculados, es decir las que forman parte
+            de un trayecto que alguien haría de verdad. De esas, algunas no aparecen
+            porque su código en el horario oficial no coincide con el de OpenStreetMap;
+            el tiempo de viaje sí las cuenta aunque el trazo no esté.
+            De los buses no se dibujan las paradas: son miles y no se leerían.
+          </p>
+          <p>
+            Los colores distinguen <strong>redes</strong>, no líneas. No son los colores
+            oficiales de cada línea: son cinco redes, no cuarenta líneas, y los oficiales
+            no se distinguen entre sí con daltonismo. El código de la línea va escrito en
+            el itinerario, que es lo que de verdad la identifica.
+          </p>
+        </div>
+      </details>
+
+      <details>
+        <summary>Cuándo el número es poco fiable</summary>
+        <div class="prose">
+          <ul>
+            <li><strong>El origen es un solo punto por municipio</strong>: el núcleo
+              urbano, no donde vivirías. En municipios grandes o diseminados (Terrassa,
+              Sant Cugat, Cerdanyola, Sant Boi, el Papiol) el tiempo real puede variar
+              ±15 min según el barrio. Cuanto más grande o más disperso el municipio,
+              menos informativo es el número. En la escala de barrios, el punto es el
+              centroide, que en Vallvidrera o Torre Baró queda lejos de donde hay gente.</li>
+            <li><strong>Horario teórico.</strong> Ni retrasos, ni averías, ni obras. En la
+              práctica R1, R2 y R4 acumulan incidencias con regularidad.</li>
+            <li><strong>Un solo día y una sola hora.</strong> Otro día u otra hora dan
+              otros números, sobre todo donde el servicio es escaso.</li>
+            <li><strong>Depende de la cobertura del horario oficial.</strong> Si un
+              operador comarcal no publica sus horarios en formato abierto, su servicio
+              no existe para el router. Un hueco puede significar «no hay servicio» o
+              «el servicio no está publicado». Los municipios pequeños del Garraf, el
+              Alt Penedès y el Baix Llobregat interior son los más expuestos.</li>
+            <li><strong>Los tiempos hacia Roche dependen de un bus lanzadera</strong> de
+              frecuencia limitada: el complejo queda a 1,5 km de la estación de FGC más
+              cercana. Por eso está también, aparte, la estación de Sant Cugat: son dos
+              preguntas distintas y se llevan una diferencia sistemática.</li>
+            <li><strong>Un destino dentro de tu propio municipio</strong> (Castelldefels
+              a Castelldefels) da dos minutos andando. Es cierto y no informa de nada;
+              aparece marcado para que no se cuele en una comparación.</li>
+          </ul>
+          <p>
+            Y lo que no está aquí y decide tanto como esto: el coste del transporte y la
+            zona tarifaria, el ruido, los colegios, la calidad del aire y el estado real
+            de las viviendas.
+          </p>
+        </div>
+      </details>
+
+      <details>
+        <summary>Fuentes</summary>
+        <div class="prose" id="m-fonts"></div>
+      </details>
+    </section>
+
+  </div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <p>
+      Datos oficiales y abiertos, sin estimaciones. Página estática y autocontenida:
+      no hay seguimiento ni peticiones a terceros.
+      · <a href="pisos-vs-distancia.html">Piso vs. distancia</a>
+      · <a href="../">Volver</a>
+    </p>
+  </div>
+</footer>
+
+<div class="tip" id="tip" role="status" aria-live="polite" aria-hidden="true"></div>
+
+<script>
+"use strict";
+/* ===========================================================================
+   1. UTILIDADES
+   =========================================================================== */
+const $ = (s) => document.querySelector(s);
+const R_EARTH = 6371.0088;
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+
+function haversine(aLat, aLon, bLat, bLon) {
+  const p = Math.PI / 180;
+  const dLat = (bLat - aLat) * p, dLon = (bLon - aLon) * p;
+  const s = Math.sin(dLat / 2) ** 2 +
+            Math.cos(aLat * p) * Math.cos(bLat * p) * Math.sin(dLon / 2) ** 2;
+  return 2 * R_EARTH * Math.asin(Math.sqrt(s));
+}
+
+/* Caminar: línea recta × 1,3 de rodeo, a 4,5 km/h. El 1,3 es el factor de
+   circuito habitual en trama urbana — el callejero nunca va en línea recta. */
+const VEL_PEU = 4.5, RODEIG = 1.3;
+const caminarMin = (aLat, aLon, bLat, bLon) =>
+  haversine(aLat, aLon, bLat, bLon) * RODEIG / VEL_PEU * 60;
+
+const nf = (d = 0) => new Intl.NumberFormat("es-ES", { minimumFractionDigits: d, maximumFractionDigits: d });
+const fmtInt = (v) => nf(0).format(Math.round(v));
+const fmtEur = (v) => nf(0).format(Math.round(v)) + " €";
+
+/** Minutos como "1 h 25" cuando pasan de la hora: "85 min" no se lee. */
+function fmtMin(v) {
+  if (v == null) return "—";
+  const m = Math.round(v);
+  return m < 60 ? `${m} min` : `${Math.floor(m / 60)} h ${String(m % 60).padStart(2, "0")}`;
+}
+
+function median(xs) {
+  const a = xs.filter(v => v != null).sort((x, y) => x - y);
+  if (!a.length) return null;
+  const h = a.length >> 1;
+  return a.length % 2 ? a[h] : (a[h - 1] + a[h]) / 2;
+}
+
+const escMap = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" };
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => escMap[c]);
+
+const SEQ = ["--seq-100","--seq-200","--seq-300","--seq-400","--seq-500","--seq-600","--seq-700"];
+const cssVar = (n) => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+
+const XARXES = ["Rodalies", "FGC", "Metro", "Tram", "Bus"];
+
+/* ===========================================================================
+   2. ESTADO
+   =========================================================================== */
+const VIEWS = {
+  municipis: {
+    id: "municipis", label: "Área de Barcelona",
+    data: "data/transporte-muni.json", geo: "data/municipis-geo.json",
+    iso: "data/iso-muni.json",
+    unitat: ["municipio", "municipios"],
+    sub: "92 municipios con el núcleo urbano a 32 km o menos de Plaça de Catalunya.",
+  },
+  barris: {
+    id: "barris", label: "Barcelona por barrios",
+    data: "data/transporte-barris.json", geo: "data/bcn-barris-geo.json",
+    iso: "data/iso-barris.json",
+    unitat: ["barrio", "barrios"],
+    sub: "Los 73 barrios de Barcelona.",
+  },
+};
+
+const S = {
+  viewId: "municipis",
+  conds: {},                 // id destino -> {on, max}
+  combinar: "algun",         // "algun" | "tots"
+  maxPeu: 30,
+  maxTransbords: 5,
+  capes: { ferro: true, bus: false, parades: true },
+  puntLliure: null,          // {lat, lon} elegido en el mapa
+  picking: false,
+  nomesOk: false,
+  selected: null,
+  sortKey: "temps", sortDir: 1,
+  view: null,                // viewBox del mapa
+};
+
+let DATA = null, GEO = null, PATHS = null, PROJ = null, ROWS = [];
+let LINIES = null, ANCORES = null, ISO = null;   // ISO: {ids, bytes, fila(ine)}
+const vista = () => VIEWS[S.viewId];
+const cache = new Map();
+
+/* ===========================================================================
+   3. CARGA
+   =========================================================================== */
+async function fetchJSON(path) {
+  if (cache.has(path)) return cache.get(path);
+  const p = fetch(path, { cache: "no-cache" }).then(r => {
+    if (!r.ok) throw new Error(path.split("/").pop() + " " + r.status);
+    return r.json();
+  });
+  cache.set(path, p);
+  return p;
+}
+
+/** La red y la matriz de isócronas no bloquean la primera pintada: la página
+    es útil sin ellas y pesan lo suyo. Entran cuando llegan. */
+async function carregaLinies() {
+  if (LINIES) return;
+  try { LINIES = await fetchJSON("data/linies.json"); render(); }
+  catch (e) { console.warn("sin linies.json:", e.message); }
+}
+
+/** La matriz solo hace falta si el usuario pone su punto. Hasta entonces, nada. */
+async function carregaIso() {
+  const V = vista();
+  if (ISO && ISO.vista === V.id) return ISO;
+  const [anc, mat] = await Promise.all([
+    ANCORES ? Promise.resolve(ANCORES) : fetchJSON("data/iso-ancores.json"),
+    fetchJSON(V.iso),
+  ]);
+  ANCORES = anc;
+  // base64 -> bytes. Un byte por (origen, anclaje): minutos, 255 = fuera de alcance.
+  const bin = atob(mat.matriu);
+  const bytes = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+  const n = anc.ancores.length;
+  const pos = new Map(mat.ids.map((id, i) => [String(id), i]));
+  ISO = {
+    vista: V.id, n, bytes, pos,
+    fila: (ine) => {
+      const i = pos.get(String(ine));
+      return i == null ? null : bytes.subarray(i * n, (i + 1) * n);
+    },
+  };
+  return ISO;
+}
+
+async function loadView(first = false) {
+  const V = vista();
+  const [d, g] = await Promise.all([fetchJSON(V.data), fetchJSON(V.geo)]);
+  DATA = d; GEO = g;
+  ISO = null;                       // la matriz es por escala
+  S.selected = null;
+  S.puntLliure = null;
+  S.picking = false;
+  initConds(first);
+  initProjection();
+  if (first) initUI(); else resetUIForView();
+  render();
+  carregaLinies();
+}
+
+async function boot() {
+  try {
+    await loadView(true);
+    $("#state").hidden = true;
+    $("#filters").hidden = false;
+    $("#main").hidden = false;
+  } catch (err) {
+    // El caso habitual no es que falten los datos, sino que la página se haya
+    // abierto con doble clic: sobre file:// el navegador trata cada fichero como
+    // un origen distinto y bloquea fetch() por CORS.
+    const local = location.protocol === "file:";
+    $("#state").innerHTML = local
+      ? `<p><strong>Esta página necesita servirse por HTTP.</strong></p>
+         <p style="margin-top:10px;max-width:56ch;margin-inline:auto">
+           Abierta directamente desde el disco, el navegador bloquea la carga de los
+           datos por política de orígenes. Para verla en local, sírvela desde la raíz
+           del repositorio:</p>
+         <p style="margin-top:10px"><code>python3 -m http.server 8000</code></p>
+         <p style="margin-top:6px">y entra en <code>localhost:8000/pages/transporte-publico.html</code></p>`
+      : `No se han podido cargar los datos: ${esc(err.message)}`;
+    console.error(err);
+  }
+}
+
+/* ===========================================================================
+   4. PROYECCIÓN
+   Equirectangular con corrección de coseno a la latitud central: a esta escala
+   (unos 70 km de lado) la distorsión frente a una proyección conforme es
+   inapreciable, y evita depender de una librería.
+   =========================================================================== */
+const MAP_W = 900, MAP_H = 640, MAP_PAD = 18;
+
+function eachRing(geom, cb) {
+  if (!geom) return;
+  if (geom.type === "Polygon") geom.coordinates.forEach(cb);
+  else if (geom.type === "MultiPolygon") geom.coordinates.forEach(p => p.forEach(cb));
+}
+
+function initProjection() {
+  let minLon = Infinity, maxLon = -Infinity, minLat = Infinity, maxLat = -Infinity;
+  for (const f of GEO.features) {
+    eachRing(f.geometry, (ring) => {
+      for (const [lon, lat] of ring) {
+        if (lon < minLon) minLon = lon; if (lon > maxLon) maxLon = lon;
+        if (lat < minLat) minLat = lat; if (lat > maxLat) maxLat = lat;
+      }
+    });
+  }
+  const lat0 = (minLat + maxLat) / 2;
+  const kx = Math.cos(lat0 * Math.PI / 180);
+  const w = (maxLon - minLon) * kx, h = maxLat - minLat;
+  const scale = Math.min((MAP_W - 2 * MAP_PAD) / w, (MAP_H - 2 * MAP_PAD) / h);
+  const offX = (MAP_W - w * scale) / 2, offY = (MAP_H - h * scale) / 2;
+
+  PROJ = {
+    x: (lon) => (lon - minLon) * kx * scale + offX,
+    y: (lat) => (maxLat - lat) * scale + offY,
+    invLon: (x) => (x - offX) / scale / kx + minLon,
+    invLat: (y) => maxLat - (y - offY) / scale,
+  };
+  S.view = { x: 0, y: 0, w: MAP_W, h: MAP_H };
+
+  PATHS = new Map();
+  for (const f of GEO.features) {
+    let d = "";
+    eachRing(f.geometry, (ring) => {
+      d += "M" + ring.map(([lon, lat]) =>
+        PROJ.x(lon).toFixed(1) + "," + PROJ.y(lat).toFixed(1)).join("L") + "Z";
+    });
+    if (d) PATHS.set(f.properties.codi_ine, d);
+  }
+}
+
+/* ===========================================================================
+   5. CONDICIONES Y DERIVACIÓN
+   =========================================================================== */
+
+/** Arranque: la pregunta con la que nació la página —«caminar menos de media
+    hora y llegar a Sant Cugat o a Barcelona en hora y media»— ya montada. */
+function initConds(first) {
+  const prev = S.conds;
+  S.conds = {};
+  for (const d of DATA.meta.destins) {
+    S.conds[d.id] = first
+      ? { on: d.id === "pl-catalunya" || d.id === "sant-cugat-estacio", max: 90 }
+      : (prev[d.id] || { on: false, max: 90 });
+  }
+  if (S.puntLliure) S.conds.__lliure = prev.__lliure || { on: true, max: 90 };
+}
+
+const condsActives = () =>
+  Object.entries(S.conds).filter(([, c]) => c.on).map(([id]) => id);
+
+/** Los anclajes cercanos al punto libre, con su caminata ya calculada. Se hace
+    una sola vez por punto, no una por municipio. */
+let LLIURE = null;    // {lat, lon, prop:[{i, peu}], sensePar:bool}
+const RADI_ANCORA = 2.5;         // km — más lejos, caminar deja de ser una opción
+
+function preparaLliure() {
+  LLIURE = null;
+  if (!S.puntLliure || !ANCORES || !ISO) return;
+  const { lat, lon } = S.puntLliure;
+  const { bbox, dlat, dlon, ncols } = ANCORES;
+  const prop = [];
+  ANCORES.ancores.forEach((packed, i) => {
+    const iy = Math.floor(packed / ncols), ix = packed % ncols;
+    const aLat = bbox[0] + (iy + 0.5) * dlat, aLon = bbox[1] + (ix + 0.5) * dlon;
+    if (Math.abs(aLat - lat) > 0.03 || Math.abs(aLon - lon) > 0.04) return;  // criba rápida
+    if (haversine(aLat, aLon, lat, lon) > RADI_ANCORA) return;
+    prop.push({ i, peu: caminarMin(aLat, aLon, lat, lon) });
+  });
+  LLIURE = { lat, lon, prop, sensePar: prop.length === 0 };
+}
+
+/** Tiempo estimado de un origen hasta el punto libre. null si no hay forma. */
+function minsLliure(m) {
+  if (!LLIURE || LLIURE.sensePar || !ISO) return null;
+  const fila = ISO.fila(m.ine);
+  if (!fila) return null;
+  let best = Infinity;
+  for (const { i, peu } of LLIURE.prop) {
+    const t = fila[i];
+    if (t === 255) continue;
+    const tot = t + peu;
+    if (tot < best) best = tot;
+  }
+  // Si el punto está en el propio pueblo, ir andando puede ganar a cualquier ruta.
+  const aPeu = caminarMin(m.lat, m.lon, LLIURE.lat, LLIURE.lon);
+  if (aPeu < best) best = aPeu;
+  return best === Infinity ? null : Math.round(best);
+}
+
+/** Datos de un origen hacia una condición. Unifica destinos exactos y punto
+    libre para que el resto del código no tenga que distinguirlos. */
+function viatge(m, id) {
+  if (id === "__lliure") {
+    const min = minsLliure(m);
+    return min == null ? null : { min, estimat: true, a_peu: null, transbords: null };
+  }
+  const v = m.destins[id];
+  return v ? { ...v, estimat: false } : null;
+}
+
+/** ¿Este origen cumple la condición? Caminata y transbordos se exigen sobre la
+    misma ruta que cumple el tiempo: no vale mezclar la caminata de una ruta con
+    el tiempo de otra. En el punto libre no hay desglose, así que esas dos
+    condiciones no se pueden aplicar y no se aplican — se dice en el tooltip. */
+function compleixCond(m, id) {
+  const c = S.conds[id];
+  const v = viatge(m, id);
+  if (!v || v.min == null) return false;
+  if (v.min > c.max) return false;
+  if (!v.estimat) {
+    if (v.a_peu != null && v.a_peu > S.maxPeu) return false;
+    if (v.transbords != null && v.transbords > S.maxTransbords) return false;
+  }
+  return true;
+}
+
+function recompute() {
+  preparaLliure();
+  const actives = condsActives();
+
+  ROWS = DATA.files.map(m => {
+    const compleixen = actives.filter(id => compleixCond(m, id));
+    const ok = actives.length === 0 ? false
+             : S.combinar === "tots" ? compleixen.length === actives.length
+                                     : compleixen.length > 0;
+    // El color: con "los quiero todos", el que más aprieta (el peor); con "me
+    // basta uno", el que te salva (el mejor). Es el tiempo que decide.
+    const temps = actives
+      .map(id => viatge(m, id)?.min)
+      .filter(v => v != null);
+    const valor = !temps.length ? null
+                : S.combinar === "tots" ? Math.max(...temps) : Math.min(...temps);
+    const peus = actives.map(id => viatge(m, id)?.a_peu).filter(v => v != null);
+    return { ...m, ok, compleixen, valor, aPeu: peus.length ? Math.min(...peus) : null };
+  });
+}
+
+function valueRange() {
+  const vs = ROWS.map(m => m.valor).filter(v => v != null);
+  if (!vs.length) return [0, 1];
+  const lo = Math.min(...vs), hi = Math.max(...vs);
+  return hi > lo ? [lo, hi] : [lo, lo + 1];
+}
+
+function seqColor(v, lo, hi) {
+  if (v == null) return cssVar("--seq-null");
+  const t = hi > lo ? (v - lo) / (hi - lo) : 0.5;
+  return cssVar(SEQ[clamp(Math.floor(t * SEQ.length), 0, SEQ.length - 1)]);
+}
+
+/* ===========================================================================
+   6. RENDER
+   =========================================================================== */
+function render() {
+  recompute();
+  renderConds();
+  renderTiles();
+  renderMap();
+  renderLegend();
+  renderItin();
+  renderTable();
+  renderTexts();
+}
+
+function renderConds() {
+  const box = $("#f-conds");
+  const files = DATA.meta.destins.map(d => ({
+    id: d.id, nom: d.nom, sub: d.tipus, est: false,
+  }));
+  if (S.puntLliure) files.push({ id: "__lliure", nom: "Tu punto en el mapa", sub: null, est: true });
+
+  box.innerHTML = files.map(f => {
+    const c = S.conds[f.id] || { on: false, max: 90 };
+    return `<div class="cond ${c.on ? "is-on" : "is-off"}">
+      <input type="checkbox" id="c-${esc(f.id)}" data-cond="${esc(f.id)}" ${c.on ? "checked" : ""}>
+      <label class="cn" for="c-${esc(f.id)}" title="${esc(f.nom)}">${esc(f.nom)}${
+        f.est ? ` <span class="est">estimado</span>` : ""}</label>
+      <span class="ct">
+        <input type="number" data-max="${esc(f.id)}" min="5" max="240" step="5" value="${c.max}"
+               aria-label="Minutos como mucho hasta ${esc(f.nom)}">min
+      </span>
+    </div>`;
+  }).join("");
+
+  box.querySelectorAll("input[data-cond]").forEach(el => {
+    el.onchange = () => { S.conds[el.dataset.cond].on = el.checked; render(); };
+  });
+  box.querySelectorAll("input[data-max]").forEach(el => {
+    el.oninput = () => {
+      const v = parseInt(el.value, 10);
+      if (Number.isFinite(v)) { S.conds[el.dataset.max].max = clamp(v, 5, 240); render(); }
+    };
+  });
+}
+
+function renderTiles() {
+  const U = vista().unitat;
+  const actives = condsActives();
+  const ok = ROWS.filter(m => m.ok);
+  const preus = ok.map(m => m.compra_eur_m2).filter(v => v != null);
+  const barat = ok.filter(m => m.compra_eur_m2 != null)
+                  .sort((a, b) => a.compra_eur_m2 - b.compra_eur_m2)[0];
+  const rapid = ok.filter(m => m.valor != null).sort((a, b) => a.valor - b.valor)[0];
+  const totPreus = ROWS.map(m => m.compra_eur_m2).filter(v => v != null);
+  const medTot = median(totPreus), medOk = median(preus);
+
+  const t = [];
+  t.push(`<div class="tile is-hero"><div class="k">Cumplen</div>
+    <div class="v">${ok.length}<span style="font-size:1rem;color:var(--ink-2)"> de ${ROWS.length}</span></div>
+    <div class="n">${actives.length
+      ? `${U[1]} donde se cumple ${S.combinar === "tots" ? "todo lo que pides" : "al menos una condición"}`
+      : "marca algún destino arriba"}</div></div>`);
+
+  t.push(`<div class="tile"><div class="k">Precio mediano</div>
+    <div class="v">${medOk == null ? "—" : fmtEur(medOk)}</div>
+    <div class="n">€/m² de los que cumplen${
+      medOk != null && medTot != null
+        ? ` · ${medOk <= medTot ? "−" : "+"}${fmtInt(Math.abs(100 * (medOk / medTot - 1)))} % frente al conjunto`
+        : ""}</div></div>`);
+
+  t.push(`<div class="tile"><div class="k">El más barato</div>
+    <div class="v" style="font-size:1.26rem">${barat ? esc(barat.nom) : "—"}</div>
+    <div class="n">${barat ? `${fmtEur(barat.compra_eur_m2)}/m² · ${fmtMin(barat.valor)} de viaje` : "sin candidatos"}</div></div>`);
+
+  t.push(`<div class="tile"><div class="k">El más rápido</div>
+    <div class="v" style="font-size:1.26rem">${rapid ? esc(rapid.nom) : "—"}</div>
+    <div class="n">${rapid ? `${fmtMin(rapid.valor)} · ${
+      rapid.compra_eur_m2 != null ? fmtEur(rapid.compra_eur_m2) + "/m²" : "sin precio publicado"}` : "sin candidatos"}</div></div>`);
+
+  $("#tiles").innerHTML = t.join("");
+}
+
+function renderMap() {
+  const [lo, hi] = valueRange();
+  const v = S.view;
+  const byIne = new Map(ROWS.map(m => [m.ine, m]));
+  const hiHaConds = condsActives().length > 0;
+
+  let s = "";
+
+  // --- 1. municipios ---
+  for (const m of ROWS) {
+    const d = PATHS.get(m.ine);
+    if (!d) continue;
+    const fill = seqColor(m.valor, lo, hi);
+    const cls = "muni"
+      + (hiHaConds && !m.ok ? " is-dim" : "")
+      + (m.ok ? " is-ok" : "")
+      + (S.selected === m.ine ? " is-sel" : "");
+    s += `<path class="${cls}" d="${d}" fill="${fill}" data-ine="${esc(m.ine)}"><title>${esc(m.nom)}</title></path>`;
+  }
+
+  // --- 2. red ---
+  if (LINIES) {
+    const dibuixa = (xar) =>
+      xar === "Bus" ? S.capes.bus : S.capes.ferro;
+    // El bus va primero: es contexto y tiene que quedar por debajo del tren.
+    const ordre = [...LINIES.linies].sort((a, b) =>
+      (a.xarxa === "Bus" ? 0 : 1) - (b.xarxa === "Bus" ? 0 : 1));
+    for (const l of ordre) {
+      if (!dibuixa(l.xarxa)) continue;
+      let d = "";
+      for (const seg of l.punts) {
+        d += "M" + seg.map(([lon, lat]) =>
+          PROJ.x(lon).toFixed(1) + "," + PROJ.y(lat).toFixed(1)).join("L");
+      }
+      if (d) s += `<path class="linia l-${esc(l.xarxa)}" d="${d}"></path>`;
+    }
+    // --- 3. paradas: solo ferroviarias, y con rótulo solo si hay zoom ---
+    if (S.capes.parades && S.capes.ferro) {
+      const z = MAP_W / v.w;
+      const r = clamp(2.2 / Math.sqrt(z), 0.9, 2.4);
+      for (const p of LINIES.parades) {
+        const x = PROJ.x(p.lon), y = PROJ.y(p.lat);
+        if (x < v.x || x > v.x + v.w || y < v.y || y > v.y + v.h) continue;
+        s += `<circle class="parada" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${r.toFixed(2)}"/>`;
+        if (z >= 3.2 && p.nom) {
+          s += `<text class="parada-lbl" x="${(x + 3.4).toFixed(1)}" y="${(y + 2.6).toFixed(1)}"
+                 style="font-size:${(8.5 / z * 2.2).toFixed(2)}px">${esc(p.nom)}</text>`;
+        }
+      }
+    }
+  }
+
+  // --- 4. destinos ---
+  const enLlenc = (x, y) => x >= 0 && x <= MAP_W && y >= 0 && y <= MAP_H;
+  for (const d of DATA.meta.destins) {
+    const x = PROJ.x(d.lon), y = PROJ.y(d.lat);
+    if (!enLlenc(x, y)) continue;
+    const actiu = S.conds[d.id]?.on;
+    s += `<circle class="poi-dot" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${actiu ? 5 : 2.6}" opacity="${actiu ? 1 : .4}"/>`;
+    if (actiu) s += `<text class="poi-lbl" x="${(x + 9).toFixed(1)}" y="${(y + 4).toFixed(1)}">${esc(d.nom)}</text>`;
+  }
+
+  // --- 5. punto libre ---
+  if (S.puntLliure) {
+    const x = PROJ.x(S.puntLliure.lon), y = PROJ.y(S.puntLliure.lat);
+    s += `<circle class="poi-ring" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="9"/>`;
+    s += `<circle class="poi-dot" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="5.5"/>`;
+    s += `<text class="poi-lbl" x="${(x + 12).toFixed(1)}" y="${(y + 4).toFixed(1)}">Tu punto</text>`;
+  }
+
+  // --- 6. itinerario del seleccionado, por encima de todo ---
+  s += dibuixaRuta();
+
+  const svg = $("#map");
+  svg.setAttribute("viewBox", `${v.x} ${v.y} ${v.w} ${v.h}`);
+  svg.innerHTML = s;
+}
+
+/** El trayecto del municipio seleccionado hacia la condición que manda. Los
+    tramos a pie van punteados: son reales, pero no son una línea de transporte
+    y dibujarlos iguales haría creer que existe un servicio que no existe. */
+function dibuixaRuta() {
+  if (!S.selected) return "";
+  const m = ROWS.find(r => r.ine === S.selected);
+  const id = condPrincipal(m);
+  if (!m || !id || id === "__lliure") return "";
+  const v = m.destins?.[id];
+  if (!v || !v.linies?.length) return "";
+
+  let s = "", prev = [m.lon, m.lat];
+  const seg = (a, b, cls) =>
+    `<path class="ruta ${cls}" d="M${PROJ.x(a[0]).toFixed(1)},${PROJ.y(a[1]).toFixed(1)}`
+    + `L${PROJ.x(b[0]).toFixed(1)},${PROJ.y(b[1]).toFixed(1)}"/>`;
+
+  for (const l of v.linies) {
+    if (!l.dl || !l.al) continue;
+    s += seg(prev, l.dl, "ruta-peu");
+    s += seg(l.dl, l.al, "");
+    s += `<circle class="ruta-nod" cx="${PROJ.x(l.dl[0]).toFixed(1)}" cy="${PROJ.y(l.dl[1]).toFixed(1)}" r="3"/>`;
+    prev = l.al;
+  }
+  const dest = DATA.meta.destins.find(d => d.id === id);
+  if (dest) s += seg(prev, [dest.lon, dest.lat], "ruta-peu");
+  return s;
+}
+
+/** La condición que explica el color y el itinerario de este origen. */
+function condPrincipal(m) {
+  if (!m) return null;
+  const actives = condsActives();
+  if (!actives.length) return null;
+  const amb = actives.filter(id => viatge(m, id)?.min != null);
+  if (!amb.length) return null;
+  const cmp = (a, b) => viatge(m, a).min - viatge(m, b).min;
+  return S.combinar === "tots" ? amb.sort(cmp).at(-1) : amb.sort(cmp)[0];
+}
+
+function renderLegend() {
+  const [lo, hi] = valueRange();
+  const buit = !ROWS.some(m => m.valor != null);
+  $("#legend-ramp").innerHTML = SEQ.map(c => `<span style="background:var(${c})"></span>`).join("");
+  $("#legend-lo").textContent = buit ? "—" : fmtMin(lo);
+  $("#legend-hi").textContent = buit ? "—" : fmtMin(hi);
+  $("#legend-note").textContent = condsActives().length === 0
+    ? "Marca algún destino arriba para colorear el mapa."
+    : S.combinar === "tots"
+      ? "Cada zona, coloreada por el destino que más le cuesta de los que has marcado."
+      : "Cada zona, coloreada por el mejor de los destinos que has marcado.";
+
+  const usades = LINIES
+    ? XARXES.filter(x => LINIES.linies.some(l => l.xarxa === x))
+    : [];
+  $("#legend-xarxes").innerHTML = "<h3>Redes</h3>" + (usades.length
+    ? usades.map(x => {
+        const n = LINIES.linies.filter(l => l.xarxa === x).length;
+        const apagada = (x === "Bus" && !S.capes.bus) || (x !== "Bus" && !S.capes.ferro);
+        return `<div class="net-row" style="opacity:${apagada ? .4 : 1}">
+          <span class="net-line" style="border-top-color:var(--net-${x.toLowerCase()})"></span>
+          ${esc(x)} <span style="color:var(--muted)">· ${n}</span></div>`;
+      }).join("")
+    : `<p class="legend-note">Cargando la red…</p>`);
+}
+
+function renderItin() {
+  const panel = $("#panel-itin");
+  const m = S.selected ? ROWS.find(r => r.ine === S.selected) : null;
+  if (!m) { panel.hidden = true; return; }
+  panel.hidden = false;
+
+  const id = condPrincipal(m);
+  const dest = id === "__lliure" ? { nom: "Tu punto" } : DATA.meta.destins.find(d => d.id === id);
+  $("#itin-title").textContent = dest ? `${m.nom} → ${dest.nom}` : m.nom;
+
+  if (!id) {
+    $("#itin").innerHTML = `<p class="legend-note">Marca algún destino para ver el itinerario.</p>`;
+    return;
+  }
+  if (id === "__lliure") {
+    const t = viatge(m, id);
+    $("#itin").innerHTML = t
+      ? `<p class="legend-note">Estimación: <strong>${fmtMin(t.min)}</strong> hasta tu punto.
+         Es el mejor encaje entre llegar a una parada cercana y caminar desde ella;
+         no hay itinerario con nombre porque no se ha encaminado ese trayecto concreto.</p>`
+      : `<p class="legend-note">Sin estimación: no hay ninguna parada a menos de 2,5 km de tu punto, o este origen no llega.</p>`;
+    return;
+  }
+
+  const v = m.destins[id];
+  if (!v) { $("#itin").innerHTML = `<p class="legend-note">Sin ruta viable hasta aquí.</p>`; return; }
+
+  const li = [];
+  if (v.a_peu_acces) li.push(`<li><span class="badge peu">a pie</span>
+    <span class="txt">hasta ${esc(v.linies?.[0]?.de || "la parada")}</span>
+    <span class="mn">${v.a_peu_acces}</span></li>`);
+  for (const l of v.linies || []) {
+    li.push(`<li><span class="badge b-${esc(l.xarxa)}">${esc(l.ref || l.xarxa)}</span>
+      <span class="txt">${esc(l.de)} → ${esc(l.a)}</span>
+      <span class="mn">${l.min}</span></li>`);
+  }
+  const final = (v.a_peu ?? 0) - (v.a_peu_acces ?? 0);
+  if (final > 0) li.push(`<li><span class="badge peu">a pie</span>
+    <span class="txt">transbordos y tramo final</span><span class="mn">${final}</span></li>`);
+  if (v.espera) li.push(`<li><span class="badge peu">espera</span>
+    <span class="txt">en los transbordos</span><span class="mn">${v.espera}</span></li>`);
+
+  $("#itin").innerHTML = `<ol>${li.join("")}</ol>
+    <div class="itin-tot"><span>Total puerta a puerta</span><span>${fmtMin(v.min)}</span></div>
+    ${v.trivial ? `<p class="legend-note">Este destino está dentro del propio ${vista().unitat[0]}: el número es cierto pero no compara nada.</p>` : ""}
+    ${v.arriba_tard ? `<p class="legend-note">Ningún trayecto llega antes de las 09:00; este es el mejor que llega antes de las 10:00 (${esc(v.arribada_local)}).</p>` : ""}`;
+}
+
+/* ---------- tabla ---------- */
+function colsTaula() {
+  const cols = [
+    { k: "nom",    t: vista().unitat[0], txt: true },
+    { k: "aPeu",   t: "A pie",  fmt: (m) => m.aPeu == null ? null : `${m.aPeu} min` },
+  ];
+  for (const id of condsActives()) {
+    const d = id === "__lliure" ? { nom: "Tu punto" } : DATA.meta.destins.find(x => x.id === id);
+    cols.push({ k: "d:" + id, t: d?.nom || id, fmt: (m) => fmtMinOrNull(viatge(m, id)?.min) });
+  }
+  cols.push({ k: "sortides", t: "Salidas 7-9h", fmt: (m) => m.sortides == null ? null : fmtInt(m.sortides) });
+  cols.push({ k: "compra_eur_m2", t: "€/m²", fmt: (m) => m.compra_eur_m2 == null ? null : fmtEur(m.compra_eur_m2) });
+  cols.push({ k: "lloguer_eur_mes", t: "Alquiler", fmt: (m) => m.lloguer_eur_mes == null ? null : fmtEur(m.lloguer_eur_mes) + "/mes" });
+  cols.push({ k: "poblacio", t: "Población", fmt: (m) => m.poblacio == null ? null : fmtInt(m.poblacio) });
+  return cols;
+}
+const fmtMinOrNull = (v) => v == null ? null : fmtMin(v);
+
+function valorOrdre(m, k) {
+  if (k === "nom") return m.nom;
+  if (k === "temps") return m.valor;
+  if (k === "aPeu") return m.aPeu;
+  if (k.startsWith("d:")) return viatge(m, k.slice(2))?.min ?? null;
+  return m[k];
+}
+
+function renderTable() {
+  const cols = colsTaula();
+  $("#thead").innerHTML = "<tr>" + cols.map(c => {
+    const act = S.sortKey === c.k;
+    return `<th data-k="${esc(c.k)}" aria-sort="${act ? (S.sortDir > 0 ? "ascending" : "descending") : "none"}">${
+      esc(c.t)}<span class="arrow">${act ? (S.sortDir > 0 ? "▲" : "▼") : "↕"}</span></th>`;
+  }).join("") + "</tr>";
+
+  let rows = S.nomesOk ? ROWS.filter(m => m.ok) : [...ROWS];
+  const k = S.sortKey;
+  rows.sort((a, b) => {
+    const va = valorOrdre(a, k), vb = valorOrdre(b, k);
+    if (va == null && vb == null) return 0;
+    if (va == null) return 1;            // los sin dato, siempre al final
+    if (vb == null) return -1;
+    return (typeof va === "string" ? va.localeCompare(vb, "es") : va - vb) * S.sortDir;
+  });
+
+  $("#tbody").innerHTML = rows.map(m => {
+    const tds = cols.map((c, i) => {
+      const val = c.txt ? m[c.k] : c.fmt(m);
+      const pre = i === 0 ? `<span class="ok-dot ${m.ok ? "" : "off"}" title="${m.ok ? "cumple" : "no cumple"}"></span>` : "";
+      return `<td class="${val == null ? "na" : ""}">${pre}${val == null ? "—" : esc(val)}</td>`;
+    }).join("");
+    return `<tr data-ine="${esc(m.ine)}" class="${m.ok ? "" : "no-ok"} ${S.selected === m.ine ? "is-sel" : ""}">${tds}</tr>`;
+  }).join("");
+
+  const n = rows.length;
+  $("#tbl-sub").textContent = `${n} ${n === 1 ? vista().unitat[0] : vista().unitat[1]}`
+    + (S.nomesOk ? " que cumplen tus condiciones." : ", los que cumplen marcados con un punto verde.")
+    + " Pulsa una cabecera para ordenar, o una fila para ver su itinerario en el mapa.";
+}
+
+function renderTexts() {
+  const M = DATA.meta;
+  $("#stamp").textContent =
+    `Horarios de referencia: ${M.transit?.hora || "—"}. Precios y padrón: ${
+      M.periodes?.compra || "—"}. Generado el ${M.generat}.`;
+  $("#map-sub").textContent = vista().sub
+    + " Pincha una zona para ver su itinerario; pincha «Poner mi punto» y luego el mapa para un destino propio.";
+
+  $("#m-ndest").textContent = ["", "un", "dos", "tres", "cuatro", "cinco", "seis"][M.destins.length] || M.destins.length;
+  $("#m-hora").textContent = M.transit?.hora
+    ? `Hora de referencia: ${M.transit.hora}.` : "";
+  $("#m-punta").textContent = M.transit?.hora_punta || "";
+  $("#m-iso").textContent = M.iso?.metode || "";
+  $("#m-error").textContent = M.iso
+    ? `El alcance se calcula hasta ${M.iso.limit_min} minutos y las paradas se agrupan en una rejilla de ${M.iso.cella_m} m.`
+    : "";
+  // El recuento de buses se calcula aquí, no se escribe a mano: así la frase no
+  // puede quedarse desfasada respecto a lo que de verdad hay dibujado.
+  if (LINIES) {
+    const ferro = LINIES.linies.filter(l => l.xarxa !== "Bus").length;
+    const busDib = new Set(LINIES.linies.filter(l => l.xarxa === "Bus")
+                                        .map(l => String(l.ref).toUpperCase()));
+    const busUsats = new Set();
+    for (const m of DATA.files)
+      for (const v of Object.values(m.destins))
+        for (const l of v?.linies || [])
+          if (l.xarxa === "Bus" && l.ref) busUsats.add(String(l.ref).toUpperCase());
+    const n = busUsats.size;
+    const hi = [...busUsats].filter(r => busDib.has(r)).length;
+    $("#m-linies").textContent =
+      `Se dibujan ${ferro} líneas ferroviarias con sus ${LINIES.parades.length} paradas, `
+      + `trazadas desde OpenStreetMap y simplificadas para que la página siga pesando poco. `
+      + (n ? `De los ${n} autobuses que aparecen en algún itinerario, se dibujan ${hi}: `
+           + `los ${n - hi} restantes usan en el horario oficial un código que en `
+           + `OpenStreetMap no está etiquetado, así que el tiempo de viaje sí los cuenta `
+           + `pero el trazo no aparece.` : "");
+  } else $("#m-linies").textContent = "";
+
+  $("#m-fonts").innerHTML = `<ul>
+    <li><strong>Horarios y encaminamiento</strong>: ${esc(M.transit?.font || "MOTIS / Transitous")}.
+      Agrega los horarios oficiales publicados por Renfe/Rodalies, FGC, TMB, TRAM y los
+      autobuses interurbanos de la Generalitat.</li>
+    <li><strong>Trazado de las líneas y paradas</strong>: © colaboradores de
+      <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>, ODbL.</li>
+    <li><strong>Precio de compra y alquiler, población y renta</strong>: los mismos datos
+      oficiales que usa <a href="pisos-vs-distancia.html">Piso vs. distancia</a>
+      (Incasòl, Idescat, INE y Ministerio de Vivienda).</li>
+  </ul>`;
+}
+
+/* ===========================================================================
+   7. TOOLTIP
+   =========================================================================== */
+const tip = $("#tip");
+function showTip(ine, ev) {
+  const m = ROWS.find(r => r.ine === ine);
+  if (!m) return hideTip();
+  const actives = condsActives();
+  const files = actives.map(id => {
+    const d = id === "__lliure" ? { nom: "Tu punto" } : DATA.meta.destins.find(x => x.id === id);
+    const v = viatge(m, id);
+    const cumple = compleixCond(m, id);
+    return `<dt>${esc(d?.nom || id)}${v?.estimat ? " (est.)" : ""}</dt>
+            <dd style="color:${v?.min == null ? "var(--muted)" : cumple ? "var(--ok)" : "var(--ink)"}">${
+              v?.min == null ? "—" : fmtMin(v.min)}</dd>`;
+  }).join("");
+
+  const id = condPrincipal(m);
+  const v = id ? viatge(m, id) : null;
+  tip.innerHTML = `<div class="t-name">${esc(m.nom)}</div>
+    <div class="t-sub">${esc(m.comarca || "")}${
+      m.compra_eur_m2 != null ? ` · ${fmtEur(m.compra_eur_m2)}/m²` : ""}</div>
+    <dl>${files}
+      ${v && !v.estimat && v.a_peu != null ? `<dt>A pie en esa ruta</dt><dd>${v.a_peu} min</dd>` : ""}
+      ${v && !v.estimat && v.transbords != null ? `<dt>Transbordos</dt><dd>${v.transbords}</dd>` : ""}
+      ${m.sortides != null ? `<dt>Salidas 7-9 h</dt><dd>${fmtInt(m.sortides)}</dd>` : ""}
+    </dl>
+    ${actives.length ? `<div class="t-flag" style="color:${m.ok ? "var(--ok)" : "var(--muted)"}">${
+      m.ok ? "✓ Cumple tus condiciones" : "No cumple"}</div>` : ""}`;
+  tip.classList.add("on");
+  tip.setAttribute("aria-hidden", "false");
+  moveTip(ev);
+}
+function moveTip(ev) {
+  const pad = 14, r = tip.getBoundingClientRect();
+  let x = ev.clientX + pad, y = ev.clientY + pad;
+  if (x + r.width > innerWidth - 8) x = ev.clientX - r.width - pad;
+  if (y + r.height > innerHeight - 8) y = ev.clientY - r.height - pad;
+  tip.style.left = Math.max(8, x) + "px";
+  tip.style.top = Math.max(8, y) + "px";
+}
+function hideTip() { tip.classList.remove("on"); tip.setAttribute("aria-hidden", "true"); }
+
+/* ===========================================================================
+   8. INTERFAZ
+   =========================================================================== */
+function syncBtns(sel, attr, val) {
+  document.querySelectorAll(sel + " [" + attr + "]").forEach(b => {
+    b.setAttribute("aria-pressed", String(b.getAttribute(attr) === val));
+  });
+}
+
+function resetUIForView() {
+  $("#f-view").querySelectorAll("[data-view]").forEach(b =>
+    b.setAttribute("aria-pressed", String(b.dataset.view === S.viewId)));
+  setPicking(false);
+}
+
+function initUI() {
+  resetUIForView();
+
+  $("#f-view").onclick = async (e) => {
+    const b = e.target.closest("[data-view]");
+    if (!b || b.dataset.view === S.viewId) return;
+    S.viewId = b.dataset.view;
+    $("#state").hidden = false; $("#state").textContent = "Cargando…";
+    await loadView();
+    $("#state").hidden = true;
+  };
+
+  const comb = (val) => {
+    S.combinar = val;
+    $("#f-comb-algun").setAttribute("aria-pressed", String(val === "algun"));
+    $("#f-comb-tots").setAttribute("aria-pressed", String(val === "tots"));
+    render();
+  };
+  $("#f-comb-algun").onclick = () => comb("algun");
+  $("#f-comb-tots").onclick = () => comb("tots");
+
+  const peu = $("#f-peu");
+  peu.oninput = () => {
+    S.maxPeu = +peu.value;
+    $("#f-peu-v").textContent = S.maxPeu >= 45 ? "lo que sea" : `${S.maxPeu} min`;
+    render();
+  };
+  const tr = $("#f-tr");
+  tr.oninput = () => {
+    S.maxTransbords = +tr.value;
+    $("#f-tr-v").textContent = S.maxTransbords >= 5 ? "los que sea"
+      : S.maxTransbords === 0 ? "directo" : `${S.maxTransbords}`;
+    render();
+  };
+
+  $("#f-capes").onclick = (e) => {
+    const b = e.target.closest("[data-capa]");
+    if (!b) return;
+    const k = b.dataset.capa;
+    S.capes[k] = !S.capes[k];
+    b.setAttribute("aria-pressed", String(S.capes[k]));
+    if (k === "bus" && S.capes.bus) carregaLinies();
+    render();
+  };
+
+  $("#f-nomes").onclick = (e) => {
+    S.nomesOk = !S.nomesOk;
+    e.currentTarget.setAttribute("aria-pressed", String(S.nomesOk));
+    renderTable();
+  };
+
+  $("#f-reset").onclick = () => {
+    S.combinar = "algun"; S.maxPeu = 30; S.maxTransbords = 5;
+    S.puntLliure = null; S.nomesOk = false; S.selected = null;
+    S.capes = { ferro: true, bus: false, parades: true };
+    peu.value = 30; $("#f-peu-v").textContent = "30 min";
+    tr.value = 5;   $("#f-tr-v").textContent = "los que sea";
+    $("#f-comb-algun").setAttribute("aria-pressed", "true");
+    $("#f-comb-tots").setAttribute("aria-pressed", "false");
+    $("#f-nomes").setAttribute("aria-pressed", "false");
+    $("#f-capes").querySelectorAll("[data-capa]").forEach(b =>
+      b.setAttribute("aria-pressed", String(S.capes[b.dataset.capa])));
+    initConds(true);
+    setPicking(false);
+    zoomFit();
+  };
+
+  $("#btn-pick").onclick = () => setPicking(!S.picking);
+
+  // --- mapa ---
+  const map = $("#map");
+  map.addEventListener("pointermove", (ev) => {
+    if (mapDrag) return hideTip();
+    const t = ev.target.closest("[data-ine]");
+    if (t) showTip(t.dataset.ine, ev); else hideTip();
+  });
+  map.addEventListener("pointerleave", hideTip);
+  map.addEventListener("click", (ev) => {
+    if (mapDrag > 3) return;
+    if (S.picking) {
+      const p = svgPoint(map, ev);
+      S.puntLliure = { lat: PROJ.invLat(p.y), lon: PROJ.invLon(p.x) };
+      setPicking(false);
+      S.conds.__lliure = { on: true, max: S.conds.__lliure?.max ?? 90 };
+      // La matriz solo se descarga ahora, la primera vez que hace falta.
+      carregaIso().then(render).catch(e => {
+        console.warn("sin isócronas:", e.message);
+        S.puntLliure = null; delete S.conds.__lliure; render();
+      });
+      render();
+      return;
+    }
+    const t = ev.target.closest("[data-ine]");
+    S.selected = t && t.dataset.ine !== S.selected ? t.dataset.ine : null;
+    render();
+  });
+
+  $("#thead").onclick = (e) => {
+    const th = e.target.closest("th");
+    if (!th) return;
+    const k = th.dataset.k;
+    if (S.sortKey === k) S.sortDir *= -1; else { S.sortKey = k; S.sortDir = k === "nom" ? 1 : 1; }
+    renderTable();
+  };
+  $("#tbody").onclick = (e) => {
+    const tr2 = e.target.closest("tr");
+    if (!tr2) return;
+    S.selected = tr2.dataset.ine === S.selected ? null : tr2.dataset.ine;
+    render();
+  };
+  $("#tbody").addEventListener("pointermove", (e) => {
+    const tr2 = e.target.closest("tr");
+    if (tr2) showTip(tr2.dataset.ine, e); else hideTip();
+  });
+  $("#tbody").addEventListener("pointerleave", hideTip);
+
+  $("#z-in").onclick = () => zoom(1 / 1.45);
+  $("#z-out").onclick = () => zoom(1.45);
+  $("#z-fit").onclick = zoomFit;
+  enablePan(map);
+}
+
+function setPicking(on) {
+  S.picking = on;
+  $("#btn-pick").setAttribute("aria-pressed", String(on));
+  $("#btn-pick").lastChild.textContent = on ? " Pincha en el mapa…" : " Poner mi punto";
+  $("#map").style.cursor = on ? "crosshair" : "";
+}
+
+/* ---------- zoom y arrastre ---------- */
+function svgPoint(svg, ev) {
+  const r = svg.getBoundingClientRect(), v = S.view;
+  return { x: v.x + (ev.clientX - r.left) / r.width * v.w,
+           y: v.y + (ev.clientY - r.top) / r.height * v.h };
+}
+function zoomFit() { S.view = { x: 0, y: 0, w: MAP_W, h: MAP_H }; render(); }
+function zoom(k, cx, cy) {
+  const v = S.view;
+  const nw = clamp(v.w * k, MAP_W / 14, MAP_W), nh = nw * (MAP_H / MAP_W);
+  cx = cx ?? v.x + v.w / 2; cy = cy ?? v.y + v.h / 2;
+  S.view = {
+    x: clamp(cx - (cx - v.x) * (nw / v.w), -MAP_W, MAP_W * 2 - nw),
+    y: clamp(cy - (cy - v.y) * (nh / v.h), -MAP_H, MAP_H * 2 - nh),
+    w: nw, h: nh,
+  };
+  renderMap();
+}
+let mapDrag = 0;
+function enablePan(svg) {
+  let id = null, last = null;
+  svg.addEventListener("pointerdown", (ev) => {
+    if (S.picking) return;
+    id = ev.pointerId; last = svgPoint(svg, ev); mapDrag = 0;
+    svg.setPointerCapture(id);
+  });
+  svg.addEventListener("pointermove", (ev) => {
+    if (id !== ev.pointerId || !last) return;
+    const p = svgPoint(svg, ev);
+    const dx = p.x - last.x, dy = p.y - last.y;
+    if (Math.abs(dx) + Math.abs(dy) < 0.4) return;
+    mapDrag += Math.abs(dx) + Math.abs(dy);
+    S.view = { ...S.view, x: S.view.x - dx, y: S.view.y - dy };
+    renderMap();
+  });
+  const end = (ev) => {
+    if (id !== ev.pointerId) return;
+    try { svg.releasePointerCapture(id); } catch {}
+    id = null; last = null;
+    setTimeout(() => { mapDrag = 0; }, 0);
+  };
+  svg.addEventListener("pointerup", end);
+  svg.addEventListener("pointercancel", end);
+  svg.addEventListener("wheel", (ev) => {
+    ev.preventDefault();
+    const p = svgPoint(svg, ev);
+    zoom(ev.deltaY > 0 ? 1.16 : 1 / 1.16, p.x, p.y);
+  }, { passive: false });
+}
+
+boot();
+</script>
+</body>
+</html>

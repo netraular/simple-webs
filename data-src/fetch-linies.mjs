@@ -88,6 +88,12 @@ function xarxa(t) {
   if (t.route === "tram" || t.route === "light_rail") return "Tram";
   if (t.route === "subway") return "Metro";
   if (t.route === "bus") return "Bus";
+  // Los funiculares no son una red aparte para quien los usa: el de Montjuïc es
+  // de TMB y sale en el plano del metro; el de Vallvidrera es de FGC y va en el
+  // suyo. Se clasifican por operador, no por tecnología.
+  if (t.route === "funicular") {
+    return /fgc|ferrocarrils de la generalitat/i.test(blob) ? "FGC" : "Metro";
+  }
   if (t.route === "train") {
     if (/fgc|ferrocarrils de la generalitat/i.test(blob)) return "FGC";
     if (/rodalies|renfe|cercan/i.test(blob)) return "Rodalies";
@@ -161,17 +167,38 @@ function simplifica(pts, tolM) {
 const dins = ([lon, lat]) =>
   lat >= BBOX[0] && lat <= BBOX[2] && lon >= BBOX[1] && lon <= BBOX[3];
 
-/** Recorta al encuadre partiendo en trozos. Se conserva el primer punto de
-    fuera a cada lado para que el trazo llegue hasta el borde y no se quede
-    colgando a media pantalla. */
+/** Punto exacto donde el segmento a→b cruza el borde del encuadre (a dentro,
+    b fuera). Se toma el primer corte, que es el que toca el borde. */
+function talla(a, b) {
+  const [S, W, N, E] = BBOX;
+  let t = 1;
+  const cand = (num, den) => {
+    if (den === 0) return;
+    const u = num / den;
+    if (u >= 0 && u < t) t = u;
+  };
+  if (b[1] > N) cand(N - a[1], b[1] - a[1]);
+  if (b[1] < S) cand(S - a[1], b[1] - a[1]);
+  if (b[0] > E) cand(E - a[0], b[0] - a[0]);
+  if (b[0] < W) cand(W - a[0], b[0] - a[0]);
+  return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
+}
+
+/** Recorta al encuadre partiendo en trozos. El trazo llega justo hasta el borde
+    — interpolando el cruce, no quedándose con el vértice de fuera, que podía
+    sobresalir más de 150 m — y así no se queda colgando a media pantalla ni se
+    sale del lienzo. */
 function retalla(seg) {
   const out = [];
   let cur = null;
   for (let i = 0; i < seg.length; i++) {
     if (dins(seg[i])) {
-      if (!cur) { cur = []; if (i > 0) cur.push(seg[i - 1]); }
+      if (!cur) { cur = []; if (i > 0) cur.push(talla(seg[i], seg[i - 1])); }
       cur.push(seg[i]);
-    } else if (cur) { cur.push(seg[i]); out.push(cur); cur = null; }
+    } else if (cur) {
+      cur.push(talla(cur[cur.length - 1], seg[i]));
+      out.push(cur); cur = null;
+    }
   }
   if (cur) out.push(cur);
   return out.filter(s => s.length >= 2);
@@ -204,8 +231,12 @@ function afegeixParada(nom, lat, lon, xar) {
  * @param nodes    Map nodeId -> {nom, lat, lon} (de la segunda consulta)
  * @param tolM     tolerancia de simplificación en metros
  * @param accepta  filtro extra por relación (para quedarse solo con unos refs)
+ * @param ambParades  guardar la lista de paradas. Para el bus va en false: son
+ *                 ~4.500 paradas que pesan más que todos los trazados juntos y
+ *                 que, dibujadas, serían una nube de puntos ilegible. De un bus
+ *                 interesa por dónde pasa, no dónde para exactamente.
  */
-function muntaCapa(els, nodes, tolM, accepta = () => true) {
+function muntaCapa(els, nodes, tolM, accepta = () => true, ambParades = true) {
   // Una línea tiene varias relaciones: ida, vuelta y variantes de servicio. Nos
   // quedamos con la variante de trazado más largo, que es la que dibuja la
   // línea entera; las cortas son refuerzos que ya quedan por debajo.
@@ -231,7 +262,7 @@ function muntaCapa(els, nodes, tolM, accepta = () => true) {
     // Paradas: los miembros con rol stop/platform, en orden de recorrido y sin
     // repetir (OSM suele poner el nodo `stop` y el `platform` de la misma parada).
     const vistes = new Set(), pIdx = [];
-    for (const m of g.e.members || []) {
+    for (const m of (ambParades ? g.e.members || [] : [])) {
       if (m.type !== "node") continue;
       if (!/^(stop|platform)/.test(m.role || "")) continue;
       const nd = nodes.get(m.ref);
@@ -264,11 +295,11 @@ const [S, W, N, E] = BBOX;
 const bb = `${S},${W},${N},${E}`;
 
 const relsFerro = await overpass("ferro", `[out:json][timeout:300];
-rel["type"="route"]["route"~"^(subway|light_rail|tram|train)$"](${bb});
+rel["type"="route"]["route"~"^(subway|light_rail|tram|train|funicular)$"](${bb});
 out geom;`);
 
 const nodesFerro = await overpass("ferro-nodes", `[out:json][timeout:300];
-rel["type"="route"]["route"~"^(subway|light_rail|tram|train)$"](${bb})->.r;
+rel["type"="route"]["route"~"^(subway|light_rail|tram|train|funicular)$"](${bb})->.r;
 node(r.r);
 out body;`);
 
@@ -317,10 +348,18 @@ node(r.r);
 out body;`);
   const nb = mapaNodes(nodesBus);
   for (const [k, v] of nb) nodes.set(k, v);
-  // Los buses van más simplificados (40 m): son muchos y son contexto, no el
-  // objeto de lectura. Y siguen la carretera, que ya tiene forma reconocible.
-  muntaCapa(relsBus.elements || [], nodes, 40,
-            (t) => refsBus.has(String(t.ref).toUpperCase()));
+  // Los buses van más simplificados (60 m) y sin paradas: son muchos y son
+  // contexto, no el objeto de lectura. Y siguen la carretera, que ya tiene
+  // forma reconocible.
+  // El horario oficial escribe los códigos con ceros de relleno (L0077) y OSM
+  // sin ellos (L77). Se comparan las dos formas. Recupera pocas líneas, pero
+  // las recupera: el resto de las que faltan es que en OSM no están etiquetadas
+  // con ese código, y eso no se arregla con manipular la cadena.
+  const senseZeros = (s) => String(s).toUpperCase().replace(/^([A-Z]*)0+(\d)/, "$1$2");
+  const refsNorm = new Set([...refsBus].map(senseZeros));
+  muntaCapa(relsBus.elements || [], nodes, 60,
+            (t) => refsBus.has(String(t.ref).toUpperCase())
+                || refsNorm.has(senseZeros(t.ref)), false);
   console.error(`✓ bus: ${linies.length - nFerro} líneas dibujadas de ${refsBus.size} buscadas`);
 }
 

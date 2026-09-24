@@ -315,7 +315,7 @@ footer a{color:var(--focus)}
     <div class="field slider-field">
       <label for="f-peu">Camino como mucho</label>
       <div class="slider-row">
-        <input type="range" id="f-peu" min="0" max="45" step="1" value="30">
+        <input type="range" id="f-peu" min="0" max="60" step="1" value="30">
         <span class="slider-val" id="f-peu-v">30 min</span>
       </div>
     </div>
@@ -1001,7 +1001,6 @@ function renderTiles() {
 function renderMap() {
   const [lo, hi] = valueRange();
   const v = S.view;
-  const byIne = new Map(ROWS.map(m => [m.ine, m]));
   const hiHaConds = condsActives().length > 0;
 
   let s = "";
@@ -1217,6 +1216,13 @@ function valorOrdre(m, k) {
 
 function renderTable() {
   const cols = colsTaula();
+  // Al arrancar se ordena por tiempo de viaje, pero esa columna no existe como
+  // tal: es el mejor (o el peor) de los destinos marcados. Se engancha a la
+  // primera columna de destino para que la cabecera enseñe la flecha y se vea
+  // por qué está ordenada así.
+  if (!cols.some(c => c.k === S.sortKey)) {
+    S.sortKey = cols.find(c => c.k.startsWith("d:"))?.k || "nom";
+  }
   $("#thead").innerHTML = "<tr>" + cols.map(c => {
     const act = S.sortKey === c.k;
     return `<th data-k="${esc(c.k)}" aria-sort="${act ? (S.sortDir > 0 ? "ascending" : "descending") : "none"}">${
@@ -1377,10 +1383,13 @@ function initUI() {
   $("#f-comb-algun").onclick = () => comb("algun");
   $("#f-comb-tots").onclick = () => comb("tots");
 
+  // El tope del deslizador es 60 porque la caminata más larga que hay en los
+  // datos es de 57 min: si se quedara en 45, «lo que sea» seguiría descartando
+  // sitios, que es justo lo contrario de lo que promete la etiqueta.
   const peu = $("#f-peu");
   peu.oninput = () => {
-    S.maxPeu = +peu.value;
-    $("#f-peu-v").textContent = S.maxPeu >= 45 ? "lo que sea" : `${S.maxPeu} min`;
+    S.maxPeu = +peu.value >= 60 ? Infinity : +peu.value;
+    $("#f-peu-v").textContent = S.maxPeu === Infinity ? "lo que sea" : `${S.maxPeu} min`;
     render();
   };
   const tr = $("#f-tr");

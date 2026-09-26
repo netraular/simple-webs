@@ -1,0 +1,1099 @@
+{
+ "generat": "2026-09-26",
+ "nota": "Delitos: solo municipios de más de 20.000 habitantes; el Ministerio no publica por debajo de ese umbral, ni por barrios. Los recuentos son absolutos: la tasa la calcula build-transport.mjs con el padrón de zonas.json.",
+ "delictes": {
+  "font": "Ministerio del Interior · Balance de Criminalidad",
+  "url": "https://estadisticasdecriminalidad.ses.mir.es/sec/jaxiPx/files/_px/es/csv_bdsc/DatosBalanceAnt/l0/1509012.csv_bdsc?nocab=1",
+  "any": 2025,
+  "llindar_habitants": 20000,
+  "municipis": 49
+ },
+ "zona_verda": {
+  "font": "Diputació de Barcelona · Observatori del Territori (Socrata 8aaj-ypcb)",
+  "url": "https://analisi.transparenciacatalunya.cat/resource/8aaj-ypcb.json?$where=provincia='Barcelona'&$select=codi_municipi,municipi,any,_38_comp_sol_sv_hab&$limit=5000",
+  "any": 2024,
+  "municipis": 311
+ },
+ "municipis": {
+  "08015": {
+   "delictes_total": 14901,
+   "robatoris_violencia": 1350,
+   "robatoris_domicili": 339,
+   "zona_verda_m2_hab": 8.1
+  },
+  "08252": {
+   "delictes_total": 1936,
+   "robatoris_violencia": 66,
+   "robatoris_domicili": 64,
+   "zona_verda_m2_hab": 13.9
+  },
+  "08019": {
+   "delictes_total": 169678,
+   "robatoris_violencia": 12643,
+   "robatoris_domicili": 3527,
+   "zona_verda_m2_hab": 8.2
+  },
+  "08035": {
+   "delictes_total": 1195,
+   "robatoris_violencia": 55,
+   "robatoris_domicili": 13,
+   "zona_verda_m2_hab": 13.3
+  },
+  "08051": {
+   "delictes_total": 379,
+   "robatoris_violencia": 4,
+   "robatoris_domicili": 18,
+   "zona_verda_m2_hab": 53.8
+  },
+  "08056": {
+   "delictes_total": 3039,
+   "robatoris_violencia": 67,
+   "robatoris_domicili": 113,
+   "zona_verda_m2_hab": 11.9
+  },
+  "08266": {
+   "delictes_total": 2192,
+   "robatoris_violencia": 61,
+   "robatoris_domicili": 102,
+   "zona_verda_m2_hab": 20.7
+  },
+  "08073": {
+   "delictes_total": 5469,
+   "robatoris_violencia": 422,
+   "robatoris_domicili": 124,
+   "zona_verda_m2_hab": 9.5
+  },
+  "08076": {
+   "delictes_total": 477,
+   "robatoris_violencia": 8,
+   "robatoris_domicili": 12,
+   "zona_verda_m2_hab": 21.6
+  },
+  "08077": {
+   "delictes_total": 3711,
+   "robatoris_violencia": 153,
+   "robatoris_domicili": 69,
+   "zona_verda_m2_hab": 12.6
+  },
+  "08086": {
+   "delictes_total": 577,
+   "robatoris_violencia": 12,
+   "robatoris_domicili": 17,
+   "zona_verda_m2_hab": 15.5
+  },
+  "08089": {
+   "delictes_total": 2290,
+   "robatoris_violencia": 35,
+   "robatoris_domicili": 67,
+   "zona_verda_m2_hab": 16.2
+  },
+  "08096": {
+   "delictes_total": 3691,
+   "robatoris_violencia": 147,
+   "robatoris_domicili": 73,
+   "zona_verda_m2_hab": 15.5
+  },
+  "08101": {
+   "delictes_total": 22957,
+   "robatoris_violencia": 2392,
+   "robatoris_domicili": 348,
+   "zona_verda_m2_hab": 4.3
+  },
+  "08102": {
+   "delictes_total": 1801,
+   "robatoris_violencia": 42,
+   "robatoris_domicili": 49,
+   "zona_verda_m2_hab": 17.0
+  },
+  "08112": {
+   "delictes_total": 400,
+   "robatoris_violencia": 18,
+   "robatoris_domicili": 17,
+   "zona_verda_m2_hab": 14.4
+  },
+  "08113": {
+   "delictes_total": 4931,
+   "robatoris_violencia": 103,
+   "robatoris_domicili": 154,
+   "zona_verda_m2_hab": 9.2
+  },
+  "08114": {
+   "delictes_total": 1557,
+   "robatoris_violencia": 62,
+   "robatoris_domicili": 34,
+   "zona_verda_m2_hab": 19.9
+  },
+  "08118": {
+   "delictes_total": 796,
+   "robatoris_violencia": 34,
+   "robatoris_domicili": 34,
+   "zona_verda_m2_hab": 9.9
+  },
+  "08121": {
+   "delictes_total": 9164,
+   "robatoris_violencia": 459,
+   "robatoris_domicili": 209,
+   "zona_verda_m2_hab": 7.4
+  },
+  "08123": {
+   "delictes_total": 951,
+   "robatoris_violencia": 33,
+   "robatoris_domicili": 47,
+   "zona_verda_m2_hab": 12.8
+  },
+  "08124": {
+   "delictes_total": 2433,
+   "robatoris_violencia": 86,
+   "robatoris_domicili": 64,
+   "zona_verda_m2_hab": 16.1
+  },
+  "08125": {
+   "delictes_total": 2383,
+   "robatoris_violencia": 102,
+   "robatoris_domicili": 60,
+   "zona_verda_m2_hab": 17.5
+  },
+  "08147": {
+   "delictes_total": 454,
+   "robatoris_violencia": 10,
+   "robatoris_domicili": 14,
+   "zona_verda_m2_hab": 10.2
+  },
+  "08163": {
+   "delictes_total": 1619,
+   "robatoris_violencia": 42,
+   "robatoris_domicili": 64,
+   "zona_verda_m2_hab": 5.4
+  },
+  "08169": {
+   "delictes_total": 10656,
+   "robatoris_violencia": 186,
+   "robatoris_domicili": 43,
+   "zona_verda_m2_hab": 10.6
+  },
+  "08172": {
+   "delictes_total": 1356,
+   "robatoris_violencia": 42,
+   "robatoris_domicili": 44,
+   "zona_verda_m2_hab": 4.4
+  },
+  "08180": {
+   "delictes_total": 1570,
+   "robatoris_violencia": 45,
+   "robatoris_domicili": 81,
+   "zona_verda_m2_hab": 14.0
+  },
+  "08184": {
+   "delictes_total": 3637,
+   "robatoris_violencia": 110,
+   "robatoris_domicili": 129,
+   "zona_verda_m2_hab": 24.9
+  },
+  "08187": {
+   "delictes_total": 10635,
+   "robatoris_violencia": 445,
+   "robatoris_domicili": 298,
+   "zona_verda_m2_hab": 8.6
+  },
+  "08194": {
+   "delictes_total": 4198,
+   "robatoris_violencia": 327,
+   "robatoris_domicili": 74,
+   "zona_verda_m2_hab": 14.9
+  },
+  "08196": {
+   "delictes_total": 622,
+   "robatoris_violencia": 14,
+   "robatoris_domicili": 14,
+   "zona_verda_m2_hab": 15.5
+  },
+  "08200": {
+   "delictes_total": 4182,
+   "robatoris_violencia": 116,
+   "robatoris_domicili": 100,
+   "zona_verda_m2_hab": 10.9
+  },
+  "08205": {
+   "delictes_total": 4153,
+   "robatoris_violencia": 105,
+   "robatoris_domicili": 252,
+   "zona_verda_m2_hab": 31.4
+  },
+  "08211": {
+   "delictes_total": 1955,
+   "robatoris_violencia": 67,
+   "robatoris_domicili": 66,
+   "zona_verda_m2_hab": 10.7
+  },
+  "08217": {
+   "delictes_total": 1357,
+   "robatoris_violencia": 46,
+   "robatoris_domicili": 41,
+   "zona_verda_m2_hab": 12.5
+  },
+  "08221": {
+   "delictes_total": 672,
+   "robatoris_violencia": 9,
+   "robatoris_domicili": 30,
+   "zona_verda_m2_hab": 39.1
+  },
+  "08231": {
+   "delictes_total": 951,
+   "robatoris_violencia": 14,
+   "robatoris_domicili": 26,
+   "zona_verda_m2_hab": 15.4
+  },
+  "08238": {
+   "delictes_total": 599,
+   "robatoris_violencia": 22,
+   "robatoris_domicili": 13,
+   "zona_verda_m2_hab": 43.6
+  },
+  "08263": {
+   "delictes_total": 1394,
+   "robatoris_violencia": 44,
+   "robatoris_domicili": 40,
+   "zona_verda_m2_hab": 13.7
+  },
+  "08245": {
+   "delictes_total": 5181,
+   "robatoris_violencia": 492,
+   "robatoris_domicili": 105,
+   "zona_verda_m2_hab": 5.4
+  },
+  "08260": {
+   "delictes_total": 1390,
+   "robatoris_violencia": 50,
+   "robatoris_domicili": 33,
+   "zona_verda_m2_hab": 34.4
+  },
+  "08270": {
+   "delictes_total": 2799,
+   "robatoris_violencia": 79,
+   "robatoris_domicili": 105,
+   "zona_verda_m2_hab": 28.4
+  },
+  "08279": {
+   "delictes_total": 9235,
+   "robatoris_violencia": 312,
+   "robatoris_domicili": 280,
+   "zona_verda_m2_hab": 11.8
+  },
+  "08298": {
+   "delictes_total": 2516,
+   "robatoris_violencia": 80,
+   "robatoris_domicili": 120,
+   "zona_verda_m2_hab": 20.5
+  },
+  "08301": {
+   "delictes_total": 2844,
+   "robatoris_violencia": 68,
+   "robatoris_domicili": 60,
+   "zona_verda_m2_hab": 10.4
+  },
+  "08305": {
+   "delictes_total": 2581,
+   "robatoris_violencia": 97,
+   "robatoris_domicili": 70,
+   "zona_verda_m2_hab": 15.6
+  },
+  "08307": {
+   "delictes_total": 4465,
+   "robatoris_violencia": 117,
+   "robatoris_domicili": 142,
+   "zona_verda_m2_hab": 8.7
+  },
+  "08219": {
+   "delictes_total": 573,
+   "robatoris_violencia": 18,
+   "robatoris_domicili": 22,
+   "zona_verda_m2_hab": 3.1
+  },
+  "08004": {
+   "zona_verda_m2_hab": 54.8
+  },
+  "08021": {
+   "zona_verda_m2_hab": 0.0
+  },
+  "08255": {
+   "zona_verda_m2_hab": 0.0
+  },
+  "08128": {
+   "zona_verda_m2_hab": 73.5
+  },
+  "08199": {
+   "zona_verda_m2_hab": 19.2
+  },
+  "08291": {
+   "zona_verda_m2_hab": 85.3
+  },
+  "08222": {
+   "zona_verda_m2_hab": 22.9
+  },
+  "08154": {
+   "zona_verda_m2_hab": 29.0
+  },
+  "08098": {
+   "zona_verda_m2_hab": 43.8
+  },
+  "08170": {
+   "zona_verda_m2_hab": 9.9
+  },
+  "08236": {
+   "zona_verda_m2_hab": 17.1
+  },
+  "08070": {
+   "zona_verda_m2_hab": 35.8
+  },
+  "08131": {
+   "zona_verda_m2_hab": 32.4
+  },
+  "08197": {
+   "zona_verda_m2_hab": 30.5
+  },
+  "08141": {
+   "zona_verda_m2_hab": 9.4
+  },
+  "08023": {
+   "zona_verda_m2_hab": 71.4
+  },
+  "08137": {
+   "zona_verda_m2_hab": 5.0
+  },
+  "08107": {
+   "zona_verda_m2_hab": 69.0
+  },
+  "08190": {
+   "zona_verda_m2_hab": 37.6
+  },
+  "08267": {
+   "zona_verda_m2_hab": 54.5
+  },
+  "08040": {
+   "zona_verda_m2_hab": 14.5
+  },
+  "08177": {
+   "zona_verda_m2_hab": 14.8
+  },
+  "08143": {
+   "zona_verda_m2_hab": 45.0
+  },
+  "08178": {
+   "zona_verda_m2_hab": 26.8
+  },
+  "08188": {
+   "zona_verda_m2_hab": 0.0
+  },
+  "08232": {
+   "zona_verda_m2_hab": 18.7
+  },
+  "08149": {
+   "zona_verda_m2_hab": 45.4
+  },
+  "08220": {
+   "zona_verda_m2_hab": 40.6
+  },
+  "08226": {
+   "zona_verda_m2_hab": 28.4
+  },
+  "08031": {
+   "zona_verda_m2_hab": 17.4
+  },
+  "08067": {
+   "zona_verda_m2_hab": 12.6
+  },
+  "08048": {
+   "zona_verda_m2_hab": 10.7
+  },
+  "08183": {
+   "zona_verda_m2_hab": 23.3
+  },
+  "08095": {
+   "zona_verda_m2_hab": 22.2
+  },
+  "08156": {
+   "zona_verda_m2_hab": 50.7
+  },
+  "08248": {
+   "zona_verda_m2_hab": 32.5
+  },
+  "08228": {
+   "zona_verda_m2_hab": 47.0
+  },
+  "08049": {
+   "zona_verda_m2_hab": 14.5
+  },
+  "08003": {
+   "zona_verda_m2_hab": 29.2
+  },
+  "08182": {
+   "zona_verda_m2_hab": 89.6
+  },
+  "08195": {
+   "zona_verda_m2_hab": 0.0
+  },
+  "08293": {
+   "zona_verda_m2_hab": 44.5
+  },
+  "08162": {
+   "zona_verda_m2_hab": 14.7
+  },
+  "08111": {
+   "zona_verda_m2_hab": 0.0
+  },
+  "08201": {
+   "zona_verda_m2_hab": 37.3
+  },
+  "08207": {
+   "zona_verda_m2_hab": 4.3
+  },
+  "08253": {
+   "zona_verda_m2_hab": 41.6
+  },
+  "08115": {
+   "zona_verda_m2_hab": 47.7
+  },
+  "08055": {
+   "zona_verda_m2_hab": 104.9
+  },
+  "08295": {
+   "zona_verda_m2_hab": 141.0
+  },
+  "08144": {
+   "zona_verda_m2_hab": 47.6
+  },
+  "08167": {
+   "zona_verda_m2_hab": 27.7
+  },
+  "08271": {
+   "zona_verda_m2_hab": 34.7
+  },
+  "08106": {
+   "zona_verda_m2_hab": 25.3
+  },
+  "08100": {
+   "zona_verda_m2_hab": 34.3
+  },
+  "08059": {
+   "zona_verda_m2_hab": 5.5
+  },
+  "08905": {
+   "zona_verda_m2_hab": 32.9
+  },
+  "08278": {
+   "zona_verda_m2_hab": 36.1
+  },
+  "08285": {
+   "zona_verda_m2_hab": 13.5
+  },
+  "08283": {
+   "zona_verda_m2_hab": 21.4
+  },
+  "08028": {
+   "zona_verda_m2_hab": 188.2
+  },
+  "08265": {
+   "zona_verda_m2_hab": 47.2
+  },
+  "08065": {
+   "zona_verda_m2_hab": 11.2
+  },
+  "08275": {
+   "zona_verda_m2_hab": 69.5
+  },
+  "08244": {
+   "zona_verda_m2_hab": 30.6
+  },
+  "08091": {
+   "zona_verda_m2_hab": 31.2
+  },
+  "08057": {
+   "zona_verda_m2_hab": 24.2
+  },
+  "08158": {
+   "zona_verda_m2_hab": 51.1
+  },
+  "08901": {
+   "zona_verda_m2_hab": 42.0
+  },
+  "08134": {
+   "zona_verda_m2_hab": 29.0
+  },
+  "08229": {
+   "zona_verda_m2_hab": 13.2
+  },
+  "08191": {
+   "zona_verda_m2_hab": 92.1
+  },
+  "08045": {
+   "zona_verda_m2_hab": 0.0
+  },
+  "08202": {
+   "zona_verda_m2_hab": 16.0
+  },
+  "08117": {
+   "zona_verda_m2_hab": 44.7
+  },
+  "08126": {
+   "zona_verda_m2_hab": 27.7
+  },
+  "08041": {
+   "zona_verda_m2_hab": 8.2
+  },
+  "08159": {
+   "zona_verda_m2_hab": 15.0
+  },
+  "08088": {
+   "zona_verda_m2_hab": 9.8
+  },
+  "08308": {
+   "zona_verda_m2_hab": 6.6
+  },
+  "08259": {
+   "zona_verda_m2_hab": 24.8
+  },
+  "08062": {
+   "zona_verda_m2_hab": 175.5
+  },
+  "08142": {
+   "zona_verda_m2_hab": 35.0
+  },
+  "08085": {
+   "zona_verda_m2_hab": 51.1
+  },
+  "08151": {
+   "zona_verda_m2_hab": 49.8
+  },
+  "08166": {
+   "zona_verda_m2_hab": 9.1
+  },
+  "08038": {
+   "zona_verda_m2_hab": 32.9
+  },
+  "08306": {
+   "zona_verda_m2_hab": 21.6
+  },
+  "08247": {
+   "zona_verda_m2_hab": 10.9
+  },
+  "08033": {
+   "zona_verda_m2_hab": 34.3
+  },
+  "08213": {
+   "zona_verda_m2_hab": 43.7
+  },
+  "08164": {
+   "zona_verda_m2_hab": 27.3
+  },
+  "08302": {
+   "zona_verda_m2_hab": 9.6
+  },
+  "08225": {
+   "zona_verda_m2_hab": 12.5
+  },
+  "08069": {
+   "zona_verda_m2_hab": 39.1
+  },
+  "08135": {
+   "zona_verda_m2_hab": 37.1
+  },
+  "08072": {
+   "zona_verda_m2_hab": 80.2
+  },
+  "08240": {
+   "zona_verda_m2_hab": 21.3
+  },
+  "08105": {
+   "zona_verda_m2_hab": 7.4
+  },
+  "08189": {
+   "zona_verda_m2_hab": 66.2
+  },
+  "08081": {
+   "zona_verda_m2_hab": 33.0
+  },
+  "08215": {
+   "zona_verda_m2_hab": 12.2
+  },
+  "08047": {
+   "zona_verda_m2_hab": 28.7
+  },
+  "08214": {
+   "zona_verda_m2_hab": 15.4
+  },
+  "08287": {
+   "zona_verda_m2_hab": 54.4
+  },
+  "08185": {
+   "zona_verda_m2_hab": 33.0
+  },
+  "08130": {
+   "zona_verda_m2_hab": 9.7
+  },
+  "08145": {
+   "zona_verda_m2_hab": 120.1
+  },
+  "08303": {
+   "zona_verda_m2_hab": 27.1
+  },
+  "08050": {
+   "zona_verda_m2_hab": 0.0
+  },
+  "08216": {
+   "zona_verda_m2_hab": 215.5
+  },
+  "08025": {
+   "zona_verda_m2_hab": 48.5
+  },
+  "08138": {
+   "zona_verda_m2_hab": 18.0
+  },
+  "08103": {
+   "zona_verda_m2_hab": 99.5
+  },
+  "08234": {
+   "zona_verda_m2_hab": 130.4
+  },
+  "08192": {
+   "zona_verda_m2_hab": 20.1
+  },
+  "08092": {
+   "zona_verda_m2_hab": 35.1
+  },
+  "08058": {
+   "zona_verda_m2_hab": 100.9
+  },
+  "08208": {
+   "zona_verda_m2_hab": 66.0
+  },
+  "08006": {
+   "zona_verda_m2_hab": 20.1
+  },
+  "08063": {
+   "zona_verda_m2_hab": 184.5
+  },
+  "08119": {
+   "zona_verda_m2_hab": 62.6
+  },
+  "08034": {
+   "zona_verda_m2_hab": 91.9
+  },
+  "08160": {
+   "zona_verda_m2_hab": 93.7
+  },
+  "08277": {
+   "zona_verda_m2_hab": 123.1
+  },
+  "08133": {
+   "zona_verda_m2_hab": 55.1
+  },
+  "08074": {
+   "zona_verda_m2_hab": 16.2
+  },
+  "08066": {
+   "zona_verda_m2_hab": 127.4
+  },
+  "08078": {
+   "zona_verda_m2_hab": 7.3
+  },
+  "08176": {
+   "zona_verda_m2_hab": 81.2
+  },
+  "08206": {
+   "zona_verda_m2_hab": 34.9
+  },
+  "08262": {
+   "zona_verda_m2_hab": 16.9
+  },
+  "08292": {
+   "zona_verda_m2_hab": 23.0
+  },
+  "08109": {
+   "zona_verda_m2_hab": 35.0
+  },
+  "08127": {
+   "zona_verda_m2_hab": 34.5
+  },
+  "08242": {
+   "zona_verda_m2_hab": 28.2
+  },
+  "08108": {
+   "zona_verda_m2_hab": 22.3
+  },
+  "08139": {
+   "zona_verda_m2_hab": 99.4
+  },
+  "08029": {
+   "zona_verda_m2_hab": 34.3
+  },
+  "08122": {
+   "zona_verda_m2_hab": 96.7
+  },
+  "08084": {
+   "zona_verda_m2_hab": 137.8
+  },
+  "08016": {
+   "zona_verda_m2_hab": 21.4
+  },
+  "08250": {
+   "zona_verda_m2_hab": 5.7
+  },
+  "08020": {
+   "zona_verda_m2_hab": 48.2
+  },
+  "08087": {
+   "zona_verda_m2_hab": 81.3
+  },
+  "08010": {
+   "zona_verda_m2_hab": 22.5
+  },
+  "08276": {
+   "zona_verda_m2_hab": 106.7
+  },
+  "08237": {
+   "zona_verda_m2_hab": 20.4
+  },
+  "08280": {
+   "zona_verda_m2_hab": 18.9
+  },
+  "08155": {
+   "zona_verda_m2_hab": 21.4
+  },
+  "08282": {
+   "zona_verda_m2_hab": 17.7
+  },
+  "08203": {
+   "zona_verda_m2_hab": 136.5
+  },
+  "08209": {
+   "zona_verda_m2_hab": 54.6
+  },
+  "08273": {
+   "zona_verda_m2_hab": 81.4
+  },
+  "08153": {
+   "zona_verda_m2_hab": 54.5
+  },
+  "08193": {
+   "zona_verda_m2_hab": 31.4
+  },
+  "08054": {
+   "zona_verda_m2_hab": 186.3
+  },
+  "08249": {
+   "zona_verda_m2_hab": 25.8
+  },
+  "08002": {
+   "zona_verda_m2_hab": 12.7
+  },
+  "08227": {
+   "zona_verda_m2_hab": 8.3
+  },
+  "08018": {
+   "zona_verda_m2_hab": 51.3
+  },
+  "08903": {
+   "zona_verda_m2_hab": 9.5
+  },
+  "08269": {
+   "zona_verda_m2_hab": 378.1
+  },
+  "08246": {
+   "zona_verda_m2_hab": 14.1
+  },
+  "08286": {
+   "zona_verda_m2_hab": 71.4
+  },
+  "08136": {
+   "zona_verda_m2_hab": 26.8
+  },
+  "08239": {
+   "zona_verda_m2_hab": 331.7
+  },
+  "08272": {
+   "zona_verda_m2_hab": 149.1
+  },
+  "08026": {
+   "zona_verda_m2_hab": 83.5
+  },
+  "08299": {
+   "zona_verda_m2_hab": 42.9
+  },
+  "08294": {
+   "zona_verda_m2_hab": 139.1
+  },
+  "08116": {
+   "zona_verda_m2_hab": 11.0
+  },
+  "08181": {
+   "zona_verda_m2_hab": 19.5
+  },
+  "08175": {
+   "zona_verda_m2_hab": 44.7
+  },
+  "08300": {
+   "zona_verda_m2_hab": 72.2
+  },
+  "08014": {
+   "zona_verda_m2_hab": 36.7
+  },
+  "08274": {
+   "zona_verda_m2_hab": 14.7
+  },
+  "08281": {
+   "zona_verda_m2_hab": 35.4
+  },
+  "08261": {
+   "zona_verda_m2_hab": 41.1
+  },
+  "08204": {
+   "zona_verda_m2_hab": 30.5
+  },
+  "08039": {
+   "zona_verda_m2_hab": 129.0
+  },
+  "08001": {
+   "zona_verda_m2_hab": 30.4
+  },
+  "08024": {
+   "zona_verda_m2_hab": 52.1
+  },
+  "08241": {
+   "zona_verda_m2_hab": 126.1
+  },
+  "08174": {
+   "zona_verda_m2_hab": 23.0
+  },
+  "08171": {
+   "zona_verda_m2_hab": 11.6
+  },
+  "08093": {
+   "zona_verda_m2_hab": 0.0
+  },
+  "08284": {
+   "zona_verda_m2_hab": 26.2
+  },
+  "08297": {
+   "zona_verda_m2_hab": 78.6
+  },
+  "08289": {
+   "zona_verda_m2_hab": 40.0
+  },
+  "08179": {
+   "zona_verda_m2_hab": 154.1
+  },
+  "08017": {
+   "zona_verda_m2_hab": 20.4
+  },
+  "08011": {
+   "zona_verda_m2_hab": 27.1
+  },
+  "08080": {
+   "zona_verda_m2_hab": 71.1
+  },
+  "08046": {
+   "zona_verda_m2_hab": 9.6
+  },
+  "08099": {
+   "zona_verda_m2_hab": 16.1
+  },
+  "08218": {
+   "zona_verda_m2_hab": 12.7
+  },
+  "08296": {
+   "zona_verda_m2_hab": 62.2
+  },
+  "08007": {
+   "zona_verda_m2_hab": 30.4
+  },
+  "08290": {
+   "zona_verda_m2_hab": 68.4
+  },
+  "08132": {
+   "zona_verda_m2_hab": 21.0
+  },
+  "08212": {
+   "zona_verda_m2_hab": 33.1
+  },
+  "08904": {
+   "zona_verda_m2_hab": 8.9
+  },
+  "08094": {
+   "zona_verda_m2_hab": 30.7
+  },
+  "08150": {
+   "zona_verda_m2_hab": 227.6
+  },
+  "08061": {
+   "zona_verda_m2_hab": 231.2
+  },
+  "08210": {
+   "zona_verda_m2_hab": 14.4
+  },
+  "08043": {
+   "zona_verda_m2_hab": 99.6
+  },
+  "08268": {
+   "zona_verda_m2_hab": 71.4
+  },
+  "08032": {
+   "zona_verda_m2_hab": 13.1
+  },
+  "08005": {
+   "zona_verda_m2_hab": 71.5
+  },
+  "08304": {
+   "zona_verda_m2_hab": 42.9
+  },
+  "08120": {
+   "zona_verda_m2_hab": 224.5
+  },
+  "08079": {
+   "zona_verda_m2_hab": 75.1
+  },
+  "08037": {
+   "zona_verda_m2_hab": 8.2
+  },
+  "08083": {
+   "zona_verda_m2_hab": 25.2
+  },
+  "08090": {
+   "zona_verda_m2_hab": 46.2
+  },
+  "08013": {
+   "zona_verda_m2_hab": 82.1
+  },
+  "08230": {
+   "zona_verda_m2_hab": 9.7
+  },
+  "08165": {
+   "zona_verda_m2_hab": 13.5
+  },
+  "08146": {
+   "zona_verda_m2_hab": 28.1
+  },
+  "08157": {
+   "zona_verda_m2_hab": 29.7
+  },
+  "08233": {
+   "zona_verda_m2_hab": 32.5
+  },
+  "08068": {
+   "zona_verda_m2_hab": 67.5
+  },
+  "08152": {
+   "zona_verda_m2_hab": 60.8
+  },
+  "08052": {
+   "zona_verda_m2_hab": 62.1
+  },
+  "08022": {
+   "zona_verda_m2_hab": 9.6
+  },
+  "08223": {
+   "zona_verda_m2_hab": 22.6
+  },
+  "08071": {
+   "zona_verda_m2_hab": 9.9
+  },
+  "08082": {
+   "zona_verda_m2_hab": 226.6
+  },
+  "08254": {
+   "zona_verda_m2_hab": 17.3
+  },
+  "08110": {
+   "zona_verda_m2_hab": 10.0
+  },
+  "08256": {
+   "zona_verda_m2_hab": 21.8
+  },
+  "08104": {
+   "zona_verda_m2_hab": 8.3
+  },
+  "08008": {
+   "zona_verda_m2_hab": 16.1
+  },
+  "08264": {
+   "zona_verda_m2_hab": 8.6
+  },
+  "08129": {
+   "zona_verda_m2_hab": 214.7
+  },
+  "08075": {
+   "zona_verda_m2_hab": 91.9
+  },
+  "08097": {
+   "zona_verda_m2_hab": 34.5
+  },
+  "08258": {
+   "zona_verda_m2_hab": 40.5
+  },
+  "08027": {
+   "zona_verda_m2_hab": 20.5
+  },
+  "08012": {
+   "zona_verda_m2_hab": 96.8
+  },
+  "08060": {
+   "zona_verda_m2_hab": 6.3
+  },
+  "08036": {
+   "zona_verda_m2_hab": 29.1
+  },
+  "08148": {
+   "zona_verda_m2_hab": 116.0
+  },
+  "08235": {
+   "zona_verda_m2_hab": 11.9
+  },
+  "08009": {
+   "zona_verda_m2_hab": 35.6
+  },
+  "08161": {
+   "zona_verda_m2_hab": 69.8
+  },
+  "08288": {
+   "zona_verda_m2_hab": 65.9
+  },
+  "08042": {
+   "zona_verda_m2_hab": 62.2
+  },
+  "08902": {
+   "zona_verda_m2_hab": 60.7
+  },
+  "08168": {
+   "zona_verda_m2_hab": 100.8
+  },
+  "08251": {
+   "zona_verda_m2_hab": 60.7
+  },
+  "08198": {
+   "zona_verda_m2_hab": 34.1
+  },
+  "08044": {
+   "zona_verda_m2_hab": 4.9
+  },
+  "08140": {
+   "zona_verda_m2_hab": 31.0
+  },
+  "08030": {
+   "zona_verda_m2_hab": 34.6
+  },
+  "08243": {
+   "zona_verda_m2_hab": 31.0
+  },
+  "08053": {
+   "zona_verda_m2_hab": 115.0
+  },
+  "08064": {
+   "zona_verda_m2_hab": 4.7
+  },
+  "08257": {
+   "zona_verda_m2_hab": 0.0
+  },
+  "08224": {
+   "zona_verda_m2_hab": 62.5
+  }
+ }
+}

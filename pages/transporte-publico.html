@@ -792,12 +792,14 @@ footer a{color:var(--focus)}
             índice propio sin tenerlo en cuenta.
           </p>
           <p>
+            <strong>Cuidado con los delitos.</strong>
+            <span id="m-seg-cobertura"></span>
+            <span id="m-seg-lloc"></span>
+          </p>
+          <p>
             Falta lo que no se publica con este grano y pesa tanto como esto:
-            <strong>criminalidad</strong> (el Ministerio del Interior y los Mossos
-            publican por municipios grandes o por regiones policiales, no por las 164
-            zonas de este mapa), ruido, calidad del aire y estado real de las
-            viviendas. Antes que enseñar un número que no cuadra con el mapa,
-            no se enseña.
+            ruido, calidad del aire y estado real de las viviendas. Antes que
+            enseñar un número que no cuadra con el mapa, no se enseña.
           </p>
         </div>
       </details>
@@ -1004,9 +1006,42 @@ const CAPES = [
     get: (m) => m.ind?.turismes_per_1000_hab, fmt: (v) => fmtInt(v),
     nota: "Turismos matriculados por cada mil habitantes. Es la otra cara del "
         + "transporte público: donde no llega, se depende del coche." },
+
+  { id: "zona_verda_m2_hab", grup: "Seguridad y entorno", nom: "Zona verde por habitante",
+    eix: "m²/hab.", muni: true,
+    get: (m) => m.ind?.zona_verda_m2_hab, fmt: (v) => nf(1).format(v) + " m²",
+    nota: "Metros cuadrados de suelo verde urbano por habitante. Un municipio "
+        + "pequeño rodeado de monte sale altísimo: mide el verde que hay "
+        + "dentro del término, no lo cerca que tienes un parque." },
+  { id: "delictes_1000", grup: "Seguridad y entorno", nom: "Delitos por 1.000 habitantes",
+    eix: "delitos/1.000 hab.", muni: true, parcial: true,
+    get: (m) => m.ind?.delictes_1000, fmt: (v) => nf(1).format(v),
+    nota: "Infracciones penales conocidas en todo el año, por cada mil "
+        + "habitantes. Se cuentan donde ocurren, no donde vive quien las "
+        + "sufre: el aeropuerto dispara el Prat de Llobregat, y en las "
+        + "ciudades grandes casi la mitad son hurtos. Léela como «cuánto "
+        + "pasa aquí», no como «qué riesgo corro si vivo aquí»." },
+  { id: "robatoris_domicili_1000", grup: "Seguridad y entorno", nom: "Robos en domicilio",
+    eix: "robos/1.000 hab.", muni: true, parcial: true,
+    get: (m) => m.ind?.robatoris_domicili_1000, fmt: (v) => nf(1).format(v),
+    nota: "Robos con fuerza en viviendas, por cada mil habitantes. Es la única "
+        + "de las tres que mide algo que le pasa a quien vive allí, y por eso "
+        + "no se parece a las otras: arriba salen municipios acomodados de "
+        + "casa baja, que es donde se roba en casas." },
+  { id: "robatoris_violencia_1000", grup: "Seguridad y entorno", nom: "Robos con violencia",
+    eix: "robos/1.000 hab.", muni: true, parcial: true,
+    get: (m) => m.ind?.robatoris_violencia_1000, fmt: (v) => nf(1).format(v),
+    nota: "Robos con violencia o intimidación, por cada mil habitantes. Misma "
+        + "advertencia que el total: se cuentan donde ocurren, y se concentran "
+        + "donde hay mucha gente de paso." },
 ];
 const CAPA_DE = new Map(CAPES.map(c => [c.id, c]));
 const capa = () => CAPA_DE.get(S.capa) || CAPES[0];
+
+/** Lo que el fichero cuenta sobre las capas de seguridad: el umbral de
+    habitantes por debajo del cual el Ministerio no publica, y los años. Se lee
+    del dato y no se escribe a mano para que no se desfase al reconstruirlo. */
+const SEG = () => DATA?.meta?.indicadors?.seguretat || null;
 
 /** La capa del eje vertical del gráfico. Contra el tiempo no se puede dibujar
     el tiempo, así que ahí el gráfico se queda con el precio. */
@@ -1905,9 +1940,14 @@ function renderLegend() {
   // Cuántas zonas se quedan sin color, y por qué. En las capas que solo
   // existen por municipio son los 73 barrios de golpe, y eso hay que decirlo
   // antes de que alguien lea el gris como «aquí no pasa nada».
+  // A las capas `parcial` no les faltan solo los barrios: les falta también
+  // más de la mitad de los municipios, y decir «los 73 barrios» ahí sería
+  // dejar 53 huecos sin explicar.
   const sense = DATA.zones.length - DATA.zones.filter(m => c.get(m) != null).length;
+  const muniSense = DATA.zones.filter(m => m.tipus !== "barri" && c.get(m) == null).length;
   $("#legend-null").textContent =
     c.viu ? "Sin ruta viable"
+    : c.parcial ? `Sin dato · ${DATA.meta.zones.barris} barrios y ${muniSense} municipios`
     : c.muni ? `Sin dato · los ${DATA.meta.zones.barris} barrios de Barcelona`
     : sense ? `Sin dato publicado · ${sense} ${sense === 1 ? "zona" : "zonas"}`
     : "Sin dato publicado";
@@ -1919,9 +1959,12 @@ function renderLegend() {
         ? (S.combinar === "tots"
             ? "Cada zona, coloreada por el destino que más le cuesta de los que has marcado."
             : "Cada zona, coloreada por el mejor de los destinos que has marcado.")
-        : c.nota + (c.muni
-            ? " El INE no lo publica por barrio, así que Barcelona sale en gris entera."
-            : "");
+        : c.nota + (c.parcial
+            ? ` Solo lo publica el Ministerio para los municipios de más de ${
+                fmtInt(SEG()?.llindar_habitants || 20000)} habitantes: el resto del mapa, en gris.`
+            : c.muni
+              ? " El INE no lo publica por barrio, así que Barcelona sale en gris entera."
+              : "");
 
   const usades = LINIES ? XARXES.filter(x => LINIES.linies.some(l => l.xarxa === x)) : [];
   $("#legend-xarxes").innerHTML = "<h3>Redes</h3>" + (usades.length
@@ -2124,6 +2167,21 @@ function renderTexts() {
       + (IND.any ? ` Año de referencia principal: ${IND.any}.` : "");
     $("#m-ind-estrangera").textContent = IND.nota_estrangera || "";
     $("#m-ind-barris").textContent = IND.nota_barris || "";
+
+    // La cobertura de los delitos se cuenta igual que la del resto: de las
+    // propias zonas. Es la capa con más huecos de la página y la que peor se
+    // lee sola, así que la advertencia va con el número delante.
+    const SG = IND.seguretat;
+    if (SG) {
+      const conDato = DATA.zones.filter(m => m.ind?.delictes_1000 != null).length;
+      const nMuni = M.zones.municipis;
+      $("#m-seg-cobertura").textContent =
+        `Los delitos salen del Balance de Criminalidad del Ministerio del `
+        + `Interior${SG.delictes_any ? `, año ${SG.delictes_any}` : ""}, y solo `
+        + `cubren ${conDato} de los ${nMuni} municipios: ${SG.nota} Por eso esas `
+        + `tres capas dejan la mayor parte del mapa en gris.`;
+      $("#m-seg-lloc").textContent = SG.nota_lloc || "";
+    }
   }
 
   $("#m-fonts").innerHTML = `<ul>
@@ -2144,6 +2202,15 @@ function renderTexts() {
     <li><strong>Paro, estudios superiores, índice socioeconómico, parque de alquiler
       y parque de vehículos</strong>: <a href="https://www.idescat.cat/dev/api/emex/">Idescat,
       API EMEX</a>, por municipio.</li>
+    <li><strong>Delitos</strong>: <a href="https://estadisticasdecriminalidad.ses.mir.es/">Ministerio
+      del Interior, Balance de Criminalidad</a>${M.indicadors?.seguretat?.delictes_any
+        ? `, año ${M.indicadors.seguretat.delictes_any}` : ""}. Solo municipios
+      de más de 20.000 habitantes.</li>
+    <li><strong>Zona verde por habitante</strong>: Diputació de Barcelona,
+      Observatori del Territori, vía
+      <a href="https://analisi.transparenciacatalunya.cat/">Dades Obertes de
+      Catalunya</a>${M.indicadors?.seguretat?.zona_verda_any
+        ? `, año ${M.indicadors.seguretat.zona_verda_any}` : ""}.</li>
     <li><strong>Población</strong>: padrón municipal (INE) e Idescat.</li>
   </ul>`;
 }

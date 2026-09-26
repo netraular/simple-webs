@@ -106,6 +106,52 @@ for (const c of CAPES) {
 ok(cobMal.length === 0, "la marca «solo municipal» coincide con los datos",
    cobMal.length ? `(${cobMal.join("; ")})` : "");
 
+/* `parcial` promete que además faltan municipios —no dos o tres sin precio
+   publicado, sino un hueco estructural—. El umbral distingue las dos cosas: a
+   una capa le pueden faltar un par de zonas por muestra corta sin que el mapa
+   deje de leerse. Si algún día el Ministerio bajara su umbral de habitantes y
+   las cubriera casi todas, la leyenda seguiría prometiendo un mapa medio gris
+   que ya no lo estaría: mejor que falle aquí. */
+const LLINDAR_PARCIAL = 0.8;
+const nMuni = zones.filter(m => m.tipus !== "barri").length;
+let parMal = [];
+for (const c of CAPES) {
+  if (c.viu) continue;
+  const con = zones.filter(m => m.tipus !== "barri" && c.get(m) != null).length;
+  const frac = con / nMuni;
+  if (c.parcial && frac >= LLINDAR_PARCIAL) {
+    parMal.push(`${c.id} dice parcial y cubre ${con}/${nMuni}`);
+  }
+  if (!c.parcial && con > 0 && frac < LLINDAR_PARCIAL) {
+    parMal.push(`${c.id} cubre ${con}/${nMuni} municipios y no dice parcial`);
+  }
+}
+ok(parMal.length === 0, "la marca «cobertura parcial» coincide con los datos",
+   parMal.length ? `(${parMal.join("; ")})` : "");
+
+/* Las tasas del Ministerio se calculan en build-transport.mjs a partir de
+   recuentos y del padrón. Un error de denominador daría cifras absurdas sin
+   romper nada, así que se acotan contra el rango que tiene sentido. */
+const TASES = { delictes_1000: [5, 250], robatoris_violencia_1000: [0, 40],
+                robatoris_domicili_1000: [0, 20], zona_verda_m2_hab: [0.5, 400] };
+let tasaMal = [];
+for (const [camp, [lo, hi]] of Object.entries(TASES)) {
+  const vs = zones.map(m => m.ind?.[camp]).filter(v => v != null);
+  if (!vs.length) { tasaMal.push(`${camp} sin ningún valor`); continue; }
+  const fuera = vs.filter(v => v < lo || v > hi);
+  if (fuera.length) tasaMal.push(`${camp}: ${fuera.length} fuera de ${lo}–${hi}`);
+}
+ok(tasaMal.length === 0, "las tasas de seguridad y entorno caen en rangos plausibles",
+   tasaMal.length ? `(${tasaMal.join("; ")})` : "");
+
+/* Los robos de las dos clases son un subconjunto del total: si alguno lo
+   superara, el cruce por código INE estaría mezclando municipios. */
+const subMal = zones.filter(m => m.ind?.delictes_1000 != null
+  && (m.ind.robatoris_violencia_1000 > m.ind.delictes_1000
+   || m.ind.robatoris_domicili_1000  > m.ind.delictes_1000)).map(m => m.nom);
+ok(subMal.length === 0, "ningún tipo de robo supera el total de delitos de su zona",
+   subMal.length ? `(${subMal.join(", ")})` : "");
+
 /* Los identificadores son la clave del desplegable, del estado y de la columna
    de la tabla: repetir uno rompería las tres cosas a la vez. */
 const ids = CAPES.map(c => c.id);

@@ -68,6 +68,9 @@ const transit = readOpt("transit.json");
 const linies  = readOpt("linies.json");
 const iso     = readOpt("isocrones.json");
 const pois    = read(src("pois.json"));
+const segur   = readOpt("seguretat.json");
+
+if (!segur) avisos.push("falta seguretat.json: sin delitos ni zona verde (python3 build_seguretat.py)");
 
 if (!transit) throw new Error("falta transit.json — lanza antes fetch-transit.py");
 if (!linies)  avisos.push("falta linies.json: la página se quedará sin la red dibujada");
@@ -144,6 +147,36 @@ const INDICADORS = [
  * es **nacionalidad**, no lugar de nacimiento; un vecino nacionalizado cuenta
  * como español.
  */
+/**
+ * Los campos de seguretat.json, que van por municipio y por su cuenta.
+ *
+ * Los tres primeros llegan del Ministerio del Interior como **recuentos**, y
+ * aquí se pasan a tasa por 1.000 habitantes con el mismo padrón que usa el
+ * resto de la página, para no meter un segundo denominador. Interior solo
+ * desglosa municipios de más de 20.000 habitantes: de los 91 nuestros cubre
+ * 38, y ninguno de los 73 barrios. Van igualmente, y la página avisa.
+ */
+const SEGURETAT = [
+  { camp: "delictes_1000",           origen: "delictes_total",       tasa: true },
+  { camp: "robatoris_violencia_1000", origen: "robatoris_violencia", tasa: true },
+  { camp: "robatoris_domicili_1000", origen: "robatoris_domicili",   tasa: true },
+  { camp: "zona_verda_m2_hab",       origen: "zona_verda_m2_hab",    tasa: false },
+];
+
+/** Añade al bloque `ind` lo que venga de seguretat.json para este municipio. */
+function seguretat(o, id, poblacio) {
+  const s = segur?.municipis?.[id];
+  if (!s) return o;
+  for (const { camp, origen, tasa } of SEGURETAT) {
+    const v = s[origen];
+    if (v == null) continue;
+    if (!tasa) { o[camp] = v; continue; }
+    if (!poblacio) continue;                 // sin padrón no hay tasa que valga
+    o[camp] = Math.round(v / poblacio * 1000 * 10) / 10;
+  }
+  return o;
+}
+
 function indicadors(ind) {
   const o = {};
   // Los campos sin dato se omiten en vez de ir a `null`: son 6 × 73 barrios, y
@@ -247,7 +280,11 @@ function zona(m, id, tipus, t) {
     tren: m.tren ?? null,
     estacions: m.estacions ?? null,
     sortides: t?.sortides_hora_punta ?? m.sortides ?? null,
-    ind: indicadors(m.ind),
+    // Los barrios no reciben nada de seguretat.json: ninguna de sus fuentes
+    // baja del municipio, y repartir el dato de Barcelona entre sus 73 barrios
+    // pintaría 73 zonas iguales fingiendo un detalle que no existe.
+    ind: tipus === "barri" ? indicadors(m.ind)
+                           : seguretat(indicadors(m.ind), id, m.poblacio),
     destins: dst,
   };
 }
@@ -392,7 +429,8 @@ const meta = {
   // que se desfasaría en cuanto el INE publicara un campo más por barrio.
   indicadors: {
     any: pisos.meta?.indicadors_any ?? null,
-    camps: [...INDICADORS.map(i => i.camp), "pct_estrangera"].map(camp => ({
+    camps: [...INDICADORS.map(i => i.camp), "pct_estrangera",
+            ...SEGURETAT.map(s => s.camp)].map(camp => ({
       camp,
       municipis: zones.filter(z => z.tipus === "municipi" && z.ind[camp] != null).length,
       barris: zones.filter(z => z.tipus === "barri" && z.ind[camp] != null).length,
@@ -406,6 +444,23 @@ const meta = {
       + "municipio. Al colorear por uno de ellos, los 73 barrios de Barcelona "
       + "se quedan en gris: el dato no se publica por debajo del municipio y "
       + "repartir el de la ciudad entre sus barrios sería inventárselo.",
+    // La seguridad va aparte porque no solo le faltan los barrios: le falta
+    // media provincia. La página necesita poder decir el número exacto.
+    seguretat: segur ? {
+      delictes_any: segur.delictes?.any ?? null,
+      llindar_habitants: segur.delictes?.llindar_habitants ?? null,
+      zona_verda_any: segur.zona_verda?.any ?? null,
+      nota: "El Ministerio del Interior solo desglosa los municipios de más "
+        + "de 20.000 habitantes, y los Mossos publican por Área Básica "
+        + "Policial —en Barcelona, 10 distritos—. No hay cifra de delitos "
+        + "por barrio, ni para los municipios pequeños.",
+      nota_lloc: "Los delitos se cuentan donde ocurren, no donde vive quien "
+        + "los sufre. Un municipio con aeropuerto, puerto, polígono o mucho "
+        + "turismo sale alto sin que sus vecinos vivan peor: el Prat de "
+        + "Llobregat encabeza la lista por el aeropuerto. Los robos en "
+        + "domicilio son la única de las tres cifras que mide algo que le "
+        + "pasa a quien vive allí.",
+    } : null,
   },
   transit: {
     hora: transit.meta?.hora_referencia ?? null,

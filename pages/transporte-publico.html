@@ -259,11 +259,14 @@ main{min-width:0;padding:0 0 48px}
 .ruta{fill:none;stroke:var(--ink);stroke-width:3.4;vector-effect:non-scaling-stroke;
       stroke-linecap:round;pointer-events:none;stroke-opacity:.85}
 .ruta-peu{stroke-dasharray:1 5}
-.ruta-nod{fill:var(--ink);stroke:var(--surface);stroke-width:1.6;pointer-events:none}
+.ruta-nod{fill:var(--ink);stroke:var(--surface);stroke-width:1.6;vector-effect:non-scaling-stroke;pointer-events:none}
 
-.poi-dot{fill:var(--ink);stroke:var(--surface);stroke-width:2;pointer-events:none}
-.poi-ring{fill:none;stroke:var(--ink);stroke-width:1.5;stroke-opacity:.5;pointer-events:none}
-.poi-lbl{fill:var(--ink);font-size:11px;font-weight:700;paint-order:stroke;stroke:var(--surface);stroke-width:3;pointer-events:none}
+/* Los radios y el cuerpo de letra se fijan en línea, divididos por el zoom, y
+   los trazos no escalan: así el destino se marca igual de grande estés donde
+   estés. El halo va en `em` para que crezca con la letra y no con el viewBox. */
+.poi-dot{fill:var(--ink);stroke:var(--surface);stroke-width:2;vector-effect:non-scaling-stroke;pointer-events:none}
+.poi-ring{fill:none;stroke:var(--ink);stroke-width:1.5;stroke-opacity:.5;vector-effect:non-scaling-stroke;pointer-events:none}
+.poi-lbl{fill:var(--ink);font-size:11px;font-weight:700;paint-order:stroke;stroke:var(--surface);stroke-width:.27em;pointer-events:none}
 .map-zoom{position:absolute;right:10px;top:10px;display:flex;flex-direction:column;gap:6px}
 .map-zoom button{width:38px;height:38px;padding:0;font-size:1.15rem;line-height:1;box-shadow:0 2px 5px #203b2810}
 .pin{width:11px;height:11px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:var(--series-1);flex:none}
@@ -290,11 +293,15 @@ main{min-width:0;padding:0 0 48px}
   position:relative;margin-top:14px;border:1px solid #d2dfd8;border-radius:8px;
   background:var(--surface);padding:6px;
 }
-.scatter-box svg{width:100%;height:auto;aspect-ratio:2.1;display:block}
-@media (max-width:850px){.scatter-box svg{aspect-ratio:1.5}}
-@media (max-width:560px){.scatter-box svg{aspect-ratio:1.05}}
+/* Sin `aspect-ratio`: con un viewBox, el SVG ya toma de él su proporción
+   intrínseca, así que encaja exacto y no quedan franjas vacías arriba y abajo.
+   El viewBox lo calcula la página según el ancho real de la caja. */
+.scatter-box svg{width:100%;height:auto;display:block}
 .sc-grid{stroke:var(--grid);stroke-width:1;vector-effect:non-scaling-stroke}
 .sc-axis{stroke:var(--axis);stroke-width:1.2;vector-effect:non-scaling-stroke}
+/* Los cuerpos de letra los fija la página en línea, en unidades del lienzo,
+   para que midan lo mismo en un móvil y en un monitor. Los de aquí son solo el
+   respaldo si algo se pintara antes de medir la caja. */
 .sc-tick{fill:var(--muted);font-size:10.5px;font-variant-numeric:tabular-nums}
 .sc-title{fill:var(--ink-2);font-size:11px;font-weight:700}
 /* La tendencia es contexto, no un dato: discontinua y recesiva para que no se
@@ -305,7 +312,7 @@ main{min-width:0;padding:0 0 48px}
 .sc-dot.is-ok{stroke:var(--ok);stroke-width:1.8}
 .sc-dot.is-sel{stroke:var(--ink);stroke-width:2.4}
 .sc-hit{fill:transparent;cursor:pointer}
-.sc-lbl{fill:var(--ink);font-size:10.5px;font-weight:700;paint-order:stroke;stroke:var(--surface);stroke-width:3;pointer-events:none}
+.sc-lbl{fill:var(--ink);font-size:10.5px;font-weight:700;paint-order:stroke;stroke:var(--surface);stroke-width:.28em;pointer-events:none}
 .sc-empty{margin-top:14px;font-size:.85rem;color:var(--muted)}
 
 /* ---------- leyenda y panel lateral ---------- */
@@ -1368,7 +1375,29 @@ function render() {
    Es la pregunta de la página hermana, con el eje horizontal que esta página
    ya calcula. Comparte paleta, selección y tooltip con el mapa: el mismo punto
    está encendido en los dos sitios, y el color significa lo mismo. */
-const SC = { w: 900, h: 430, l: 78, r: 22, t: 20, b: 54 };
+const SC_W = 900;                 // el ancho del lienzo, siempre, en unidades
+
+/**
+ * Geometría del gráfico para el ancho que tenga ahora mismo la caja.
+ *
+ * El lienzo mide siempre 900 unidades de ancho y la altura sale de lo que se
+ * quiere ver en pantalla, así que el SVG encaja exacto en su hueco sin franjas
+ * vacías. `f(px)` convierte píxeles de pantalla a unidades del lienzo: todo lo
+ * que debe medir igual en un móvil y en un monitor —cuerpos de letra, márgenes,
+ * radios— se escribe con ella. Es el mismo criterio que sigue el mapa.
+ */
+function scGeom() {
+  // Se mide el propio SVG, no su caja: la caja incluye el relleno y el gráfico
+  // salía un 3 % más pequeño de lo pedido.
+  const ample = $("#scatter").getBoundingClientRect().width
+             || $("#scatter-box").clientWidth || 900;
+  const f = (px) => px * SC_W / ample;
+  // Apaisado en pantalla ancha; en móvil no se deja caer por debajo de 300 px
+  // de alto, que es donde una nube de 160 puntos deja de distinguirse.
+  const altPx = clamp(ample / 2.1, 300, 470);
+  return { w: SC_W, h: f(altPx), f,
+           l: f(58), r: f(18), t: f(16), b: f(42) };
+}
 
 function renderScatter() {
   const svg = $("#scatter"), buida = $("#sc-empty");
@@ -1393,6 +1422,8 @@ function renderScatter() {
   $("#scatter-box").hidden = false;
   buida.hidden = true;
 
+  const SC = scGeom();
+  const f = SC.f;
   const xs = pts.map(m => m.valor), ys = pts.map(m => cy.get(m));
   const x0 = 0, x1 = Math.max(...xs) * 1.04 || 1;
   const yLo = Math.min(...ys), yHi = Math.max(...ys);
@@ -1402,33 +1433,48 @@ function renderScatter() {
   const px = (v) => SC.l + (v - x0) / (x1 - x0) * (SC.w - SC.l - SC.r);
   const py = (v) => SC.h - SC.b - (v - y0) / (y1 - y0) * (SC.h - SC.t - SC.b);
 
+  const TICK = f(10.5), TIT = f(11), LBL = f(10.5);
   let s = "";
 
   // Rejilla y marcas. Las horizontales llevan el número; las verticales, los
   // minutos. Nada más: la rejilla es para leer valores, no para decorar.
-  const tx = niceTicks(x0, x1, 6), ty = niceTicks(y0, y1, 5);
+  const tx = niceTicks(x0, x1, SC.w / f(160) | 0 || 4), ty = niceTicks(y0, y1, 5);
   for (const v of ty) {
     const y = py(v).toFixed(1);
-    s += `<line class="sc-grid" x1="${SC.l}" y1="${y}" x2="${SC.w - SC.r}" y2="${y}"/>`;
-    s += `<text class="sc-tick" x="${SC.l - 9}" y="${y}" text-anchor="end" dominant-baseline="middle">${esc(tickY(v, cy))}</text>`;
+    s += `<line class="sc-grid" x1="${SC.l.toFixed(1)}" y1="${y}" x2="${(SC.w - SC.r).toFixed(1)}" y2="${y}"/>`;
+    s += `<text class="sc-tick" style="font-size:${TICK.toFixed(2)}px" x="${(SC.l - f(8)).toFixed(1)}" y="${y}"`
+       + ` text-anchor="end" dominant-baseline="middle">${esc(tickY(v, cy))}</text>`;
   }
   for (const v of tx) {
     const x = px(v).toFixed(1);
-    s += `<line class="sc-grid" x1="${x}" y1="${SC.t}" x2="${x}" y2="${SC.h - SC.b}"/>`;
-    s += `<text class="sc-tick" x="${x}" y="${SC.h - SC.b + 17}" text-anchor="middle">${fmtInt(v)}</text>`;
+    s += `<line class="sc-grid" x1="${x}" y1="${SC.t.toFixed(1)}" x2="${x}" y2="${(SC.h - SC.b).toFixed(1)}"/>`;
+    s += `<text class="sc-tick" style="font-size:${TICK.toFixed(2)}px" x="${x}"`
+       + ` y="${(SC.h - SC.b + f(16)).toFixed(1)}" text-anchor="middle">${fmtInt(v)}</text>`;
   }
-  s += `<line class="sc-axis" x1="${SC.l}" y1="${SC.h - SC.b}" x2="${SC.w - SC.r}" y2="${SC.h - SC.b}"/>`;
-  s += `<line class="sc-axis" x1="${SC.l}" y1="${SC.t}" x2="${SC.l}" y2="${SC.h - SC.b}"/>`;
-  s += `<text class="sc-title" x="${SC.w - SC.r}" y="${SC.h - 12}" text-anchor="end">`
-     + `Tiempo de viaje (min)</text>`;
-  s += `<text class="sc-title" x="${-(SC.t + (SC.h - SC.b - SC.t) / 2).toFixed(1)}" y="16"`
+  s += `<line class="sc-axis" x1="${SC.l.toFixed(1)}" y1="${(SC.h - SC.b).toFixed(1)}" x2="${(SC.w - SC.r).toFixed(1)}" y2="${(SC.h - SC.b).toFixed(1)}"/>`;
+  s += `<line class="sc-axis" x1="${SC.l.toFixed(1)}" y1="${SC.t.toFixed(1)}" x2="${SC.l.toFixed(1)}" y2="${(SC.h - SC.b).toFixed(1)}"/>`;
+  s += `<text class="sc-title" style="font-size:${TIT.toFixed(2)}px" x="${(SC.w - SC.r).toFixed(1)}"`
+     + ` y="${(SC.h - f(6)).toFixed(1)}" text-anchor="end">Tiempo de viaje (min)</text>`;
+  s += `<text class="sc-title" style="font-size:${TIT.toFixed(2)}px"`
+     + ` x="${-(SC.t + (SC.h - SC.b - SC.t) / 2).toFixed(1)}" y="${f(13).toFixed(1)}"`
      + ` transform="rotate(-90)" text-anchor="middle">${esc(cy.nom)} (${esc(cy.eix)})</text>`;
 
-  // La tendencia, por debajo de los puntos.
+  // La tendencia, por debajo de los puntos y recortada al rectángulo: con
+  // pendiente fuerte se salía por abajo y cruzaba el rótulo del eje.
   if (TREND) {
-    const a = TREND.a, b = TREND.b;
-    s += `<line class="sc-trend" x1="${px(x0).toFixed(1)}" y1="${py(a + b * x0).toFixed(1)}"`
-       + ` x2="${px(x1).toFixed(1)}" y2="${py(a + b * x1).toFixed(1)}"/>`;
+    const { a, b } = TREND;
+    const dins = (x, y) => x >= x0 - 1e-6 && x <= x1 + 1e-6 && y >= y0 - 1e-6 && y <= y1 + 1e-6;
+    const tall = [];
+    for (const x of [x0, x1]) { const y = a + b * x; if (dins(x, y)) tall.push([x, y]); }
+    if (b !== 0) {
+      for (const y of [y0, y1]) { const x = (y - a) / b; if (dins(x, y)) tall.push([x, y]); }
+    }
+    if (tall.length >= 2) {
+      tall.sort((p, q) => p[0] - q[0]);
+      const p = tall[0], q = tall.at(-1);
+      s += `<line class="sc-trend" x1="${px(p[0]).toFixed(1)}" y1="${py(p[1]).toFixed(1)}"`
+         + ` x2="${px(q[0]).toFixed(1)}" y2="${py(q[1]).toFixed(1)}"/>`;
+    }
   }
 
   // Los puntos. El radio va con la población —una zona de 200.000 vecinos no
@@ -1438,7 +1484,7 @@ function renderScatter() {
   const hiHaConds = condsActives().length > 0;
   for (const m of pts) {
     const x = px(m.valor), y = py(cy.get(m));
-    const r = 3.6 + 5 * Math.sqrt((m.poblacio || 0) / popMax);
+    const r = f(3.6 + 5 * Math.sqrt((m.poblacio || 0) / popMax));
     const cls = "sc-dot"
       + (hiHaConds && !m.ok ? " is-dim" : "")
       + (m.ok ? " is-ok" : "")
@@ -1446,7 +1492,7 @@ function renderScatter() {
     s += `<circle class="${cls}" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${r.toFixed(1)}"`
        + ` fill="${seqColor(valorColor(m), lo, hi)}" data-id="${esc(m.id)}"></circle>`;
     // Diana invisible: a 4 px de radio los puntos pequeños no se pueden tocar.
-    s += `<circle class="sc-hit" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${Math.max(r, 11).toFixed(1)}"`
+    s += `<circle class="sc-hit" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${Math.max(r, f(11)).toFixed(1)}"`
        + ` data-id="${esc(m.id)}"></circle>`;
   }
 
@@ -1463,11 +1509,12 @@ function renderScatter() {
     if (!destacats.has(m.id)) continue;
     const x = px(m.valor), y = py(cy.get(m));
     const dreta = x < SC.w * .72;
-    s += `<text class="sc-lbl" x="${(x + (dreta ? 11 : -11)).toFixed(1)}" y="${(y + 4).toFixed(1)}"`
+    s += `<text class="sc-lbl" style="font-size:${LBL.toFixed(2)}px"`
+       + ` x="${(x + f(dreta ? 11 : -11)).toFixed(1)}" y="${(y + f(4)).toFixed(1)}"`
        + ` text-anchor="${dreta ? "start" : "end"}">${esc(m.nom)}</text>`;
   }
 
-  svg.setAttribute("viewBox", `0 0 ${SC.w} ${SC.h}`);
+  svg.setAttribute("viewBox", `0 0 ${SC.w} ${SC.h.toFixed(1)}`);
   svg.innerHTML = s;
 
   const nOk = pts.filter(m => m.ok).length;
@@ -1478,15 +1525,26 @@ function renderScatter() {
   // El R² decide el tono de la frase. Con la nube deshecha, decir «la
   // tendencia es» sería vender una relación que los datos no sostienen.
   const r2 = TREND?.r2 ?? 0;
-  const porMin = TREND ? -TREND.b : 0;
+  const porMin = TREND ? TREND.b : 0;
+  // «Barato» solo se puede decir de lo que se paga. En un porcentaje de
+  // población o en una edad media no hay barato ni caro, y el paso por cada
+  // diez minutos se mide en puntos, no en un «%» que se leería como relativo.
+  const DINERS = ["compra_m2", "compra_total", "lloguer", "hipoteca"];
+  const diners = DINERS.includes(cy.id);
+  const salt = Math.abs(porMin * 10);
+  const saltTxt = cy.eix === "%" ? nf(1).format(salt) + " puntos" : cy.fmt(salt);
+
   $("#sc-note").textContent = r2 < .15
     ? `La recta explica solo un ${fmtInt(r2 * 100)} % de la variación: con estos `
       + `destinos, el tiempo de viaje casi no predice ${cy.nom.toLowerCase()}. `
       + `Léela como una referencia, no como una regla.`
     : `La recta explica un ${fmtInt(r2 * 100)} % de la variación. `
-      + `Por cada 10 minutos más de viaje, ${cy.nom.toLowerCase()} baja de media `
-      + `${esc(cy.fmt(Math.abs(porMin * 10)))}. `
-      + `Los puntos por debajo salen baratos para lo lejos que están; los de arriba, caros.`;
+      + `Por cada 10 minutos más de viaje, ${cy.nom.toLowerCase()} `
+      + `${porMin < 0 ? "baja" : "sube"} de media ${saltTxt}. `
+      + (diners
+          ? "Los puntos por debajo salen baratos para lo lejos que están; los de arriba, caros."
+          : "Los puntos por debajo se quedan por debajo de lo que les tocaría por "
+            + "su tiempo de viaje; los de arriba, por encima.");
 }
 
 /** Las marcas del eje vertical, sin unidad: la unidad ya va en el título del
@@ -1646,11 +1704,15 @@ const lblMax = (z) => Math.round(16 + 4 * z);
  * escribe si su caja no toca ninguna de las ya aceptadas. Al acercarte caben
  * más porque las paradas se separan, y las que ya estaban no se mueven.
  */
-function retolaParades(visibles, z) {
+function retolaParades(visibles, z, reservats = []) {
   if (z < LBL_ZOOM) return "";
   const fs = LBL_PX / z;                       // unidades de usuario
-  const alt = fs * 1.2;
-  const ample = (nom) => nom.length * fs * .52;   // ancho aproximado, sin medir
+  const alt = fs * 1.25;
+  /* Ancho estimado sin medir: medir 300 textos con `getBBox` costaría un
+     reflujo por fotograma de arrastre. El 0,56 por carácter va algo holgado a
+     propósito, y el sumando final es el aire mínimo entre dos rótulos vecinos:
+     con la cuenta justa, «Gràcia» y «Muntaner» acababan tocándose. */
+  const ample = (nom) => nom.length * fs * .56 + fs * .6;
 
   // A igualdad de redes, el tren de cercanías manda sobre el tranvía; y entre
   // dos iguales gana el nombre más corto, que deja sitio para otro.
@@ -1662,24 +1724,56 @@ function retolaParades(visibles, z) {
     .sort((a, b) => pes(b.p) - pes(a.p) || a.p.nom.length - b.p.nom.length);
 
   const tope = lblMax(z);
-  const posats = [];
-  let s = "";
+  // Los sitios de los destinos entran ya ocupados: se dibujan después y por
+  // encima, así que si no se reservan aquí el nombre de la parada de debajo
+  // queda tapado a medias, que es peor que no estar.
+  const posats = [...reservats];
+  let n = 0, s = "";
   for (const v of cua) {
-    if (posats.length >= tope) break;
+    if (n >= tope) break;
     const x = v.x + fs * .45, y = v.y + fs * .34;
     const c = { x0: x, y0: y - alt * .8, x1: x + ample(v.p.nom), y1: y + alt * .2 };
     if (posats.some(o => c.x0 < o.x1 && c.x1 > o.x0 && c.y0 < o.y1 && c.y1 > o.y0)) continue;
-    posats.push(c);
+    posats.push(c); n++;
     s += `<text class="parada-lbl" x="${x.toFixed(1)}" y="${y.toFixed(1)}"
            style="font-size:${fs.toFixed(2)}px">${esc(v.p.nom)}</text>`;
   }
   return s;
 }
 
+/**
+ * Las cajas que ocuparán los rótulos de los destinos marcados y el punto libre.
+ * Se calculan antes de rotular las paradas aunque se dibujen después, para que
+ * el reparto de sitio lo hagan todos contra todos.
+ */
+function caixesDestins(px) {
+  const fs = px(11), alt = fs * 1.2;
+  const out = [];
+  const afegeix = (x, y, nom, dx) => {
+    if (x < 0 || x > MAP_W || y < 0 || y > MAP_H) return;
+    const x0 = x + px(dx), y0 = y + px(4);
+    out.push({ x0, y0: y0 - alt * .8, x1: x0 + nom.length * fs * .56, y1: y0 + alt * .2 });
+  };
+  for (const d of DATA.meta.destins) {
+    if (S.conds[d.id]?.on) afegeix(PROJ.x(d.lon), PROJ.y(d.lat), d.nom, 9);
+  }
+  if (S.puntLliure) {
+    afegeix(PROJ.x(S.puntLliure.lon), PROJ.y(S.puntLliure.lat), "Tu punto", 12);
+  }
+  return out;
+}
+
 function renderMap() {
   const [lo, hi] = rangActual();
   const v = S.view;
   const hiHaConds = condsActives().length > 0;
+
+  /* Cuánto amplía el viewBox ahora mismo. Todo lo que tiene que medir igual en
+     pantalla —radios de los puntos, cuerpos de letra— se divide por esto: si no,
+     al acercarte el rótulo de un destino acaba ocupando media pantalla. Los
+     trazos no hacen falta dividirlos, ya llevan `vector-effect`. */
+  const z = MAP_W / v.w;
+  const px = (n) => n / z;
 
   let s = "";
 
@@ -1711,7 +1805,6 @@ function renderMap() {
     }
     // --- 3. paradas: solo ferroviarias, y con rótulo solo si cabe ---
     if (S.xarxa) {
-      const z = MAP_W / v.w;
       const r = clamp(2.2 / Math.sqrt(z), 0.9, 2.4);
       // El lienzo es más ancho que el viewBox, así que se pinta algo más de lo
       // que el viewBox encierra. Sin margen, las paradas del borde aparecen y
@@ -1725,7 +1818,7 @@ function renderMap() {
         visibles.push({ p, x, y });
         s += `<circle class="parada" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${r.toFixed(2)}"/>`;
       }
-      s += retolaParades(visibles, z);
+      s += retolaParades(visibles, z, caixesDestins(px));
     }
   }
 
@@ -1735,20 +1828,24 @@ function renderMap() {
     const x = PROJ.x(d.lon), y = PROJ.y(d.lat);
     if (!enLlenc(x, y)) continue;
     const actiu = S.conds[d.id]?.on;
-    s += `<circle class="poi-dot" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${actiu ? 5 : 2.6}" opacity="${actiu ? 1 : .4}"/>`;
-    if (actiu) s += `<text class="poi-lbl" x="${(x + 9).toFixed(1)}" y="${(y + 4).toFixed(1)}">${esc(d.nom)}</text>`;
+    s += `<circle class="poi-dot" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${px(actiu ? 5 : 2.6).toFixed(2)}" opacity="${actiu ? 1 : .4}"/>`;
+    if (actiu) {
+      s += `<text class="poi-lbl" x="${(x + px(9)).toFixed(1)}" y="${(y + px(4)).toFixed(1)}"`
+         + ` style="font-size:${px(11).toFixed(2)}px">${esc(d.nom)}</text>`;
+    }
   }
 
   // --- 5. punto libre ---
   if (S.puntLliure) {
     const x = PROJ.x(S.puntLliure.lon), y = PROJ.y(S.puntLliure.lat);
-    s += `<circle class="poi-ring" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="9"/>`;
-    s += `<circle class="poi-dot" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="5.5"/>`;
-    s += `<text class="poi-lbl" x="${(x + 12).toFixed(1)}" y="${(y + 4).toFixed(1)}">Tu punto</text>`;
+    s += `<circle class="poi-ring" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${px(9).toFixed(2)}"/>`;
+    s += `<circle class="poi-dot" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${px(5.5).toFixed(2)}"/>`;
+    s += `<text class="poi-lbl" x="${(x + px(12)).toFixed(1)}" y="${(y + px(4)).toFixed(1)}"`
+       + ` style="font-size:${px(11).toFixed(2)}px">Tu punto</text>`;
   }
 
   // --- 6. itinerario de la seleccionada, por encima de todo ---
-  s += dibuixaRuta();
+  s += dibuixaRuta(px);
 
   const svg = $("#map");
   svg.setAttribute("viewBox", `${v.x} ${v.y} ${v.w} ${v.h}`);
@@ -1758,7 +1855,7 @@ function renderMap() {
 /** El trayecto de la zona seleccionada hacia la condición que manda. Los tramos
     a pie van punteados: son reales, pero no son una línea de transporte y
     dibujarlos iguales haría creer que existe un servicio que no existe. */
-function dibuixaRuta() {
+function dibuixaRuta(px = (n) => n) {
   if (!S.selected) return "";
   const m = ROWS.find(r => r.id === S.selected);
   if (!m) return "";
@@ -1776,7 +1873,7 @@ function dibuixaRuta() {
     if (!l.dl || !l.al) continue;
     s += seg(prev, l.dl, "ruta-peu");
     s += seg(l.dl, l.al, "");
-    s += `<circle class="ruta-nod" cx="${PROJ.x(l.dl[0]).toFixed(1)}" cy="${PROJ.y(l.dl[1]).toFixed(1)}" r="3"/>`;
+    s += `<circle class="ruta-nod" cx="${PROJ.x(l.dl[0]).toFixed(1)}" cy="${PROJ.y(l.dl[1]).toFixed(1)}" r="${px(3).toFixed(2)}"/>`;
     prev = l.al;
   }
   const dest = DATA.meta.destins.find(d => d.id === id);
@@ -2068,11 +2165,13 @@ function lecturaResidu(m) {
   if (!TREND || TREND.r2 < .15 || m.residPct == null) return "";
   const p = m.residPct;
   if (Math.abs(p) < 8) return "";
-  const barata = p < 0;
-  const qué = capaY().nom.toLowerCase();
-  return `<div class="t-flag" style="color:${barata ? "var(--ok)" : "var(--accent)"}">`
-       + `${barata ? "▼" : "▲"} ${fmtInt(Math.abs(p))} % ${barata ? "por debajo" : "por encima"}`
-       + ` de ${qué} que le tocaría por su tiempo de viaje</div>`;
+  const baix = p < 0;
+  // Sin nombrar la magnitud: el título del eje del gráfico y la leyenda del
+  // mapa ya dicen qué se está mirando, y encajar aquí el artículo correcto de
+  // diecinueve nombres distintos daba frases mal construidas.
+  return `<div class="t-flag" style="color:${baix ? "var(--ok)" : "var(--accent)"}">`
+       + `${baix ? "▼" : "▲"} ${fmtInt(Math.abs(p))} % ${baix ? "por debajo" : "por encima"}`
+       + ` de lo que le tocaría por su tiempo de viaje</div>`;
 }
 
 /** Precios que salen de muy pocas operaciones. El número es el que publica la
@@ -2286,6 +2385,15 @@ function initUI() {
     if (tr) showTip(tr.dataset.id, e); else hideTip();
   });
   $("#tbody").addEventListener("pointerleave", hideTip);
+
+  /* El gráfico mide su caja para decidir la altura y el cuerpo de letra, así
+     que al cambiar el ancho de la ventana hay que rehacerlo. Solo él: el mapa
+     tiene un viewBox fijo y no se entera de esto. */
+  let reajust;
+  addEventListener("resize", () => {
+    clearTimeout(reajust);
+    reajust = setTimeout(renderScatter, 150);
+  });
 
   $("#z-in").onclick = () => zoom(1 / 1.45);
   $("#z-out").onclick = () => zoom(1.45);

@@ -49,7 +49,9 @@ node test-mercados.mjs
 ```
 
 `transporte-publico.html` is the one pipeline with a required order — each step
-feeds the next, and every step is resumable:
+feeds the next, and every step is resumable. It absorbed `pisos-vs-distancia.html`
+in 2026-09: one page now answers both halves of the question, so the price data,
+the indicators and the price-vs-commute plot all live here.
 
 ```sh
 cd data-src
@@ -58,13 +60,20 @@ python3 fetch-isocronas.py   # 165 one-to-all queries, ~6 min
 node fetch-linies.mjs        # OpenStreetMap; needs transit.json to pick the buses
 node build-transport.mjs     # merges into pages/data/ — downloads nothing
 node test-transport.mjs      # contract, coverage and estimator error
+node test-capas.mjs          # the page's own layer code, run against the data
 ```
 
 `build-transport.mjs` only reorganises what the three fetch steps produced: it
 merges the 91 municipalities and the 73 Barcelona neighbourhoods into one set of
-164 zones, simplifies their geometry, and splits the output by when the page
-needs it (≈500 kB up front, the itineraries and the isochrone matrix on demand).
-Re-run it on its own after touching any of its inputs.
+164 zones, attaches the INE/Idescat indicators, simplifies their geometry, and
+splits the output by when the page needs it (≈550 kB up front, the itineraries
+and the isochrone matrix on demand). Re-run it on its own after touching any of
+its inputs.
+
+`pisos-bcn.json`, `bcn-barris.json`, `municipis-geo.json` and `bcn-barris-geo.json`
+still live in `pages/data/` but no page fetches them any more — since the merge
+they are only inputs to `build-transport.mjs`. They stay there so the pipeline
+keeps working unchanged; nothing downloads them at runtime.
 
 Behind a TLS-intercepting proxy, prefix those with
 `NODE_EXTRA_CA_CERTS=/etc/ssl/certs/ca-certificates.crt`.

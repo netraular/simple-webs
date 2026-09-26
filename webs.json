@@ -11,13 +11,9 @@
     "title": "Country Comparison v2 · Is Moving Worth It?",
     "description": "Compare real savings, tax progression and investment taxation across European cities against a 60k Barcelona baseline."
   },
-  "pisos-vs-distancia.html": {
-    "title": "Housing Cost vs. Commute · Barcelona",
-    "description": "Map and plot housing prices across the 92 municipalities within 30 km of Barcelona — and the city's 73 neighbourhoods — against real door-to-door public transport time, driving time or straight-line distance to any point you pick. Includes household income, age and service frequency per area. Official data, nothing estimated."
-  },
   "transporte-publico.html": {
-    "title": "Where Can I Live? · Barcelona Public Transport",
-    "description": "Set your commute rules — how far you'll walk, where you must get to and in how long — and get back the cheapest places that meet them, ranked by €/m². One map of 164 zones: 91 municipalities plus Barcelona broken down into its 73 neighbourhoods, coloured by price, with the rail, metro, tram and bus network drawn on top. Door-to-door times routed over official timetables; click any point on the map for an estimate."
+    "title": "Where Can I Live? · Barcelona Housing, Commute & Neighbourhoods",
+    "description": "Set your commute rules — how far you'll walk, where you must get to and in how long — and get back the cheapest places that meet them, ranked by €/m². One map of 164 zones: 91 municipalities plus Barcelona broken down into its 73 neighbourhoods, with the rail, metro, tram and bus network drawn on top. Colour the map by price, rent, mortgage, travel time or any of thirteen official indicators — household income, average age, unemployment, higher education, share of foreign nationals, inequality and more — and see every zone's cost plotted against its door-to-door travel time. Times routed over official timetables; click any point on the map for an estimate."
   },
   "sp500-rendimientos.html": {
     "title": "Does the S&P 500 Really Return 10 % a Year?",

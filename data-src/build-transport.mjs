@@ -450,10 +450,12 @@ const meta = {
       delictes_any: segur.delictes?.any ?? null,
       llindar_habitants: segur.delictes?.llindar_habitants ?? null,
       zona_verda_any: segur.zona_verda?.any ?? null,
-      nota: "El Ministerio del Interior solo desglosa los municipios de más "
-        + "de 20.000 habitantes, y los Mossos publican por Área Básica "
-        + "Policial —en Barcelona, 10 distritos—. No hay cifra de delitos "
-        + "por barrio, ni para los municipios pequeños.",
+      // Encaja detrás de dos puntos en la metodología de la página, así que
+      // empieza en minúscula y no repite el sujeto.
+      nota: "el Ministerio solo desglosa los de más de 20.000 habitantes, y "
+        + "los Mossos publican por Área Básica Policial —en Barcelona, 10 "
+        + "distritos—. No hay cifra de delitos por barrio, ni para los "
+        + "municipios pequeños.",
       nota_lloc: "Los delitos se cuentan donde ocurren, no donde vive quien "
         + "los sufre. Un municipio con aeropuerto, puerto, polígono o mucho "
         + "turismo sale alto sin que sus vecinos vivan peor: el Prat de "

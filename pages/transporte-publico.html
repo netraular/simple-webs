@@ -1013,8 +1013,8 @@ const CAPES = [
     nota: "Metros cuadrados de suelo verde urbano por habitante. Un municipio "
         + "pequeño rodeado de monte sale altísimo: mide el verde que hay "
         + "dentro del término, no lo cerca que tienes un parque." },
-  { id: "delictes_1000", grup: "Seguridad y entorno", nom: "Delitos por 1.000 habitantes",
-    eix: "delitos/1.000 hab.", muni: true, parcial: true,
+  { id: "delictes_1000", grup: "Seguridad y entorno", nom: "Delitos en total",
+    eix: "por 1.000 hab.", muni: true, parcial: true,
     get: (m) => m.ind?.delictes_1000, fmt: (v) => nf(1).format(v),
     nota: "Infracciones penales conocidas en todo el año, por cada mil "
         + "habitantes. Se cuentan donde ocurren, no donde vive quien las "
@@ -1022,14 +1022,14 @@ const CAPES = [
         + "ciudades grandes casi la mitad son hurtos. Léela como «cuánto "
         + "pasa aquí», no como «qué riesgo corro si vivo aquí»." },
   { id: "robatoris_domicili_1000", grup: "Seguridad y entorno", nom: "Robos en domicilio",
-    eix: "robos/1.000 hab.", muni: true, parcial: true,
+    eix: "por 1.000 hab.", muni: true, parcial: true,
     get: (m) => m.ind?.robatoris_domicili_1000, fmt: (v) => nf(1).format(v),
     nota: "Robos con fuerza en viviendas, por cada mil habitantes. Es la única "
         + "de las tres que mide algo que le pasa a quien vive allí, y por eso "
         + "no se parece a las otras: arriba salen municipios acomodados de "
         + "casa baja, que es donde se roba en casas." },
   { id: "robatoris_violencia_1000", grup: "Seguridad y entorno", nom: "Robos con violencia",
-    eix: "robos/1.000 hab.", muni: true, parcial: true,
+    eix: "por 1.000 hab.", muni: true, parcial: true,
     get: (m) => m.ind?.robatoris_violencia_1000, fmt: (v) => nf(1).format(v),
     nota: "Robos con violencia o intimidación, por cada mil habitantes. Misma "
         + "advertencia que el total: se cuentan donde ocurren, y se concentran "

@@ -105,6 +105,13 @@ function carga(f) {
 }
 const tamany = (f) => { try { return statSync(RUTA(f)).size; } catch { return null; } };
 
+/** Carga un JSON de este mismo directorio (una fuente, no un fichero servido).
+    Devuelve null sin avisar: el bloque que lo use ya se salta solo. */
+function fuente(f) {
+  try { return JSON.parse(readFileSync(new URL("./" + f, import.meta.url), "utf8")); }
+  catch { return null; }
+}
+
 /** Recorre un JSON buscando números no finitos y valores undefined. */
 function numerosMalos(v, ruta = "", malos = []) {
   if (v === null) return malos;
@@ -157,7 +164,7 @@ console.log(`  ${FITXERS.filter((f) => tamany(f) != null).length}/${FITXERS.leng
 /* Claves del contrato de cada zona. */
 const CLAUS = ["id", "tipus", "nom", "nom_llarg", "comarca", "lat", "lon",
                "dist_bcn_km", "poblacio", "compra_eur_m2", "compra_eur_total",
-               "lloguer_eur_mes", "renda_llar_eur", "tren", "sortides", "destins"];
+               "lloguer_eur_mes", "tren", "sortides", "ind", "destins"];
 /* Claves obligatorias de un trayecto con dato, en zonas.json. Lo que la página
    necesita para filtrar, ordenar y pintar sin bajarse los itinerarios. */
 const CLAUS_T = ["min", "a_peu", "transbords", "modes"];
@@ -232,7 +239,7 @@ for (const z of zones) {
         (z.tipus === "municipi" || z.tipus === "barri") &&
         esNum(z.lat) && esNum(z.lon) && esNum(z.dist_bcn_km) && esNum(z.poblacio) &&
         esNumONull(z.compra_eur_m2) && esNumONull(z.compra_eur_total) &&
-        esNumONull(z.lloguer_eur_mes) && esNumONull(z.renda_llar_eur) &&
+        esNumONull(z.lloguer_eur_mes) && esNumONull(z.ind?.renda_llar_eur ?? null) &&
         (z.tren === null || typeof z.tren === "string") && esNumONull(z.sortides))) tipoMal++;
   const claus = Object.keys(z.destins || {});
   if (claus.length !== ids.length || ids.some((i) => !(i in (z.destins || {})))) destinsMal++;
@@ -259,6 +266,68 @@ ok(destinsMal === 0, `cada zona lleva los ${ids.length} destinos como claves de 
 const malos = numerosMalos(Z, "zonas.json");
 ok(malos.length === 0, "ningún número es NaN, Infinity ni undefined",
    malos.length ? `(${malos.length}: ${malos.slice(0, 3).join("; ")})` : "");
+
+/* ---- los indicadores con los que se puede colorear el mapa ---------------
+   Lo que se comprueba no es que existan, sino que `meta.indicadors.camps`
+   —de donde la página saca el aviso de cobertura— diga la verdad. Si el
+   contador y los datos se separan, la página promete un mapa que sale gris. */
+const IND = Z.meta?.indicadors?.camps || [];
+ok(IND.length > 0, `meta.indicadors declara ${IND.length} campos`);
+
+let contMal = 0, rangMal = [];
+for (const c of IND) {
+  const mun = zones.filter((z) => z.tipus === "municipi" && z.ind?.[c.camp] != null).length;
+  const bar = zones.filter((z) => z.tipus === "barri" && z.ind?.[c.camp] != null).length;
+  if (mun !== c.municipis || bar !== c.barris) contMal++;
+}
+ok(contMal === 0, "la cobertura declarada de cada indicador es la real",
+   contMal ? `(${contMal} campos con el recuento mal)` : "");
+
+/* Un indicador sin dato en ningún municipio es una columna muerta: la página
+   la ofrecería en el desplegable y el mapa saldría entero gris. */
+const buits = IND.filter((c) => c.municipis + c.barris === 0).map((c) => c.camp);
+ok(buits.length === 0, "ningún indicador se queda sin un solo valor",
+   buits.length ? `(vacíos: ${buits.join(", ")})` : "");
+
+/* Rangos plausibles. No valida la fuente —eso lo hace build_indicadors.py—,
+   pero un porcentaje fuera de 0-100 o una edad media de 300 años delatan un
+   cruce mal hecho antes de que llegue al mapa. */
+const RANGS = {
+  pct_estrangera: [0, 100], pct_menors_18: [0, 100], pct_65_mes: [0, 100],
+  pct_llars_unipersonals: [0, 100], pct_educacio_superior: [0, 100],
+  pct_habitatge_lloguer: [0, 100], atur_taxa_pct: [0, 100],
+  edat_mitjana: [25, 70], mida_mitjana_llar: [1, 6], gini: [0, 100],
+  ist: [30, 200], renda_llar_eur: [10000, 200000],
+  renda_persona_eur: [4000, 100000], turismes_per_1000_hab: [50, 1200],
+};
+for (const z of zones) {
+  for (const [camp, [lo, hi]] of Object.entries(RANGS)) {
+    const v = z.ind?.[camp];
+    if (v != null && (!esNum(v) || v < lo || v > hi)) {
+      rangMal.push(`${z.id} ${camp}=${v}`);
+    }
+  }
+}
+ok(rangMal.length === 0, "todos los indicadores caen en un rango plausible",
+   rangMal.length ? `(${rangMal.length}: ${rangMal.slice(0, 3).join("; ")})` : "");
+
+/* El único campo derivado. Se rehace la resta desde la fuente para que no
+   pueda desviarse en silencio. */
+const IND_SRC = fuente("indicadors.json");
+if (IND_SRC) {
+  const esp = new Map((IND_SRC.municipis || [])
+    .map((m) => [m.codi_ine, m.pct_poblacio_espanyola]));
+  let estMal = 0, comprovats = 0;
+  for (const z of zones) {
+    if (z.tipus !== "municipi") continue;
+    const e = esp.get(z.id);
+    if (e == null || z.ind?.pct_estrangera == null) continue;
+    comprovats++;
+    if (Math.abs(z.ind.pct_estrangera - (100 - e)) > 0.051) estMal++;
+  }
+  ok(estMal === 0, `«% extranjera» es 100 − «% española» en los ${comprovats} municipios`,
+     estMal ? `(${estMal} no cuadran)` : "");
+}
 
 /* ================================ 2. los cuatro ficheros hablan de lo mismo */
 

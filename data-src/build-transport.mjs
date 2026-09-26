@@ -102,6 +102,61 @@ for (const d of destins) {
   if (NOMS[d.id]) { d.nom = NOMS[d.id][0]; d.tipus ||= NOMS[d.id][1]; }
 }
 
+/* --------------------------------------------------------------------------
+   Indicadores de la zona
+   -------------------------------------------------------------------------- */
+
+/**
+ * Los indicadores que la página ofrece para colorear el mapa, además del
+ * precio y del tiempo de viaje.
+ *
+ * `barris` dice si el INE publica el campo también para los 73 barrios. Los que
+ * no —Gini, paro, estudios, alquiler, coches, IST— existen solo por municipio:
+ * la desigualdad de una unión de secciones censales no es la media de las
+ * desigualdades, y el resto simplemente no se publica por debajo del municipio.
+ * Se envían igualmente, con `null` en los barrios, y es la página la que avisa
+ * de que ese mapa deja Barcelona en gris en vez de inventarse la cifra.
+ */
+const INDICADORS = [
+  { camp: "renda_llar_eur",         barris: true  },
+  { camp: "renda_persona_eur",      barris: true  },
+  { camp: "edat_mitjana",           barris: true  },
+  { camp: "pct_menors_18",          barris: true  },
+  { camp: "pct_65_mes",             barris: true  },
+  { camp: "mida_mitjana_llar",      barris: true  },
+  { camp: "pct_llars_unipersonals", barris: true  },
+  { camp: "gini",                   barris: false },
+  { camp: "ist",                    barris: false },
+  { camp: "atur_taxa_pct",          barris: false },
+  { camp: "pct_educacio_superior",  barris: false },
+  { camp: "pct_habitatge_lloguer",  barris: false },
+  { camp: "turismes_per_1000_hab",  barris: false },
+];
+
+/**
+ * Pasa el bloque `ind` de la fila de origen al de la zona.
+ *
+ * `pct_estrangera` es el único campo derivado, y la resta es exacta: el INE
+ * publica «% de población con nacionalidad española» y la nacionalidad o es
+ * española o no lo es. Se da ya restado porque «% de extranjeros» es la
+ * pregunta que se hace quien mira el mapa, y obligar a restar mentalmente de
+ * 100 en cada tooltip es una forma tonta de equivocarse. Ojo con la lectura:
+ * es **nacionalidad**, no lugar de nacimiento; un vecino nacionalizado cuenta
+ * como español.
+ */
+function indicadors(ind) {
+  const o = {};
+  // Los campos sin dato se omiten en vez de ir a `null`: son 6 × 73 barrios, y
+  // escribirlos cuesta ~11 kB de la carga inicial para no decir nada. La página
+  // lee siempre con `?? null`, así que ausente y nulo le dan lo mismo.
+  for (const { camp } of INDICADORS) {
+    if (ind?.[camp] != null) o[camp] = ind[camp];
+  }
+  const esp = ind?.pct_poblacio_espanyola;
+  if (esp != null) o.pct_estrangera = Math.round((100 - esp) * 10) / 10;
+  return o;
+}
+
 /** ¿Este destino coincide con la propia zona? Un trayecto de 2 min andando de
     Castelldefels a la estación de Castelldefels es cierto pero no informa de
     nada, y en el ranking se come la escala. Se marca para que la página lo
@@ -182,10 +237,17 @@ function zona(m, id, tipus, t) {
     poblacio: m.poblacio,
     compra_eur_m2: m.compra_eur_m2,
     compra_eur_total: m.compra_eur_total,
+    superficie_mitjana_m2: m.superficie_mitjana_m2 ?? null,
     lloguer_eur_mes: m.lloguer_eur_mes,
-    renda_llar_eur: m.ind?.renda_llar_eur ?? null,
+    // Tamaño de la muestra con la que se publicó cada precio. La página lo usa
+    // para marcar los que salen de cuatro operaciones y no se deberían leer
+    // como si fueran el precio del barrio.
+    compra_operacions: m.compra_operacions ?? null,
+    lloguer_contractes: m.lloguer_contractes ?? null,
     tren: m.tren ?? null,
+    estacions: m.estacions ?? null,
     sortides: t?.sortides_hora_punta ?? m.sortides ?? null,
+    ind: indicadors(m.ind),
     destins: dst,
   };
 }
@@ -325,6 +387,26 @@ const meta = {
           + "y padrón por municipio, y solo el Ayuntamiento de Barcelona publica "
           + "por barrio. Fuera de la ciudad no hay dato sub-municipal que cruzar.",
   destins,
+  // Qué indicadores lleva cada zona y hasta dónde llegan. La página pinta la
+  // advertencia de cobertura a partir de esto, no de una frase escrita a mano
+  // que se desfasaría en cuanto el INE publicara un campo más por barrio.
+  indicadors: {
+    any: pisos.meta?.indicadors_any ?? null,
+    camps: [...INDICADORS.map(i => i.camp), "pct_estrangera"].map(camp => ({
+      camp,
+      municipis: zones.filter(z => z.tipus === "municipi" && z.ind[camp] != null).length,
+      barris: zones.filter(z => z.tipus === "barri" && z.ind[camp] != null).length,
+    })),
+    nota_estrangera: "«Población extranjera» es 100 menos el porcentaje de "
+      + "población con nacionalidad española que publica el INE. Es "
+      + "nacionalidad, no lugar de nacimiento: quien se ha nacionalizado "
+      + "cuenta como español.",
+    nota_barris: "Gini, paro, estudios superiores, vivienda en alquiler, "
+      + "coches por habitante e índice socioeconómico existen solo por "
+      + "municipio. Al colorear por uno de ellos, los 73 barrios de Barcelona "
+      + "se quedan en gris: el dato no se publica por debajo del municipio y "
+      + "repartir el de la ciudad entre sus barrios sería inventárselo.",
+  },
   transit: {
     hora: transit.meta?.hora_referencia ?? null,
     metode: transit.meta?.metode ?? null,
@@ -403,6 +485,13 @@ for (const d of destins) {
 const ambPeu = zones.filter(z => Object.values(z.destins).some(d => d?.a_peu != null)).length;
 console.log(`  con desglose a pie    ${ambPeu}/${zones.length}`);
 console.log(`  con precio de compra  ${zones.filter(z => z.compra_eur_m2 != null).length}/${zones.length}`);
+console.log("  ── indicadores ──");
+for (const c of meta.indicadors.camps) {
+  const tot = c.municipis + c.barris;
+  console.log(`    ${c.camp.padEnd(24)} ${String(tot).padStart(3)}/${zones.length}  `
+            + `(${c.municipis} mun. + ${c.barris} barrios)`
+            + (c.barris === 0 ? "   ← solo municipal" : ""));
+}
 console.log(`  geometría             ${feats.length}/${zones.length} polígonos · `
           + `${vertexAbans} → ${vertexDespres} vértices `
           + `(−${(100 * (1 - vertexDespres / vertexAbans)).toFixed(0)}% a ${TOL_GEO_M} m)`);

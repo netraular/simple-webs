@@ -57,7 +57,31 @@ def fetch(url, fname, binary=False):
                 if not chunk:
                     break
                 f.write(chunk)
+        _no_es_html(path, url)
     return path
+
+
+def _no_es_html(path, url):
+    """Peta si el servidor ha tornat una pàgina web on hi havia d'anar una dada.
+
+    Des del 2026-09 el portal de dades obertes de l'Ajuntament de Barcelona
+    serveix les descàrregues darrere BunkerWeb + hCaptcha: respon **HTTP 200**
+    amb una pàgina «Bot Detection» d'uns 12 kB en comptes del CSV. Sense
+    aquesta comprovació el fitxer entraria a la memòria cau, el parseig no
+    trobaria cap columna i els camps quedarien a `null` en silenci —que és
+    exactament el que aquest script promet no fer mai.
+
+    La sortida alternativa que sí que funciona és l'API CKAN
+    (`datastore_search` / `datastore_search_sql`), que no està protegida.
+    """
+    with open(path, "rb") as f:
+        cap = f.read(512).lstrip()
+    if cap[:1] == b"<" or cap[:9].lower() == b"<!doctype":
+        os.remove(path)                    # no deixis la caça enverinada
+        raise SystemExit(
+            "\n  ✗ %s ha tornat HTML, no dades.\n"
+            "    Si és opendata-ajuntament.barcelona.cat, és el captcha de\n"
+            "    BunkerWeb: fes servir l'API CKAN (datastore_search).\n" % url)
 
 
 def num_es(s):

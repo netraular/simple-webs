@@ -242,6 +242,23 @@ https://opendata-ajuntament.barcelona.cat/data/dataset/renda-tributaria-per-pers
 Fitxa del dataset:
 <https://opendata-ajuntament.barcelona.cat/data/ca/dataset/renda-tributaria-per-persona-atlas-distribucio>
 
+> **⚠ Aquesta URL ja no baixa el fitxer (comprovat el 2026-09-26).** El portal
+> de l'Ajuntament ha posat les descàrregues darrere **BunkerWeb + hCaptcha**:
+> respon **HTTP 200** amb una pàgina «Bot Detection» d'uns 12 kB en comptes del
+> CSV, així que un script que no ho miri es guarda l'HTML a la caché i acaba
+> deixant els camps a `null` sense dir res. `fetch()` ara ho detecta i peta.
+>
+> La via que **sí** que funciona és l'API CKAN del mateix portal, que no està
+> protegida —`datastore_search` i `datastore_search_sql` sobre el `resource_id`
+> del recurs:
+>
+> ```
+> https://opendata-ajuntament.barcelona.cat/data/api/3/action/datastore_search?resource_id=2248ae01-340f-41ce-ab08-5cb6986ece73&limit=5
+> ```
+>
+> La caché de `_work/` és d'abans del bloqueig, per això el script segueix
+> funcionant. Qui la buidi haurà de passar el descarregador a CKAN.
+
 Columnes: `Any, Codi_Districte, Nom_Districte, Codi_Barri, Nom_Barri, Seccio_Censal, Import_Euros`.
 El codi INE de secció es reconstrueix com `08019` + districte (2 dígits) + secció (3 dígits).
 

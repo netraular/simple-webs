@@ -58,6 +58,7 @@ cd data-src
 python3 fetch-transit.py     # ~1.150 routing queries, ~1 h
 python3 fetch-isocronas.py   # 165 one-to-all queries, ~6 min
 node fetch-linies.mjs        # OpenStreetMap; needs transit.json to pick the buses
+python3 build_seguretat.py   # crime + urban green space, by municipality
 node build-transport.mjs     # merges into pages/data/ — downloads nothing
 node test-transport.mjs      # contract, coverage and estimator error
 node test-capas.mjs          # the page's own layer code, run against the data
@@ -77,6 +78,15 @@ keeps working unchanged; nothing downloads them at runtime.
 
 Behind a TLS-intercepting proxy, prefix those with
 `NODE_EXTRA_CA_CERTS=/etc/ssl/certs/ca-certificates.crt`.
+
+**Heads-up on Barcelona's open-data portal** (checked 2026-09-26): its
+`/download` URLs now sit behind BunkerWeb + hCaptcha and answer **HTTP 200**
+with a ~12 kB "Bot Detection" page instead of the CSV, so a script that
+doesn't look would cache HTML and silently null out the fields.
+`build_indicadors.py` now refuses that; its cache predates the block, so it
+still runs. Anyone clearing `_work/` has to move the downloader to the portal's
+CKAN API (`datastore_search`), which is not challenged. See
+`indicadors.SOURCES.md`.
 
 ---
 

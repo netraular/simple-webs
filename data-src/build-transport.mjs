@@ -31,7 +31,7 @@
  *
  * El reparto en tres grupos es el que manda en el peso: lo que hace falta para
  * pintar el mapa y responder la pregunta se carga al abrir y tiene que caber en
- * el presupuesto (600 kB, lo comprueba test-transport.mjs); el itinerario
+ * el presupuesto (660 kB, lo comprueba test-transport.mjs); el itinerario
  * detallado y las isócronas solo los pide quien los usa.
  */
 import { readFileSync, writeFileSync, existsSync, statSync, rmSync } from "node:fs";
@@ -73,7 +73,6 @@ const delBcn  = readOpt("delictes-bcn.json");
 const tarifes = readOpt("tarifes.json");
 const centres = readOpt("centres.json");
 const soroll  = readOpt("soroll.json");
-const costa   = readOpt("costa.geojson");
 const estac   = readOpt("estacions.json") || [];
 const esport  = readOpt("esport.json");
 const edatHab = readOpt("edat-habitatge.json");
@@ -88,7 +87,6 @@ if (!estac.length) avisos.push("falta estacions.json: sin distancia a la estaci�
 if (!esport)  avisos.push("falta esport.json: sin espacios deportivos (node build_esport.mjs)");
 if (!edatHab) avisos.push("falta edat-habitatge.json: sin antigüedad del parque (python3 build_habitatge_edat.py)");
 if (!comerc)  avisos.push("falta comerc.json: sin locales vacíos (python3 build_comerc.py)");
-if (!costa)   avisos.push("falta costa.geojson: sin distancia al mar (python3 build_costa.py)");
 
 if (!transit) throw new Error("falta transit.json — lanza antes fetch-transit.py");
 if (!linies)  avisos.push("falta linies.json: la página se quedará sin la red dibujada");
@@ -255,7 +253,7 @@ function delictesBarri(o, districte) {
  *   · `soroll.json` — ruido. **Solo los 73 barrios**, el espejo exacto de los
  *     delitos. Fuera de la ciudad no hay tabla agregada que cruzar.
  */
-const TARIFES = ["zones_a_bcn", "transport_eur_mes", "aigua_eur_m3"];
+const TARIFES = ["zones_a_bcn", "aigua_eur_m3"];
 const CENTRES = ["centres_educatius_1000", "pct_centres_publics"];
 const SOROLL  = ["pct_soroll_65db", "pct_soroll_nit_55db"];
 const ESPORT  = ["esport_1000"];
@@ -267,46 +265,15 @@ const copia = (o, font, camps) => {
   return o;
 };
 
-/* --- distancia al mar ------------------------------------------------------
-   Distancia mínima del punto de referencia de la zona a la línea de costa, en
-   línea recta. Se mide contra cada **segmento**, no contra los vértices: con
-   155 puntos para 400 km de costa, dos vértices vecinos están a kilómetros y
-   medir solo a ellos daría hasta 2 km de error de más en mitad de un tramo
-   recto. La costa es de escala 1:10 M, así que el número sirve para separar
-   costa de interior, no para contar metros hasta la playa. */
+/* --- plano local para medir distancias --------------------------------------
+   Equirectangular centrado en el área: a esta latitud y para distancias de
+   decenas de kilómetros la diferencia con la haversine está muy por debajo del
+   error de los datos que se miden con él. */
 const R_TERRA = 6371.0088;
-const LAT0_COSTA = 41.45;
-const KX_COSTA = Math.cos(LAT0_COSTA * Math.PI / 180);
+const LAT0 = 41.45;
+const KX = Math.cos(LAT0 * Math.PI / 180);
 const GRAU_KM = Math.PI / 180 * R_TERRA;
-
-// Plano local equirectangular: a esta latitud y para distancias de decenas de
-// kilómetros la diferencia con la haversine está por debajo del error de la
-// propia línea de costa.
-const pla = ([lon, lat]) => [lon * KX_COSTA * GRAU_KM, lat * GRAU_KM];
-const SEGMENTS = [];
-if (costa) {
-  const g = costa.geometry || costa;
-  const linies = g.type === "MultiLineString" ? g.coordinates : [g.coordinates];
-  for (const l of linies) {
-    for (let i = 1; i < l.length; i++) SEGMENTS.push([pla(l[i - 1]), pla(l[i])]);
-  }
-}
-
-function distMarKm(lat, lon) {
-  if (!SEGMENTS.length) return null;
-  const [px, py] = pla([lon, lat]);
-  let millor = Infinity;
-  for (const [[ax, ay], [bx, by]] of SEGMENTS) {
-    const dx = bx - ax, dy = by - ay;
-    const len2 = dx * dx + dy * dy;
-    // Proyección del punto sobre el segmento, recortada a sus extremos.
-    const t = len2 === 0 ? 0 : Math.max(0, Math.min(1, ((px - ax) * dx + (py - ay) * dy) / len2));
-    const ex = ax + t * dx - px, ey = ay + t * dy - py;
-    const d2 = ex * ex + ey * ey;
-    if (d2 < millor) millor = d2;
-  }
-  return Math.round(Math.sqrt(millor) * 10) / 10;
-}
+const pla = ([lon, lat]) => [lon * KX * GRAU_KM, lat * GRAU_KM];
 
 /**
  * Los dos campos que no vienen de ninguna fuente externa: se calculan aquí con
@@ -319,8 +286,6 @@ function derivats(o, z) {
   if (z.poblacio && z.superficie_km2) {
     o.densitat_hab_km2 = Math.round(z.poblacio / z.superficie_km2);
   }
-  const d = distMarKm(z.lat, z.lon);
-  if (d != null) o.dist_mar_km = d;
   const e = distEstacioKm(z.lat, z.lon, EST_TOTES);
   if (e != null) o.dist_estacio_km = e;
   const t = distEstacioKm(z.lat, z.lon, EST_TREN);
@@ -467,7 +432,6 @@ function zona(m, id, tipus, t) {
     lloguer_contractes: m.lloguer_contractes ?? null,
     tren: m.tren ?? null,
     estacions: m.estacions ?? null,
-    sortides: t?.sortides_hora_punta ?? m.sortides ?? null,
     // La corona tarifaria va como texto («2C») y no como número: es la etiqueta
     // que lleva escrita el billete. Lo que se puede ordenar y filtrar —cuántas
     // zonas cruzas hasta Barcelona— va aparte, en `ind`.
@@ -642,8 +606,7 @@ const meta = {
             ...SEGURETAT.map(s => s.camp),
             ...TARIFES, ...CENTRES, ...SOROLL,
             ...ESPORT, ...EDAT_HAB, ...COMERC,
-            "densitat_hab_km2", "dist_mar_km",
-            "dist_estacio_km", "dist_tren_km"].map(camp => ({
+            "densitat_hab_km2", "dist_estacio_km", "dist_tren_km"].map(camp => ({
       camp,
       municipis: zones.filter(z => z.tipus === "municipi" && z.ind[camp] != null).length,
       barris: zones.filter(z => z.tipus === "barri" && z.ind[camp] != null).length,
@@ -704,15 +667,35 @@ const meta = {
       nota: soroll.nota ?? null,
       nota_cobertura: soroll.nota_cobertura ?? null,
     } : null,
-    costa: costa ? {
-      font: costa.properties?.font ?? null,
-      escala: costa.properties?.escala ?? null,
-      nota: "La distancia al mar es en línea recta desde el punto de "
-        + "referencia de la zona —el núcleo urbano del municipio o el "
-        + "centroide del barrio—, no desde su borde ni hasta una playa "
-        + "concreta. La línea de costa es de escala 1:10.000.000: separa "
-        + "costa de interior, no cuenta metros.",
+    esport: esport ? {
+      font: esport.font ?? null,
+      nota: esport.nota ?? null,
+      control_idescat: esport.control_idescat ?? null,
     } : null,
+    edat_habitatge: edatHab ? {
+      font: edatHab.font ?? null,
+      any: edatHab.any ?? null,
+      nota: edatHab.nota ?? null,
+    } : null,
+    comerc: comerc ? {
+      font: comerc.font ?? null,
+      any: comerc.any ?? null,
+      nota: comerc.nota ?? null,
+    } : null,
+    delictes_bcn: delBcn ? {
+      font: delBcn.font ?? null,
+      any: delBcn.any ?? null,
+      factor_prorrateig: delBcn.factor_prorrateig ?? null,
+      nota: delBcn.nota ?? null,
+    } : null,
+    estacions: {
+      font: "OpenStreetMap via Overpass · fetch-estacions.mjs",
+      nota: "La distancia a la estación es en línea recta desde el punto de "
+        + "referencia de la zona —el núcleo urbano del municipio o el "
+        + "centroide del barrio—, no andando y no desde tu portal. En un "
+        + "municipio grande describe el centro, no sus urbanizaciones. "
+        + "«Al tren» cuenta solo Rodalies y FGC; la otra, también el metro.",
+    },
   },
   transit: {
     hora: transit.meta?.hora_referencia ?? null,
@@ -815,10 +798,14 @@ const INICIAL = ["zonas.json", "zonas-geo.json", "linies.json"];
 const DIFERIT = ["rutas.json", "iso-ancores.json", "iso-zonas.json"];
 for (const f of INICIAL) console.log(`    ${f.padEnd(20)} ${kb(f).padStart(8)}   ← al abrir`);
 for (const f of DIFERIT) console.log(`    ${f.padEnd(20)} ${kb(f).padStart(8)}`);
+// El presupuesto de verdad lo impone test-transport.mjs; aquí solo se avisa
+// pronto. Estaban descompasados —600 aquí, 660 allí— y el aviso saltaba en cada
+// build sin que nada estuviera mal, que es la mejor manera de que nadie lo lea.
+const PRESSUPOST_KB = 660;
 const inicial = INICIAL.reduce((a, f) => a + mida(f), 0) / 1024;
 console.log(`    ${"carga inicial".padEnd(20)} ${(inicial.toFixed(0) + " KB").padStart(8)}`
-          + `   (presupuesto 600 KB)`);
-if (inicial > 600) avisos.push(`la carga inicial son ${inicial.toFixed(0)} KB, por encima `
-                             + "del presupuesto de 600 KB");
+          + `   (presupuesto ${PRESSUPOST_KB} KB)`);
+if (inicial > PRESSUPOST_KB) avisos.push(`la carga inicial son ${inicial.toFixed(0)} KB, por encima `
+                             + `del presupuesto de ${PRESSUPOST_KB} KB`);
 if (esborrats.length) console.log(`  borrados (escalas viejas): ${esborrats.join(", ")}`);
 for (const a of avisos) console.warn(`  ⚠ ${a}`);

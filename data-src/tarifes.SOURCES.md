@@ -1,8 +1,8 @@
 # `tarifes.json` — fonts de dades
 
 Generat amb `build_tarifes.py`. Dos **costos corrents** per municipi que la
-pàgina no tenia i que pesen tant com el preu del pis: el **transport públic** i
-l'**aigua**.
+pàgina no tenia i que pesen tant com el preu del pis: la **corona tarifària**
+i l'**aigua**.
 
 Les dues fonts són **només municipals**. Barcelona sencera és zona tarifària 1 i
 té un únic preu de l'aigua: repetir el mateix número als seus 73 barris fingiria
@@ -65,18 +65,14 @@ lectura de les dades dona aquest resultat.
 Dels **91 municipis** de la pàgina (Barcelona va a part, per barris):
 **35 a 1 zona, 24 a 2, 32 a 3**. Cap a 4 o més.
 
-### Preus de la T-usual
+### Per què no hi ha el preu de l'abonament
 
-Títol de **30 dies i viatges il·limitats** dins del nombre de zones del títol.
-
-| Zones | 1 | 2 | 3 | 4 | 5 | 6 |
-|---|---|---|---|---|---|---|
-| €/mes | 22,80 | 30,55 | 42,70 | 52,15 | 59,60 | 63,85 |
-
-Font: <https://www.atm.cat/titols-tarifes/titols-i-tarifes/t-usual>, consultat el
-**2026-09-28**. Van **escrits a mà** dins del script, amb la URL i la data de
-consulta al costat: al portal són HTML pla i rascar-los seria més fràgil que
-copiar-los i deixar constància de quan.
+Hi era —el cost de la T-usual segons les zones— i **se n'ha tret**. Anava
+**escrit a mà** dins del script, copiat de l'HTML pla del portal de l'ATM, i
+canvia cada gener: un número que cal recordar d'actualitzar és un número que
+algun dia menteix. El que es guarda és **quantes corones creues**, que és una
+propietat del lloc i no caduca; el preu del títol el consulta qui el necessiti a
+<https://www.atm.cat/titols-tarifes>.
 
 ### Camps que en surten
 
@@ -84,18 +80,16 @@ copiar-los i deixar constància de quan.
 |---|---|---|---|
 | `zona_tarifaria` | arrel de la zona | text (`1`, `2C`, `3E`…) | 91/91 municipis |
 | `zones_a_bcn` | `ind` | 1–6 | 91/91 |
-| `transport_eur_mes` | `ind` | €/mes | 91/91 |
 
 `zona_tarifaria` va com a text i no com a número perquè és l'etiqueta que porta
 escrita el bitllet; el que es pot ordenar i filtrar és `zones_a_bcn`.
 
 ### Què NO diu aquest número
 
-- És el cost d'**anar a Barcelona**. Qui es mou dins de la seva pròpia corona, o
-  cap a un altre municipi de la mateixa, paga menys.
-- És la **T-usual**. Qui viatja poc surt més barat amb T-casual, i qui té menys
-  de 30 anys o família nombrosa té títols propis.
-- No hi ha cap descompte aplicat (T-jove, gent gran, T-verda).
+- Són les corones que creues per **anar a Barcelona**. Qui es mou dins de la seva
+  pròpia corona, o cap a un altre municipi de la mateixa, en creua menys.
+- No diu res de la **freqüència** ni de si tens estació a prop: això ho diuen
+  `estacions`, `dist_tren_km` i `dist_estacio_km` (vegeu `transport.SOURCES.md`).
 
 ---
 

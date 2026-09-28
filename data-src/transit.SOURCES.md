@@ -108,6 +108,15 @@ seguretat, ni retards: és horari **teòric programat**, no temps real.
 
 ## 2. `sortides_hora_punta` — qualitat del servei
 
+> **Ja no arriba a la pàgina.** `fetch-transit.py` el segueix calculant i
+> `transit.json` el segueix portant, però `build-transport.mjs` **ha deixat
+> d'emetre'l** a `zonas.json`: com a indicador confonia més que ajudava —vegeu
+> els paranys d'aquesta mateixa secció— i qui volia saber si té tren a prop ara
+> ho mira a `estacions`, `dist_tren_km` i `dist_estacio_km`. No s'ha tret del
+> fetch perquè treure'l obligaria a repetir una hora de consultes al router per
+> no guanyar res, i deixar-lo no costa res. Aquesta secció es queda perquè el
+> camp segueix existint al fitxer intermedi.
+
 **Definició:** nombre de **sortides diferents de transport públic entre les
 07:00 i les 09:00 locals** d'aquell dimarts que formen part d'un trajecte òptim
 cap a **plaça de Catalunya**.

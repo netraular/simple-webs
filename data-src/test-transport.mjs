@@ -175,7 +175,7 @@ console.log(`  ${FITXERS.filter((f) => tamany(f) != null).length}/${FITXERS.leng
 /* Claves del contrato de cada zona. */
 const CLAUS = ["id", "tipus", "nom", "nom_llarg", "comarca", "lat", "lon",
                "dist_bcn_km", "poblacio", "compra_eur_m2", "compra_eur_total",
-               "lloguer_eur_mes", "tren", "sortides", "ind", "destins"];
+               "lloguer_eur_mes", "tren", "estacions", "ind", "destins"];
 /* Claves obligatorias de un trayecto con dato, en zonas.json. Lo que la página
    necesita para filtrar, ordenar y pintar sin bajarse los itinerarios. */
 const CLAUS_T = ["min", "a_peu", "transbords", "modes"];
@@ -251,7 +251,7 @@ for (const z of zones) {
         esNum(z.lat) && esNum(z.lon) && esNum(z.dist_bcn_km) && esNum(z.poblacio) &&
         esNumONull(z.compra_eur_m2) && esNumONull(z.compra_eur_total) &&
         esNumONull(z.lloguer_eur_mes) && esNumONull(z.ind?.renda_llar_eur ?? null) &&
-        (z.tren === null || typeof z.tren === "string") && esNumONull(z.sortides))) tipoMal++;
+        (z.tren === null || typeof z.tren === "string") && esNum(z.estacions))) tipoMal++;
   const claus = Object.keys(z.destins || {});
   if (claus.length !== ids.length || ids.some((i) => !(i in (z.destins || {})))) destinsMal++;
   for (const id of ids) {
@@ -316,11 +316,11 @@ const RANGS = {
   pct_habitatge_principal: [0, 100], pressio_estacional_pct: [0, 500],
   pct_centres_publics: [0, 100], pct_soroll_65db: [0, 100],
   pct_soroll_nit_55db: [0, 100], creixement_1000: [-100, 100],
-  altitud_m: [0, 1500], zones_a_bcn: [1, 6], transport_eur_mes: [20, 80],
+  altitud_m: [0, 1500], zones_a_bcn: [1, 6],
   aigua_eur_m3: [0.3, 8], centres_educatius_1000: [0, 10],
   // El barrio más denso de Barcelona pasa de 50.000 hab./km²; un municipio de
   // montaña no llega a 20. El tope alto deja sitio a los dos.
-  densitat_hab_km2: [1, 80000], dist_mar_km: [0, 80],
+  densitat_hab_km2: [1, 80000],
   // Distancias a estación: el tope es generoso a propósito. El peor caso real
   // es Caldes de Montbui a 9,3 km del tren más cercano; un 30 significaría que
   // la proyección o el filtro de redes se ha roto, no que exista un sitio así

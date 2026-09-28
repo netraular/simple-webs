@@ -141,7 +141,6 @@ const rows = geo.features.map(f => {
     tren: null, estacions: 0,                    // se rellenan abajo
     temps: null,
     transit: transitMap.get(codi)?.destins || null,
-    sortides: transitMap.get(codi)?.sortides_hora_punta ?? null,
     ind: indicMap.get(codi) || null,
   };
 });

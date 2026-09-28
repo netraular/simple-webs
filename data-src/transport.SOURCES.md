@@ -406,7 +406,7 @@ Sant Cugat i Rubí en tenen les dues i no els queda igual de prop. `derivats()` 
 perquè són dues preguntes: `dist_estacio_km` compta qualsevol estació —el metro
 també— i `dist_tren_km` només **Rodalies i FGC**, que és el que serveix per
 moure's per la província. Als municipis sense metro coincideixen; als 73 barris
-se separen molt (Montbau té metro i té el tren a 3,6 km).
+se separen molt: Montbau té el metro a 800 m i el tren de rodalia a **3,6 km**, i la Teixonera té parada de metro dins del barri i el tren a 3,2 km.
 
 Cobertura **164/164**. Mediana 0,5 km a qualsevol estació i 1,3 km al tren; el
 pitjor cas real és **Caldes de Montbui, a 9,3 km**.

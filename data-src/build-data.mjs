@@ -196,7 +196,6 @@ const rows = municipis.map(m => {
     estacions: countMuni.get(ine) || 0,
     temps: temps[ine] || null,
     transit: transitMap.get(ine)?.destins || null,
-    sortides: transitMap.get(ine)?.sortides_hora_punta ?? null,
     ind: indicMap.get(ine) || null,
   };
 });

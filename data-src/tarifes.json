@@ -9,20 +9,7 @@
   "consulta": "2026-09-28",
   "municipis": 92,
   "contrastats": 92,
-  "nota": "No es un conjunto del catálogo de datos abiertos: es el JSON que la ATM sirve a su visor público de la zonificación, sin licencia declarada ni URL garantizada. El número de zonas sale de la matriz zones_intersect, no del dígito de la corona: Sant Cugat y Rubí son los dos «2C» y están a 1 y a 2 zonas de Barcelona.",
-  "tusual": {
-   "font": "ATM · tarifa de la T-usual (30 días, viajes ilimitados)",
-   "url": "https://www.atm.cat/titols-tarifes/titols-i-tarifes/t-usual",
-   "consulta": "2026-09-28",
-   "eur": {
-    "1": 22.8,
-    "2": 30.55,
-    "3": 42.7,
-    "4": 52.15,
-    "5": 59.6,
-    "6": 63.85
-   }
-  }
+  "nota": "No es un conjunto del catálogo de datos abiertos: es el JSON que la ATM sirve a su visor público de la zonificación, sin licencia declarada ni URL garantizada. El número de zonas sale de la matriz zones_intersect, no del dígito de la corona: Sant Cugat y Rubí son los dos «2C» y están a 1 y a 2 zonas de Barcelona."
  },
  "aigua": {
   "font": "Agència Catalana de l'Aigua, vía Dades Obertes de Catalunya (6st4-ptsi)",
@@ -35,553 +22,461 @@
   "08019": {
    "zona_tarifaria": "1",
    "zones_a_bcn": 1,
-   "transport_eur_mes": 22.8,
    "aigua_eur_m3": 3.223
   },
   "08194": {
    "zona_tarifaria": "1",
    "zones_a_bcn": 1,
-   "transport_eur_mes": 22.8,
    "aigua_eur_m3": 2.942
   },
   "08101": {
    "zona_tarifaria": "1",
    "zones_a_bcn": 1,
-   "transport_eur_mes": 22.8,
    "aigua_eur_m3": 2.942
   },
   "08077": {
    "zona_tarifaria": "1",
    "zones_a_bcn": 1,
-   "transport_eur_mes": 22.8,
    "aigua_eur_m3": 2.942
   },
   "08245": {
    "zona_tarifaria": "1",
    "zones_a_bcn": 1,
-   "transport_eur_mes": 22.8,
    "aigua_eur_m3": 2.942
   },
   "08221": {
    "zona_tarifaria": "1",
    "zones_a_bcn": 1,
-   "transport_eur_mes": 22.8,
    "aigua_eur_m3": 2.942
   },
   "08169": {
    "zona_tarifaria": "1",
    "zones_a_bcn": 1,
-   "transport_eur_mes": 22.8,
    "aigua_eur_m3": 2.037
   },
   "08073": {
    "zona_tarifaria": "1",
    "zones_a_bcn": 1,
-   "transport_eur_mes": 22.8,
    "aigua_eur_m3": 2.942
   },
   "08015": {
    "zona_tarifaria": "1",
    "zones_a_bcn": 1,
-   "transport_eur_mes": 22.8,
    "aigua_eur_m3": 2.942
   },
   "08217": {
    "zona_tarifaria": "1",
    "zones_a_bcn": 1,
-   "transport_eur_mes": 22.8,
    "aigua_eur_m3": 2.942
   },
   "08211": {
    "zona_tarifaria": "1",
    "zones_a_bcn": 1,
-   "transport_eur_mes": 22.8,
    "aigua_eur_m3": 2.942
   },
   "08125": {
    "zona_tarifaria": "1",
    "zones_a_bcn": 1,
-   "transport_eur_mes": 22.8,
    "aigua_eur_m3": 3.259
   },
   "08200": {
    "zona_tarifaria": "1",
    "zones_a_bcn": 1,
-   "transport_eur_mes": 22.8,
    "aigua_eur_m3": 2.942
   },
   "08205": {
    "zona_tarifaria": "2C",
    "zones_a_bcn": 1,
-   "transport_eur_mes": 22.8,
    "aigua_eur_m3": 2.764
   },
   "08266": {
    "zona_tarifaria": "2C",
    "zones_a_bcn": 1,
-   "transport_eur_mes": 22.8,
    "aigua_eur_m3": 2.942
   },
   "08180": {
    "zona_tarifaria": "2C",
    "zones_a_bcn": 1,
-   "transport_eur_mes": 22.8,
    "aigua_eur_m3": 1.822
   },
   "08126": {
    "zona_tarifaria": "1",
    "zones_a_bcn": 1,
-   "transport_eur_mes": 22.8,
    "aigua_eur_m3": 3.125
   },
   "08244": {
    "zona_tarifaria": "2B",
    "zones_a_bcn": 1,
-   "transport_eur_mes": 22.8,
    "aigua_eur_m3": 2.942
   },
   "08123": {
    "zona_tarifaria": "2B",
    "zones_a_bcn": 1,
-   "transport_eur_mes": 22.8,
    "aigua_eur_m3": 2.172
   },
   "08263": {
    "zona_tarifaria": "2B",
    "zones_a_bcn": 1,
-   "transport_eur_mes": 22.8,
    "aigua_eur_m3": 1.72
   },
   "08282": {
    "zona_tarifaria": "1",
    "zones_a_bcn": 1,
-   "transport_eur_mes": 22.8,
    "aigua_eur_m3": 2.383
   },
   "08105": {
    "zona_tarifaria": "2D",
    "zones_a_bcn": 2,
-   "transport_eur_mes": 30.55,
    "aigua_eur_m3": 1.702
   },
   "08904": {
    "zona_tarifaria": "2C",
    "zones_a_bcn": 1,
-   "transport_eur_mes": 22.8,
    "aigua_eur_m3": 1.855
   },
   "08158": {
    "zona_tarifaria": "2B",
    "zones_a_bcn": 1,
-   "transport_eur_mes": 22.8,
    "aigua_eur_m3": 2.942
   },
   "08301": {
    "zona_tarifaria": "1",
    "zones_a_bcn": 1,
-   "transport_eur_mes": 22.8,
    "aigua_eur_m3": 3.135
   },
   "08252": {
    "zona_tarifaria": "2C",
    "zones_a_bcn": 1,
-   "transport_eur_mes": 22.8,
    "aigua_eur_m3": 2.193
   },
   "08157": {
    "zona_tarifaria": "2B",
    "zones_a_bcn": 1,
-   "transport_eur_mes": 22.8,
    "aigua_eur_m3": 2.942
   },
   "08204": {
    "zona_tarifaria": "2B",
    "zones_a_bcn": 1,
-   "transport_eur_mes": 22.8,
    "aigua_eur_m3": 3.239
   },
   "08209": {
    "zona_tarifaria": "2D",
    "zones_a_bcn": 2,
-   "transport_eur_mes": 30.55,
    "aigua_eur_m3": 2.807
   },
   "08003": {
    "zona_tarifaria": "2E",
    "zones_a_bcn": 2,
-   "transport_eur_mes": 30.55,
    "aigua_eur_m3": 2.374
   },
   "08118": {
    "zona_tarifaria": "2E",
    "zones_a_bcn": 2,
-   "transport_eur_mes": 30.55,
    "aigua_eur_m3": 2.121
   },
   "08289": {
    "zona_tarifaria": "2B",
    "zones_a_bcn": 1,
-   "transport_eur_mes": 22.8,
    "aigua_eur_m3": 3.356
   },
   "08256": {
    "zona_tarifaria": "2D",
    "zones_a_bcn": 2,
-   "transport_eur_mes": 30.55,
    "aigua_eur_m3": 1.934
   },
   "08184": {
    "zona_tarifaria": "2C",
    "zones_a_bcn": 2,
-   "transport_eur_mes": 30.55,
    "aigua_eur_m3": 2.208
   },
   "08260": {
    "zona_tarifaria": "2D",
    "zones_a_bcn": 2,
-   "transport_eur_mes": 30.55,
    "aigua_eur_m3": 1.673
   },
   "08115": {
    "zona_tarifaria": "2D",
    "zones_a_bcn": 2,
-   "transport_eur_mes": 30.55,
    "aigua_eur_m3": 1.634
   },
   "08089": {
    "zona_tarifaria": "1",
    "zones_a_bcn": 1,
-   "transport_eur_mes": 22.8,
    "aigua_eur_m3": 3.011
   },
   "08905": {
    "zona_tarifaria": "2B",
    "zones_a_bcn": 1,
-   "transport_eur_mes": 22.8,
    "aigua_eur_m3": 2.864
   },
   "08124": {
    "zona_tarifaria": "2D",
    "zones_a_bcn": 2,
-   "transport_eur_mes": 30.55,
    "aigua_eur_m3": 1.776
   },
   "08196": {
    "zona_tarifaria": "2B",
    "zones_a_bcn": 1,
-   "transport_eur_mes": 22.8,
    "aigua_eur_m3": 2.031
   },
   "08068": {
    "zona_tarifaria": "2B",
    "zones_a_bcn": 1,
-   "transport_eur_mes": 22.8,
    "aigua_eur_m3": 2.888
   },
   "08281": {
    "zona_tarifaria": "2E",
    "zones_a_bcn": 2,
-   "transport_eur_mes": 30.55,
    "aigua_eur_m3": 1.997
   },
   "08238": {
    "zona_tarifaria": "2C",
    "zones_a_bcn": 2,
-   "transport_eur_mes": 30.55,
    "aigua_eur_m3": 1.582
   },
   "08187": {
    "zona_tarifaria": "2C",
    "zones_a_bcn": 2,
-   "transport_eur_mes": 30.55,
    "aigua_eur_m3": 2.154
   },
   "08054": {
    "zona_tarifaria": "2B",
    "zones_a_bcn": 1,
-   "transport_eur_mes": 22.8,
    "aigua_eur_m3": 2.808
   },
   "08167": {
    "zona_tarifaria": "2D",
    "zones_a_bcn": 2,
-   "transport_eur_mes": 30.55,
    "aigua_eur_m3": 1.541
   },
   "08296": {
    "zona_tarifaria": "2D",
    "zones_a_bcn": 2,
-   "transport_eur_mes": 30.55,
    "aigua_eur_m3": 2.137
   },
   "08136": {
    "zona_tarifaria": "2D",
    "zones_a_bcn": 2,
-   "transport_eur_mes": 30.55,
    "aigua_eur_m3": 1.879
   },
   "08135": {
    "zona_tarifaria": "2D",
    "zones_a_bcn": 2,
-   "transport_eur_mes": 30.55,
    "aigua_eur_m3": 1.781
   },
   "08172": {
    "zona_tarifaria": "2E",
    "zones_a_bcn": 2,
-   "transport_eur_mes": 30.55,
    "aigua_eur_m3": 2.028
   },
   "08230": {
    "zona_tarifaria": "2E",
    "zones_a_bcn": 2,
-   "transport_eur_mes": 30.55,
    "aigua_eur_m3": 2.224
   },
   "08295": {
    "zona_tarifaria": "2B",
    "zones_a_bcn": 2,
-   "transport_eur_mes": 30.55,
    "aigua_eur_m3": 3.447
   },
   "08056": {
    "zona_tarifaria": "1",
    "zones_a_bcn": 1,
-   "transport_eur_mes": 22.8,
    "aigua_eur_m3": 3.234
   },
   "08072": {
    "zona_tarifaria": "2B",
    "zones_a_bcn": 1,
-   "transport_eur_mes": 22.8,
    "aigua_eur_m3": 3.867
   },
   "08902": {
    "zona_tarifaria": "3D",
    "zones_a_bcn": 3,
-   "transport_eur_mes": 42.7,
    "aigua_eur_m3": 2.603
   },
   "08214": {
    "zona_tarifaria": "2E",
    "zones_a_bcn": 2,
-   "transport_eur_mes": 30.55,
    "aigua_eur_m3": 2.094
   },
   "08159": {
    "zona_tarifaria": "2D",
    "zones_a_bcn": 2,
-   "transport_eur_mes": 30.55,
    "aigua_eur_m3": 1.45
   },
   "08020": {
    "zona_tarifaria": "2A",
    "zones_a_bcn": 1,
-   "transport_eur_mes": 22.8,
    "aigua_eur_m3": 3.208
   },
   "08114": {
    "zona_tarifaria": "3B",
    "zones_a_bcn": 3,
-   "transport_eur_mes": 42.7,
    "aigua_eur_m3": 1.259
   },
   "08156": {
    "zona_tarifaria": "2D",
    "zones_a_bcn": 2,
-   "transport_eur_mes": 30.55,
    "aigua_eur_m3": 1.803
   },
   "08219": {
    "zona_tarifaria": "2E",
    "zones_a_bcn": 2,
-   "transport_eur_mes": 30.55,
    "aigua_eur_m3": 2.18
   },
   "08030": {
    "zona_tarifaria": "2E",
    "zones_a_bcn": 2,
-   "transport_eur_mes": 30.55,
    "aigua_eur_m3": 2.123
   },
   "08108": {
    "zona_tarifaria": "3D",
    "zones_a_bcn": 3,
-   "transport_eur_mes": 42.7,
    "aigua_eur_m3": 1.931
   },
   "08066": {
    "zona_tarifaria": "3B",
    "zones_a_bcn": 3,
-   "transport_eur_mes": 42.7,
    "aigua_eur_m3": 3.167
   },
   "08290": {
    "zona_tarifaria": "3C",
    "zones_a_bcn": 3,
-   "transport_eur_mes": 42.7,
    "aigua_eur_m3": 2.695
   },
   "08279": {
    "zona_tarifaria": "3C",
    "zones_a_bcn": 3,
-   "transport_eur_mes": 42.7,
    "aigua_eur_m3": 2.668
   },
   "08029": {
    "zona_tarifaria": "3E",
    "zones_a_bcn": 3,
-   "transport_eur_mes": 42.7,
    "aigua_eur_m3": 2.216
   },
   "08153": {
    "zona_tarifaria": "3E",
    "zones_a_bcn": 3,
-   "transport_eur_mes": 42.7,
    "aigua_eur_m3": 3.606
   },
   "08267": {
    "zona_tarifaria": "3D",
    "zones_a_bcn": 3,
-   "transport_eur_mes": 42.7,
    "aigua_eur_m3": 3.104
   },
   "08107": {
    "zona_tarifaria": "3D",
    "zones_a_bcn": 3,
-   "transport_eur_mes": 42.7,
    "aigua_eur_m3": 2.547
   },
   "08181": {
    "zona_tarifaria": "3D",
    "zones_a_bcn": 3,
-   "transport_eur_mes": 42.7,
    "aigua_eur_m3": 1.345
   },
   "08300": {
    "zona_tarifaria": "3C",
    "zones_a_bcn": 3,
-   "transport_eur_mes": 42.7,
    "aigua_eur_m3": 1.982
   },
   "08120": {
    "zona_tarifaria": "3C",
    "zones_a_bcn": 3,
-   "transport_eur_mes": 42.7,
    "aigua_eur_m3": 3.052
   },
   "08091": {
    "zona_tarifaria": "3B",
    "zones_a_bcn": 3,
-   "transport_eur_mes": 42.7,
    "aigua_eur_m3": 2.265
   },
   "08096": {
    "zona_tarifaria": "3D",
    "zones_a_bcn": 3,
-   "transport_eur_mes": 42.7,
    "aigua_eur_m3": 1.642
   },
   "08001": {
    "zona_tarifaria": "3B",
    "zones_a_bcn": 3,
-   "transport_eur_mes": 42.7,
    "aigua_eur_m3": 1.396
   },
   "08051": {
    "zona_tarifaria": "3C",
    "zones_a_bcn": 3,
-   "transport_eur_mes": 42.7,
    "aigua_eur_m3": 2.16
   },
   "08009": {
    "zona_tarifaria": "3E",
    "zones_a_bcn": 3,
-   "transport_eur_mes": 42.7,
    "aigua_eur_m3": 2.892
   },
   "08146": {
    "zona_tarifaria": "3B",
    "zones_a_bcn": 3,
-   "transport_eur_mes": 42.7,
    "aigua_eur_m3": 4.015
   },
   "08208": {
    "zona_tarifaria": "3B",
    "zones_a_bcn": 3,
-   "transport_eur_mes": 42.7,
    "aigua_eur_m3": 2.669
   },
   "08033": {
    "zona_tarifaria": "3D",
    "zones_a_bcn": 3,
-   "transport_eur_mes": 42.7,
    "aigua_eur_m3": 2.225
   },
   "08041": {
    "zona_tarifaria": "3D",
    "zones_a_bcn": 3,
-   "transport_eur_mes": 42.7,
    "aigua_eur_m3": 2.149
   },
   "08121": {
    "zona_tarifaria": "3E",
    "zones_a_bcn": 3,
-   "transport_eur_mes": 42.7,
    "aigua_eur_m3": 3.029
   },
   "08147": {
    "zona_tarifaria": "3B",
    "zones_a_bcn": 3,
-   "transport_eur_mes": 42.7,
    "aigua_eur_m3": 1.825
   },
   "08086": {
    "zona_tarifaria": "3D",
    "zones_a_bcn": 3,
-   "transport_eur_mes": 42.7,
    "aigua_eur_m3": 1.427
   },
   "08248": {
    "zona_tarifaria": "3D",
    "zones_a_bcn": 3,
-   "transport_eur_mes": 42.7,
    "aigua_eur_m3": 1.907
   },
   "08076": {
    "zona_tarifaria": "3B",
    "zones_a_bcn": 3,
-   "transport_eur_mes": 42.7,
    "aigua_eur_m3": 2.02
   },
   "08222": {
    "zona_tarifaria": "3B",
    "zones_a_bcn": 3,
-   "transport_eur_mes": 42.7,
    "aigua_eur_m3": 2.89
   },
   "08075": {
    "zona_tarifaria": "3E",
    "zones_a_bcn": 3,
-   "transport_eur_mes": 42.7,
    "aigua_eur_m3": 2.085
   },
   "08148": {
    "zona_tarifaria": "3A",
    "zones_a_bcn": 3,
-   "transport_eur_mes": 42.7,
    "aigua_eur_m3": 2.877
   },
   "08273": {
    "zona_tarifaria": "3B",
    "zones_a_bcn": 3,
-   "transport_eur_mes": 42.7,
    "aigua_eur_m3": 2.959
   },
   "08046": {
    "zona_tarifaria": "3D",
    "zones_a_bcn": 3,
-   "transport_eur_mes": 42.7,
    "aigua_eur_m3": 1.908
   }
  }

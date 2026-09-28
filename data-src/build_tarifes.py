@@ -6,10 +6,10 @@ precio del piso:
 
   · **Transporte.** Zona tarifaria de la ATM y, sobre todo, **cuántas zonas
     atraviesas para llegar a Barcelona**, que es lo que fija el precio del
-    abono. Con eso sale el coste de la T-usual, el título de 30 días y viajes
-    ilimitados: 22,80 €/mes viviendo dentro del área metropolitana, 42,70 €
-    desde Terrassa o Mataró. Veinte euros al mes de diferencia por vivir una
-    corona más lejos.
+    abono y lo que separa vivir dentro del área metropolitana de vivir en
+    Terrassa o Mataró. Se guarda el número de zonas, no el precio: el importe
+    de la T-usual cambia cada enero y había que copiarlo a mano, mientras que
+    las coronas que cruzas son una propiedad del sitio.
 
   · **Agua.** Precio del metro cúbico, que en el área va de 1,26 € a 4,02 €.
     Es un factor de tres entre municipios vecinos y no lo publica nadie más
@@ -39,9 +39,6 @@ eso el script no se fía: exige emparejar **los 92 municipios** por nombre y
 contrasta cada uno contra los polígonos de sectores, que son una fuente
 distinta de la misma casa. Si las dos no dicen lo mismo, no escribe nada.
 
-Las tarifas de la T-usual van escritas a mano abajo: están en HTML plano y
-rascarlas sería más frágil que copiarlas con su fecha de consulta.
-
     python3 build_tarifes.py [--fresh]
 """
 from __future__ import annotations
@@ -63,11 +60,6 @@ ATM = "https://www.atm.cat/documents/d/portal-atm/"
 ATM_CIUTATS = ATM + "cities"              # nom → fare_zone, logic_zone
 ATM_INTERSECT = ATM + "zones_intersect"   # zones travessades entre zones lògiques
 ATM_SECTORS = ATM + "sectors_tarifaris_amb"   # GeoJSON dels sectors, per contrastar
-
-TUSUAL_URL = "https://www.atm.cat/titols-tarifes/titols-i-tarifes/t-usual"
-TUSUAL_CONSULTA = "2026-09-28"
-# T-usual: 30 días, viajes ilimitados dentro del número de zonas del título.
-TUSUAL_EUR = {1: 22.80, 2: 30.55, 3: 42.70, 4: 52.15, 5: 59.60, 6: 63.85}
 
 AIGUA = ("https://analisi.transparenciacatalunya.cat/resource/6st4-ptsi.json"
          "?$where=any='{any}'&$limit=1200")
@@ -193,7 +185,6 @@ def tarifes_atm(munis: list[dict], fresh: bool) -> tuple[dict, dict]:
         out[m["codi_ine"]] = {
             "zona_tarifaria": c["fare_zone"],
             "zones_a_bcn": zones,
-            "transport_eur_mes": TUSUAL_EUR.get(zones),
         }
 
     if sense or ambigus:
@@ -220,12 +211,6 @@ def tarifes_atm(munis: list[dict], fresh: bool) -> tuple[dict, dict]:
                  "sale de la matriz zones_intersect, no del dígito de la "
                  "corona: Sant Cugat y Rubí son los dos «2C» y están a 1 y a "
                  "2 zonas de Barcelona."),
-        "tusual": {
-            "font": "ATM · tarifa de la T-usual (30 días, viajes ilimitados)",
-            "url": TUSUAL_URL,
-            "consulta": TUSUAL_CONSULTA,
-            "eur": {str(k): v for k, v in TUSUAL_EUR.items()},
-        },
     }
     return out, meta
 

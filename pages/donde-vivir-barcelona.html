@@ -1301,13 +1301,6 @@ const CAPES = [
         + `${HIP.anys} años y un ${nf(1).format(HIP.tin * 100)} % de interés fijo. `
         + "Los supuestos son fijos e iguales para todas las zonas: sirve para "
         + "comparar, no como oferta de nadie." },
-  { id: "esforc", grup: "Vivienda", nom: "Años de renta que cuesta", eix: "años",
-    get: (m) => m.compra_eur_total == null || !m.ind?.renda_llar_eur ? null
-              : m.compra_eur_total / m.ind.renda_llar_eur,
-    fmt: (v) => nf(1).format(v) + " años",
-    nota: "El piso medio dividido por la renta anual del hogar medio de la zona. "
-        + "Mide el esfuerzo con los sueldos de quien ya vive ahí, no con el tuyo. "
-        + "Cuanto más claro, menos años." },
 
   { id: "superficie_mitjana", grup: "Vivienda", nom: "Tamaño del piso medio", eix: "m²",
     get: (m) => m.superficie_mitjana_m2, fmt: (v) => fmtInt(v) + " m²",
@@ -1315,6 +1308,12 @@ const CAPES = [
         + "buena parte de la diferencia entre el precio por metro y el precio "
         + "del piso entero: un barrio caro de pisos pequeños puede salir más "
         + "asequible en total que uno barato de pisos grandes." },
+  { id: "pct_habitatge_pre1960", grup: "Vivienda", nom: "Parque anterior a 1960", eix: "%",
+    get: (m) => m.ind?.pct_habitatge_pre1960, fmt: (v) => nf(1).format(v) + " %",
+    nota: "Qué proporción de las viviendas del barrio se construyó antes de 1960, "
+        + "según el catastro: la frontera entre la ciudad de patios de luces, sin "
+        + "ascensor y sin aislamiento, y la posterior. Cuenta viviendas, no "
+        + "edificios." },
   { id: "pct_habitatge_lloguer", grup: "Vivienda", nom: "Viviendas en alquiler", eix: "%",
     get: (m) => m.ind?.pct_habitatge_lloguer, fmt: pct1,
     nota: "Porcentaje del parque de viviendas que está en alquiler. Dice si "
@@ -1327,11 +1326,6 @@ const CAPES = [
         + "porque el censo no los separa. Alto en los pueblos de costa y de "
         + "montaña; es el complemento de «viviendas principales»." },
 
-  { id: "transport_eur_mes", grup: "Coste de vivir aquí", nom: "Abono de transporte", eix: "€/mes",
-    get: (m) => m.ind?.transport_eur_mes, fmt: (v) => fmtEur(v) + "/mes",
-    nota: "Lo que cuesta al mes la T-usual de la zona tarifaria del municipio. "
-        + "Es el coste recurrente que no sale en el precio del piso y que puede "
-        + "dar la vuelta a un ahorro de alquiler." },
   { id: "zones_a_bcn", grup: "Coste de vivir aquí", nom: "Zonas tarifarias hasta Barcelona",
     eix: "zonas",
     get: (m) => m.ind?.zones_a_bcn, fmt: (v) => fmtInt(v) + (v === 1 ? " zona" : " zonas"),
@@ -1347,11 +1341,21 @@ const CAPES = [
   { id: "temps", grup: "Tu viaje", nom: "Tiempo de viaje", eix: "min", viu: true,
     get: (m) => m.valor, fmt: fmtMin,
     nota: "Tiempo puerta a puerta hacia los destinos que has marcado. Cuanto más claro, más cerca." },
-  { id: "sortides", grup: "Tu viaje", nom: "Salidas en hora punta", eix: "salidas 7-9 h",
-    get: (m) => m.sortides, fmt: (v) => fmtInt(v) + " salidas",
-    nota: "Salidas de tren, metro o tranvía desde la zona entre las 7 y las 9 de "
-        + "la mañana. Mide la frecuencia, que es lo que decide si perder un tren "
-        + "cuesta cinco minutos o media hora. Aquí el claro es lo malo: menos servicio." },
+  { id: "dist_tren_km", grup: "Tu viaje", nom: "Distancia a Rodalies o FGC", eix: "km",
+    get: (m) => m.ind?.dist_tren_km, fmt: (v) => nf(1).format(v) + " km",
+    nota: "Hasta la estación de cercanías o FGC más cercana, en línea recta desde "
+        + "el punto de referencia de la zona. No cuenta el metro: esto mide si "
+        + "puedes salir de la ciudad en tren. No es andando ni desde tu portal, y "
+        + "en un municipio grande describe el centro." },
+  { id: "dist_estacio_km", grup: "Tu viaje", nom: "Distancia a cualquier estación", eix: "km",
+    get: (m) => m.ind?.dist_estacio_km, fmt: (v) => nf(1).format(v) + " km",
+    nota: "Igual que la anterior pero contando también el metro. Donde no hay "
+        + "metro las dos coinciden; en Barcelona se separan mucho." },
+  { id: "estacions", grup: "Tu viaje", nom: "Estaciones en la zona", eix: "estaciones",
+    get: (m) => m.estacions, fmt: (v) => fmtInt(v) + (v === 1 ? " estación" : " estaciones"),
+    nota: "Paradas de metro, FGC y Rodalies dentro del término o del barrio. Un "
+        + "cero es cierto: 58 de las 164 zonas no tienen ninguna. Cuenta "
+        + "estaciones, no líneas ni frecuencia." },
 
   { id: "renda_llar_eur", grup: "Quién vive aquí", nom: "Renta del hogar", eix: "€/año",
     get: (m) => m.ind?.renda_llar_eur, fmt: (v) => fmtEur(v) + "/año",
@@ -1416,11 +1420,6 @@ const CAPES = [
     get: (m) => m.superficie_km2, fmt: (v) => nf(v < 10 ? 1 : 0).format(v) + " km²",
     nota: "Superficie de la zona. Importa para leer el resto: cuanto más grande "
         + "es un municipio, menos describe su media a ningún sitio concreto." },
-  { id: "dist_mar_km", grup: "El sitio", nom: "Distancia al mar", eix: "km",
-    get: (m) => m.ind?.dist_mar_km, fmt: (v) => nf(1).format(v) + " km",
-    nota: "En línea recta desde el punto de referencia de la zona hasta la "
-        + "costa. No es distancia a una playa —la costa incluye puertos y "
-        + "acantilados— ni se mide desde el borde del término." },
   { id: "dist_bcn_km", grup: "El sitio", nom: "Distancia a Barcelona", eix: "km",
     get: (m) => m.dist_bcn_km, fmt: (v) => nf(1).format(v) + " km",
     nota: "En línea recta hasta el centro de Barcelona. Es la distancia física, "
@@ -1441,11 +1440,24 @@ const CAPES = [
         + "adultos. Se dispara en los municipios pequeños —dos centros sobre "
         + "novecientos vecinos dan una tasa altísima— y no mide plazas ni "
         + "calidad, solo cuántos hay." },
+  { id: "esport_1000", grup: "El sitio", nom: "Espacios deportivos", eix: "por 1.000 hab.",
+    get: (m) => m.ind?.esport_1000, fmt: (v) => nf(2).format(v) + " por 1.000 hab.",
+    nota: "Pistas, salas, piscinas y campos del censo del Consell Català de "
+        + "l'Esport, por cada mil vecinos. Cuenta espacios, no instalaciones: un "
+        + "polideportivo con tres pistas son tres. Como todas las tasas por mil, "
+        + "se dispara en los municipios pequeños." },
   { id: "pct_centres_publics", grup: "El sitio", nom: "Centros públicos", eix: "%",
     get: (m) => m.ind?.pct_centres_publics, fmt: pct1,
     nota: "Porcentaje de centros de titularidad pública. El concertado cuenta "
         + "como privado: es público contra todo lo demás, no público contra "
         + "privado puro. No se publica donde hay menos de cinco centros." },
+  { id: "pct_locals_buits", grup: "El sitio", nom: "Locales vacíos", eix: "%",
+    get: (m) => m.ind?.pct_locals_buits, fmt: (v) => nf(1).format(v) + " %",
+    nota: "Qué proporción de los bajos del barrio no tiene actividad económica, "
+        + "según el censo comercial que se levanta recorriendo la ciudad a pie. "
+        + "Mide si la calle está abierta o cerrada, no cuánto comercio hay: un "
+        + "barrio residencial con pocos locales y todos abiertos sale igual de "
+        + "bien que uno con muchos." },
   { id: "pct_soroll_65db", grup: "El sitio", nom: "Ruido de día (≥65 dB)", eix: "% de vecinos",
     get: (m) => m.ind?.pct_soroll_65db, fmt: pct1,
     nota: "Porcentaje de vecinos expuestos a 65 decibelios o más en el índice "
@@ -1623,12 +1635,12 @@ const COMARQUES_FEM = new Set(["Anoia", "Selva", "Cerdanya", "Segarra", "Garrotx
 const deComarca = (c) => (COMARQUES_FEM.has(c) ? "de la " : "del ") + c;
 
 /** Los rasgos con los que se busca «¿por qué destaca esta zona?». No están ni
-    el precio ni el tiempo: la frase ya los ha dicho antes y repetirlos dejaría
-    fuera lo que de verdad la distingue. Los nombres están redactados para que
+    el precio, ni el tiempo, ni nada de la estación: la frase ya los ha dicho
+    antes y repetirlos dejaría fuera lo que de verdad la distingue —Caldes de
+    Montbui decía dos veces en dos líneas que el tren le queda a 9,3 km—. Los nombres están redactados para que
     encajen detrás de «destaca por» sin concordar en género con nada. */
 const RASGOS = [
   ["densitat_hab_km2", "la densidad de población"],
-  ["dist_mar_km", "lo lejos que queda del mar"],
   ["altitud_m", "la altitud"],
   ["superficie_km2", "la extensión"],
   ["edat_mitjana", "la edad media"],
@@ -1694,20 +1706,23 @@ function frase(m, zones) {
              + `(${C("lloguer").fmt(m.lloguer_eur_mes)}).`);
   }
 
-  // 3. la conexión
+  // 3. la conexión — qué redes pasan por aquí y, si no pasa ninguna, a qué
+  //    distancia queda la más cercana, que es la pregunta siguiente.
   const xs = xarxesDe(m);
-  const ps = P("sortides");
+  const dt = m.ind?.dist_tren_km;
   const conex = [];
   if (xs.length) {
+    const n = m.estacions;
     conex.push(`Tiene ${xs.join(" y ")}`
-      + (m.sortides ? ` con ${fmtInt(m.sortides)} salidas entre las 7 y las 9` : ""));
-    if (ps != null && ps >= 85) conex[0] += ", de las zonas mejor servidas del área";
-    else if (ps != null && ps <= 15) conex[0] += ", de las peor servidas de las que tienen estación";
+      + (n > 1 ? `, con ${fmtInt(n)} estaciones` : ""));
+  } else if (dt != null) {
+    conex.push("No tiene estación propia: el tren más cercano queda a "
+      + `${nf(1).format(dt)} km en línea recta`);
   } else {
     conex.push("No tiene estación de tren ni de metro: la conexión depende del bus");
   }
-  const zt = m.zona_tarifaria, ab = m.ind?.transport_eur_mes;
-  if (zt) conex.push(`zona tarifaria ${zt}${ab != null ? `, ${fmtEur(ab)}/mes de abono` : ""}`);
+  const zt = m.zona_tarifaria;
+  if (zt) conex.push(`zona tarifaria ${zt}`);
   parts.push(cap(conex.join("; ")) + ".");
 
   // 4. el rasgo por el que se sale de la norma
@@ -2094,16 +2109,19 @@ function tendencia() {
 
 /* El ranking ya no es solo de precio: se ordena por el criterio que se elija,
    y solo entran las zonas que tienen ese dato. En las capas de dinero y de
-   tiempo lo bueno es lo bajo; en «salidas en hora punta» o «zona verde», lo
+   tiempo lo bueno es lo bajo; en «estaciones» o «zona verde», lo
    alto. El sentido va escrito aquí y no se deduce, porque deducirlo sería
    inventarse qué es mejor en la edad media o en el porcentaje de extranjeros:
    en esas no hay mejor, y por eso no pueden ordenar el ranking. */
-const ORDRE_ASC = ["compra_m2", "compra_total", "lloguer", "hipoteca", "esforc",
-                   "temps", "transport_eur_mes", "aigua_eur_m3", "zones_a_bcn",
+const ORDRE_ASC = ["compra_m2", "compra_total", "lloguer", "hipoteca",
+                   "temps", "aigua_eur_m3", "zones_a_bcn",
+                   "dist_estacio_km", "dist_tren_km",
                    "delictes_1000", "robatoris_domicili_1000", "robatoris_violencia_1000",
-                   "pct_soroll_65db", "pct_soroll_nit_55db", "atur_taxa_pct"];
-const ORDRE_DESC = ["sortides", "zona_verda_m2_hab", "superficie_mitjana",
-                    "centres_educatius_1000", "pct_centres_publics", "renda_llar_eur"];
+                   "pct_soroll_65db", "pct_soroll_nit_55db", "atur_taxa_pct",
+                   "pct_locals_buits"];
+const ORDRE_DESC = ["zona_verda_m2_hab", "superficie_mitjana", "estacions",
+                    "centres_educatius_1000", "pct_centres_publics", "renda_llar_eur",
+                    "esport_1000"];
 const ORDENABLES = [...ORDRE_ASC, ...ORDRE_DESC];
 
 /** Las que cumplen todos tus criterios, ordenadas por el que hayas elegido.
@@ -3062,9 +3080,10 @@ function renderLegend() {
 
 /** Los indicadores que se enseñan con barra de percentil, y en qué orden. No
     están los 41: una ficha con cuarenta barras no es una ficha. */
-const FICHA_CAPES = ["compra_m2", "lloguer", "esforc", "transport_eur_mes",
-  "sortides", "renda_llar_eur", "densitat_hab_km2", "edat_mitjana",
-  "pct_estrangera", "pct_soroll_65db", "zona_verda_m2_hab", "dist_mar_km"];
+const FICHA_CAPES = ["compra_m2", "lloguer", "hipoteca", "superficie_mitjana",
+  "zones_a_bcn", "dist_tren_km", "estacions", "delictes_1000", "renda_llar_eur",
+  "densitat_hab_km2", "pct_soroll_65db", "zona_verda_m2_hab", "esport_1000",
+  "pct_habitatge_pre1960", "pct_locals_buits"];
 
 /** Una barra de percentil con su etiqueta. `null` se dice, no se esconde: un
     hueco silencioso se lee como un cero. */
@@ -3115,7 +3134,7 @@ function renderFicha() {
       ${xifra(CAPA_DE.get("lloguer"), "Alquiler")}
       <div><b>${t ? esc(fmtMin(t.min)) : "—"}</b><span>${t && id
         ? `hasta ${esc(nomCond(id))}` : "sin viaje marcado"}</span></div>
-      ${xifra(CAPA_DE.get("transport_eur_mes"), "Abono de transporte")}
+      ${xifra(CAPA_DE.get("hipoteca"), "Cuota de hipoteca")}
     </div>
     <div class="fi-h">Dónde cae dentro del área</div>
     ${FICHA_CAPES.map(cid => CAPA_DE.get(cid)).filter(Boolean)
@@ -3515,7 +3534,7 @@ function showTip(id, ev) {
     <dl>${files}
       ${v && !v.estimat && v.a_peu != null ? `<dt>A pie en esa ruta</dt><dd>${v.a_peu} min</dd>` : ""}
       ${v && !v.estimat && v.transbords != null ? `<dt>Transbordos</dt><dd>${v.transbords}</dd>` : ""}
-      ${m.sortides != null ? `<dt>Salidas 7-9 h</dt><dd>${fmtInt(m.sortides)}</dd>` : ""}
+      ${m.estacions ? `<dt>Estaciones</dt><dd>${fmtInt(m.estacions)}</dd>` : ""}
       ${m.poblacio != null ? `<dt>Población</dt><dd>${fmtInt(m.poblacio)}</dd>` : ""}
       ${capaFila}${ind}
     </dl>

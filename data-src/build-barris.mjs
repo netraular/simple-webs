@@ -167,7 +167,7 @@ const featContains = (f, lon, lat) => {
        : g.coordinates.some(p => polyContains(p, lon, lat));
 };
 
-const NET_ORDER = ["Metro", "FGC", "Rodalies", "Tren"];
+const NET_ORDER = ["Metro", "FGC", "Rodalies"];
 const byCodi = new Map(rows.map(r => [r.ine, r]));
 const nets = new Map();
 for (const st of estacions) {

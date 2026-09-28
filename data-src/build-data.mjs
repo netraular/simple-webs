@@ -104,7 +104,10 @@ for (const f of geo.features) {
   bboxes.set(f, [x0, y0, x1, y1]);
 }
 
-const NET_ORDER = ["Metro", "FGC", "Rodalies", "Tren"];
+// Orden en que se leen las redes de una zona. Ya no hay «Tren»: era el cajón
+// de sastre de fetch-estacions.mjs, que ahora resuelve cada estación contra
+// las líneas de linies.json en vez de inventarse una red.
+const NET_ORDER = ["Metro", "FGC", "Rodalies"];
 const perMuni = new Map();          // ine → Set de redes
 const countMuni = new Map();        // ine → nº de estaciones
 let sinMunicipi = 0;
@@ -167,10 +170,8 @@ const rows = municipis.map(m => {
   const ine = ine5(m.codi_ine);
   const L = idxLloguer.get(ine) || {};
   const C = idxCompra.get(ine) || {};
-  // "Tren" es el cajón de sastre de la clasificación: si ya hay Rodalies, sobra.
-  const setNets = new Set(perMuni.get(ine) || []);
-  if (setNets.has("Rodalies")) setNets.delete("Tren");
-  const nets = [...setNets].sort((a, b) => NET_ORDER.indexOf(a) - NET_ORDER.indexOf(b));
+  const nets = [...new Set(perMuni.get(ine) || [])]
+    .sort((a, b) => NET_ORDER.indexOf(a) - NET_ORDER.indexOf(b));
 
   return {
     ine,

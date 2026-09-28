@@ -74,12 +74,14 @@ const tarifes = readOpt("tarifes.json");
 const centres = readOpt("centres.json");
 const soroll  = readOpt("soroll.json");
 const costa   = readOpt("costa.geojson");
+const estac   = readOpt("estacions.json") || [];
 
 if (!segur)   avisos.push("falta seguretat.json: sin delitos ni zona verde (python3 build_seguretat.py)");
 if (!delBcn)  avisos.push("falta delictes-bcn.json: los 73 barrios se quedan sin delitos (python3 build_delictes_bcn.py)");
 if (!tarifes) avisos.push("falta tarifes.json: sin zona tarifaria, abono ni agua (python3 build_tarifes.py)");
 if (!centres) avisos.push("falta centres.json: sin centros educativos (node build_centres.mjs)");
 if (!soroll)  avisos.push("falta soroll.json: sin ruido en los barrios (python3 build_soroll.py)");
+if (!estac.length) avisos.push("falta estacions.json: sin distancia a la estación (node fetch-estacions.mjs)");
 if (!costa)   avisos.push("falta costa.geojson: sin distancia al mar (python3 build_costa.py)");
 
 if (!transit) throw new Error("falta transit.json — lanza antes fetch-transit.py");
@@ -310,7 +312,40 @@ function derivats(o, z) {
   }
   const d = distMarKm(z.lat, z.lon);
   if (d != null) o.dist_mar_km = d;
+  const e = distEstacioKm(z.lat, z.lon, EST_TOTES);
+  if (e != null) o.dist_estacio_km = e;
+  const t = distEstacioKm(z.lat, z.lon, EST_TREN);
+  if (t != null) o.dist_tren_km = t;
   return o;
+}
+
+/* --- ¿hay parada, y a qué distancia? ---------------------------------------
+   «¿Tiene estación?» se contesta con `tren` y `estacions`, que ya vienen de
+   build-data.mjs, pero las dos son de término municipal: Sant Cugat y Rubí
+   tienen estación las dos y no está igual de cerca. Esto lo mide.
+
+   Dos números porque son dos preguntas distintas: `dist_estacio_km` cuenta
+   cualquier estación —el metro también— y `dist_tren_km` solo Rodalies y FGC,
+   que es lo que sirve para moverse por la provincia. En los 91 municipios sin
+   metro las dos coinciden; en los 73 barrios se separan mucho.
+
+   Ojo con la lectura, y así se documenta: es **línea recta desde el punto de
+   referencia de la zona**, no andando y no desde tu portal. En un municipio
+   grande describe el centro, no sus urbanizaciones. */
+const EST_TOTES = estac.map(s => [s.lon, s.lat]);
+const EST_TREN = estac.filter(s => s.xarxa === "Rodalies" || s.xarxa === "FGC")
+                      .map(s => [s.lon, s.lat]);
+
+function distEstacioKm(lat, lon, punts) {
+  if (!punts.length) return null;
+  const [px, py] = pla([lon, lat]);
+  let millor = Infinity;
+  for (const p of punts) {
+    const [x, y] = pla(p);
+    const d2 = (x - px) ** 2 + (y - py) ** 2;
+    if (d2 < millor) millor = d2;
+  }
+  return Math.round(Math.sqrt(millor) * 10) / 10;
 }
 
 function indicadors(ind) {
@@ -593,7 +628,8 @@ const meta = {
     camps: [...INDICADORS.map(i => i.camp), "pct_estrangera",
             ...SEGURETAT.map(s => s.camp),
             ...TARIFES, ...CENTRES, ...SOROLL,
-            "densitat_hab_km2", "dist_mar_km"].map(camp => ({
+            "densitat_hab_km2", "dist_mar_km",
+            "dist_estacio_km", "dist_tren_km"].map(camp => ({
       camp,
       municipis: zones.filter(z => z.tipus === "municipi" && z.ind[camp] != null).length,
       barris: zones.filter(z => z.tipus === "barri" && z.ind[camp] != null).length,

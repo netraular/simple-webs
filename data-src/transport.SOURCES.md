@@ -19,6 +19,7 @@ i l'apartat 3 diu quant s'equivoca el segon.
 | `data-src/transit.json` | `fetch-transit.py` | temps porta a porta cap als 6 destins, amb el desglossament per tram |
 | `data-src/isocrones.json` | `fetch-isocronas.py` | abast `one-to-all` de cada origen, quantitzat a una graella de 600 m |
 | `data-src/linies.json` | `fetch-linies.mjs` | traçat i parades de la xarxa, des d'OpenStreetMap |
+| `data-src/estacions.json` | `fetch-estacions.mjs` | les 346 estacions de metro, FGC i Rodalies, amb la seva xarxa |
 | `pages/data/zonas.json` | `build-transport.mjs` | **164 zones**: atributs (preu, població, renda…) + els 6 destins |
 | `pages/data/zonas-geo.json` | `build-transport.mjs` | la geometria de les 164, fusionada i simplificada a 20 m |
 | `pages/data/linies.json` | `build-transport.mjs` | còpia de `linies.json` |
@@ -367,6 +368,52 @@ surten de la paleta pròpia i distingeixen **xarxes**, no línies: són cinc xar
 no quaranta línies, i els colors oficials no es distingeixen entre si amb
 daltonisme. El codi de la línia va escrit a l'itinerari, que és el que de debò
 la identifica.
+
+### 5.1 Les estacions (`estacions.json`) i la distància fins a una
+
+Les línies dibuixen la xarxa; les **estacions** contesten la pregunta de qui es
+planteja mudar-se: *«tinc parada?»*. `fetch-estacions.mjs` baixa els nodes
+`railway=station` i `railway=halt` del mateix marc i en surten **346**: Metro
+185, Rodalies 103, FGC 58.
+
+**Com es classifiquen, i per què va canviar.** Les etiquetes del node basten per
+al metro i per al que porta operador escrit, però no per a la resta. La versió
+anterior acabava en un comodí —«si és una estació i no la reconec, xarxa
+*Tren*»— que es menjava **17 estacions** i deixava **sis zones** amb el nom
+d'una xarxa que no existeix: ni el plànol, ni el bitllet, ni ningú en diu
+«Tren». I no eren casos rars: **la línia Llobregat-Anoia de FGC sencera**
+(Abrera, Olesa, el Palau, Colònia Güell, Martorell-Vila, la Beguda, Piera, la
+Pobla de Claramunt) va sense `operator` a OSM i hi queia tota.
+
+L'arreglo no és una regex més llarga sinó mirar on ja hi ha la resposta: es casa
+cada estació **per proximitat (250 m) contra les 360 parades ferroviàries de
+`linies.json`**, que ja porten la xarxa classificada *per línia* — una relació
+d'OSM sí que porta operador, un node solt sovint no. 13 de les 17 cauen a menys
+de 80 m de la seva parada. Del que queda: `operator=Adif` o `train=yes` →
+**Rodalies** (és Aguilar de Segarra, a la R12 cap a Lleida, a 6 km de la
+següent), i els **funiculars de muntanya** —Montserrat, Sant Joan, Santa Cova,
+Monistrol-Vila, Gelida, els dos del Tibidabo— **fora**, pel mateix criteri que
+ja els deixava fora de `linies.json`: pugen a un lloc, no són rodalia. El script
+imprimeix el que descarta.
+
+Resultat: **cap zona amb xarxa «Tren»**. El repartiment queda 58 zones sense
+tren, 50 amb Metro, 24 amb Rodalies, 14 Metro·Rodalies, 10 FGC, 7 FGC·Rodalies i
+1 Metro·FGC.
+
+**`dist_estacio_km` i `dist_tren_km`.** «Té estació» és de terme municipal:
+Sant Cugat i Rubí en tenen les dues i no els queda igual de prop. `derivats()` de
+`build-transport.mjs` mesura la distància a la més propera, i en dona **dues**
+perquè són dues preguntes: `dist_estacio_km` compta qualsevol estació —el metro
+també— i `dist_tren_km` només **Rodalies i FGC**, que és el que serveix per
+moure's per la província. Als municipis sense metro coincideixen; als 73 barris
+se separen molt (Montbau té metro i té el tren a 3,6 km).
+
+Cobertura **164/164**. Mediana 0,5 km a qualsevol estació i 1,3 km al tren; el
+pitjor cas real és **Caldes de Montbui, a 9,3 km**.
+
+**Com s'ha de llegir:** és **línia recta des del punt de referència de la zona**,
+no caminant i no des del teu portal. En un municipi gran descriu el centre, no
+les seves urbanitzacions.
 
 ---
 

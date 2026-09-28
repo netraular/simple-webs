@@ -321,6 +321,11 @@ const RANGS = {
   // El barrio más denso de Barcelona pasa de 50.000 hab./km²; un municipio de
   // montaña no llega a 20. El tope alto deja sitio a los dos.
   densitat_hab_km2: [1, 80000], dist_mar_km: [0, 80],
+  // Distancias a estación: el tope es generoso a propósito. El peor caso real
+  // es Caldes de Montbui a 9,3 km del tren más cercano; un 30 significaría que
+  // la proyección o el filtro de redes se ha roto, no que exista un sitio así
+  // en la provincia.
+  dist_estacio_km: [0, 30], dist_tren_km: [0, 30],
 };
 for (const z of zones) {
   for (const [camp, [lo, hi]] of Object.entries(RANGS)) {

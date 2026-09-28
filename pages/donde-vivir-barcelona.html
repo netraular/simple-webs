@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>¿Dónde puedo vivir? · Vivienda, transporte y vecindario en el área de Barcelona</title>
-<meta name="description" content="Di cuánto estás dispuesto a caminar, a dónde tienes que llegar y en cuánto tiempo. El mapa deja encendidas las 164 zonas del área de Barcelona que lo cumplen —91 municipios y los 73 barrios de la ciudad— ordenadas de más barata a más cara, con el precio frente al tiempo de viaje y catorce indicadores oficiales de cada zona: renta, edad, paro, estudios, población extranjera y más.">
+<title>¿Dónde puedo vivir? · Explorador de vivienda, transporte y vecindario en el área de Barcelona</title>
+<meta name="description" content="Filtra las 164 zonas del área de Barcelona —91 municipios y los 73 barrios de la ciudad— por lo que te importe: precio, alquiler, tiempo de viaje puerta a puerta, abono de transporte, ruido, ruido nocturno, densidad, renta, paro, colegios, zona verde, distancia al mar y treinta datos oficiales más. Mapa, gráfico, ranking y tabla enlazados, ficha de cada zona y comparación de hasta cuatro.">
 <meta name="theme-color" content="#f4f6f5">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='88'>🚆</text></svg>">
 <style>
@@ -732,9 +732,10 @@ footer a{color:var(--focus)}
           <desc id="map-desc" class="visually-hidden">
             Mapa del área de Barcelona dividido en 164 zonas —91 municipios y los 73
             barrios de la ciudad— con la red de cercanías, metro, tranvía y bus.
-            Las zonas que cumplen las condiciones de viaje elegidas aparecen
-            resaltadas, coloreadas por precio de la vivienda o por tiempo de
-            trayecto. Los mismos valores están en la tabla del final de la página.
+            Las zonas que cumplen todos los criterios elegidos aparecen resaltadas
+            con un contorno verde, y el relleno las colorea por la magnitud del
+            desplegable «colorear por». Los mismos valores, zona a zona, están en la
+            tabla del final de la página.
           </desc>
           <span class="map-caption" aria-hidden="true">Barcelona y su entorno</span>
           <div class="map-zoom">
@@ -905,8 +906,15 @@ footer a{color:var(--focus)}
       </details>
 
       <details>
-        <summary>El punto libre: esto sí es una estimación</summary>
+        <summary>Tus puntos del mapa: esto sí es una estimación</summary>
         <div class="prose">
+          <p>
+            Puedes poner <strong>hasta cuatro puntos propios</strong> en el mapa y
+            ponerles nombre. Funcionan como un destino más —se marcan, se les pone un
+            límite de minutos y salen en la tabla—, pero con una diferencia que no es
+            menor: <strong>su tiempo es estimado</strong>, no encaminado. Van marcados
+            con «est.» en todas partes por eso.
+          </p>
           <p id="m-iso"></p>
           <p>
             Para un punto cualquiera <em>P</em> el tiempo se calcula así: de cada
@@ -985,13 +993,83 @@ footer a{color:var(--focus)}
               Castelldefels) da dos minutos andando. Es cierto y no informa de nada;
               aparece marcado para que no se cuele en una comparación.</li>
             <li><strong>El precio no está en todas.</strong> <span id="m-sensepreu"></span>
-              Una zona sin precio publicado puede cumplir tus condiciones y no salir en el
-              ranking: el ranking es de precio, y sin precio no hay puesto.</li>
+              Una zona sin precio publicado puede cumplir tus criterios y no salir en el
+              ranking: el ranking necesita el dato por el que ordena, y sin dato no hay
+              puesto. Cuántas se quedan fuera por eso va escrito debajo del titular.</li>
           </ul>
           <p>
-            Y lo que no está aquí y decide tanto como esto: el coste del transporte y la
-            zona tarifaria, el ruido, los colegios, la calidad del aire y el estado real
-            de las viviendas.
+            Y lo que sigue sin estar aquí y decide tanto como esto: la calidad del aire
+            (solo se publica en 21 de los 91 municipios, y por barrio habría que
+            interpolarla), el estado real de las viviendas y la oferta sanitaria.
+          </p>
+        </div>
+      </details>
+
+      <details>
+        <summary>Cómo se filtra, y qué pasa con lo que no tiene dato</summary>
+        <div class="prose">
+          <p>
+            Cualquiera de los <strong id="m-ncapas">41</strong> datos de la lista se puede
+            convertir en un filtro de rango. Una zona sale en el mapa encendida cuando
+            cumple <strong>todos</strong> los criterios a la vez: el viaje, cada rango y
+            cada categoría. El tooltip de las que no entran dice cuál las deja fuera.
+          </p>
+          <p>
+            <strong>Lo que no tiene dato queda fuera de ese filtro</strong>, que es lo que
+            espera quien filtra: si pides zonas de menos de 2.500 €/m², una zona sin precio
+            publicado no puede demostrar que lo cumple. Pero no desaparece en silencio —
+            debajo de cada filtro va escrito cuántas excluye por ese motivo, con un clic
+            para volver a meterlas. Importa más de lo que parece: un filtro sobre el ruido
+            deja fuera los 91 municipios de golpe, porque el ruido solo se publica dentro
+            de Barcelona.
+          </p>
+          <p>
+            La cobertura de cada dato va escrita al lado de su nombre en los desplegables
+            («solo municipios, 38 de 91»), y <strong>se cuenta de los propios datos</strong>,
+            no está escrita a mano en ningún sitio: si una fuente amplía o recorta su
+            cobertura al reconstruir la página, el aviso cambia solo.
+          </p>
+          <p id="m-histograma">
+            El histograma que hay encima de cada filtro es la distribución real de las 164
+            zonas en 22 tramos. Sirve para ver dónde está el grueso antes de mover nada:
+            en la mayoría de los datos la masa está muy escorada y un rango que parece
+            central deja fuera a casi todo el mundo.
+          </p>
+        </div>
+      </details>
+
+      <details>
+        <summary>El percentil, la frase y la comparación</summary>
+        <div class="prose">
+          <p>
+            Las barras de la ficha y de la comparación son <strong>percentiles</strong>:
+            dónde cae esa zona dentro de las que tienen ese dato, de 0 a 100. Una barra
+            llena significa «el valor más alto», <strong>no «lo mejor»</strong>: en el
+            precio, en el paro o en el ruido, lo alto es justo lo contrario. La página no
+            puntúa ninguna zona, y las capas demográficas describen, no valoran.
+          </p>
+          <p>
+            El universo del percentil son las zonas <em>con ese dato</em>, no las 164
+            siempre. En el ruido son 73 barrios, en los delitos 38 municipios, y la frase
+            lo dice cada vez («de las 73 zonas con este dato»). Comparar un barrio de un
+            kilómetro cuadrado con un municipio de setenta en densidad o en zona verde
+            sale muy desigual: es cierto lo que dice el número, pero no son objetos
+            comparables — el aviso de arriba sobre el grano vale también aquí.
+          </p>
+          <p>
+            <strong>La frase de cada zona se genera desde los datos</strong>, no está
+            escrita a mano: cuatro cláusulas —qué es y cuánta gente vive, la vivienda, la
+            conexión y el rasgo por el que más se sale de la norma— y cada una se omite
+            entera si le falta el dato. Nunca afirma un superlativo que los números no
+            sostengan: «más que ninguna otra» solo aparece cuando de verdad es el máximo
+            y nadie lo iguala; si no, dice el percentil.
+          </p>
+          <p>
+            La comparación es una tabla y no un gráfico de barras a propósito. Veinte
+            indicadores por cuatro zonas necesitarían identidad por color, y eso chocaría
+            con la rampa azul del mapa y con los colores de las redes. Las columnas
+            etiquetadas y numeradas —el número es el mismo que lleva la chapa en el
+            mapa— no necesitan ningún color.
           </p>
         </div>
       </details>
@@ -1000,10 +1078,35 @@ footer a{color:var(--focus)}
         <summary>Los indicadores de zona, y hasta dónde llegan</summary>
         <div class="prose">
           <p>
-            Además del precio y del tiempo, el mapa se puede colorear por los
-            indicadores que publican el <strong>INE</strong> (Atlas de distribución
-            de renta de los hogares) e <strong>Idescat</strong>. Ninguno está
-            estimado: lo que la fuente no publica se queda sin color.
+            Además del precio y del tiempo, cada zona trae los indicadores que
+            publican el <strong>INE</strong> (Atlas de distribución de renta de
+            los hogares), <strong>Idescat</strong>, el <strong>Departament
+            d'Educació</strong>, la <strong>ATM</strong>, el
+            <strong>Ministerio del Interior</strong> y el <strong>Ayuntamiento
+            de Barcelona</strong>. Ninguno está estimado: lo que la fuente no
+            publica se queda sin color y sin número.
+          </p>
+          <p>
+            Tres se calculan aquí a partir de datos publicados, y conviene
+            saberlo: la <strong>densidad</strong> es población entre superficie;
+            la <strong>distancia al mar</strong> se mide en línea recta desde el
+            punto de referencia de la zona hasta la costa de Natural Earth
+            (escala 1:10 M, así que el error es de centenares de metros, y la
+            costa incluye puertos y acantilados, no solo playas); y la
+            <strong>vivienda vacía o de temporada</strong> es el complemento del
+            porcentaje de viviendas principales, que es lo que publica Idescat —
+            segundas residencias, pisos vacíos y alquiler de temporada van
+            juntos porque el censo no los separa.
+          </p>
+          <p>
+            <strong>Cuidado con el ruido.</strong> Solo existe para los 73
+            barrios de Barcelona: la Generalitat publica los mapas estratégicos
+            de ruido como cartografía municipio a municipio, sin ninguna tabla
+            agregada. Es el espejo exacto de los delitos, que cubren municipios
+            y ningún barrio. Y cuidado con los <strong>centros educativos por
+            mil habitantes</strong>: se dispara en los municipios pequeños —dos
+            centros sobre novecientos vecinos— y cuenta guarderías e institutos
+            igual, sin medir plazas ni calidad.
           </p>
           <p id="m-ind-cobertura"></p>
           <p>
@@ -1015,9 +1118,9 @@ footer a{color:var(--focus)}
           <p id="m-ind-barris"></p>
           <p>
             Los años no son los mismos en todos los campos —la renta es de 2023, el
-            paro y los estudios de 2024, el parque de alquiler de 2021— porque cada
-            operación estadística tiene su propio calendario. No los sumes en un
-            índice propio sin tenerlo en cuenta.
+            paro y los estudios de 2024, el parque de alquiler de 2021, el ruido de
+            2022— porque cada operación estadística tiene su propio calendario. No los
+            sumes en un índice propio sin tenerlo en cuenta.
           </p>
           <p>
             <strong>Cuidado con los delitos.</strong>
@@ -1025,9 +1128,13 @@ footer a{color:var(--focus)}
             <span id="m-seg-lloc"></span>
           </p>
           <p>
-            Falta lo que no se publica con este grano y pesa tanto como esto:
-            ruido, calidad del aire y estado real de las viviendas. Antes que
-            enseñar un número que no cuadra con el mapa, no se enseña.
+            Sigue faltando lo que no se publica con este grano y pesa tanto como
+            esto: la <strong>calidad del aire</strong> (solo 21 de los 91
+            municipios tienen estación, y por barrio habría que interpolar), los
+            <strong>centros de salud</strong> (el cero del registro significa «no
+            registrado», no «no hay»: comprobado en el Prat) y el estado real de
+            las viviendas. Antes que enseñar un número que no cuadra con el mapa,
+            no se enseña.
           </p>
         </div>
       </details>
@@ -3215,10 +3322,13 @@ function renderTexts() {
     + `Horarios de referencia: ${M.transit?.hora || "—"}. Precios y padrón: ${
       M.periodes?.compra || "—"}. Generado el ${M.generat}.`;
   $("#map-sub").textContent =
-    condsActives().length
-      ? `${ROWS.filter(m => m.ok).length} de ${DATA.zones.length} zonas compatibles con tu viaje`
-      : `${M.zones.municipis} municipios · ${M.zones.barris} barrios de Barcelona`;
+    hiHaCriteris()
+      ? `${ROWS.filter(m => m.ok).length} de ${DATA.zones.length} zonas cumplen tus criterios`
+        + ` · pincha una para abrir su ficha, con ⇧ para compararla`
+      : `${M.zones.municipis} municipios · ${M.zones.barris} barrios de Barcelona`
+        + ` · pincha una para abrir su ficha, con ⇧ para compararla`;
 
+  $("#m-ncapas").textContent = CAPES.length;
   $("#m-ndest").textContent = ["", "un", "dos", "tres", "cuatro", "cinco", "seis"][M.destins.length] || M.destins.length;
   $("#m-hora").textContent = M.transit?.hora ? `Hora de referencia: ${M.transit.hora}.` : "";
   $("#m-punta").textContent = M.transit?.hora_punta || "";
@@ -3291,9 +3401,27 @@ function renderTexts() {
       <a href="https://www.ine.es/dyngs/INEbase/es/operacion.htm?c=Estadistica_C&amp;cid=1254736177088">INE,
       Atlas de distribución de renta de los hogares</a>, 2023. Por barrio, agregando
       las secciones censales que lo forman, ponderadas por población.</li>
-    <li><strong>Paro, estudios superiores, índice socioeconómico, parque de alquiler
-      y parque de vehículos</strong>: <a href="https://www.idescat.cat/dev/api/emex/">Idescat,
+    <li><strong>Paro, estudios superiores, índice socioeconómico, parque de alquiler,
+      parque de vehículos, altitud, viviendas principales, población de temporada y
+      crecimiento</strong>: <a href="https://www.idescat.cat/dev/api/emex/">Idescat,
       API EMEX</a>, por municipio.</li>
+    <li><strong>Zona tarifaria y abono de transporte</strong>: visor público de la
+      <a href="https://www.atm.cat/">Autoritat del Transport Metropolità</a>. El número
+      de zonas hasta Barcelona sale de las coronas que se cruzan, no del código de la
+      zona; el precio es la T-usual vigente. No es un conjunto del catálogo abierto:
+      no tiene licencia declarada.</li>
+    <li><strong>Precio del agua</strong>: Agència Catalana de l'Aigua, vía
+      <a href="https://analisi.transparenciacatalunya.cat/">Dades Obertes de
+      Catalunya</a>.</li>
+    <li><strong>Centros educativos</strong>: Departament d'Educació, «Directori de
+      centres docents», vía Dades Obertes de Catalunya. En Barcelona se reparten por
+      barrio con las coordenadas de cada centro, no estimando.</li>
+    <li><strong>Ruido</strong>: «Població exposada al soroll · Mapa estratègic de
+      soroll», <a href="https://opendata-ajuntament.barcelona.cat/">Open Data BCN</a>,
+      2022. Solo los 73 barrios de Barcelona.</li>
+    <li><strong>Línea de costa</strong>:
+      <a href="https://www.naturalearthdata.com/">Natural Earth</a> 10 m, dominio
+      público, recortada a Cataluña.</li>
     <li><strong>Delitos</strong>: <a href="https://estadisticasdecriminalidad.ses.mir.es/">Ministerio
       del Interior, Balance de Criminalidad</a>${M.indicadors?.seguretat?.delictes_any
         ? `, año ${M.indicadors.seguretat.delictes_any}` : ""}. Solo municipios

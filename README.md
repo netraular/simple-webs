@@ -53,6 +53,12 @@ feeds the next, and every step is resumable. It absorbed `pisos-vs-distancia.htm
 in 2026-09: one page now answers both halves of the question, so the price data,
 the indicators and the price-vs-commute plot all live here.
 
+The page reads every measure through one `CAPES` table, so a new indicator is one
+entry there plus its field in `zonas.json` — colour, both scatter axes, filters,
+table columns, percentile bars and coverage notices all follow from it. Coverage is
+counted from the data, never declared: `test-capas.mjs` checks that count against
+`meta.indicadors.camps`.
+
 ```sh
 cd data-src
 python3 fetch-transit.py     # ~1.150 routing queries, ~1 h

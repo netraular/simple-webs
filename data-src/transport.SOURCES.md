@@ -1,4 +1,4 @@
-# Dades de `pages/transporte-publico.html` — «on puc viure, si hi he d'anar cada dia»
+# Dades de `pages/donde-vivir-barcelona.html` — «on puc viure, si hi he d'anar cada dia»
 
 La pàgina no respon «quant es triga des d'aquí», sinó la pregunta inversa:
 poses condicions de viatge (quant camines, on has d'arribar, en quant de temps) i
@@ -228,7 +228,7 @@ pàgina ho diu al tooltip).
 ## 3. Quant s'equivoca l'estimador
 
 `test-transport.mjs` **no reprodueix** l'estimador: n'extreu el `<script>` de
-`pages/transporte-publico.html`, li posa un DOM de mentida i crida les seves
+`pages/donde-vivir-barcelona.html`, li posa un DOM de mentida i crida les seves
 pròpies `minsLliure()` i `recompute()`. La veritat de camp són els temps exactes
 porta a porta dels sis destins, al mateix fitxer.
 

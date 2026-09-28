@@ -1,7 +1,7 @@
 # Comparador: retirada con una cartera indexada
 
 Consulta: 2026-09-26. La pagina es autocontenida; datos y calculos residen en
-[comparador-paises-v2.html](../pages/comparador-paises-v2.html).
+[comparador-paises.html](../pages/comparador-paises.html).
 Pruebas: `node data-src/test-comparador.mjs`.
 
 ## Alcance

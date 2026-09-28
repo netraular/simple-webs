@@ -48,7 +48,7 @@ node build-mercados.mjs   # --fresh re-downloads instead of using the cache
 node test-mercados.mjs
 ```
 
-`transporte-publico.html` is the one pipeline with a required order — each step
+`donde-vivir-barcelona.html` is the one pipeline with a required order — each step
 feeds the next, and every step is resumable. It absorbed `pisos-vs-distancia.html`
 in 2026-09: one page now answers both halves of the question, so the price data,
 the indicators and the price-vs-commute plot all live here.

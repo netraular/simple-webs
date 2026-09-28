@@ -13,7 +13,7 @@
  * comprobaciones de coherencia interna cruzan los dos ficheros por id de zona.
  *
  * No abre un navegador, pero sí ejecuta el código real de la página: el bloque
- * del estimador extrae el `<script>` de `pages/transporte-publico.html` y llama
+ * del estimador extrae el `<script>` de `pages/donde-vivir-barcelona.html` y llama
  * a sus funciones. Es deliberado — un estimador reimplementado aquí habría
  * pasado por bueno el fallo de los 757 minutos que se coló en su día.
  *
@@ -813,13 +813,13 @@ const SOSTRE_MIN = 200;
 if (ANC && ISOZ && ISOZ.ids?.length) {
   console.log("\n══ isócronas: error del estimador vs. tiempos exactos ══");
   console.log("  No es una reimplementación: se extrae el <script> de");
-  console.log("  pages/transporte-publico.html, se le pone un DOM de mentira y se llaman sus");
+  console.log("  pages/donde-vivir-barcelona.html, se le pone un DOM de mentira y se llaman sus");
   console.log("  propias minsLliure() y recompute(). La verdad de campo son los tiempos");
   console.log("  exactos puerta a puerta de zonas.json para el mismo destino.");
 
   let api = null;
   try {
-    const html = readFileSync(new URL("../pages/transporte-publico.html", import.meta.url), "utf8");
+    const html = readFileSync(new URL("../pages/donde-vivir-barcelona.html", import.meta.url), "utf8");
     const js = html.match(/<script>([\s\S]*)<\/script>/)[1].replace(/\nboot\(\);\s*$/, "\n");
     // Un DOM suficiente para que el script se evalúe: la página consulta nodos
     // en initUI() y render(), que aquí no se llaman, pero sí en el cuerpo del
@@ -846,11 +846,11 @@ if (ANC && ISOZ && ISOZ.ids?.length) {
     await api.carregaIso();
   } catch (e) {
     api = null;
-    ok(false, "el <script> de transporte-publico.html se puede extraer y ejecutar", `→ ${e.message}`);
+    ok(false, "el <script> de donde-vivir-barcelona.html se puede extraer y ejecutar", `→ ${e.message}`);
   }
 
   if (api) {
-    ok(true, "el <script> de transporte-publico.html se ejecuta con un DOM de mentira");
+    ok(true, "el <script> de donde-vivir-barcelona.html se ejecuta con un DOM de mentira");
 
     const viewBefore = api.S.view;
     for (const viewport of [

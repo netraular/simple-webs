@@ -54,7 +54,7 @@ async function overpass(nom, ql) {
       try {
         console.error(`→ ${nom}: ${ep} (intento ${intent})`);
         const res = await fetch(`${ep}?data=${encodeURIComponent(ql)}`, {
-          headers: { "User-Agent": "simple-webs/transporte-publico (github.com/netraular/simple-webs)" },
+          headers: { "User-Agent": "simple-webs/donde-vivir-barcelona (github.com/netraular/simple-webs)" },
         });
         if (res.status === 429 || res.status === 504) {
           console.error("  ocupado, espero 25 s");

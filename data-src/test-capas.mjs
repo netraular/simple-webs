@@ -1,5 +1,5 @@
 /**
- * Prueba las capas de transporte-publico.html contra los datos reales, sin
+ * Prueba las capas de donde-vivir-barcelona.html contra los datos reales, sin
  * navegador.
  *
  * Extrae del HTML los bloques que no tocan el DOM —las utilidades de formato,
@@ -15,7 +15,7 @@
  */
 import { readFileSync } from "node:fs";
 
-const html = readFileSync(new URL("../pages/transporte-publico.html", import.meta.url), "utf8");
+const html = readFileSync(new URL("../pages/donde-vivir-barcelona.html", import.meta.url), "utf8");
 const js = html.slice(html.indexOf("<script>") + 8, html.lastIndexOf("</script>"));
 
 /** Recorta desde una marca hasta la siguiente aparición de otra (no la primera

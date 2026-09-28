@@ -2,7 +2,7 @@ import {readFileSync} from 'node:fs';
 import assert from 'node:assert/strict';
 import vm from 'node:vm';
 
-const html = readFileSync(new URL('../pages/comparador-paises-v2.html', import.meta.url), 'utf8');
+const html = readFileSync(new URL('../pages/comparador-paises.html', import.meta.url), 'utf8');
 const script = html.match(/<script>([\s\S]*?)<\/script>/)?.[1];
 assert.ok(script, 'inline application script exists');
 for (const tag of ['html','head','body','style','script']) {

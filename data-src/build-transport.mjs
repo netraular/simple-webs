@@ -1,5 +1,5 @@
 /**
- * Monta los datos de pages/transporte-publico.html.
+ * Monta los datos de pages/donde-vivir-barcelona.html.
  *
  * La página tuvo dos escalas separadas —92 municipios o 73 barrios, y había que
  * elegir una antes de empezar—. Ahora es **una sola**: los 91 municipios del

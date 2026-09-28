@@ -1,0 +1,317 @@
+{
+ "generat": "2026-09-28",
+ "font": "Ajuntament de Barcelona · Mapa estratègic de soroll, població exposada per barri",
+ "url": "https://opendata-ajuntament.barcelona.cat/data/api/3/action/datastore_search?resource_id=7b3783aa-0569-4bcb-b35f-5ade252ae319&limit=25000",
+ "recurs": "7b3783aa-0569-4bcb-b35f-5ade252ae319",
+ "any": 2022,
+ "nota": "Porcentaje de vecinos del barrio que vive expuesto por encima del umbral, sumando todas las fuentes de ruido (tráfico rodado y ferroviario, industria y ocio). El porcentaje lo publica el Ayuntamiento; aquí solo se suman las franjas. Lden es el índice de día completo, con recargo por la tarde y la noche: 65 dB(A) es el valor de calidad que la normativa catalana fija para zona residencial. El de noche, 55 dB(A), es el umbral de descanso de la Directiva europea.",
+ "nota_cobertura": "Solo los 73 barrios de Barcelona. Fuera de la ciudad los mapas estratégicos de ruido se publican como cartografía municipio a municipio y no hay ninguna tabla agregada equivalente que cruzar.",
+ "camps": [
+  {
+   "camp": "pct_soroll_65db",
+   "nom": "Població exposada a Lden ≥ 65 dB(A) (%)",
+   "llindar_db": 65,
+   "periode": "Lden"
+  },
+  {
+   "camp": "pct_soroll_nit_55db",
+   "nom": "Població exposada a ≥ 55 dB(A) de nit (%)",
+   "llindar_db": 55,
+   "periode": "Nit"
+  }
+ ],
+ "barris": {
+  "01": {
+   "pct_soroll_65db": 18.6,
+   "pct_soroll_nit_55db": 23.3
+  },
+  "02": {
+   "pct_soroll_65db": 14.6,
+   "pct_soroll_nit_55db": 17.9
+  },
+  "03": {
+   "pct_soroll_65db": 9.8,
+   "pct_soroll_nit_55db": 13.0
+  },
+  "04": {
+   "pct_soroll_65db": 15.8,
+   "pct_soroll_nit_55db": 24.2
+  },
+  "05": {
+   "pct_soroll_65db": 33.4,
+   "pct_soroll_nit_55db": 38.0
+  },
+  "06": {
+   "pct_soroll_65db": 38.2,
+   "pct_soroll_nit_55db": 42.2
+  },
+  "07": {
+   "pct_soroll_65db": 43.1,
+   "pct_soroll_nit_55db": 48.7
+  },
+  "08": {
+   "pct_soroll_65db": 49.3,
+   "pct_soroll_nit_55db": 53.1
+  },
+  "09": {
+   "pct_soroll_65db": 28.6,
+   "pct_soroll_nit_55db": 33.6
+  },
+  "10": {
+   "pct_soroll_65db": 34.6,
+   "pct_soroll_nit_55db": 38.7
+  },
+  "11": {
+   "pct_soroll_65db": 12.6,
+   "pct_soroll_nit_55db": 14.6
+  },
+  "12": {
+   "pct_soroll_65db": 2.5,
+   "pct_soroll_nit_55db": 3.5
+  },
+  "13": {
+   "pct_soroll_65db": 26.1,
+   "pct_soroll_nit_55db": 30.9
+  },
+  "14": {
+   "pct_soroll_65db": 21.7,
+   "pct_soroll_nit_55db": 24.2
+  },
+  "15": {
+   "pct_soroll_65db": 14.4,
+   "pct_soroll_nit_55db": 18.2
+  },
+  "16": {
+   "pct_soroll_65db": 24.0,
+   "pct_soroll_nit_55db": 27.4
+  },
+  "17": {
+   "pct_soroll_65db": 13.9,
+   "pct_soroll_nit_55db": 16.4
+  },
+  "18": {
+   "pct_soroll_65db": 14.9,
+   "pct_soroll_nit_55db": 17.7
+  },
+  "19": {
+   "pct_soroll_65db": 26.8,
+   "pct_soroll_nit_55db": 31.7
+  },
+  "20": {
+   "pct_soroll_65db": 21.5,
+   "pct_soroll_nit_55db": 25.2
+  },
+  "21": {
+   "pct_soroll_65db": 18.8,
+   "pct_soroll_nit_55db": 25.9
+  },
+  "22": {
+   "pct_soroll_65db": 4.4,
+   "pct_soroll_nit_55db": 5.5
+  },
+  "23": {
+   "pct_soroll_65db": 9.4,
+   "pct_soroll_nit_55db": 12.3
+  },
+  "24": {
+   "pct_soroll_65db": 24.5,
+   "pct_soroll_nit_55db": 29.0
+  },
+  "25": {
+   "pct_soroll_65db": 28.6,
+   "pct_soroll_nit_55db": 31.1
+  },
+  "26": {
+   "pct_soroll_65db": 32.2,
+   "pct_soroll_nit_55db": 36.9
+  },
+  "27": {
+   "pct_soroll_65db": 24.7,
+   "pct_soroll_nit_55db": 27.2
+  },
+  "28": {
+   "pct_soroll_65db": 21.1,
+   "pct_soroll_nit_55db": 24.9
+  },
+  "29": {
+   "pct_soroll_65db": 16.2,
+   "pct_soroll_nit_55db": 21.0
+  },
+  "30": {
+   "pct_soroll_65db": 23.6,
+   "pct_soroll_nit_55db": 28.4
+  },
+  "31": {
+   "pct_soroll_65db": 15.4,
+   "pct_soroll_nit_55db": 20.4
+  },
+  "32": {
+   "pct_soroll_65db": 28.1,
+   "pct_soroll_nit_55db": 30.8
+  },
+  "33": {
+   "pct_soroll_65db": 32.8,
+   "pct_soroll_nit_55db": 36.8
+  },
+  "34": {
+   "pct_soroll_65db": 4.8,
+   "pct_soroll_nit_55db": 5.9
+  },
+  "35": {
+   "pct_soroll_65db": 14.2,
+   "pct_soroll_nit_55db": 16.6
+  },
+  "36": {
+   "pct_soroll_65db": 2.5,
+   "pct_soroll_nit_55db": 4.4
+  },
+  "37": {
+   "pct_soroll_65db": 11.4,
+   "pct_soroll_nit_55db": 16.9
+  },
+  "38": {
+   "pct_soroll_65db": 4.5,
+   "pct_soroll_nit_55db": 7.2
+  },
+  "39": {
+   "pct_soroll_65db": 1.2,
+   "pct_soroll_nit_55db": 4.7
+  },
+  "40": {
+   "pct_soroll_65db": 19.0,
+   "pct_soroll_nit_55db": 22.4
+  },
+  "41": {
+   "pct_soroll_65db": 22.1,
+   "pct_soroll_nit_55db": 28.9
+  },
+  "42": {
+   "pct_soroll_65db": 23.5,
+   "pct_soroll_nit_55db": 28.6
+  },
+  "43": {
+   "pct_soroll_65db": 9.2,
+   "pct_soroll_nit_55db": 12.9
+  },
+  "44": {
+   "pct_soroll_65db": 21.6,
+   "pct_soroll_nit_55db": 27.0
+  },
+  "45": {
+   "pct_soroll_65db": 14.8,
+   "pct_soroll_nit_55db": 17.0
+  },
+  "46": {
+   "pct_soroll_65db": 10.3,
+   "pct_soroll_nit_55db": 14.2
+  },
+  "47": {
+   "pct_soroll_65db": 0.3,
+   "pct_soroll_nit_55db": 1.5
+  },
+  "48": {
+   "pct_soroll_65db": 25.2,
+   "pct_soroll_nit_55db": 32.7
+  },
+  "49": {
+   "pct_soroll_65db": 12.1,
+   "pct_soroll_nit_55db": 13.2
+  },
+  "50": {
+   "pct_soroll_65db": 2.5,
+   "pct_soroll_nit_55db": 4.5
+  },
+  "51": {
+   "pct_soroll_65db": 6.9,
+   "pct_soroll_nit_55db": 9.6
+  },
+  "52": {
+   "pct_soroll_65db": 10.3,
+   "pct_soroll_nit_55db": 14.2
+  },
+  "53": {
+   "pct_soroll_65db": 19.9,
+   "pct_soroll_nit_55db": 23.7
+  },
+  "54": {
+   "pct_soroll_65db": 22.6,
+   "pct_soroll_nit_55db": 27.7
+  },
+  "55": {
+   "pct_soroll_65db": 9.6,
+   "pct_soroll_nit_55db": 11.5
+  },
+  "56": {
+   "pct_soroll_65db": 14.2,
+   "pct_soroll_nit_55db": 26.4
+  },
+  "57": {
+   "pct_soroll_65db": 15.3,
+   "pct_soroll_nit_55db": 21.1
+  },
+  "58": {
+   "pct_soroll_65db": 19.9,
+   "pct_soroll_nit_55db": 24.0
+  },
+  "59": {
+   "pct_soroll_65db": 5.7,
+   "pct_soroll_nit_55db": 9.5
+  },
+  "60": {
+   "pct_soroll_65db": 19.1,
+   "pct_soroll_nit_55db": 22.8
+  },
+  "61": {
+   "pct_soroll_65db": 30.6,
+   "pct_soroll_nit_55db": 34.4
+  },
+  "62": {
+   "pct_soroll_65db": 17.7,
+   "pct_soroll_nit_55db": 21.3
+  },
+  "63": {
+   "pct_soroll_65db": 29.6,
+   "pct_soroll_nit_55db": 33.1
+  },
+  "64": {
+   "pct_soroll_65db": 27.2,
+   "pct_soroll_nit_55db": 30.1
+  },
+  "65": {
+   "pct_soroll_65db": 27.6,
+   "pct_soroll_nit_55db": 32.9
+  },
+  "66": {
+   "pct_soroll_65db": 33.4,
+   "pct_soroll_nit_55db": 42.0
+  },
+  "67": {
+   "pct_soroll_65db": 20.6,
+   "pct_soroll_nit_55db": 25.1
+  },
+  "68": {
+   "pct_soroll_65db": 19.8,
+   "pct_soroll_nit_55db": 25.4
+  },
+  "69": {
+   "pct_soroll_65db": 24.4,
+   "pct_soroll_nit_55db": 31.7
+  },
+  "70": {
+   "pct_soroll_65db": 8.4,
+   "pct_soroll_nit_55db": 12.8
+  },
+  "71": {
+   "pct_soroll_65db": 31.6,
+   "pct_soroll_nit_55db": 49.7
+  },
+  "72": {
+   "pct_soroll_65db": 23.7,
+   "pct_soroll_nit_55db": 29.6
+  },
+  "73": {
+   "pct_soroll_65db": 22.0,
+   "pct_soroll_nit_55db": 32.9
+  }
+ }
+}

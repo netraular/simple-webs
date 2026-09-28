@@ -137,6 +137,8 @@ const IND_CAMPS = [
   "pct_llars_unipersonals", "pct_poblacio_espanyola",
   "ist", "atur_taxa_pct", "pct_educacio_superior", "pct_habitatge_lloguer",
   "pct_recollida_selectiva", "turismes_per_1000_hab", "rfdb_habitant_eur",
+  "altitud_m", "pct_habitatge_principal", "pressio_estacional_pct",
+  "creixement_1000",
 ];
 /** El fichero crudo viene como {meta, municipis:[{codi_ine, ...}]}. */
 const indicMap = new Map();

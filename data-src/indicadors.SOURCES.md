@@ -40,6 +40,10 @@ al `meta.fonts` del JSON.
 | `pct_recollida_selectiva` | Idescat EMEX `f368` | 2024 | **92/92** |
 | `pct_alumnes_mateix_municipi` | Idescat EMEX `f381` | curs 2024/25 | **92/92** |
 | `turismes_per_1000_hab` | Idescat EMEX `f19`/`f321` (**calculat**) | 2024 / 2025 | **92/92** |
+| `altitud_m` | Idescat EMEX `f258` | 2013 | **92/92** |
+| `pct_habitatge_principal` | Idescat EMEX `f399` | **2021** | **92/92** |
+| `pressio_estacional_pct` | Idescat EMEX `f344` | 2024 (p) | 90/92 |
+| `creixement_1000` | Idescat EMEX `f53` | 2024 | **92/92** |
 
 Els 92 municipis són tots de la **província de Barcelona** (`codi_ine` comença per `08`),
 cosa que permet fer servir una sola taula provincial de l'INE per indicador.
@@ -161,6 +165,10 @@ comes** alineada amb la llista `fitxes.cols.col`. El codi d'Idescat té **6 díg
 | `pct_recollida_selectiva` | `f368` Recollida selectiva (%) | `t204` Residus municipals | **2024** | <https://www.idescat.cat/pub/?id=resmc> |
 | `pct_alumnes_mateix_municipi` | `f381` (%) | `t211` Mobilitat obligada per estudis | **curs 2024/25** | <https://www.idescat.cat/pub/?id=emoesc> |
 | `turismes_per_1000_hab` | `f19` / `f321` × 1.000 | `t18` Parc de vehicles / `t195` Població | **2024 / 2025** | <https://www.idescat.cat/pub/?id=parcc> |
+| `altitud_m` | `f258` Altitud (m) | `t148` Territori | **2013** | <https://www.idescat.cat/emex/> |
+| `pct_habitatge_principal` | `f399` Habitatges principals (%) | `t123` Tipus d'habitatge | **2021** | <https://www.idescat.cat/pub/?id=censph> |
+| `pressio_estacional_pct` | `f344` Pob. ETCA / pob. resident (%) | `t199` Població ETCA | **2024 (p)** | <https://www.idescat.cat/pub/?id=etca> |
+| `creixement_1000` | `f53` Creixement total (‰) | `t49` Indicadors demogràfics | **2024** | <https://www.idescat.cat/pub/?id=indde> |
 
 `(p)` = dada provisional segons Idescat.
 
@@ -193,6 +201,19 @@ hoteleres, IBI…). Els triats responen cadascun a una pregunta concreta:
   de les dades de preu que la web ja té. Rang: **8,4 % – 31,1 %**.
 - **`rfdb_habitant_eur`.** Segona lectura de la renda, d'una font i metodologia
   independents de l'INE (vegeu l'avís de sota).
+- **`altitud_m`.** A l'àrea de Barcelona la cota separa dues menes de lloc que no
+  s'assemblen en res: la plana litoral i els pobles penjats de Collserola o del
+  Vallès. Rang als 92: **3 m – 423 m**.
+- **`pct_habitatge_principal`.** El que la pàgina n'ensenya és el complement:
+  **quin percentatge del parc no és residència habitual** —buit o de temporada—,
+  que és la pregunta que es fa qui busca pis a la costa i troba mig poble tancat
+  al gener. Rang: **64,0 % – 95,2 %**, o sigui de 5 a 36 % d'habitatge no principal.
+- **`pressio_estacional_pct`.** Població equivalent a temps complet anual dividida
+  per la resident. Per damunt de 100 el municipi acull cada dia més gent de la que
+  hi viu (feina, estudis, turisme); per sota, l'exporta. Explica per què hi ha
+  municipis amb molts serveis i pocs veïns, i a l'inrevés. Rang: **81,8 % – 121,2 %**.
+- **`creixement_1000`.** Si el municipi guanya o perd gent, que és el senyal més
+  directe de cap on va. Rang: **−7,1 ‰ – +34,3 ‰**.
 
 ### Limitacions dels camps d'Idescat
 
@@ -218,6 +239,17 @@ hoteleres, IBI…). Els triats responen cadascun a una pregunta concreta:
   any de referència diferent. L'efecte del desfasament és d'aproximadament l'1 %.
 - **`pct_recollida_selectiva`** pot pujar molt de cop en un municipi que acaba
   d'implantar el porta a porta; no és un indicador estable interanualment.
+- **`altitud_m` és de 2013**, l'any més antic de tot el conjunt. És també l'únic
+  camp del qual això no importa: l'orografia no s'ha mogut. I és **l'altitud del
+  nucli principal**, no la mitjana del terme: un municipi amb el poble a la plana i
+  la meitat del terme a la serra surt baix.
+- **`pressio_estacional_pct` falta a 2 municipis** dels 92 (els mateixos on falta
+  la RFDB): Idescat no publica l'ETCA dels més petits.
+- **`creixement_1000` és d'un sol any.** En un municipi de 500 habitants, vint
+  altes el converteixen en el que més creix de la província. Mireu-lo al costat de
+  la població, no sol.
+- **`pct_habitatge_principal` és de 2021**, com `pct_habitatge_lloguer`, i té la
+  mateixa pega: és el cens més recent, però és tres anys més vell que la resta.
 - Els anys **no són homogenis** entre camps (2021, 2023, 2024, 2025, curs 2024/25).
   Cada camp porta el seu any a `meta.fonts[].any` del JSON; no s'han de barrejar en un
   mateix índex compost sense advertir-ho.

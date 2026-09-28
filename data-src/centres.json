@@ -1,0 +1,813 @@
+{
+ "generat": "2026-09-28",
+ "font": "Departament d'Educació · Directori de centres docents (Socrata kvmv-ahh4)",
+ "url": "https://analisi.transparenciacatalunya.cat/resource/kvmv-ahh4.json?$where=curs%3D'2025%2F2026'%20AND%20starts_with(codi_municipi%2C'08')&$limit=20000",
+ "curs": "2025/2026",
+ "min_centres_per_percentatge": 5,
+ "nota": "Todos los centros del directorio: guarderías, escuelas, institutos y centros de adultos. «Privat» incluye el concertado — el directorio no marca el concierto, así que no se afirma que lo haga. Los centros de Barcelona se asignan a barrio por sus coordenadas, dentro del polígono del barrio: es geometría, no una estimación. La tasa por mil habitantes se dispara en los municipios pequeños, donde dos centros sobre pocos vecinos dan un número altísimo. El porcentaje de públicos solo se publica con 5 centros o más.",
+ "cobertura": {
+  "municipis": 92,
+  "municipis_total": 92,
+  "barris": 73,
+  "barris_total": 73
+ },
+ "municipis": {
+  "08019": {
+   "centres_educatius": 943,
+   "centres_educatius_1000": 0.55,
+   "pct_centres_publics": 46
+  },
+  "08194": {
+   "centres_educatius": 17,
+   "centres_educatius_1000": 0.44,
+   "pct_centres_publics": 53
+  },
+  "08101": {
+   "centres_educatius": 130,
+   "centres_educatius_1000": 0.44,
+   "pct_centres_publics": 56
+  },
+  "08077": {
+   "centres_educatius": 39,
+   "centres_educatius_1000": 0.81,
+   "pct_centres_publics": 54
+  },
+  "08245": {
+   "centres_educatius": 60,
+   "centres_educatius_1000": 0.49,
+   "pct_centres_publics": 80
+  },
+  "08221": {
+   "centres_educatius": 16,
+   "centres_educatius_1000": 0.76,
+   "pct_centres_publics": 56
+  },
+  "08169": {
+   "centres_educatius": 35,
+   "centres_educatius_1000": 0.53,
+   "pct_centres_publics": 80
+  },
+  "08073": {
+   "centres_educatius": 43,
+   "centres_educatius_1000": 0.47,
+   "pct_centres_publics": 79
+  },
+  "08015": {
+   "centres_educatius": 116,
+   "centres_educatius_1000": 0.5,
+   "pct_centres_publics": 56
+  },
+  "08217": {
+   "centres_educatius": 17,
+   "centres_educatius_1000": 0.47,
+   "pct_centres_publics": 76
+  },
+  "08211": {
+   "centres_educatius": 27,
+   "centres_educatius_1000": 0.58,
+   "pct_centres_publics": 56
+  },
+  "08125": {
+   "centres_educatius": 22,
+   "centres_educatius_1000": 0.59,
+   "pct_centres_publics": 73
+  },
+  "08200": {
+   "centres_educatius": 47,
+   "centres_educatius_1000": 0.55,
+   "pct_centres_publics": 55
+  },
+  "08205": {
+   "centres_educatius": 71,
+   "centres_educatius_1000": 0.72,
+   "pct_centres_publics": 45
+  },
+  "08266": {
+   "centres_educatius": 39,
+   "centres_educatius_1000": 0.67,
+   "pct_centres_publics": 59
+  },
+  "08180": {
+   "centres_educatius": 20,
+   "centres_educatius_1000": 0.5,
+   "pct_centres_publics": 70
+  },
+  "08126": {
+   "centres_educatius": 10,
+   "centres_educatius_1000": 0.78,
+   "pct_centres_publics": 60
+  },
+  "08244": {
+   "centres_educatius": 5,
+   "centres_educatius_1000": 0.6,
+   "pct_centres_publics": 80
+  },
+  "08123": {
+   "centres_educatius": 17,
+   "centres_educatius_1000": 0.62,
+   "pct_centres_publics": 82
+  },
+  "08263": {
+   "centres_educatius": 18,
+   "centres_educatius_1000": 0.63,
+   "pct_centres_publics": 61
+  },
+  "08282": {
+   "centres_educatius": 6,
+   "centres_educatius_1000": 0.64,
+   "pct_centres_publics": 83
+  },
+  "08105": {
+   "centres_educatius": 8,
+   "centres_educatius_1000": 0.6,
+   "pct_centres_publics": 75
+  },
+  "08904": {
+   "centres_educatius": 7,
+   "centres_educatius_1000": 0.54,
+   "pct_centres_publics": 100
+  },
+  "08158": {
+   "centres_educatius": 3,
+   "centres_educatius_1000": 0.68
+  },
+  "08301": {
+   "centres_educatius": 35,
+   "centres_educatius_1000": 0.52,
+   "pct_centres_publics": 63
+  },
+  "08252": {
+   "centres_educatius": 22,
+   "centres_educatius_1000": 0.65,
+   "pct_centres_publics": 82
+  },
+  "08157": {
+   "centres_educatius": 9,
+   "centres_educatius_1000": 0.75,
+   "pct_centres_publics": 67
+  },
+  "08204": {
+   "centres_educatius": 2,
+   "centres_educatius_1000": 0.48
+  },
+  "08209": {
+   "centres_educatius": 4,
+   "centres_educatius_1000": 0.43
+  },
+  "08003": {
+   "centres_educatius": 7,
+   "centres_educatius_1000": 0.68,
+   "pct_centres_publics": 57
+  },
+  "08118": {
+   "centres_educatius": 18,
+   "centres_educatius_1000": 0.73,
+   "pct_centres_publics": 61
+  },
+  "08289": {
+   "centres_educatius": 2,
+   "centres_educatius_1000": 0.32
+  },
+  "08256": {
+   "centres_educatius": 1,
+   "centres_educatius_1000": 1.15
+  },
+  "08184": {
+   "centres_educatius": 37,
+   "centres_educatius_1000": 0.45,
+   "pct_centres_publics": 68
+  },
+  "08260": {
+   "centres_educatius": 16,
+   "centres_educatius_1000": 0.61,
+   "pct_centres_publics": 69
+  },
+  "08115": {
+   "centres_educatius": 3,
+   "centres_educatius_1000": 0.6
+  },
+  "08089": {
+   "centres_educatius": 30,
+   "centres_educatius_1000": 0.62,
+   "pct_centres_publics": 43
+  },
+  "08905": {
+   "centres_educatius": 2,
+   "centres_educatius_1000": 0.65
+  },
+  "08124": {
+   "centres_educatius": 32,
+   "centres_educatius_1000": 0.61,
+   "pct_centres_publics": 75
+  },
+  "08196": {
+   "centres_educatius": 16,
+   "centres_educatius_1000": 0.59,
+   "pct_centres_publics": 94
+  },
+  "08068": {
+   "centres_educatius": 4,
+   "centres_educatius_1000": 0.41
+  },
+  "08281": {
+   "centres_educatius": 3,
+   "centres_educatius_1000": 0.44
+  },
+  "08238": {
+   "centres_educatius": 13,
+   "centres_educatius_1000": 0.64,
+   "pct_centres_publics": 85
+  },
+  "08187": {
+   "centres_educatius": 131,
+   "centres_educatius_1000": 0.58,
+   "pct_centres_publics": 60
+  },
+  "08054": {
+   "centres_educatius": 9,
+   "centres_educatius_1000": 0.69,
+   "pct_centres_publics": 78
+  },
+  "08167": {
+   "centres_educatius": 6,
+   "centres_educatius_1000": 0.7,
+   "pct_centres_publics": 100
+  },
+  "08296": {
+   "centres_educatius": 2,
+   "centres_educatius_1000": 0.72
+  },
+  "08136": {
+   "centres_educatius": 11,
+   "centres_educatius_1000": 0.64,
+   "pct_centres_publics": 91
+  },
+  "08135": {
+   "centres_educatius": 6,
+   "centres_educatius_1000": 0.68,
+   "pct_centres_publics": 100
+  },
+  "08172": {
+   "centres_educatius": 18,
+   "centres_educatius_1000": 0.61,
+   "pct_centres_publics": 50
+  },
+  "08230": {
+   "centres_educatius": 9,
+   "centres_educatius_1000": 0.85,
+   "pct_centres_publics": 67
+  },
+  "08295": {
+   "centres_educatius": 10,
+   "centres_educatius_1000": 0.62,
+   "pct_centres_publics": 90
+  },
+  "08056": {
+   "centres_educatius": 33,
+   "centres_educatius_1000": 0.47,
+   "pct_centres_publics": 61
+  },
+  "08072": {
+   "centres_educatius": 10,
+   "centres_educatius_1000": 0.62,
+   "pct_centres_publics": 80
+  },
+  "08902": {
+   "centres_educatius": 5,
+   "centres_educatius_1000": 0.88,
+   "pct_centres_publics": 100
+  },
+  "08214": {
+   "centres_educatius": 5,
+   "centres_educatius_1000": 0.53,
+   "pct_centres_publics": 60
+  },
+  "08159": {
+   "centres_educatius": 13,
+   "centres_educatius_1000": 0.69,
+   "pct_centres_publics": 85
+  },
+  "08020": {
+   "centres_educatius": 4,
+   "centres_educatius_1000": 0.53
+  },
+  "08114": {
+   "centres_educatius": 21,
+   "centres_educatius_1000": 0.72,
+   "pct_centres_publics": 76
+  },
+  "08156": {
+   "centres_educatius": 10,
+   "centres_educatius_1000": 0.64,
+   "pct_centres_publics": 80
+  },
+  "08219": {
+   "centres_educatius": 13,
+   "centres_educatius_1000": 0.61,
+   "pct_centres_publics": 69
+  },
+  "08030": {
+   "centres_educatius": 6,
+   "centres_educatius_1000": 0.77,
+   "pct_centres_publics": 100
+  },
+  "08108": {
+   "centres_educatius": 4,
+   "centres_educatius_1000": 0.58
+  },
+  "08066": {
+   "centres_educatius": 1,
+   "centres_educatius_1000": 0.46
+  },
+  "08290": {
+   "centres_educatius": 2,
+   "centres_educatius_1000": 0.92
+  },
+  "08279": {
+   "centres_educatius": 124,
+   "centres_educatius_1000": 0.53,
+   "pct_centres_publics": 58
+  },
+  "08029": {
+   "centres_educatius": 4,
+   "centres_educatius_1000": 0.79
+  },
+  "08153": {
+   "centres_educatius": 2,
+   "centres_educatius_1000": 2.46
+  },
+  "08267": {
+   "centres_educatius": 6,
+   "centres_educatius_1000": 0.63,
+   "pct_centres_publics": 67
+  },
+  "08107": {
+   "centres_educatius": 8,
+   "centres_educatius_1000": 0.48,
+   "pct_centres_publics": 100
+  },
+  "08181": {
+   "centres_educatius": 10,
+   "centres_educatius_1000": 0.91,
+   "pct_centres_publics": 100
+  },
+  "08300": {
+   "centres_educatius": 6,
+   "centres_educatius_1000": 0.77,
+   "pct_centres_publics": 100
+  },
+  "08120": {
+   "centres_educatius": 7,
+   "centres_educatius_1000": 0.71,
+   "pct_centres_publics": 71
+  },
+  "08091": {
+   "centres_educatius": 6,
+   "centres_educatius_1000": 0.73,
+   "pct_centres_publics": 100
+  },
+  "08096": {
+   "centres_educatius": 48,
+   "centres_educatius_1000": 0.74,
+   "pct_centres_publics": 50
+  },
+  "08001": {
+   "centres_educatius": 8,
+   "centres_educatius_1000": 0.61,
+   "pct_centres_publics": 75
+  },
+  "08051": {
+   "centres_educatius": 20,
+   "centres_educatius_1000": 0.79,
+   "pct_centres_publics": 65
+  },
+  "08009": {
+   "centres_educatius": 7,
+   "centres_educatius_1000": 0.54,
+   "pct_centres_publics": 100
+  },
+  "08146": {
+   "centres_educatius": 2,
+   "centres_educatius_1000": 0.94
+  },
+  "08208": {
+   "centres_educatius": 7,
+   "centres_educatius_1000": 0.86,
+   "pct_centres_publics": 86
+  },
+  "08033": {
+   "centres_educatius": 12,
+   "centres_educatius_1000": 0.65,
+   "pct_centres_publics": 67
+  },
+  "08041": {
+   "centres_educatius": 8,
+   "centres_educatius_1000": 0.46,
+   "pct_centres_publics": 100
+  },
+  "08121": {
+   "centres_educatius": 75,
+   "centres_educatius_1000": 0.57,
+   "pct_centres_publics": 57
+  },
+  "08147": {
+   "centres_educatius": 15,
+   "centres_educatius_1000": 0.6,
+   "pct_centres_publics": 67
+  },
+  "08086": {
+   "centres_educatius": 15,
+   "centres_educatius_1000": 0.72,
+   "pct_centres_publics": 80
+  },
+  "08248": {
+   "centres_educatius": 5,
+   "centres_educatius_1000": 0.63,
+   "pct_centres_publics": 80
+  },
+  "08076": {
+   "centres_educatius": 15,
+   "centres_educatius_1000": 0.66,
+   "pct_centres_publics": 73
+  },
+  "08222": {
+   "centres_educatius": 2,
+   "centres_educatius_1000": 0.76
+  },
+  "08075": {
+   "centres_educatius": 3,
+   "centres_educatius_1000": 0.48
+  },
+  "08148": {
+   "centres_educatius": 2,
+   "centres_educatius_1000": 0.45
+  },
+  "08273": {
+   "centres_educatius": 7,
+   "centres_educatius_1000": 2.13,
+   "pct_centres_publics": 86
+  },
+  "08046": {
+   "centres_educatius": 14,
+   "centres_educatius_1000": 0.73,
+   "pct_centres_publics": 79
+  }
+ },
+ "barris": {
+  "10": {
+   "centres_educatius": 17,
+   "centres_educatius_1000": 0.44,
+   "pct_centres_publics": 29
+  },
+  "11": {
+   "centres_educatius": 21,
+   "centres_educatius_1000": 0.52,
+   "pct_centres_publics": 67
+  },
+  "12": {
+   "centres_educatius": 3,
+   "centres_educatius_1000": 0.95
+  },
+  "13": {
+   "centres_educatius": 19,
+   "centres_educatius_1000": 0.6,
+   "pct_centres_publics": 68
+  },
+  "14": {
+   "centres_educatius": 10,
+   "centres_educatius_1000": 0.92,
+   "pct_centres_publics": 50
+  },
+  "15": {
+   "centres_educatius": 6,
+   "centres_educatius_1000": 0.35,
+   "pct_centres_publics": 33
+  },
+  "16": {
+   "centres_educatius": 9,
+   "centres_educatius_1000": 0.43,
+   "pct_centres_publics": 56
+  },
+  "17": {
+   "centres_educatius": 6,
+   "centres_educatius_1000": 0.24,
+   "pct_centres_publics": 50
+  },
+  "18": {
+   "centres_educatius": 23,
+   "centres_educatius_1000": 0.49,
+   "pct_centres_publics": 39
+  },
+  "19": {
+   "centres_educatius": 34,
+   "centres_educatius_1000": 0.73,
+   "pct_centres_publics": 35
+  },
+  "20": {
+   "centres_educatius": 11,
+   "centres_educatius_1000": 0.45,
+   "pct_centres_publics": 27
+  },
+  "21": {
+   "centres_educatius": 11,
+   "centres_educatius_1000": 0.88,
+   "pct_centres_publics": 9
+  },
+  "22": {
+   "centres_educatius": 7,
+   "centres_educatius_1000": 1.44,
+   "pct_centres_publics": 57
+  },
+  "23": {
+   "centres_educatius": 37,
+   "centres_educatius_1000": 1.48,
+   "pct_centres_publics": 22
+  },
+  "24": {
+   "centres_educatius": 5,
+   "centres_educatius_1000": 0.31,
+   "pct_centres_publics": 0
+  },
+  "25": {
+   "centres_educatius": 31,
+   "centres_educatius_1000": 1.16,
+   "pct_centres_publics": 13
+  },
+  "26": {
+   "centres_educatius": 27,
+   "centres_educatius_1000": 0.55,
+   "pct_centres_publics": 7
+  },
+  "27": {
+   "centres_educatius": 16,
+   "centres_educatius_1000": 0.52,
+   "pct_centres_publics": 31
+  },
+  "28": {
+   "centres_educatius": 14,
+   "centres_educatius_1000": 0.83,
+   "pct_centres_publics": 57
+  },
+  "29": {
+   "centres_educatius": 1,
+   "centres_educatius_1000": 0.12
+  },
+  "30": {
+   "centres_educatius": 7,
+   "centres_educatius_1000": 0.5,
+   "pct_centres_publics": 43
+  },
+  "31": {
+   "centres_educatius": 36,
+   "centres_educatius_1000": 0.7,
+   "pct_centres_publics": 31
+  },
+  "32": {
+   "centres_educatius": 13,
+   "centres_educatius_1000": 0.36,
+   "pct_centres_publics": 38
+  },
+  "33": {
+   "centres_educatius": 14,
+   "centres_educatius_1000": 0.53,
+   "pct_centres_publics": 57
+  },
+  "34": {
+   "centres_educatius": 2,
+   "centres_educatius_1000": 0.21
+  },
+  "35": {
+   "centres_educatius": 15,
+   "centres_educatius_1000": 0.38,
+   "pct_centres_publics": 47
+  },
+  "36": {
+   "centres_educatius": 15,
+   "centres_educatius_1000": 1.52,
+   "pct_centres_publics": 60
+  },
+  "37": {
+   "centres_educatius": 11,
+   "centres_educatius_1000": 0.33,
+   "pct_centres_publics": 73
+  },
+  "38": {
+   "centres_educatius": 1,
+   "centres_educatius_1000": 0.08
+  },
+  "39": {
+   "centres_educatius": 7,
+   "centres_educatius_1000": 0.89,
+   "pct_centres_publics": 71
+  },
+  "40": {
+   "centres_educatius": 9,
+   "centres_educatius_1000": 1.68,
+   "pct_centres_publics": 100
+  },
+  "41": {
+   "centres_educatius": 6,
+   "centres_educatius_1000": 0.99,
+   "pct_centres_publics": 50
+  },
+  "42": {
+   "centres_educatius": 1,
+   "centres_educatius_1000": 0.89
+  },
+  "43": {
+   "centres_educatius": 10,
+   "centres_educatius_1000": 0.32,
+   "pct_centres_publics": 40
+  },
+  "44": {
+   "centres_educatius": 13,
+   "centres_educatius_1000": 0.49,
+   "pct_centres_publics": 23
+  },
+  "45": {
+   "centres_educatius": 13,
+   "centres_educatius_1000": 0.42,
+   "pct_centres_publics": 69
+  },
+  "46": {
+   "centres_educatius": 5,
+   "centres_educatius_1000": 0.29,
+   "pct_centres_publics": 80
+  },
+  "47": {
+   "centres_educatius": 1,
+   "centres_educatius_1000": 0.47
+  },
+  "48": {
+   "centres_educatius": 11,
+   "centres_educatius_1000": 0.7,
+   "pct_centres_publics": 45
+  },
+  "49": {
+   "centres_educatius": 5,
+   "centres_educatius_1000": 0.72,
+   "pct_centres_publics": 100
+  },
+  "50": {
+   "centres_educatius": 4,
+   "centres_educatius_1000": 0.23
+  },
+  "51": {
+   "centres_educatius": 7,
+   "centres_educatius_1000": 0.52,
+   "pct_centres_publics": 43
+  },
+  "52": {
+   "centres_educatius": 11,
+   "centres_educatius_1000": 0.39,
+   "pct_centres_publics": 82
+  },
+  "53": {
+   "centres_educatius": 6,
+   "centres_educatius_1000": 0.74,
+   "pct_centres_publics": 83
+  },
+  "54": {
+   "centres_educatius": 4,
+   "centres_educatius_1000": 1.24
+  },
+  "55": {
+   "centres_educatius": 6,
+   "centres_educatius_1000": 0.52,
+   "pct_centres_publics": 83
+  },
+  "56": {
+   "centres_educatius": 1,
+   "centres_educatius_1000": 0.69
+  },
+  "57": {
+   "centres_educatius": 5,
+   "centres_educatius_1000": 0.44,
+   "pct_centres_publics": 60
+  },
+  "58": {
+   "centres_educatius": 3,
+   "centres_educatius_1000": 1.12
+  },
+  "59": {
+   "centres_educatius": 7,
+   "centres_educatius_1000": 0.44,
+   "pct_centres_publics": 57
+  },
+  "60": {
+   "centres_educatius": 31,
+   "centres_educatius_1000": 0.52,
+   "pct_centres_publics": 52
+  },
+  "61": {
+   "centres_educatius": 15,
+   "centres_educatius_1000": 0.48,
+   "pct_centres_publics": 67
+  },
+  "62": {
+   "centres_educatius": 13,
+   "centres_educatius_1000": 0.85,
+   "pct_centres_publics": 38
+  },
+  "63": {
+   "centres_educatius": 8,
+   "centres_educatius_1000": 0.35,
+   "pct_centres_publics": 50
+  },
+  "64": {
+   "centres_educatius": 16,
+   "centres_educatius_1000": 0.4,
+   "pct_centres_publics": 44
+  },
+  "65": {
+   "centres_educatius": 10,
+   "centres_educatius_1000": 0.37,
+   "pct_centres_publics": 70
+  },
+  "66": {
+   "centres_educatius": 8,
+   "centres_educatius_1000": 0.45,
+   "pct_centres_publics": 50
+  },
+  "67": {
+   "centres_educatius": 10,
+   "centres_educatius_1000": 1.08,
+   "pct_centres_publics": 50
+  },
+  "68": {
+   "centres_educatius": 23,
+   "centres_educatius_1000": 0.66,
+   "pct_centres_publics": 74
+  },
+  "69": {
+   "centres_educatius": 7,
+   "centres_educatius_1000": 0.51,
+   "pct_centres_publics": 43
+  },
+  "70": {
+   "centres_educatius": 10,
+   "centres_educatius_1000": 0.33,
+   "pct_centres_publics": 70
+  },
+  "71": {
+   "centres_educatius": 13,
+   "centres_educatius_1000": 0.59,
+   "pct_centres_publics": 54
+  },
+  "72": {
+   "centres_educatius": 14,
+   "centres_educatius_1000": 0.52,
+   "pct_centres_publics": 50
+  },
+  "73": {
+   "centres_educatius": 15,
+   "centres_educatius_1000": 0.48,
+   "pct_centres_publics": 87
+  },
+  "01": {
+   "centres_educatius": 25,
+   "centres_educatius_1000": 0.49,
+   "pct_centres_publics": 64
+  },
+  "02": {
+   "centres_educatius": 5,
+   "centres_educatius_1000": 0.18,
+   "pct_centres_publics": 80
+  },
+  "03": {
+   "centres_educatius": 9,
+   "centres_educatius_1000": 0.61,
+   "pct_centres_publics": 78
+  },
+  "04": {
+   "centres_educatius": 20,
+   "centres_educatius_1000": 0.87,
+   "pct_centres_publics": 55
+  },
+  "05": {
+   "centres_educatius": 15,
+   "centres_educatius_1000": 0.4,
+   "pct_centres_publics": 40
+  },
+  "06": {
+   "centres_educatius": 18,
+   "centres_educatius_1000": 0.34,
+   "pct_centres_publics": 56
+  },
+  "07": {
+   "centres_educatius": 44,
+   "centres_educatius_1000": 0.97,
+   "pct_centres_publics": 16
+  },
+  "08": {
+   "centres_educatius": 23,
+   "centres_educatius_1000": 0.54,
+   "pct_centres_publics": 22
+  },
+  "09": {
+   "centres_educatius": 32,
+   "centres_educatius_1000": 0.54,
+   "pct_centres_publics": 47
+  }
+ }
+}

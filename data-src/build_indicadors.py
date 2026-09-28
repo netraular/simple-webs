@@ -155,6 +155,10 @@ EMEX_INDICADORS = [
     "f368",  # Recollida selectiva de residus municipals (%)
     "f381",  # Alumnes residents que estudien al mateix municipi (%)
     "f321",  # Població
+    "f258",  # Altitud (m)
+    "f399",  # Habitatges familiars principals (%)
+    "f344",  # Població ETCA / població resident (%)
+    "f53",   # Creixement total de la població (taxa bruta per 1.000 hab.)
 ]
 EMEX_URL = (
     "https://api.idescat.cat/emex/v1/dades.json?i=%s&tipus=mun&lang=ca"
@@ -167,6 +171,14 @@ def llegeix_emex():
     path = fetch(EMEX_URL, "emex_bulk.json")
     with open(path, encoding="utf-8") as fh:
         d = json.load(fh)
+    # Idescat contesta HTTP 200 con `{"emex":{...,"error":"503"}}` cuando el
+    # servicio está caído un momento. Sin esta comprobación el cuerpo malo se
+    # quedaba en la caché y la siguiente ejecución fallaba con un KeyError
+    # críptico en vez de decir qué ha pasado.
+    if "fitxes" not in d:
+        os.remove(path)
+        raise SystemExit("Idescat EMEX ha contestado %s en vez de datos; "
+                         "vuelve a intentarlo" % json.dumps(d)[:200])
     cols = [c["id"] for c in d["fitxes"]["cols"]["col"]]
     dades = defaultdict(dict)
     meta = {}
@@ -293,6 +305,10 @@ def main():
             "pct_recollida_selectiva": r1(E.get("f368")),
             "pct_alumnes_mateix_municipi": r1(E.get("f381")),
             "turismes_per_1000_hab": r0(turismes_1000),
+            "altitud_m": r0(E.get("f258")),
+            "pct_habitatge_principal": r1(E.get("f399")),
+            "pressio_estacional_pct": r1(E.get("f344")),
+            "creixement_1000": r1(E.get("f53")),
         }
         for k, v in rec.items():
             if k not in ("codi_ine", "nom") and v is not None:
@@ -442,6 +458,24 @@ def main():
          "publicacio": "https://www.idescat.cat/pub/?id=parcc",
          "nota": "CALCULAT: turismes (f19, %s) / població (f321, %s) × 1.000. Barreja dos anys "
                  "consecutius perquè Idescat no publica el quocient." % (emex_any("f19"), emex_any("f321"))},
+        f_emex("altitud_m", "Altitud del nucli (m)", "f258",
+               "https://www.idescat.cat/emex/",
+               "Altitud del nucli principal, no la mitjana del terme. És el camp més "
+               "antic del conjunt (2013), però l'orografia no es mou."),
+        f_emex("pct_habitatge_principal", "Habitatges familiars principals (%)", "f399",
+               "https://www.idescat.cat/pub/?id=censph",
+               "Percentatge del parc que és residència habitual. El seu complement —el "
+               "que la pàgina ensenya— són els habitatges buits o de temporada. "
+               "Cens 2021, l'any més recent publicat."),
+        f_emex("pressio_estacional_pct", "Població ETCA sobre població resident (%)", "f344",
+               "https://www.idescat.cat/pub/?id=etca",
+               "Població equivalent a temps complet anual dividida per la resident. "
+               "Per damunt de 100 el municipi acull més gent de la que hi viu "
+               "(feina, estudis, turisme); per sota, n'exporta cada dia."),
+        f_emex("creixement_1000", "Creixement total de la població (‰)", "f53",
+               "https://www.idescat.cat/pub/?id=indde",
+               "Taxa bruta anual per mil habitants, sumant creixement natural i "
+               "migratori. Un sol any: en municipis petits balla molt."),
     ]
 
     meta_mun = {

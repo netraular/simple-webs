@@ -69,8 +69,16 @@ const linies  = readOpt("linies.json");
 const iso     = readOpt("isocrones.json");
 const pois    = read(src("pois.json"));
 const segur   = readOpt("seguretat.json");
+const tarifes = readOpt("tarifes.json");
+const centres = readOpt("centres.json");
+const soroll  = readOpt("soroll.json");
+const costa   = readOpt("costa.geojson");
 
-if (!segur) avisos.push("falta seguretat.json: sin delitos ni zona verde (python3 build_seguretat.py)");
+if (!segur)   avisos.push("falta seguretat.json: sin delitos ni zona verde (python3 build_seguretat.py)");
+if (!tarifes) avisos.push("falta tarifes.json: sin zona tarifaria, abono ni agua (python3 build_tarifes.py)");
+if (!centres) avisos.push("falta centres.json: sin centros educativos (node build_centres.mjs)");
+if (!soroll)  avisos.push("falta soroll.json: sin ruido en los barrios (python3 build_soroll.py)");
+if (!costa)   avisos.push("falta costa.geojson: sin distancia al mar (python3 build_costa.py)");
 
 if (!transit) throw new Error("falta transit.json — lanza antes fetch-transit.py");
 if (!linies)  avisos.push("falta linies.json: la página se quedará sin la red dibujada");
@@ -134,6 +142,10 @@ const INDICADORS = [
   { camp: "pct_educacio_superior",  barris: false },
   { camp: "pct_habitatge_lloguer",  barris: false },
   { camp: "turismes_per_1000_hab",  barris: false },
+  { camp: "altitud_m",              barris: false },
+  { camp: "pct_habitatge_principal", barris: false },
+  { camp: "pressio_estacional_pct", barris: false },
+  { camp: "creixement_1000",        barris: false },
 ];
 
 /**
@@ -174,6 +186,87 @@ function seguretat(o, id, poblacio) {
     if (!poblacio) continue;                 // sin padrón no hay tasa que valga
     o[camp] = Math.round(v / poblacio * 1000 * 10) / 10;
   }
+  return o;
+}
+
+/**
+ * Coste corriente y equipamiento: las fuentes que no pasan por indicadors.json.
+ *
+ * Cada una cubre una mitad distinta del mapa y por eso van por separado:
+ *
+ *   · `tarifes.json` — zona tarifaria de la ATM, abono mensual y precio del
+ *     agua. **Solo municipios.** Barcelona entera es zona 1 y tiene un único
+ *     precio del agua: repetir el mismo número en sus 73 barrios fingiría una
+ *     diferencia que no existe.
+ *   · `centres.json` — centros educativos. Es de los pocos que **llega a las
+ *     164 zonas**: en Barcelona se reparten por las coordenadas del centro
+ *     dentro del polígono del barrio, que es geometría y no estimación.
+ *   · `soroll.json` — ruido. **Solo los 73 barrios**, el espejo exacto de los
+ *     delitos. Fuera de la ciudad no hay tabla agregada que cruzar.
+ */
+const TARIFES = ["zones_a_bcn", "transport_eur_mes", "aigua_eur_m3"];
+const CENTRES = ["centres_educatius_1000", "pct_centres_publics"];
+const SOROLL  = ["pct_soroll_65db", "pct_soroll_nit_55db"];
+
+const copia = (o, font, camps) => {
+  for (const c of camps) if (font?.[c] != null) o[c] = font[c];
+  return o;
+};
+
+/* --- distancia al mar ------------------------------------------------------
+   Distancia mínima del punto de referencia de la zona a la línea de costa, en
+   línea recta. Se mide contra cada **segmento**, no contra los vértices: con
+   155 puntos para 400 km de costa, dos vértices vecinos están a kilómetros y
+   medir solo a ellos daría hasta 2 km de error de más en mitad de un tramo
+   recto. La costa es de escala 1:10 M, así que el número sirve para separar
+   costa de interior, no para contar metros hasta la playa. */
+const R_TERRA = 6371.0088;
+const LAT0_COSTA = 41.45;
+const KX_COSTA = Math.cos(LAT0_COSTA * Math.PI / 180);
+const GRAU_KM = Math.PI / 180 * R_TERRA;
+
+// Plano local equirectangular: a esta latitud y para distancias de decenas de
+// kilómetros la diferencia con la haversine está por debajo del error de la
+// propia línea de costa.
+const pla = ([lon, lat]) => [lon * KX_COSTA * GRAU_KM, lat * GRAU_KM];
+const SEGMENTS = [];
+if (costa) {
+  const g = costa.geometry || costa;
+  const linies = g.type === "MultiLineString" ? g.coordinates : [g.coordinates];
+  for (const l of linies) {
+    for (let i = 1; i < l.length; i++) SEGMENTS.push([pla(l[i - 1]), pla(l[i])]);
+  }
+}
+
+function distMarKm(lat, lon) {
+  if (!SEGMENTS.length) return null;
+  const [px, py] = pla([lon, lat]);
+  let millor = Infinity;
+  for (const [[ax, ay], [bx, by]] of SEGMENTS) {
+    const dx = bx - ax, dy = by - ay;
+    const len2 = dx * dx + dy * dy;
+    // Proyección del punto sobre el segmento, recortada a sus extremos.
+    const t = len2 === 0 ? 0 : Math.max(0, Math.min(1, ((px - ax) * dx + (py - ay) * dy) / len2));
+    const ex = ax + t * dx - px, ey = ay + t * dy - py;
+    const d2 = ex * ex + ey * ey;
+    if (d2 < millor) millor = d2;
+  }
+  return Math.round(Math.sqrt(millor) * 10) / 10;
+}
+
+/**
+ * Los dos campos que no vienen de ninguna fuente externa: se calculan aquí con
+ * lo que ya hay. La densidad usa la superficie oficial en los municipios y la
+ * del polígono en los barrios (nadie publica la de un barrio); la suma de las
+ * 73 superficies calculadas queda a medio punto porcentual de los 101,35 km²
+ * oficiales de Barcelona, que es todo el control que se le puede pedir.
+ */
+function derivats(o, z) {
+  if (z.poblacio && z.superficie_km2) {
+    o.densitat_hab_km2 = Math.round(z.poblacio / z.superficie_km2);
+  }
+  const d = distMarKm(z.lat, z.lon);
+  if (d != null) o.dist_mar_km = d;
   return o;
 }
 
@@ -256,7 +349,12 @@ function zona(m, id, tipus, t) {
   }
   if (Object.keys(rut).length) rutes[id] = rut;
 
-  return {
+  // Código de barrio sin el prefijo: es la clave con la que vienen indexados
+  // los ficheros que bajan al barrio (centros, ruido).
+  const cb = tipus === "barri" ? id.slice(PFX_BARRI.length) : null;
+  const tar = tipus === "barri" ? null : tarifes?.municipis?.[id];
+
+  const z = {
     id, tipus,
     nom: m.nom,
     // Un barrio sin la ciudad delante es ambiguo fuera de Barcelona («Sant
@@ -268,6 +366,9 @@ function zona(m, id, tipus, t) {
     lat: m.lat, lon: m.lon,
     dist_bcn_km: m.dist_bcn_km,
     poblacio: m.poblacio,
+    // Oficial en los municipios (municipis.json), calculada del polígono en los
+    // barrios (nadie la publica). Sostiene la densidad de población.
+    superficie_km2: m.superficie_km2 ?? null,
     compra_eur_m2: m.compra_eur_m2,
     compra_eur_total: m.compra_eur_total,
     superficie_mitjana_m2: m.superficie_mitjana_m2 ?? null,
@@ -280,13 +381,28 @@ function zona(m, id, tipus, t) {
     tren: m.tren ?? null,
     estacions: m.estacions ?? null,
     sortides: t?.sortides_hora_punta ?? m.sortides ?? null,
-    // Los barrios no reciben nada de seguretat.json: ninguna de sus fuentes
-    // baja del municipio, y repartir el dato de Barcelona entre sus 73 barrios
-    // pintaría 73 zonas iguales fingiendo un detalle que no existe.
-    ind: tipus === "barri" ? indicadors(m.ind)
-                           : seguretat(indicadors(m.ind), id, m.poblacio),
+    // La corona tarifaria va como texto («2C») y no como número: es la etiqueta
+    // que lleva escrita el billete. Lo que se puede ordenar y filtrar —cuántas
+    // zonas cruzas hasta Barcelona— va aparte, en `ind`.
+    ...(tar?.zona_tarifaria ? { zona_tarifaria: tar.zona_tarifaria } : {}),
     destins: dst,
   };
+
+  // Los barrios no reciben nada de seguretat.json ni de tarifes.json: ninguna
+  // de sus fuentes baja del municipio, y repartir el dato de Barcelona entre
+  // sus 73 barrios pintaría 73 zonas iguales fingiendo un detalle que no
+  // existe. El ruido va al revés: solo barrios.
+  const ind = indicadors(m.ind);
+  if (tipus === "barri") {
+    copia(ind, soroll?.barris?.[cb], SOROLL);
+    copia(ind, centres?.barris?.[cb], CENTRES);
+  } else {
+    seguretat(ind, id, m.poblacio);
+    copia(ind, tar, TARIFES);
+    copia(ind, centres?.municipis?.[id], CENTRES);
+  }
+  z.ind = derivats(ind, z);
+  return z;
 }
 
 const trMuni  = new Map(Object.entries(transit.municipis || {}));
@@ -430,7 +546,9 @@ const meta = {
   indicadors: {
     any: pisos.meta?.indicadors_any ?? null,
     camps: [...INDICADORS.map(i => i.camp), "pct_estrangera",
-            ...SEGURETAT.map(s => s.camp)].map(camp => ({
+            ...SEGURETAT.map(s => s.camp),
+            ...TARIFES, ...CENTRES, ...SOROLL,
+            "densitat_hab_km2", "dist_mar_km"].map(camp => ({
       camp,
       municipis: zones.filter(z => z.tipus === "municipi" && z.ind[camp] != null).length,
       barris: zones.filter(z => z.tipus === "barri" && z.ind[camp] != null).length,
@@ -440,10 +558,14 @@ const meta = {
       + "nacionalidad, no lugar de nacimiento: quien se ha nacionalizado "
       + "cuenta como español.",
     nota_barris: "Gini, paro, estudios superiores, vivienda en alquiler, "
-      + "coches por habitante e índice socioeconómico existen solo por "
-      + "municipio. Al colorear por uno de ellos, los 73 barrios de Barcelona "
-      + "se quedan en gris: el dato no se publica por debajo del municipio y "
-      + "repartir el de la ciudad entre sus barrios sería inventárselo.",
+      + "coches por habitante, índice socioeconómico, altitud, parque de "
+      + "vivienda principal, presión estacional, crecimiento de población, "
+      + "zona tarifaria y precio del agua existen solo por municipio. Al "
+      + "colorear por uno de ellos, los 73 barrios de Barcelona se quedan en "
+      + "gris: el dato no se publica por debajo del municipio y repartir el de "
+      + "la ciudad entre sus barrios sería inventárselo. El ruido va justo al "
+      + "revés —solo barrios— y los delitos solo cubren la mitad de los "
+      + "municipios.",
     // La seguridad va aparte porque no solo le faltan los barrios: le falta
     // media provincia. La página necesita poder decir el número exacto.
     seguretat: segur ? {
@@ -462,6 +584,39 @@ const meta = {
         + "Llobregat encabeza la lista por el aeropuerto. Los robos en "
         + "domicilio son la única de las tres cifras que mide algo que le "
         + "pasa a quien vive allí.",
+    } : null,
+    // Las fuentes que entran por su cuenta. Cada una lleva su año y su aviso
+    // de cobertura para que la página los pueda citar sin escribirlos a mano.
+    transport: tarifes ? {
+      font: tarifes.transport?.font ?? null,
+      url: tarifes.transport?.url ?? null,
+      consulta: tarifes.transport?.consulta ?? null,
+      tusual: tarifes.transport?.tusual ?? null,
+      nota: tarifes.transport?.nota ?? null,
+      aigua_any: tarifes.aigua?.any ?? null,
+      aigua_font: tarifes.aigua?.font ?? null,
+      aigua_nota: tarifes.aigua?.nota ?? null,
+    } : null,
+    centres: centres ? {
+      font: centres.font ?? null,
+      curs: centres.curs ?? null,
+      min_centres_per_percentatge: centres.min_centres_per_percentatge ?? null,
+      nota: centres.nota ?? null,
+    } : null,
+    soroll: soroll ? {
+      font: soroll.font ?? null,
+      any: soroll.any ?? null,
+      nota: soroll.nota ?? null,
+      nota_cobertura: soroll.nota_cobertura ?? null,
+    } : null,
+    costa: costa ? {
+      font: costa.properties?.font ?? null,
+      escala: costa.properties?.escala ?? null,
+      nota: "La distancia al mar es en línea recta desde el punto de "
+        + "referencia de la zona —el núcleo urbano del municipio o el "
+        + "centroide del barrio—, no desde su borde ni hasta una playa "
+        + "concreta. La línea de costa es de escala 1:10.000.000: separa "
+        + "costa de interior, no cuenta metros.",
     } : null,
   },
   transit: {

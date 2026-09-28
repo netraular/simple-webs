@@ -88,6 +88,26 @@ function centroid(geometry) {
   return best ? ringCentroid(best) : null;
 }
 
+/* --- superficie en km² -----------------------------------------------------
+   Los municipios traen la suya oficial en municipis.json; los barrios no la
+   tiene nadie publicada, así que sale del polígono. `ringArea` está en grados
+   cuadrados: se pasa a km² con el factor de un grado de latitud y la corrección
+   del coseno a la latitud del barrio. A la escala de un barrio (uno o dos
+   kilómetros) el error de usar una latitud fija es despreciable, y el dato
+   solo se usa para calcular densidad de población. */
+const KM_PER_GRAU = 111.32;
+function areaKm2(geometry, lat) {
+  const polys = geometry.type === "Polygon" ? [geometry.coordinates] : geometry.coordinates;
+  const kx = Math.cos(lat * Math.PI / 180);
+  let a = 0;
+  for (const p of polys) {
+    // El primer anillo suma y los siguientes —los huecos— restan.
+    a += Math.abs(ringArea(p[0]));
+    for (let k = 1; k < p.length; k++) a -= Math.abs(ringArea(p[k]));
+  }
+  return a * KM_PER_GRAU * KM_PER_GRAU * kx;
+}
+
 /* --- fusión ---------------------------------------------------------------- */
 const R = 6371.0088;
 const haversine = (aLat, aLon, bLat, bLon) => {
@@ -109,6 +129,7 @@ const rows = geo.features.map(f => {
     comarca: f.properties.nom_districte,         // el distrito hace de "comarca" en esta vista
     lat: +lat.toFixed(6), lon: +lon.toFixed(6),
     dist_bcn_km: +haversine(CENTRE.lat, CENTRE.lon, lat, lon).toFixed(2),
+    superficie_km2: +areaKm2(f.geometry, lat).toFixed(3),
     poblacio: num(P.poblacio),
     compra_eur_m2: num(C.compra_eur_m2),
     compra_eur_total: num(C.compra_eur_total),

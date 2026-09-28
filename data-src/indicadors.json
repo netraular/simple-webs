@@ -19,8 +19,10 @@
    "nota": "2023 és l'últim any publicat (sèrie 2015-2023)."
   },
   "cobertura": {
+   "altitud_m": "92/92",
    "atur_registrat": "92/92",
    "atur_taxa_pct": "92/92",
+   "creixement_1000": "92/92",
    "edat_mitjana": "92/92",
    "gini": "92/92",
    "ist": "92/92",
@@ -30,11 +32,13 @@
    "pct_alumnes_mateix_municipi": "92/92",
    "pct_educacio_superior": "92/92",
    "pct_habitatge_lloguer": "92/92",
+   "pct_habitatge_principal": "92/92",
    "pct_llars_unipersonals": "92/92",
    "pct_menors_18": "92/92",
    "pct_poblacio_espanyola": "92/92",
    "pct_recollida_selectiva": "92/92",
    "poblacio_adrh_2023": "92/92",
+   "pressio_estacional_pct": "90/92",
    "renda_bruta_llar_eur": "92/92",
    "renda_bruta_persona_eur": "92/92",
    "renda_llar_eur": "92/92",
@@ -245,6 +249,42 @@
     "any": "2024",
     "publicacio": "https://www.idescat.cat/pub/?id=parcc",
     "nota": "CALCULAT: turismes (f19, 2024) / població (f321, 2025) × 1.000. Barreja dos anys consecutius perquè Idescat no publica el quocient."
+   },
+   {
+    "camp": "altitud_m",
+    "nom": "Altitud del nucli (m)",
+    "font": "Idescat, API EMEX (indicador f258)",
+    "url": "https://api.idescat.cat/emex/v1/dades.json?i=f258&tipus=mun&lang=ca",
+    "any": "2013",
+    "publicacio": "https://www.idescat.cat/emex/",
+    "nota": "Altitud del nucli principal, no la mitjana del terme. És el camp més antic del conjunt (2013), però l'orografia no es mou."
+   },
+   {
+    "camp": "pct_habitatge_principal",
+    "nom": "Habitatges familiars principals (%)",
+    "font": "Idescat, API EMEX (indicador f399)",
+    "url": "https://api.idescat.cat/emex/v1/dades.json?i=f399&tipus=mun&lang=ca",
+    "any": "2021",
+    "publicacio": "https://www.idescat.cat/pub/?id=censph",
+    "nota": "Percentatge del parc que és residència habitual. El seu complement —el que la pàgina ensenya— són els habitatges buits o de temporada. Cens 2021, l'any més recent publicat."
+   },
+   {
+    "camp": "pressio_estacional_pct",
+    "nom": "Població ETCA sobre població resident (%)",
+    "font": "Idescat, API EMEX (indicador f344)",
+    "url": "https://api.idescat.cat/emex/v1/dades.json?i=f344&tipus=mun&lang=ca",
+    "any": "2024 (p)",
+    "publicacio": "https://www.idescat.cat/pub/?id=etca",
+    "nota": "Població equivalent a temps complet anual dividida per la resident. Per damunt de 100 el municipi acull més gent de la que hi viu (feina, estudis, turisme); per sota, n'exporta cada dia."
+   },
+   {
+    "camp": "creixement_1000",
+    "nom": "Creixement total de la població (‰)",
+    "font": "Idescat, API EMEX (indicador f53)",
+    "url": "https://api.idescat.cat/emex/v1/dades.json?i=f53&tipus=mun&lang=ca",
+    "any": "2024",
+    "publicacio": "https://www.idescat.cat/pub/?id=indde",
+    "nota": "Taxa bruta anual per mil habitants, sumant creixement natural i migratori. Un sol any: en municipis petits balla molt."
    }
   ]
  },
@@ -275,7 +315,11 @@
    "pct_habitatge_lloguer": 31.1,
    "pct_recollida_selectiva": 42.1,
    "pct_alumnes_mateix_municipi": 96.5,
-   "turismes_per_1000_hab": 284
+   "turismes_per_1000_hab": 284,
+   "altitud_m": 13,
+   "pct_habitatge_principal": 83.0,
+   "pressio_estacional_pct": 105.8,
+   "creixement_1000": 15.9
   },
   {
    "codi_ine": "08194",
@@ -303,7 +347,11 @@
    "pct_habitatge_lloguer": 17.8,
    "pct_recollida_selectiva": 30.7,
    "pct_alumnes_mateix_municipi": 64.8,
-   "turismes_per_1000_hab": 316
+   "turismes_per_1000_hab": 316,
+   "altitud_m": 14,
+   "pct_habitatge_principal": 92.5,
+   "pressio_estacional_pct": 94.7,
+   "creixement_1000": 7.9
   },
   {
    "codi_ine": "08101",
@@ -331,7 +379,11 @@
    "pct_habitatge_lloguer": 27.4,
    "pct_recollida_selectiva": 30.0,
    "pct_alumnes_mateix_municipi": 80.0,
-   "turismes_per_1000_hab": 254
+   "turismes_per_1000_hab": 254,
+   "altitud_m": 8,
+   "pct_habitatge_principal": 92.1,
+   "pressio_estacional_pct": 92.9,
+   "creixement_1000": 34.3
   },
   {
    "codi_ine": "08077",
@@ -359,7 +411,11 @@
    "pct_habitatge_lloguer": 19.7,
    "pct_recollida_selectiva": 41.5,
    "pct_alumnes_mateix_municipi": 70.5,
-   "turismes_per_1000_hab": 350
+   "turismes_per_1000_hab": 350,
+   "altitud_m": 110,
+   "pct_habitatge_principal": 91.6,
+   "pressio_estacional_pct": 94.7,
+   "creixement_1000": 15.1
   },
   {
    "codi_ine": "08245",
@@ -387,7 +443,11 @@
    "pct_habitatge_lloguer": 23.7,
    "pct_recollida_selectiva": 28.4,
    "pct_alumnes_mateix_municipi": 83.5,
-   "turismes_per_1000_hab": 280
+   "turismes_per_1000_hab": 280,
+   "altitud_m": 56,
+   "pct_habitatge_principal": 91.9,
+   "pressio_estacional_pct": 88.1,
+   "creixement_1000": 19.2
   },
   {
    "codi_ine": "08221",
@@ -415,7 +475,11 @@
    "pct_habitatge_lloguer": 21.5,
    "pct_recollida_selectiva": 65.7,
    "pct_alumnes_mateix_municipi": 55.9,
-   "turismes_per_1000_hab": 396
+   "turismes_per_1000_hab": 396,
+   "altitud_m": 122,
+   "pct_habitatge_principal": 89.3,
+   "pressio_estacional_pct": 96.1,
+   "creixement_1000": 11.0
   },
   {
    "codi_ine": "08169",
@@ -443,7 +507,11 @@
    "pct_habitatge_lloguer": 16.9,
    "pct_recollida_selectiva": 42.3,
    "pct_alumnes_mateix_municipi": 86.8,
-   "turismes_per_1000_hab": 414
+   "turismes_per_1000_hab": 414,
+   "altitud_m": 8,
+   "pct_habitatge_principal": 92.8,
+   "pressio_estacional_pct": 110.0,
+   "creixement_1000": 5.2
   },
   {
    "codi_ine": "08073",
@@ -471,7 +539,11 @@
    "pct_habitatge_lloguer": 22.7,
    "pct_recollida_selectiva": 37.2,
    "pct_alumnes_mateix_municipi": 75.9,
-   "turismes_per_1000_hab": 325
+   "turismes_per_1000_hab": 325,
+   "altitud_m": 27,
+   "pct_habitatge_principal": 93.2,
+   "pressio_estacional_pct": 97.0,
+   "creixement_1000": 11.5
   },
   {
    "codi_ine": "08015",
@@ -499,7 +571,11 @@
    "pct_habitatge_lloguer": 20.4,
    "pct_recollida_selectiva": 33.2,
    "pct_alumnes_mateix_municipi": 86.9,
-   "turismes_per_1000_hab": 334
+   "turismes_per_1000_hab": 334,
+   "altitud_m": 6,
+   "pct_habitatge_principal": 90.7,
+   "pressio_estacional_pct": 92.2,
+   "creixement_1000": 19.4
   },
   {
    "codi_ine": "08217",
@@ -527,7 +603,11 @@
    "pct_habitatge_lloguer": 17.8,
    "pct_recollida_selectiva": 44.7,
    "pct_alumnes_mateix_municipi": 64.3,
-   "turismes_per_1000_hab": 376
+   "turismes_per_1000_hab": 376,
+   "altitud_m": 10,
+   "pct_habitatge_principal": 92.7,
+   "pressio_estacional_pct": 96.9,
+   "creixement_1000": 22.6
   },
   {
    "codi_ine": "08211",
@@ -555,7 +635,11 @@
    "pct_habitatge_lloguer": 16.1,
    "pct_recollida_selectiva": 41.1,
    "pct_alumnes_mateix_municipi": 75.9,
-   "turismes_per_1000_hab": 380
+   "turismes_per_1000_hab": 380,
+   "altitud_m": 25,
+   "pct_habitatge_principal": 91.7,
+   "pressio_estacional_pct": 93.4,
+   "creixement_1000": 6.6
   },
   {
    "codi_ine": "08125",
@@ -583,7 +667,11 @@
    "pct_habitatge_lloguer": 18.0,
    "pct_recollida_selectiva": 42.5,
    "pct_alumnes_mateix_municipi": 80.1,
-   "turismes_per_1000_hab": 477
+   "turismes_per_1000_hab": 477,
+   "altitud_m": 36,
+   "pct_habitatge_principal": 89.3,
+   "pressio_estacional_pct": 97.1,
+   "creixement_1000": 9.4
   },
   {
    "codi_ine": "08200",
@@ -611,7 +699,11 @@
    "pct_habitatge_lloguer": 17.5,
    "pct_recollida_selectiva": 39.1,
    "pct_alumnes_mateix_municipi": 87.2,
-   "turismes_per_1000_hab": 398
+   "turismes_per_1000_hab": 398,
+   "altitud_m": 30,
+   "pct_habitatge_principal": 93.0,
+   "pressio_estacional_pct": 93.3,
+   "creixement_1000": 8.6
   },
   {
    "codi_ine": "08205",
@@ -639,7 +731,11 @@
    "pct_habitatge_lloguer": 25.4,
    "pct_recollida_selectiva": 51.5,
    "pct_alumnes_mateix_municipi": 80.6,
-   "turismes_per_1000_hab": 409
+   "turismes_per_1000_hab": 409,
+   "altitud_m": 124,
+   "pct_habitatge_principal": 87.6,
+   "pressio_estacional_pct": 102.0,
+   "creixement_1000": -7.0
   },
   {
    "codi_ine": "08266",
@@ -667,7 +763,11 @@
    "pct_habitatge_lloguer": 18.8,
    "pct_recollida_selectiva": 40.0,
    "pct_alumnes_mateix_municipi": 79.4,
-   "turismes_per_1000_hab": 450
+   "turismes_per_1000_hab": 450,
+   "altitud_m": 82,
+   "pct_habitatge_principal": 91.1,
+   "pressio_estacional_pct": 121.2,
+   "creixement_1000": 7.5
   },
   {
    "codi_ine": "08180",
@@ -695,7 +795,11 @@
    "pct_habitatge_lloguer": 17.4,
    "pct_recollida_selectiva": 59.1,
    "pct_alumnes_mateix_municipi": 78.3,
-   "turismes_per_1000_hab": 433
+   "turismes_per_1000_hab": 433,
+   "altitud_m": 79,
+   "pct_habitatge_principal": 94.4,
+   "pressio_estacional_pct": 88.9,
+   "creixement_1000": 8.7
   },
   {
    "codi_ine": "08126",
@@ -723,7 +827,11 @@
    "pct_habitatge_lloguer": 18.2,
    "pct_recollida_selectiva": 55.3,
    "pct_alumnes_mateix_municipi": 69.7,
-   "turismes_per_1000_hab": 477
+   "turismes_per_1000_hab": 477,
+   "altitud_m": 20,
+   "pct_habitatge_principal": 88.5,
+   "pressio_estacional_pct": 89.0,
+   "creixement_1000": 14.8
   },
   {
    "codi_ine": "08244",
@@ -751,7 +859,11 @@
    "pct_habitatge_lloguer": 12.4,
    "pct_recollida_selectiva": 83.2,
    "pct_alumnes_mateix_municipi": 65.2,
-   "turismes_per_1000_hab": 486
+   "turismes_per_1000_hab": 486,
+   "altitud_m": 73,
+   "pct_habitatge_principal": 91.6,
+   "pressio_estacional_pct": 84.8,
+   "creixement_1000": -7.1
   },
   {
    "codi_ine": "08123",
@@ -779,7 +891,11 @@
    "pct_habitatge_lloguer": 17.0,
    "pct_recollida_selectiva": 41.8,
    "pct_alumnes_mateix_municipi": 81.8,
-   "turismes_per_1000_hab": 431
+   "turismes_per_1000_hab": 431,
+   "altitud_m": 37,
+   "pct_habitatge_principal": 87.3,
+   "pressio_estacional_pct": 90.6,
+   "creixement_1000": 13.3
   },
   {
    "codi_ine": "08263",
@@ -807,7 +923,11 @@
    "pct_habitatge_lloguer": 14.9,
    "pct_recollida_selectiva": 41.8,
    "pct_alumnes_mateix_municipi": 78.7,
-   "turismes_per_1000_hab": 464
+   "turismes_per_1000_hab": 464,
+   "altitud_m": 22,
+   "pct_habitatge_principal": 86.8,
+   "pressio_estacional_pct": 91.8,
+   "creixement_1000": 5.8
   },
   {
    "codi_ine": "08282",
@@ -835,7 +955,11 @@
    "pct_habitatge_lloguer": 15.5,
    "pct_recollida_selectiva": 90.3,
    "pct_alumnes_mateix_municipi": 52.6,
-   "turismes_per_1000_hab": 471
+   "turismes_per_1000_hab": 471,
+   "altitud_m": 136,
+   "pct_habitatge_principal": 90.5,
+   "pressio_estacional_pct": 84.0,
+   "creixement_1000": 4.2
   },
   {
    "codi_ine": "08105",
@@ -863,7 +987,11 @@
    "pct_habitatge_lloguer": 16.9,
    "pct_recollida_selectiva": 34.0,
    "pct_alumnes_mateix_municipi": 77.4,
-   "turismes_per_1000_hab": 425
+   "turismes_per_1000_hab": 425,
+   "altitud_m": 45,
+   "pct_habitatge_principal": 95.2,
+   "pressio_estacional_pct": 89.5,
+   "creixement_1000": 14.0
   },
   {
    "codi_ine": "08904",
@@ -891,7 +1019,11 @@
    "pct_habitatge_lloguer": 8.9,
    "pct_recollida_selectiva": 37.5,
    "pct_alumnes_mateix_municipi": 71.6,
-   "turismes_per_1000_hab": 440
+   "turismes_per_1000_hab": 440,
+   "altitud_m": 120,
+   "pct_habitatge_principal": 95.1,
+   "pressio_estacional_pct": 88.8,
+   "creixement_1000": -3.9
   },
   {
    "codi_ine": "08158",
@@ -919,7 +1051,11 @@
    "pct_habitatge_lloguer": 18.6,
    "pct_recollida_selectiva": 56.7,
    "pct_alumnes_mateix_municipi": 43.0,
-   "turismes_per_1000_hab": 520
+   "turismes_per_1000_hab": 520,
+   "altitud_m": 135,
+   "pct_habitatge_principal": 88.3,
+   "pressio_estacional_pct": 92.6,
+   "creixement_1000": 10.5
   },
   {
    "codi_ine": "08301",
@@ -947,7 +1083,11 @@
    "pct_habitatge_lloguer": 15.3,
    "pct_recollida_selectiva": 35.9,
    "pct_alumnes_mateix_municipi": 81.2,
-   "turismes_per_1000_hab": 422
+   "turismes_per_1000_hab": 422,
+   "altitud_m": 18,
+   "pct_habitatge_principal": 91.8,
+   "pressio_estacional_pct": 92.4,
+   "creixement_1000": 5.3
   },
   {
    "codi_ine": "08252",
@@ -975,7 +1115,11 @@
    "pct_habitatge_lloguer": 14.0,
    "pct_recollida_selectiva": 45.9,
    "pct_alumnes_mateix_municipi": 68.3,
-   "turismes_per_1000_hab": 470
+   "turismes_per_1000_hab": 470,
+   "altitud_m": 146,
+   "pct_habitatge_principal": 88.3,
+   "pressio_estacional_pct": 101.6,
+   "creixement_1000": 11.4
   },
   {
    "codi_ine": "08157",
@@ -1003,7 +1147,11 @@
    "pct_habitatge_lloguer": 13.7,
    "pct_recollida_selectiva": 56.9,
    "pct_alumnes_mateix_municipi": 72.0,
-   "turismes_per_1000_hab": 466
+   "turismes_per_1000_hab": 466,
+   "altitud_m": 41,
+   "pct_habitatge_principal": 90.2,
+   "pressio_estacional_pct": 89.8,
+   "creixement_1000": 13.9
   },
   {
    "codi_ine": "08204",
@@ -1031,7 +1179,11 @@
    "pct_habitatge_lloguer": 13.5,
    "pct_recollida_selectiva": 38.5,
    "pct_alumnes_mateix_municipi": 39.7,
-   "turismes_per_1000_hab": 475
+   "turismes_per_1000_hab": 475,
+   "altitud_m": 87,
+   "pct_habitatge_principal": 88.8,
+   "pressio_estacional_pct": 81.8,
+   "creixement_1000": 1.4
   },
   {
    "codi_ine": "08209",
@@ -1059,7 +1211,11 @@
    "pct_habitatge_lloguer": 10.4,
    "pct_recollida_selectiva": 40.3,
    "pct_alumnes_mateix_municipi": 58.4,
-   "turismes_per_1000_hab": 555
+   "turismes_per_1000_hab": 555,
+   "altitud_m": 112,
+   "pct_habitatge_principal": 87.7,
+   "pressio_estacional_pct": 90.0,
+   "creixement_1000": 22.0
   },
   {
    "codi_ine": "08003",
@@ -1087,7 +1243,11 @@
    "pct_habitatge_lloguer": 16.3,
    "pct_recollida_selectiva": 58.8,
    "pct_alumnes_mateix_municipi": 65.6,
-   "turismes_per_1000_hab": 507
+   "turismes_per_1000_hab": 507,
+   "altitud_m": 90,
+   "pct_habitatge_principal": 86.4,
+   "pressio_estacional_pct": 91.1,
+   "creixement_1000": 5.0
   },
   {
    "codi_ine": "08118",
@@ -1115,7 +1275,11 @@
    "pct_habitatge_lloguer": 22.1,
    "pct_recollida_selectiva": 48.3,
    "pct_alumnes_mateix_municipi": 75.5,
-   "turismes_per_1000_hab": 451
+   "turismes_per_1000_hab": 451,
+   "altitud_m": 27,
+   "pct_habitatge_principal": 88.0,
+   "pressio_estacional_pct": 91.5,
+   "creixement_1000": 11.5
   },
   {
    "codi_ine": "08289",
@@ -1143,7 +1307,11 @@
    "pct_habitatge_lloguer": 14.7,
    "pct_recollida_selectiva": 63.7,
    "pct_alumnes_mateix_municipi": 54.8,
-   "turismes_per_1000_hab": 552
+   "turismes_per_1000_hab": 552,
+   "altitud_m": 126,
+   "pct_habitatge_principal": 84.1,
+   "pressio_estacional_pct": 83.8,
+   "creixement_1000": 4.2
   },
   {
    "codi_ine": "08256",
@@ -1171,7 +1339,11 @@
    "pct_habitatge_lloguer": 14.6,
    "pct_recollida_selectiva": 84.5,
    "pct_alumnes_mateix_municipi": 37.9,
-   "turismes_per_1000_hab": 512
+   "turismes_per_1000_hab": 512,
+   "altitud_m": 181,
+   "pct_habitatge_principal": 79.4,
+   "pressio_estacional_pct": null,
+   "creixement_1000": -5.8
   },
   {
    "codi_ine": "08184",
@@ -1199,7 +1371,11 @@
    "pct_habitatge_lloguer": 21.4,
    "pct_recollida_selectiva": 40.5,
    "pct_alumnes_mateix_municipi": 82.2,
-   "turismes_per_1000_hab": 435
+   "turismes_per_1000_hab": 435,
+   "altitud_m": 123,
+   "pct_habitatge_principal": 88.9,
+   "pressio_estacional_pct": 92.6,
+   "creixement_1000": 15.8
   },
   {
    "codi_ine": "08260",
@@ -1227,7 +1403,11 @@
    "pct_habitatge_lloguer": 15.9,
    "pct_recollida_selectiva": 44.5,
    "pct_alumnes_mateix_municipi": 75.7,
-   "turismes_per_1000_hab": 524
+   "turismes_per_1000_hab": 524,
+   "altitud_m": 74,
+   "pct_habitatge_principal": 93.3,
+   "pressio_estacional_pct": 101.6,
+   "creixement_1000": 6.3
   },
   {
    "codi_ine": "08115",
@@ -1255,7 +1435,11 @@
    "pct_habitatge_lloguer": 16.9,
    "pct_recollida_selectiva": 82.8,
    "pct_alumnes_mateix_municipi": 34.6,
-   "turismes_per_1000_hab": 562
+   "turismes_per_1000_hab": 562,
+   "altitud_m": 96,
+   "pct_habitatge_principal": 88.8,
+   "pressio_estacional_pct": 105.0,
+   "creixement_1000": 0.6
   },
   {
    "codi_ine": "08089",
@@ -1283,7 +1467,11 @@
    "pct_habitatge_lloguer": 17.0,
    "pct_recollida_selectiva": 40.9,
    "pct_alumnes_mateix_municipi": 84.8,
-   "turismes_per_1000_hab": 423
+   "turismes_per_1000_hab": 423,
+   "altitud_m": 9,
+   "pct_habitatge_principal": 86.5,
+   "pressio_estacional_pct": 96.6,
+   "creixement_1000": 4.6
   },
   {
    "codi_ine": "08905",
@@ -1311,7 +1499,11 @@
    "pct_habitatge_lloguer": 18.8,
    "pct_recollida_selectiva": 53.7,
    "pct_alumnes_mateix_municipi": 36.4,
-   "turismes_per_1000_hab": 499
+   "turismes_per_1000_hab": 499,
+   "altitud_m": 100,
+   "pct_habitatge_principal": 87.8,
+   "pressio_estacional_pct": 85.1,
+   "creixement_1000": 3.6
   },
   {
    "codi_ine": "08124",
@@ -1339,7 +1531,11 @@
    "pct_habitatge_lloguer": 20.0,
    "pct_recollida_selectiva": 41.5,
    "pct_alumnes_mateix_municipi": 89.2,
-   "turismes_per_1000_hab": 445
+   "turismes_per_1000_hab": 445,
+   "altitud_m": 65,
+   "pct_habitatge_principal": 92.2,
+   "pressio_estacional_pct": 93.9,
+   "creixement_1000": 13.6
   },
   {
    "codi_ine": "08196",
@@ -1367,7 +1563,11 @@
    "pct_habitatge_lloguer": 17.4,
    "pct_recollida_selectiva": 36.3,
    "pct_alumnes_mateix_municipi": 77.3,
-   "turismes_per_1000_hab": 458
+   "turismes_per_1000_hab": 458,
+   "altitud_m": 42,
+   "pct_habitatge_principal": 94.2,
+   "pressio_estacional_pct": 95.1,
+   "creixement_1000": 1.1
   },
   {
    "codi_ine": "08068",
@@ -1395,7 +1595,11 @@
    "pct_habitatge_lloguer": 13.9,
    "pct_recollida_selectiva": 24.9,
    "pct_alumnes_mateix_municipi": 52.7,
-   "turismes_per_1000_hab": 540
+   "turismes_per_1000_hab": 540,
+   "altitud_m": 122,
+   "pct_habitatge_principal": 81.3,
+   "pressio_estacional_pct": 89.3,
+   "creixement_1000": 9.6
   },
   {
    "codi_ine": "08281",
@@ -1423,7 +1627,11 @@
    "pct_habitatge_lloguer": 15.6,
    "pct_recollida_selectiva": 65.2,
    "pct_alumnes_mateix_municipi": 54.0,
-   "turismes_per_1000_hab": 501
+   "turismes_per_1000_hab": 501,
+   "altitud_m": 128,
+   "pct_habitatge_principal": 86.3,
+   "pressio_estacional_pct": 86.8,
+   "creixement_1000": 11.9
   },
   {
    "codi_ine": "08238",
@@ -1451,7 +1659,11 @@
    "pct_habitatge_lloguer": 12.6,
    "pct_recollida_selectiva": 41.1,
    "pct_alumnes_mateix_municipi": 61.3,
-   "turismes_per_1000_hab": 531
+   "turismes_per_1000_hab": 531,
+   "altitud_m": 188,
+   "pct_habitatge_principal": 91.9,
+   "pressio_estacional_pct": 93.1,
+   "creixement_1000": 3.2
   },
   {
    "codi_ine": "08187",
@@ -1479,7 +1691,11 @@
    "pct_habitatge_lloguer": 20.8,
    "pct_recollida_selectiva": 40.1,
    "pct_alumnes_mateix_municipi": 89.9,
-   "turismes_per_1000_hab": 424
+   "turismes_per_1000_hab": 424,
+   "altitud_m": 190,
+   "pct_habitatge_principal": 90.1,
+   "pressio_estacional_pct": 93.1,
+   "creixement_1000": 13.6
   },
   {
    "codi_ine": "08054",
@@ -1507,7 +1723,11 @@
    "pct_habitatge_lloguer": 15.0,
    "pct_recollida_selectiva": 54.3,
    "pct_alumnes_mateix_municipi": 75.3,
-   "turismes_per_1000_hab": 575
+   "turismes_per_1000_hab": 575,
+   "altitud_m": 132,
+   "pct_habitatge_principal": 86.1,
+   "pressio_estacional_pct": 102.3,
+   "creixement_1000": 7.2
   },
   {
    "codi_ine": "08167",
@@ -1535,7 +1755,11 @@
    "pct_habitatge_lloguer": 14.3,
    "pct_recollida_selectiva": 47.0,
    "pct_alumnes_mateix_municipi": 67.3,
-   "turismes_per_1000_hab": 568
+   "turismes_per_1000_hab": 568,
+   "altitud_m": 123,
+   "pct_habitatge_principal": 94.3,
+   "pressio_estacional_pct": 109.2,
+   "creixement_1000": 1.5
   },
   {
    "codi_ine": "08296",
@@ -1563,7 +1787,11 @@
    "pct_habitatge_lloguer": 13.6,
    "pct_recollida_selectiva": 45.0,
    "pct_alumnes_mateix_municipi": 55.6,
-   "turismes_per_1000_hab": 545
+   "turismes_per_1000_hab": 545,
+   "altitud_m": 153,
+   "pct_habitatge_principal": 78.5,
+   "pressio_estacional_pct": 94.7,
+   "creixement_1000": 11.9
   },
   {
    "codi_ine": "08136",
@@ -1591,7 +1819,11 @@
    "pct_habitatge_lloguer": 17.3,
    "pct_recollida_selectiva": 39.7,
    "pct_alumnes_mateix_municipi": 75.3,
-   "turismes_per_1000_hab": 502
+   "turismes_per_1000_hab": 502,
+   "altitud_m": 116,
+   "pct_habitatge_principal": 91.1,
+   "pressio_estacional_pct": 96.7,
+   "creixement_1000": 1.4
   },
   {
    "codi_ine": "08135",
@@ -1619,7 +1851,11 @@
    "pct_habitatge_lloguer": 16.9,
    "pct_recollida_selectiva": 73.8,
    "pct_alumnes_mateix_municipi": 73.9,
-   "turismes_per_1000_hab": 517
+   "turismes_per_1000_hab": 517,
+   "altitud_m": 72,
+   "pct_habitatge_principal": 92.8,
+   "pressio_estacional_pct": 95.4,
+   "creixement_1000": -2.1
   },
   {
    "codi_ine": "08172",
@@ -1647,7 +1883,11 @@
    "pct_habitatge_lloguer": 22.4,
    "pct_recollida_selectiva": 57.5,
    "pct_alumnes_mateix_municipi": 73.6,
-   "turismes_per_1000_hab": 409
+   "turismes_per_1000_hab": 409,
+   "altitud_m": 8,
+   "pct_habitatge_principal": 88.3,
+   "pressio_estacional_pct": 86.6,
+   "creixement_1000": 14.4
   },
   {
    "codi_ine": "08230",
@@ -1675,7 +1915,11 @@
    "pct_habitatge_lloguer": 15.7,
    "pct_recollida_selectiva": 55.9,
    "pct_alumnes_mateix_municipi": 61.3,
-   "turismes_per_1000_hab": 491
+   "turismes_per_1000_hab": 491,
+   "altitud_m": 142,
+   "pct_habitatge_principal": 86.7,
+   "pressio_estacional_pct": 88.5,
+   "creixement_1000": 2.5
   },
   {
    "codi_ine": "08295",
@@ -1703,7 +1947,11 @@
    "pct_habitatge_lloguer": 12.9,
    "pct_recollida_selectiva": 49.9,
    "pct_alumnes_mateix_municipi": 70.4,
-   "turismes_per_1000_hab": 532
+   "turismes_per_1000_hab": 532,
+   "altitud_m": 177,
+   "pct_habitatge_principal": 78.2,
+   "pressio_estacional_pct": 88.5,
+   "creixement_1000": 17.8
   },
   {
    "codi_ine": "08056",
@@ -1731,7 +1979,11 @@
    "pct_habitatge_lloguer": 27.1,
    "pct_recollida_selectiva": 47.9,
    "pct_alumnes_mateix_municipi": 79.4,
-   "turismes_per_1000_hab": 422
+   "turismes_per_1000_hab": 422,
+   "altitud_m": 3,
+   "pct_habitatge_principal": 86.4,
+   "pressio_estacional_pct": 95.2,
+   "creixement_1000": 7.1
   },
   {
    "codi_ine": "08072",
@@ -1759,7 +2011,11 @@
    "pct_habitatge_lloguer": 17.1,
    "pct_recollida_selectiva": 66.3,
    "pct_alumnes_mateix_municipi": 61.6,
-   "turismes_per_1000_hab": 499
+   "turismes_per_1000_hab": 499,
+   "altitud_m": 342,
+   "pct_habitatge_principal": 79.0,
+   "pressio_estacional_pct": 87.3,
+   "creixement_1000": 16.4
   },
   {
    "codi_ine": "08902",
@@ -1787,7 +2043,11 @@
    "pct_habitatge_lloguer": 13.5,
    "pct_recollida_selectiva": 49.0,
    "pct_alumnes_mateix_municipi": 65.9,
-   "turismes_per_1000_hab": 540
+   "turismes_per_1000_hab": 540,
+   "altitud_m": 91,
+   "pct_habitatge_principal": 82.8,
+   "pressio_estacional_pct": 90.4,
+   "creixement_1000": 9.3
   },
   {
    "codi_ine": "08214",
@@ -1815,7 +2075,11 @@
    "pct_habitatge_lloguer": 17.0,
    "pct_recollida_selectiva": 50.5,
    "pct_alumnes_mateix_municipi": 71.5,
-   "turismes_per_1000_hab": 494
+   "turismes_per_1000_hab": 494,
+   "altitud_m": 142,
+   "pct_habitatge_principal": 82.2,
+   "pressio_estacional_pct": 96.2,
+   "creixement_1000": 14.3
   },
   {
    "codi_ine": "08159",
@@ -1843,7 +2107,11 @@
    "pct_habitatge_lloguer": 15.3,
    "pct_recollida_selectiva": 38.6,
    "pct_alumnes_mateix_municipi": 76.8,
-   "turismes_per_1000_hab": 543
+   "turismes_per_1000_hab": 543,
+   "altitud_m": 98,
+   "pct_habitatge_principal": 91.4,
+   "pressio_estacional_pct": 100.5,
+   "creixement_1000": 1.1
   },
   {
    "codi_ine": "08020",
@@ -1871,7 +2139,11 @@
    "pct_habitatge_lloguer": 17.0,
    "pct_recollida_selectiva": 63.9,
    "pct_alumnes_mateix_municipi": 70.5,
-   "turismes_per_1000_hab": 497
+   "turismes_per_1000_hab": 497,
+   "altitud_m": 399,
+   "pct_habitatge_principal": 84.7,
+   "pressio_estacional_pct": 86.3,
+   "creixement_1000": 14.2
   },
   {
    "codi_ine": "08114",
@@ -1899,7 +2171,11 @@
    "pct_habitatge_lloguer": 19.7,
    "pct_recollida_selectiva": 54.1,
    "pct_alumnes_mateix_municipi": 84.7,
-   "turismes_per_1000_hab": 693
+   "turismes_per_1000_hab": 693,
+   "altitud_m": 56,
+   "pct_habitatge_principal": 93.3,
+   "pressio_estacional_pct": 111.0,
+   "creixement_1000": 17.6
   },
   {
    "codi_ine": "08156",
@@ -1927,7 +2203,11 @@
    "pct_habitatge_lloguer": 14.8,
    "pct_recollida_selectiva": 82.4,
    "pct_alumnes_mateix_municipi": 73.8,
-   "turismes_per_1000_hab": 563
+   "turismes_per_1000_hab": 563,
+   "altitud_m": 130,
+   "pct_habitatge_principal": 89.7,
+   "pressio_estacional_pct": 102.3,
+   "creixement_1000": 9.0
   },
   {
    "codi_ine": "08219",
@@ -1955,7 +2235,11 @@
    "pct_habitatge_lloguer": 21.6,
    "pct_recollida_selectiva": 51.1,
    "pct_alumnes_mateix_municipi": 72.5,
-   "turismes_per_1000_hab": 454
+   "turismes_per_1000_hab": 454,
+   "altitud_m": 10,
+   "pct_habitatge_principal": 78.5,
+   "pressio_estacional_pct": 94.4,
+   "creixement_1000": 3.1
   },
   {
    "codi_ine": "08030",
@@ -1983,7 +2267,11 @@
    "pct_habitatge_lloguer": 15.7,
    "pct_recollida_selectiva": 58.0,
    "pct_alumnes_mateix_municipi": 53.8,
-   "turismes_per_1000_hab": 519
+   "turismes_per_1000_hab": 519,
+   "altitud_m": 147,
+   "pct_habitatge_principal": 73.2,
+   "pressio_estacional_pct": 89.3,
+   "creixement_1000": -1.2
   },
   {
    "codi_ine": "08108",
@@ -2011,7 +2299,11 @@
    "pct_habitatge_lloguer": 9.2,
    "pct_recollida_selectiva": 80.9,
    "pct_alumnes_mateix_municipi": 51.8,
-   "turismes_per_1000_hab": 710
+   "turismes_per_1000_hab": 710,
+   "altitud_m": 125,
+   "pct_habitatge_principal": 84.4,
+   "pressio_estacional_pct": 105.5,
+   "creixement_1000": 4.8
   },
   {
    "codi_ine": "08066",
@@ -2039,7 +2331,11 @@
    "pct_habitatge_lloguer": 13.1,
    "pct_recollida_selectiva": 33.6,
    "pct_alumnes_mateix_municipi": 27.7,
-   "turismes_per_1000_hab": 555
+   "turismes_per_1000_hab": 555,
+   "altitud_m": 178,
+   "pct_habitatge_principal": 75.7,
+   "pressio_estacional_pct": 99.0,
+   "creixement_1000": 32.0
   },
   {
    "codi_ine": "08290",
@@ -2067,7 +2363,11 @@
    "pct_habitatge_lloguer": 11.6,
    "pct_recollida_selectiva": 88.5,
    "pct_alumnes_mateix_municipi": 45.2,
-   "turismes_per_1000_hab": 534
+   "turismes_per_1000_hab": 534,
+   "altitud_m": 342,
+   "pct_habitatge_principal": 88.7,
+   "pressio_estacional_pct": 90.9,
+   "creixement_1000": -4.1
   },
   {
    "codi_ine": "08279",
@@ -2095,7 +2395,11 @@
    "pct_habitatge_lloguer": 22.5,
    "pct_recollida_selectiva": 45.3,
    "pct_alumnes_mateix_municipi": 89.5,
-   "turismes_per_1000_hab": 440
+   "turismes_per_1000_hab": 440,
+   "altitud_m": 277,
+   "pct_habitatge_principal": 83.8,
+   "pressio_estacional_pct": 95.2,
+   "creixement_1000": 19.0
   },
   {
    "codi_ine": "08029",
@@ -2123,7 +2427,11 @@
    "pct_habitatge_lloguer": 17.4,
    "pct_recollida_selectiva": 64.3,
    "pct_alumnes_mateix_municipi": 63.2,
-   "turismes_per_1000_hab": 593
+   "turismes_per_1000_hab": 593,
+   "altitud_m": 104,
+   "pct_habitatge_principal": 75.1,
+   "pressio_estacional_pct": 109.4,
+   "creixement_1000": 7.8
   },
   {
    "codi_ine": "08153",
@@ -2151,7 +2459,11 @@
    "pct_habitatge_lloguer": 19.0,
    "pct_recollida_selectiva": 45.2,
    "pct_alumnes_mateix_municipi": 51.9,
-   "turismes_per_1000_hab": 552
+   "turismes_per_1000_hab": 552,
+   "altitud_m": 259,
+   "pct_habitatge_principal": 83.3,
+   "pressio_estacional_pct": null,
+   "creixement_1000": 9.8
   },
   {
    "codi_ine": "08267",
@@ -2179,7 +2491,11 @@
    "pct_habitatge_lloguer": 19.6,
    "pct_recollida_selectiva": 84.5,
    "pct_alumnes_mateix_municipi": 64.7,
-   "turismes_per_1000_hab": 550
+   "turismes_per_1000_hab": 550,
+   "altitud_m": 207,
+   "pct_habitatge_principal": 84.0,
+   "pressio_estacional_pct": 94.5,
+   "creixement_1000": 0.5
   },
   {
    "codi_ine": "08107",
@@ -2207,7 +2523,11 @@
    "pct_habitatge_lloguer": 9.6,
    "pct_recollida_selectiva": 51.0,
    "pct_alumnes_mateix_municipi": 60.0,
-   "turismes_per_1000_hab": 613
+   "turismes_per_1000_hab": 613,
+   "altitud_m": 145,
+   "pct_habitatge_principal": 81.0,
+   "pressio_estacional_pct": 90.0,
+   "creixement_1000": 17.9
   },
   {
    "codi_ine": "08181",
@@ -2235,7 +2555,11 @@
    "pct_habitatge_lloguer": 16.3,
    "pct_recollida_selectiva": 45.2,
    "pct_alumnes_mateix_municipi": 63.4,
-   "turismes_per_1000_hab": 563
+   "turismes_per_1000_hab": 563,
+   "altitud_m": 123,
+   "pct_habitatge_principal": 85.8,
+   "pressio_estacional_pct": 97.3,
+   "creixement_1000": 5.9
   },
   {
    "codi_ine": "08300",
@@ -2263,7 +2587,11 @@
    "pct_habitatge_lloguer": 8.4,
    "pct_recollida_selectiva": 50.0,
    "pct_alumnes_mateix_municipi": 70.6,
-   "turismes_per_1000_hab": 582
+   "turismes_per_1000_hab": 582,
+   "altitud_m": 274,
+   "pct_habitatge_principal": 86.5,
+   "pressio_estacional_pct": 96.2,
+   "creixement_1000": 3.3
   },
   {
    "codi_ine": "08120",
@@ -2291,7 +2619,11 @@
    "pct_habitatge_lloguer": 14.9,
    "pct_recollida_selectiva": 91.0,
    "pct_alumnes_mateix_municipi": 77.7,
-   "turismes_per_1000_hab": 515
+   "turismes_per_1000_hab": 515,
+   "altitud_m": 423,
+   "pct_habitatge_principal": 88.0,
+   "pressio_estacional_pct": 87.0,
+   "creixement_1000": -5.6
   },
   {
    "codi_ine": "08091",
@@ -2319,7 +2651,11 @@
    "pct_habitatge_lloguer": 20.6,
    "pct_recollida_selectiva": 47.2,
    "pct_alumnes_mateix_municipi": 71.4,
-   "turismes_per_1000_hab": 480
+   "turismes_per_1000_hab": 480,
+   "altitud_m": 196,
+   "pct_habitatge_principal": 76.0,
+   "pressio_estacional_pct": 85.0,
+   "creixement_1000": 14.0
   },
   {
    "codi_ine": "08096",
@@ -2347,7 +2683,11 @@
    "pct_habitatge_lloguer": 25.7,
    "pct_recollida_selectiva": 42.0,
    "pct_alumnes_mateix_municipi": 86.3,
-   "turismes_per_1000_hab": 452
+   "turismes_per_1000_hab": 452,
+   "altitud_m": 145,
+   "pct_habitatge_principal": 89.2,
+   "pressio_estacional_pct": 101.8,
+   "creixement_1000": 19.0
   },
   {
    "codi_ine": "08001",
@@ -2375,7 +2715,11 @@
    "pct_habitatge_lloguer": 13.8,
    "pct_recollida_selectiva": 34.2,
    "pct_alumnes_mateix_municipi": 67.1,
-   "turismes_per_1000_hab": 561
+   "turismes_per_1000_hab": 561,
+   "altitud_m": 105,
+   "pct_habitatge_principal": 88.2,
+   "pressio_estacional_pct": 99.0,
+   "creixement_1000": 17.2
   },
   {
    "codi_ine": "08051",
@@ -2403,7 +2747,11 @@
    "pct_habitatge_lloguer": 13.8,
    "pct_recollida_selectiva": 50.8,
    "pct_alumnes_mateix_municipi": 76.8,
-   "turismes_per_1000_hab": 516
+   "turismes_per_1000_hab": 516,
+   "altitud_m": 331,
+   "pct_habitatge_principal": 89.0,
+   "pressio_estacional_pct": 90.5,
+   "creixement_1000": 3.7
   },
   {
    "codi_ine": "08009",
@@ -2431,7 +2779,11 @@
    "pct_habitatge_lloguer": 16.7,
    "pct_recollida_selectiva": 87.3,
    "pct_alumnes_mateix_municipi": 67.7,
-   "turismes_per_1000_hab": 521
+   "turismes_per_1000_hab": 521,
+   "altitud_m": 88,
+   "pct_habitatge_principal": 86.4,
+   "pressio_estacional_pct": 93.7,
+   "creixement_1000": 3.2
   },
   {
    "codi_ine": "08146",
@@ -2459,7 +2811,11 @@
    "pct_habitatge_lloguer": 10.7,
    "pct_recollida_selectiva": 37.1,
    "pct_alumnes_mateix_municipi": 25.4,
-   "turismes_per_1000_hab": 560
+   "turismes_per_1000_hab": 560,
+   "altitud_m": 265,
+   "pct_habitatge_principal": 64.0,
+   "pressio_estacional_pct": 90.0,
+   "creixement_1000": 19.9
   },
   {
    "codi_ine": "08208",
@@ -2487,7 +2843,11 @@
    "pct_habitatge_lloguer": 16.8,
    "pct_recollida_selectiva": 51.9,
    "pct_alumnes_mateix_municipi": 66.2,
-   "turismes_per_1000_hab": 704
+   "turismes_per_1000_hab": 704,
+   "altitud_m": 183,
+   "pct_habitatge_principal": 81.1,
+   "pressio_estacional_pct": 114.6,
+   "creixement_1000": 9.0
   },
   {
    "codi_ine": "08033",
@@ -2515,7 +2875,11 @@
    "pct_habitatge_lloguer": 20.0,
    "pct_recollida_selectiva": 58.0,
    "pct_alumnes_mateix_municipi": 81.3,
-   "turismes_per_1000_hab": 525
+   "turismes_per_1000_hab": 525,
+   "altitud_m": 203,
+   "pct_habitatge_principal": 85.7,
+   "pressio_estacional_pct": 94.2,
+   "creixement_1000": 11.9
   },
   {
    "codi_ine": "08041",
@@ -2543,7 +2907,11 @@
    "pct_habitatge_lloguer": 20.3,
    "pct_recollida_selectiva": 32.5,
    "pct_alumnes_mateix_municipi": 57.1,
-   "turismes_per_1000_hab": 446
+   "turismes_per_1000_hab": 446,
+   "altitud_m": 175,
+   "pct_habitatge_principal": 92.7,
+   "pressio_estacional_pct": 90.1,
+   "creixement_1000": 10.4
   },
   {
    "codi_ine": "08121",
@@ -2571,7 +2939,11 @@
    "pct_habitatge_lloguer": 23.9,
    "pct_recollida_selectiva": 37.5,
    "pct_alumnes_mateix_municipi": 94.0,
-   "turismes_per_1000_hab": 399
+   "turismes_per_1000_hab": 399,
+   "altitud_m": 28,
+   "pct_habitatge_principal": 90.8,
+   "pressio_estacional_pct": 96.8,
+   "creixement_1000": 3.7
   },
   {
    "codi_ine": "08147",
@@ -2599,7 +2971,11 @@
    "pct_habitatge_lloguer": 16.9,
    "pct_recollida_selectiva": 37.4,
    "pct_alumnes_mateix_municipi": 86.2,
-   "turismes_per_1000_hab": 449
+   "turismes_per_1000_hab": 449,
+   "altitud_m": 124,
+   "pct_habitatge_principal": 87.7,
+   "pressio_estacional_pct": 90.2,
+   "creixement_1000": 11.9
   },
   {
    "codi_ine": "08086",
@@ -2627,7 +3003,11 @@
    "pct_habitatge_lloguer": 21.5,
    "pct_recollida_selectiva": 39.6,
    "pct_alumnes_mateix_municipi": 70.7,
-   "turismes_per_1000_hab": 527
+   "turismes_per_1000_hab": 527,
+   "altitud_m": 181,
+   "pct_habitatge_principal": 92.1,
+   "pressio_estacional_pct": 95.7,
+   "creixement_1000": 9.1
   },
   {
    "codi_ine": "08248",
@@ -2655,7 +3035,11 @@
    "pct_habitatge_lloguer": 13.0,
    "pct_recollida_selectiva": 90.6,
    "pct_alumnes_mateix_municipi": 73.9,
-   "turismes_per_1000_hab": 598
+   "turismes_per_1000_hab": 598,
+   "altitud_m": 242,
+   "pct_habitatge_principal": 82.8,
+   "pressio_estacional_pct": 90.4,
+   "creixement_1000": 4.9
   },
   {
    "codi_ine": "08076",
@@ -2683,7 +3067,11 @@
    "pct_habitatge_lloguer": 17.0,
    "pct_recollida_selectiva": 46.8,
    "pct_alumnes_mateix_municipi": 80.3,
-   "turismes_per_1000_hab": 514
+   "turismes_per_1000_hab": 514,
+   "altitud_m": 187,
+   "pct_habitatge_principal": 86.2,
+   "pressio_estacional_pct": 90.8,
+   "creixement_1000": 6.2
   },
   {
    "codi_ine": "08222",
@@ -2711,7 +3099,11 @@
    "pct_habitatge_lloguer": 17.5,
    "pct_recollida_selectiva": 35.6,
    "pct_alumnes_mateix_municipi": 34.1,
-   "turismes_per_1000_hab": 564
+   "turismes_per_1000_hab": 564,
+   "altitud_m": 196,
+   "pct_habitatge_principal": 75.6,
+   "pressio_estacional_pct": 87.8,
+   "creixement_1000": 1.5
   },
   {
    "codi_ine": "08075",
@@ -2739,7 +3131,11 @@
    "pct_habitatge_lloguer": 14.0,
    "pct_recollida_selectiva": 56.0,
    "pct_alumnes_mateix_municipi": 58.9,
-   "turismes_per_1000_hab": 526
+   "turismes_per_1000_hab": 526,
+   "altitud_m": 147,
+   "pct_habitatge_principal": 73.8,
+   "pressio_estacional_pct": 93.5,
+   "creixement_1000": 24.9
   },
   {
    "codi_ine": "08148",
@@ -2767,7 +3163,11 @@
    "pct_habitatge_lloguer": 14.3,
    "pct_recollida_selectiva": 54.6,
    "pct_alumnes_mateix_municipi": 44.9,
-   "turismes_per_1000_hab": 542
+   "turismes_per_1000_hab": 542,
+   "altitud_m": 211,
+   "pct_habitatge_principal": 66.9,
+   "pressio_estacional_pct": 93.4,
+   "creixement_1000": 4.7
   },
   {
    "codi_ine": "08273",
@@ -2795,7 +3195,11 @@
    "pct_habitatge_lloguer": 13.1,
    "pct_recollida_selectiva": 37.3,
    "pct_alumnes_mateix_municipi": 34.7,
-   "turismes_per_1000_hab": 610
+   "turismes_per_1000_hab": 610,
+   "altitud_m": 243,
+   "pct_habitatge_principal": 69.5,
+   "pressio_estacional_pct": 91.3,
+   "creixement_1000": 0.0
   },
   {
    "codi_ine": "08046",
@@ -2823,7 +3227,11 @@
    "pct_habitatge_lloguer": 21.3,
    "pct_recollida_selectiva": 78.9,
    "pct_alumnes_mateix_municipi": 82.0,
-   "turismes_per_1000_hab": 482
+   "turismes_per_1000_hab": 482,
+   "altitud_m": 193,
+   "pct_habitatge_principal": 89.1,
+   "pressio_estacional_pct": 90.1,
+   "creixement_1000": -2.1
   }
  ]
 }

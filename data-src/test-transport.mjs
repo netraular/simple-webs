@@ -44,6 +44,7 @@
  * Uso:  node test-transport.mjs
  */
 import { readFileSync, statSync } from "node:fs";
+import { gzipSync } from "node:zlib";
 import { desviacioMaxima, simplificaGeometria } from "./geom.mjs";
 
 /* ------------------------------------------------------------ utilidades */
@@ -104,6 +105,8 @@ function carga(f) {
   }
 }
 const tamany = (f) => { try { return statSync(RUTA(f)).size; } catch { return null; } };
+/** Los bytes tal cual, sin parsear: hacen falta para medir lo que comprime. */
+const llegeixBrut = (f) => { try { return readFileSync(RUTA(f)); } catch { return null; } };
 
 /** Carga un JSON de este mismo directorio (una fuente, no un fichero servido).
     Devuelve null sin avisar: el bloque que lo use ya se salta solo. */
@@ -137,7 +140,15 @@ const FITXERS = ["zonas.json", "zonas-geo.json", "rutas.json", "linies.json",
 /** Lo que baja la página antes de la primera pintada. El resto —itinerarios y
     matriz de isócronas— solo se descarga cuando alguien lo usa. */
 const INICIAL = ["zonas.json", "zonas-geo.json", "linies.json"];
-const PRESSUPOST = 600 * 1024;
+/* Subido de 600 a 660 kB el 2026-09-28, al pasar la página de 18 a 31
+   indicadores por zona: zona tarifaria y abono de la ATM, precio del agua,
+   altitud, parque de vivienda principal, presión estacional, crecimiento,
+   centros educativos, ruido en los barrios, densidad y distancia al mar.
+   Lo que de verdad viaja va comprimido y son unos 130 kB —nginx sirve con
+   gzip—, así que este tope es un freno al descuido, no el coste real; el
+   informe imprime las dos cifras para que no se confundan. */
+const PRESSUPOST = 660 * 1024;
+const PRESSUPOST_GZIP = 200 * 1024;
 
 /* Tamaños del reparto de zonas. Barcelona no está como municipio: la sustituyen
    sus 73 barrios, que es lo único sub-municipal que alguien publica. */
@@ -299,6 +310,17 @@ const RANGS = {
   edat_mitjana: [25, 70], mida_mitjana_llar: [1, 6], gini: [0, 100],
   ist: [30, 200], renda_llar_eur: [10000, 200000],
   renda_persona_eur: [4000, 100000], turismes_per_1000_hab: [50, 1200],
+  // Coste corriente y entorno. Los topes son holgados a propósito: aquí no se
+  // valida la fuente, se detecta un cruce mal hecho. `zones_a_bcn` sí va
+  // ceñido, porque el sistema de la ATM tiene seis coronas y nada más.
+  pct_habitatge_principal: [0, 100], pressio_estacional_pct: [0, 500],
+  pct_centres_publics: [0, 100], pct_soroll_65db: [0, 100],
+  pct_soroll_nit_55db: [0, 100], creixement_1000: [-100, 100],
+  altitud_m: [0, 1500], zones_a_bcn: [1, 6], transport_eur_mes: [20, 80],
+  aigua_eur_m3: [0.3, 8], centres_educatius_1000: [0, 10],
+  // El barrio más denso de Barcelona pasa de 50.000 hab./km²; un municipio de
+  // montaña no llega a 20. El tope alto deja sitio a los dos.
+  densitat_hab_km2: [1, 80000], dist_mar_km: [0, 80],
 };
 for (const z of zones) {
   for (const [camp, [lo, hi]] of Object.entries(RANGS)) {
@@ -1008,6 +1030,20 @@ console.log("     " + "← primera pintada".padEnd(26) + (n1(inicial / 1024) + "
 ok(inicial <= PRESSUPOST,
    `la carga inicial cabe en ${n1(PRESSUPOST / 1024)} kB`,
    `→ ${n1(inicial / 1024)} kB (${pc1(inicial, PRESSUPOST)} del presupuesto)`);
+
+/* Y lo mismo sobre lo que de verdad cruza la red. nginx sirve con gzip, así que
+   el número en crudo de arriba exagera el coste entre tres y cuatro veces: un
+   JSON de 164 filas con las mismas claves repetidas comprime muchísimo. Se
+   comprueban los dos porque miden cosas distintas —el crudo, el trabajo de
+   parseo del navegador; el comprimido, la espera de quien abre la página. */
+const inicialGzip = INICIAL.reduce((s, f) => {
+  const d = llegeixBrut(f);
+  return s + (d == null ? 0 : gzipSync(d, { level: 9 }).length);
+}, 0);
+console.log("     " + "← comprimido (gzip)".padEnd(26) + (n1(inicialGzip / 1024) + " kB").padStart(12));
+ok(inicialGzip <= PRESSUPOST_GZIP,
+   `comprimida, la carga inicial cabe en ${n1(PRESSUPOST_GZIP / 1024)} kB`,
+   `→ ${n1(inicialGzip / 1024)} kB (${pc1(inicialGzip, PRESSUPOST_GZIP)} del presupuesto)`);
 /* Aviso, no fallo: nadie se descarga el total: son tres grupos que bajan por
    separado y la mayoría de visitas solo ve el primero. Pero si el conjunto crece
    mucho es que algo se ha ido de las manos y conviene mirarlo. 1,6 MB son ~13 %

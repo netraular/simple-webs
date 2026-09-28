@@ -1,0 +1,446 @@
+{
+ "generat": "2026-09-28",
+ "font": "Ajuntament de Barcelona · Cens comercial de la ciutat",
+ "url": "https://opendata-ajuntament.barcelona.cat/data/api/3/action/datastore_search_sql?sql=… FROM \"99764d55-b1be-4281-b822-4277442cc721\"",
+ "recurs": "99764d55-b1be-4281-b822-4277442cc721",
+ "any": 2022,
+ "locals": 66088,
+ "min_locals_per_percentatge": 30,
+ "nota": "Porcentaje de locales de planta baja sin actividad económica, según el censo comercial, que se levanta recorriendo la ciudad a pie. Mide si los bajos de la calle están abiertos o cerrados, no cuánto comercio hay: un barrio residencial con pocos locales y todos abiertos sale igual de bien que uno con muchos. Es dato de 2022 porque el censo de 2024 que publica el portal está truncado (44.000 filas y 72 barrios, con valores imposibles). No existe para los municipios: fuera de Barcelona no hay censo comercial comparable. El porcentaje solo se publica con 30 locales o más.",
+ "barris": {
+  "19": {
+   "nom": "les Corts",
+   "locals": 2135,
+   "locals_buits": 198,
+   "pct_locals_buits": 9.3
+  },
+  "35": {
+   "nom": "el Guinardó",
+   "locals": 1179,
+   "locals_buits": 201,
+   "pct_locals_buits": 17.0
+  },
+  "69": {
+   "nom": "Diagonal Mar i el Front Marítim del Poblenou",
+   "locals": 459,
+   "locals_buits": 25,
+   "pct_locals_buits": 5.4
+  },
+  "66": {
+   "nom": "el Parc i la Llacuna del Poblenou",
+   "locals": 783,
+   "locals_buits": 74,
+   "pct_locals_buits": 9.5
+  },
+  "41": {
+   "nom": "la Vall d'Hebron",
+   "locals": 123,
+   "locals_buits": 14,
+   "pct_locals_buits": 11.4
+  },
+  "48": {
+   "nom": "la Guineueta",
+   "locals": 351,
+   "locals_buits": 28,
+   "pct_locals_buits": 8.0
+  },
+  "65": {
+   "nom": "el Clot",
+   "locals": 904,
+   "locals_buits": 94,
+   "pct_locals_buits": 10.4
+  },
+  "13": {
+   "nom": "la Marina de Port",
+   "locals": 599,
+   "locals_buits": 53,
+   "pct_locals_buits": 8.8
+  },
+  "18": {
+   "nom": "Sants",
+   "locals": 1804,
+   "locals_buits": 204,
+   "pct_locals_buits": 11.3
+  },
+  "21": {
+   "nom": "Pedralbes",
+   "locals": 275,
+   "locals_buits": 15,
+   "pct_locals_buits": 5.5
+  },
+  "04": {
+   "nom": "Sant Pere, Santa Caterina i la Ribera",
+   "locals": 1862,
+   "locals_buits": 303,
+   "pct_locals_buits": 16.3
+  },
+  "17": {
+   "nom": "Sants - Badal",
+   "locals": 786,
+   "locals_buits": 104,
+   "pct_locals_buits": 13.2
+  },
+  "15": {
+   "nom": "Hostafrancs",
+   "locals": 867,
+   "locals_buits": 87,
+   "pct_locals_buits": 10.0
+  },
+  "30": {
+   "nom": "la Salut",
+   "locals": 412,
+   "locals_buits": 50,
+   "pct_locals_buits": 12.1
+  },
+  "06": {
+   "nom": "la Sagrada Família",
+   "locals": 2221,
+   "locals_buits": 181,
+   "pct_locals_buits": 8.1
+  },
+  "53": {
+   "nom": "la Trinitat Nova",
+   "locals": 90,
+   "locals_buits": 6,
+   "pct_locals_buits": 6.7
+  },
+  "11": {
+   "nom": "el Poble Sec",
+   "locals": 1288,
+   "locals_buits": 176,
+   "pct_locals_buits": 13.7
+  },
+  "02": {
+   "nom": "el Barri Gòtic",
+   "locals": 1936,
+   "locals_buits": 408,
+   "pct_locals_buits": 21.1
+  },
+  "57": {
+   "nom": "la Trinitat Vella",
+   "locals": 209,
+   "locals_buits": 24,
+   "pct_locals_buits": 11.5
+  },
+  "38": {
+   "nom": "la Teixonera",
+   "locals": 215,
+   "locals_buits": 45,
+   "pct_locals_buits": 20.9
+  },
+  "45": {
+   "nom": "Porta",
+   "locals": 870,
+   "locals_buits": 99,
+   "pct_locals_buits": 11.4
+  },
+  "62": {
+   "nom": "el Congrés i els Indians",
+   "locals": 544,
+   "locals_buits": 82,
+   "pct_locals_buits": 15.1
+  },
+  "73": {
+   "nom": "la Verneda i la Pau",
+   "locals": 944,
+   "locals_buits": 95,
+   "pct_locals_buits": 10.1
+  },
+  "14": {
+   "nom": "la Font de la Guatlla",
+   "locals": 228,
+   "locals_buits": 28,
+   "pct_locals_buits": 12.3
+  },
+  "12": {
+   "nom": "la Marina del Prat Vermell",
+   "locals": 208,
+   "locals_buits": 17,
+   "pct_locals_buits": 8.2
+  },
+  "34": {
+   "nom": "Can Baró",
+   "locals": 158,
+   "locals_buits": 25,
+   "pct_locals_buits": 15.8
+  },
+  "05": {
+   "nom": "el Fort Pienc",
+   "locals": 1246,
+   "locals_buits": 127,
+   "pct_locals_buits": 10.2
+  },
+  "20": {
+   "nom": "la Maternitat i Sant Ramon",
+   "locals": 773,
+   "locals_buits": 89,
+   "pct_locals_buits": 11.5
+  },
+  "70": {
+   "nom": "el Besòs i el Maresme",
+   "locals": 487,
+   "locals_buits": 37,
+   "pct_locals_buits": 7.6
+  },
+  "49": {
+   "nom": "Canyelles",
+   "locals": 123,
+   "locals_buits": 4,
+   "pct_locals_buits": 3.3
+  },
+  "63": {
+   "nom": "Navas",
+   "locals": 632,
+   "locals_buits": 78,
+   "pct_locals_buits": 12.3
+  },
+  "42": {
+   "nom": "la Clota",
+   "locals": 14,
+   "locals_buits": 1
+  },
+  "26": {
+   "nom": "Sant Gervasi - Galvany",
+   "locals": 2882,
+   "locals_buits": 252,
+   "pct_locals_buits": 8.7
+  },
+  "72": {
+   "nom": "Sant Martí de Provençals",
+   "locals": 697,
+   "locals_buits": 42,
+   "pct_locals_buits": 6.0
+  },
+  "39": {
+   "nom": "Sant Genís dels Agudells",
+   "locals": 105,
+   "locals_buits": 5,
+   "pct_locals_buits": 4.8
+  },
+  "60": {
+   "nom": "Sant Andreu",
+   "locals": 1985,
+   "locals_buits": 231,
+   "pct_locals_buits": 11.6
+  },
+  "23": {
+   "nom": "Sarrià",
+   "locals": 1033,
+   "locals_buits": 84,
+   "pct_locals_buits": 8.1
+  },
+  "44": {
+   "nom": "Vilapicina i la Torre Llobeta",
+   "locals": 961,
+   "locals_buits": 104,
+   "pct_locals_buits": 10.8
+  },
+  "54": {
+   "nom": "Torre Baró",
+   "locals": 25,
+   "locals_buits": 0
+  },
+  "50": {
+   "nom": "les Roquetes",
+   "locals": 343,
+   "locals_buits": 34,
+   "pct_locals_buits": 9.9
+  },
+  "28": {
+   "nom": "Vallcarca i els Penitents",
+   "locals": 397,
+   "locals_buits": 37,
+   "pct_locals_buits": 9.3
+  },
+  "68": {
+   "nom": "el Poblenou",
+   "locals": 1547,
+   "locals_buits": 161,
+   "pct_locals_buits": 10.4
+  },
+  "46": {
+   "nom": "el Turó de la Peira",
+   "locals": 435,
+   "locals_buits": 33,
+   "pct_locals_buits": 7.6
+  },
+  "37": {
+   "nom": "el Carmel",
+   "locals": 769,
+   "locals_buits": 100,
+   "pct_locals_buits": 13.0
+  },
+  "07": {
+   "nom": "la Dreta de l'Eixample",
+   "locals": 4035,
+   "locals_buits": 407,
+   "pct_locals_buits": 10.1
+  },
+  "58": {
+   "nom": "Baró de Viver",
+   "locals": 44,
+   "locals_buits": 5,
+   "pct_locals_buits": 11.4
+  },
+  "24": {
+   "nom": "les Tres Torres",
+   "locals": 482,
+   "locals_buits": 18,
+   "pct_locals_buits": 3.7
+  },
+  "40": {
+   "nom": "Montbau",
+   "locals": 114,
+   "locals_buits": 8,
+   "pct_locals_buits": 7.0
+  },
+  "29": {
+   "nom": "el Coll",
+   "locals": 110,
+   "locals_buits": 12,
+   "pct_locals_buits": 10.9
+  },
+  "32": {
+   "nom": "el Camp d'en Grassot i Gràcia Nova",
+   "locals": 1483,
+   "locals_buits": 147,
+   "pct_locals_buits": 9.9
+  },
+  "56": {
+   "nom": "Vallbona",
+   "locals": 24,
+   "locals_buits": 2
+  },
+  "61": {
+   "nom": "la Sagrera",
+   "locals": 765,
+   "locals_buits": 85,
+   "pct_locals_buits": 11.1
+  },
+  "25": {
+   "nom": "Sant Gervasi - la Bonanova",
+   "locals": 1162,
+   "locals_buits": 102,
+   "pct_locals_buits": 8.8
+  },
+  "33": {
+   "nom": "el Baix Guinardó",
+   "locals": 726,
+   "locals_buits": 102,
+   "pct_locals_buits": 14.0
+  },
+  "09": {
+   "nom": "la Nova Esquerra de l'Eixample",
+   "locals": 2303,
+   "locals_buits": 243,
+   "pct_locals_buits": 10.6
+  },
+  "64": {
+   "nom": "el Camp de l'Arpa del Clot",
+   "locals": 1362,
+   "locals_buits": 164,
+   "pct_locals_buits": 12.0
+  },
+  "36": {
+   "nom": "la Font d'en Fargues",
+   "locals": 117,
+   "locals_buits": 27,
+   "pct_locals_buits": 23.1
+  },
+  "22": {
+   "nom": "Vallvidrera, el Tibidabo i les Planes",
+   "locals": 77,
+   "locals_buits": 7,
+   "pct_locals_buits": 9.1
+  },
+  "52": {
+   "nom": "la Prosperitat",
+   "locals": 884,
+   "locals_buits": 133,
+   "pct_locals_buits": 15.0
+  },
+  "10": {
+   "nom": "Sant Antoni",
+   "locals": 2045,
+   "locals_buits": 164,
+   "pct_locals_buits": 8.0
+  },
+  "71": {
+   "nom": "Provençals del Poblenou",
+   "locals": 572,
+   "locals_buits": 58,
+   "pct_locals_buits": 10.1
+  },
+  "01": {
+   "nom": "el Raval",
+   "locals": 2512,
+   "locals_buits": 333,
+   "pct_locals_buits": 13.3
+  },
+  "55": {
+   "nom": "Ciutat Meridiana",
+   "locals": 149,
+   "locals_buits": 9,
+   "pct_locals_buits": 6.0
+  },
+  "16": {
+   "nom": "la Bordeta",
+   "locals": 490,
+   "locals_buits": 62,
+   "pct_locals_buits": 12.7
+  },
+  "27": {
+   "nom": "el Putxet i el Farró",
+   "locals": 1116,
+   "locals_buits": 129,
+   "pct_locals_buits": 11.6
+  },
+  "59": {
+   "nom": "el Bon Pastor",
+   "locals": 833,
+   "locals_buits": 55,
+   "pct_locals_buits": 6.6
+  },
+  "67": {
+   "nom": "la Vila Olímpica del Poblenou",
+   "locals": 404,
+   "locals_buits": 31,
+   "pct_locals_buits": 7.7
+  },
+  "31": {
+   "nom": "la Vila de Gràcia",
+   "locals": 3551,
+   "locals_buits": 354,
+   "pct_locals_buits": 10.0
+  },
+  "03": {
+   "nom": "la Barceloneta",
+   "locals": 612,
+   "locals_buits": 67,
+   "pct_locals_buits": 10.9
+  },
+  "08": {
+   "nom": "l'Antiga Esquerra de l'Eixample",
+   "locals": 2823,
+   "locals_buits": 255,
+   "pct_locals_buits": 9.0
+  },
+  "47": {
+   "nom": "Can Peguera",
+   "locals": 21,
+   "locals_buits": 3
+  },
+  "51": {
+   "nom": "Verdun",
+   "locals": 461,
+   "locals_buits": 57,
+   "pct_locals_buits": 12.4
+  },
+  "43": {
+   "nom": "Horta",
+   "locals": 907,
+   "locals_buits": 86,
+   "pct_locals_buits": 9.5
+  }
+ }
+}

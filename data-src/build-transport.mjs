@@ -75,6 +75,9 @@ const centres = readOpt("centres.json");
 const soroll  = readOpt("soroll.json");
 const costa   = readOpt("costa.geojson");
 const estac   = readOpt("estacions.json") || [];
+const esport  = readOpt("esport.json");
+const edatHab = readOpt("edat-habitatge.json");
+const comerc  = readOpt("comerc.json");
 
 if (!segur)   avisos.push("falta seguretat.json: sin delitos ni zona verde (python3 build_seguretat.py)");
 if (!delBcn)  avisos.push("falta delictes-bcn.json: los 73 barrios se quedan sin delitos (python3 build_delictes_bcn.py)");
@@ -82,6 +85,9 @@ if (!tarifes) avisos.push("falta tarifes.json: sin zona tarifaria, abono ni agua
 if (!centres) avisos.push("falta centres.json: sin centros educativos (node build_centres.mjs)");
 if (!soroll)  avisos.push("falta soroll.json: sin ruido en los barrios (python3 build_soroll.py)");
 if (!estac.length) avisos.push("falta estacions.json: sin distancia a la estación (node fetch-estacions.mjs)");
+if (!esport)  avisos.push("falta esport.json: sin espacios deportivos (node build_esport.mjs)");
+if (!edatHab) avisos.push("falta edat-habitatge.json: sin antigüedad del parque (python3 build_habitatge_edat.py)");
+if (!comerc)  avisos.push("falta comerc.json: sin locales vacíos (python3 build_comerc.py)");
 if (!costa)   avisos.push("falta costa.geojson: sin distancia al mar (python3 build_costa.py)");
 
 if (!transit) throw new Error("falta transit.json — lanza antes fetch-transit.py");
@@ -252,6 +258,9 @@ function delictesBarri(o, districte) {
 const TARIFES = ["zones_a_bcn", "transport_eur_mes", "aigua_eur_m3"];
 const CENTRES = ["centres_educatius_1000", "pct_centres_publics"];
 const SOROLL  = ["pct_soroll_65db", "pct_soroll_nit_55db"];
+const ESPORT  = ["esport_1000"];
+const EDAT_HAB = ["pct_habitatge_pre1960"];
+const COMERC  = ["pct_locals_buits"];
 
 const copia = (o, font, camps) => {
   for (const c of camps) if (font?.[c] != null) o[c] = font[c];
@@ -475,11 +484,15 @@ function zona(m, id, tipus, t) {
   if (tipus === "barri") {
     copia(ind, soroll?.barris?.[cb], SOROLL);
     copia(ind, centres?.barris?.[cb], CENTRES);
+    copia(ind, esport?.barris?.[cb], ESPORT);
+    copia(ind, edatHab?.barris?.[cb], EDAT_HAB);
+    copia(ind, comerc?.barris?.[cb], COMERC);
     delictesBarri(ind, m.comarca);
   } else {
     seguretat(ind, id, m.poblacio);
     copia(ind, tar, TARIFES);
     copia(ind, centres?.municipis?.[id], CENTRES);
+    copia(ind, esport?.municipis?.[id], ESPORT);
   }
   z.ind = derivats(ind, z);
   return z;
@@ -628,6 +641,7 @@ const meta = {
     camps: [...INDICADORS.map(i => i.camp), "pct_estrangera",
             ...SEGURETAT.map(s => s.camp),
             ...TARIFES, ...CENTRES, ...SOROLL,
+            ...ESPORT, ...EDAT_HAB, ...COMERC,
             "densitat_hab_km2", "dist_mar_km",
             "dist_estacio_km", "dist_tren_km"].map(camp => ({
       camp,

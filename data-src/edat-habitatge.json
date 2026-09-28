@@ -1,0 +1,382 @@
+{
+ "generat": "2026-09-28",
+ "font": "Ajuntament de Barcelona · Cadastre, locals d'ús habitatge per any de construcció",
+ "url": "https://opendata-ajuntament.barcelona.cat/data/api/3/action/datastore_search_sql?sql=… FROM \"50e0edf3-c999-464a-afc2-0af71140fd0b\"",
+ "recurs": "50e0edf3-c999-464a-afc2-0af71140fd0b",
+ "any": 2026,
+ "habitatges": 836621,
+ "tram_pre1960": [
+  "<1901",
+  "1901-1940",
+  "1941-1950",
+  "1951-1960"
+ ],
+ "nota": "Porcentaje de las viviendas del barrio construidas antes de 1960, según el catastro. 1960 es la frontera entre la ciudad de patios de luces, sin ascensor y sin aislamiento, y la de la expansión posterior. Cuenta viviendas, no edificios. Es dato de barrio y no existe para los municipios: el Censo del INE solo publica año de construcción para los de más de 50.000 habitantes, 17 de los nuestros, y no hay tabla equivalente más fina.",
+ "barris": {
+  "63": {
+   "nom": "Navas",
+   "habitatges": 10486,
+   "pct_habitatge_pre1960": 21.2
+  },
+  "10": {
+   "nom": "Sant Antoni",
+   "habitatges": 20202,
+   "pct_habitatge_pre1960": 55.1
+  },
+  "19": {
+   "nom": "les Corts",
+   "habitatges": 23407,
+   "pct_habitatge_pre1960": 18.6
+  },
+  "23": {
+   "nom": "Sarrià",
+   "habitatges": 12950,
+   "pct_habitatge_pre1960": 31.5
+  },
+  "26": {
+   "nom": "Sant Gervasi- Galvany",
+   "habitatges": 25896,
+   "pct_habitatge_pre1960": 44.3
+  },
+  "07": {
+   "nom": "la Dreta de l'Eixample",
+   "habitatges": 27326,
+   "pct_habitatge_pre1960": 63.9
+  },
+  "30": {
+   "nom": "la Salut",
+   "habitatges": 7051,
+   "pct_habitatge_pre1960": 22.5
+  },
+  "08": {
+   "nom": "l'Antiga Esquerra de l'Eixample",
+   "habitatges": 24468,
+   "pct_habitatge_pre1960": 63.4
+  },
+  "58": {
+   "nom": "Baró de Viver",
+   "habitatges": 1112,
+   "pct_habitatge_pre1960": 0.0
+  },
+  "25": {
+   "nom": "Sant Gervasi- la Bonanova",
+   "habitatges": 12952,
+   "pct_habitatge_pre1960": 38.2
+  },
+  "42": {
+   "nom": "la Clota",
+   "habitatges": 625,
+   "pct_habitatge_pre1960": 36.8
+  },
+  "44": {
+   "nom": "Vilapicina i la Torre Llobeta",
+   "habitatges": 12373,
+   "pct_habitatge_pre1960": 27.8
+  },
+  "24": {
+   "nom": "les Tres Torres",
+   "habitatges": 7091,
+   "pct_habitatge_pre1960": 18.0
+  },
+  "40": {
+   "nom": "Montbau",
+   "habitatges": 2563,
+   "pct_habitatge_pre1960": 27.5
+  },
+  "29": {
+   "nom": "el Coll",
+   "habitatges": 4035,
+   "pct_habitatge_pre1960": 18.8
+  },
+  "71": {
+   "nom": "Provençals del Poblenou",
+   "habitatges": 9508,
+   "pct_habitatge_pre1960": 15.0
+  },
+  "38": {
+   "nom": "la Teixonera",
+   "habitatges": 6054,
+   "pct_habitatge_pre1960": 13.5
+  },
+  "01": {
+   "nom": "el Raval",
+   "habitatges": 23580,
+   "pct_habitatge_pre1960": 78.8
+  },
+  "32": {
+   "nom": "el Camp d'en Grassot i Gràcia Nova",
+   "habitatges": 18794,
+   "pct_habitatge_pre1960": 34.2
+  },
+  "56": {
+   "nom": "Vallbona",
+   "habitatges": 842,
+   "pct_habitatge_pre1960": 34.4
+  },
+  "35": {
+   "nom": "el Guinardó",
+   "habitatges": 19333,
+   "pct_habitatge_pre1960": 29.3
+  },
+  "55": {
+   "nom": "Ciutat Meridiana",
+   "habitatges": 3960,
+   "pct_habitatge_pre1960": 1.3
+  },
+  "69": {
+   "nom": "Diagonal Mar i el Front Marítim del Poblenou",
+   "habitatges": 6428,
+   "pct_habitatge_pre1960": 2.5
+  },
+  "66": {
+   "nom": "el Parc i la Llacuna del Poblenou",
+   "habitatges": 7925,
+   "pct_habitatge_pre1960": 26.7
+  },
+  "16": {
+   "nom": "la Bordeta",
+   "habitatges": 9660,
+   "pct_habitatge_pre1960": 17.7
+  },
+  "41": {
+   "nom": "la Vall d'Hebron",
+   "habitatges": 2657,
+   "pct_habitatge_pre1960": 0.5
+  },
+  "48": {
+   "nom": "la Guineueta",
+   "habitatges": 6801,
+   "pct_habitatge_pre1960": 0.1
+  },
+  "45": {
+   "nom": "Porta",
+   "habitatges": 11594,
+   "pct_habitatge_pre1960": 12.3
+  },
+  "62": {
+   "nom": "el Congrés i els Indians",
+   "habitatges": 7146,
+   "pct_habitatge_pre1960": 46.4
+  },
+  "65": {
+   "nom": "el Clot",
+   "habitatges": 12619,
+   "pct_habitatge_pre1960": 26.7
+  },
+  "73": {
+   "nom": "la Verneda i la Pau",
+   "habitatges": 13759,
+   "pct_habitatge_pre1960": 2.6
+  },
+  "06": {
+   "nom": "la Sagrada Família",
+   "habitatges": 27428,
+   "pct_habitatge_pre1960": 48.3
+  },
+  "47": {
+   "nom": "Can Peguera",
+   "habitatges": 1047,
+   "pct_habitatge_pre1960": 66.3
+  },
+  "53": {
+   "nom": "la Trinitat Nova",
+   "habitatges": 3471,
+   "pct_habitatge_pre1960": 28.8
+  },
+  "27": {
+   "nom": "el Putxet i el Farró",
+   "habitatges": 16631,
+   "pct_habitatge_pre1960": 28.7
+  },
+  "61": {
+   "nom": "la Sagrera",
+   "habitatges": 14047,
+   "pct_habitatge_pre1960": 7.9
+  },
+  "14": {
+   "nom": "la Font de la Guatlla",
+   "habitatges": 5125,
+   "pct_habitatge_pre1960": 30.3
+  },
+  "13": {
+   "nom": "la Marina de Port",
+   "habitatges": 13392,
+   "pct_habitatge_pre1960": 5.2
+  },
+  "72": {
+   "nom": "Sant Martí de Provençals",
+   "habitatges": 11829,
+   "pct_habitatge_pre1960": 25.4
+  },
+  "51": {
+   "nom": "Verdun",
+   "habitatges": 5965,
+   "pct_habitatge_pre1960": 15.6
+  },
+  "18": {
+   "nom": "Sants",
+   "habitatges": 21491,
+   "pct_habitatge_pre1960": 47.1
+  },
+  "21": {
+   "nom": "Pedralbes",
+   "habitatges": 6159,
+   "pct_habitatge_pre1960": 21.1
+  },
+  "33": {
+   "nom": "el Baix Guinardó",
+   "habitatges": 12642,
+   "pct_habitatge_pre1960": 34.5
+  },
+  "12": {
+   "nom": "la Marina del Prat Vermell",
+   "habitatges": 1648,
+   "pct_habitatge_pre1960": 9.5
+  },
+  "11": {
+   "nom": "el Poble Sec",
+   "habitatges": 19253,
+   "pct_habitatge_pre1960": 63.5
+  },
+  "02": {
+   "nom": "el Barri Gòtic",
+   "habitatges": 10478,
+   "pct_habitatge_pre1960": 85.4
+  },
+  "54": {
+   "nom": "Torre Baró",
+   "habitatges": 1731,
+   "pct_habitatge_pre1960": 32.0
+  },
+  "39": {
+   "nom": "Sant Genís dels Agudells",
+   "habitatges": 3500,
+   "pct_habitatge_pre1960": 9.0
+  },
+  "09": {
+   "nom": "la Nova Esquerra de l'Eixample",
+   "habitatges": 30475,
+   "pct_habitatge_pre1960": 40.7
+  },
+  "34": {
+   "nom": "Can Baró",
+   "habitatges": 4924,
+   "pct_habitatge_pre1960": 34.2
+  },
+  "50": {
+   "nom": "les Roquetes",
+   "habitatges": 7148,
+   "pct_habitatge_pre1960": 17.6
+  },
+  "05": {
+   "nom": "el Fort Pienc",
+   "habitatges": 15922,
+   "pct_habitatge_pre1960": 36.6
+  },
+  "64": {
+   "nom": "el Camp de l'Arpa del Clot",
+   "habitatges": 20198,
+   "pct_habitatge_pre1960": 33.1
+  },
+  "28": {
+   "nom": "Vallcarca i els Penitents",
+   "habitatges": 9197,
+   "pct_habitatge_pre1960": 28.4
+  },
+  "20": {
+   "nom": "la Maternitat i Sant Ramon",
+   "habitatges": 11842,
+   "pct_habitatge_pre1960": 13.4
+  },
+  "59": {
+   "nom": "el Bon Pastor",
+   "habitatges": 5304,
+   "pct_habitatge_pre1960": 11.0
+  },
+  "68": {
+   "nom": "el Poblenou",
+   "habitatges": 17390,
+   "pct_habitatge_pre1960": 44.1
+  },
+  "57": {
+   "nom": "la Trinitat Vella",
+   "habitatges": 4368,
+   "pct_habitatge_pre1960": 17.4
+  },
+  "46": {
+   "nom": "el Turó de la Peira",
+   "habitatges": 7073,
+   "pct_habitatge_pre1960": 62.0
+  },
+  "36": {
+   "nom": "la Font d'en Fargues",
+   "habitatges": 5385,
+   "pct_habitatge_pre1960": 25.3
+  },
+  "04": {
+   "nom": "Sant Pere, Santa Caterina i la Ribera",
+   "habitatges": 14641,
+   "pct_habitatge_pre1960": 78.0
+  },
+  "67": {
+   "nom": "la Vila Olímpica del Poblenou",
+   "habitatges": 4751,
+   "pct_habitatge_pre1960": 8.1
+  },
+  "31": {
+   "nom": "la Vila de Gràcia",
+   "habitatges": 31863,
+   "pct_habitatge_pre1960": 62.1
+  },
+  "17": {
+   "nom": "Sants-Badal",
+   "habitatges": 12049,
+   "pct_habitatge_pre1960": 28.9
+  },
+  "70": {
+   "nom": "el Besòs i el Maresme",
+   "habitatges": 10157,
+   "pct_habitatge_pre1960": 38.3
+  },
+  "03": {
+   "nom": "la Barceloneta",
+   "habitatges": 9206,
+   "pct_habitatge_pre1960": 74.8
+  },
+  "22": {
+   "nom": "Vallvidrera, el Tibidabo i les Planes",
+   "habitatges": 3092,
+   "pct_habitatge_pre1960": 39.4
+  },
+  "15": {
+   "nom": "Hostafrancs",
+   "habitatges": 8279,
+   "pct_habitatge_pre1960": 45.3
+  },
+  "43": {
+   "nom": "Horta",
+   "habitatges": 13700,
+   "pct_habitatge_pre1960": 25.2
+  },
+  "37": {
+   "nom": "el Carmel",
+   "habitatges": 15588,
+   "pct_habitatge_pre1960": 16.5
+  },
+  "60": {
+   "nom": "Sant Andreu",
+   "habitatges": 29872,
+   "pct_habitatge_pre1960": 21.5
+  },
+  "52": {
+   "nom": "la Prosperitat",
+   "habitatges": 12241,
+   "pct_habitatge_pre1960": 8.0
+  },
+  "49": {
+   "nom": "Canyelles",
+   "habitatges": 2922,
+   "pct_habitatge_pre1960": 0.1
+  }
+ }
+}

@@ -326,6 +326,10 @@ const RANGS = {
   // la proyección o el filtro de redes se ha roto, no que exista un sitio así
   // en la provincia.
   dist_estacio_km: [0, 30], dist_tren_km: [0, 30],
+  // Sant Cugat pasa de 9 espacios deportivos por mil vecinos y es cierto; el
+  // tope deja sitio al ruido de los municipios pequeños sin tragarse un error
+  // de denominador.
+  esport_1000: [0, 40], pct_habitatge_pre1960: [0, 100], pct_locals_buits: [0, 100],
 };
 for (const z of zones) {
   for (const [camp, [lo, hi]] of Object.entries(RANGS)) {

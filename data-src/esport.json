@@ -1,0 +1,688 @@
+{
+ "generat": "2026-09-28",
+ "font": "Consell Català de l'Esport · Cens d'equipaments esportius (Socrata edxn-ww2s)",
+ "url": "https://analisi.transparenciacatalunya.cat/resource/edxn-ww2s.json?$select=ine,latitud,longitud,classificaci&$where=starts_with(ine%2C'08')&$limit=50000",
+ "control_idescat": {
+  "f300_barcelona": 5112,
+  "aqui": 5112
+ },
+ "complements_exclosos": [
+  "VES",
+  "MAG",
+  "SER",
+  "GRA",
+  "COM",
+  "POR"
+ ],
+ "nota": "Espacios deportivos, no instalaciones: un polideportivo con tres pistas son tres. Se descartan vestuarios, almacenes, servicios, gradas, comercio y portería, que acompañan al deporte pero no son donde se hace; con ese corte el recuento cuadra con el que publica Idescat (EMEX f300). Es un recuento y no metros cuadrados a propósito: la mitad de los m² de Cataluña son campos de golf y espacios naturales, y por superficie un municipio con un golf saldría disparado. Los de Barcelona se asignan a barrio por sus coordenadas dentro del polígono: es geometría, no una estimación. La tasa por mil habitantes es ruido en los municipios pequeños.",
+ "cobertura": {
+  "municipis": 92,
+  "municipis_total": 92,
+  "barris": 72,
+  "barris_total": 73
+ },
+ "municipis": {
+  "08019": {
+   "espais_esportius": 5112,
+   "esport_1000": 2.98
+  },
+  "08194": {
+   "espais_esportius": 152,
+   "esport_1000": 3.9
+  },
+  "08101": {
+   "espais_esportius": 687,
+   "esport_1000": 2.35
+  },
+  "08077": {
+   "espais_esportius": 254,
+   "esport_1000": 5.25
+  },
+  "08245": {
+   "espais_esportius": 246,
+   "esport_1000": 2
+  },
+  "08221": {
+   "espais_esportius": 199,
+   "esport_1000": 9.46
+  },
+  "08169": {
+   "espais_esportius": 251,
+   "esport_1000": 3.79
+  },
+  "08073": {
+   "espais_esportius": 327,
+   "esport_1000": 3.54
+  },
+  "08015": {
+   "espais_esportius": 699,
+   "esport_1000": 3.03
+  },
+  "08217": {
+   "espais_esportius": 224,
+   "esport_1000": 6.26
+  },
+  "08211": {
+   "espais_esportius": 213,
+   "esport_1000": 4.56
+  },
+  "08125": {
+   "espais_esportius": 153,
+   "esport_1000": 4.09
+  },
+  "08200": {
+   "espais_esportius": 325,
+   "esport_1000": 3.81
+  },
+  "08205": {
+   "espais_esportius": 971,
+   "esport_1000": 9.91
+  },
+  "08266": {
+   "espais_esportius": 305,
+   "esport_1000": 5.23
+  },
+  "08180": {
+   "espais_esportius": 176,
+   "esport_1000": 4.43
+  },
+  "08126": {
+   "espais_esportius": 103,
+   "esport_1000": 8.02
+  },
+  "08244": {
+   "espais_esportius": 61,
+   "esport_1000": 7.37
+  },
+  "08123": {
+   "espais_esportius": 143,
+   "esport_1000": 5.24
+  },
+  "08263": {
+   "espais_esportius": 102,
+   "esport_1000": 3.55
+  },
+  "08282": {
+   "espais_esportius": 102,
+   "esport_1000": 10.9
+  },
+  "08105": {
+   "espais_esportius": 50,
+   "esport_1000": 3.77
+  },
+  "08904": {
+   "espais_esportius": 51,
+   "esport_1000": 3.91
+  },
+  "08158": {
+   "espais_esportius": 26,
+   "esport_1000": 5.9
+  },
+  "08301": {
+   "espais_esportius": 257,
+   "esport_1000": 3.81
+  },
+  "08252": {
+   "espais_esportius": 179,
+   "esport_1000": 5.26
+  },
+  "08157": {
+   "espais_esportius": 92,
+   "esport_1000": 7.68
+  },
+  "08204": {
+   "espais_esportius": 20,
+   "esport_1000": 4.78
+  },
+  "08209": {
+   "espais_esportius": 31,
+   "esport_1000": 3.3
+  },
+  "08003": {
+   "espais_esportius": 144,
+   "esport_1000": 14.05
+  },
+  "08118": {
+   "espais_esportius": 146,
+   "esport_1000": 5.9
+  },
+  "08289": {
+   "espais_esportius": 31,
+   "esport_1000": 5.03
+  },
+  "08256": {
+   "espais_esportius": 13,
+   "esport_1000": 14.99
+  },
+  "08184": {
+   "espais_esportius": 262,
+   "esport_1000": 3.16
+  },
+  "08260": {
+   "espais_esportius": 154,
+   "esport_1000": 5.9
+  },
+  "08115": {
+   "espais_esportius": 22,
+   "esport_1000": 4.41
+  },
+  "08089": {
+   "espais_esportius": 444,
+   "esport_1000": 9.22
+  },
+  "08905": {
+   "espais_esportius": 25,
+   "esport_1000": 8.17
+  },
+  "08124": {
+   "espais_esportius": 244,
+   "esport_1000": 4.62
+  },
+  "08196": {
+   "espais_esportius": 113,
+   "esport_1000": 4.17
+  },
+  "08068": {
+   "espais_esportius": 76,
+   "esport_1000": 7.81
+  },
+  "08281": {
+   "espais_esportius": 88,
+   "esport_1000": 12.76
+  },
+  "08238": {
+   "espais_esportius": 136,
+   "esport_1000": 6.74
+  },
+  "08187": {
+   "espais_esportius": 890,
+   "esport_1000": 3.96
+  },
+  "08054": {
+   "espais_esportius": 91,
+   "esport_1000": 6.97
+  },
+  "08167": {
+   "espais_esportius": 68,
+   "esport_1000": 7.93
+  },
+  "08296": {
+   "espais_esportius": 38,
+   "esport_1000": 13.66
+  },
+  "08136": {
+   "espais_esportius": 109,
+   "esport_1000": 6.39
+  },
+  "08135": {
+   "espais_esportius": 63,
+   "esport_1000": 7.1
+  },
+  "08172": {
+   "espais_esportius": 164,
+   "esport_1000": 5.59
+  },
+  "08230": {
+   "espais_esportius": 88,
+   "esport_1000": 8.3
+  },
+  "08295": {
+   "espais_esportius": 63,
+   "esport_1000": 3.88
+  },
+  "08056": {
+   "espais_esportius": 726,
+   "esport_1000": 10.42
+  },
+  "08072": {
+   "espais_esportius": 74,
+   "esport_1000": 4.61
+  },
+  "08902": {
+   "espais_esportius": 55,
+   "esport_1000": 9.65
+  },
+  "08214": {
+   "espais_esportius": 94,
+   "esport_1000": 9.97
+  },
+  "08159": {
+   "espais_esportius": 83,
+   "esport_1000": 4.39
+  },
+  "08020": {
+   "espais_esportius": 70,
+   "esport_1000": 9.28
+  },
+  "08114": {
+   "espais_esportius": 134,
+   "esport_1000": 4.62
+  },
+  "08156": {
+   "espais_esportius": 107,
+   "esport_1000": 6.87
+  },
+  "08219": {
+   "espais_esportius": 216,
+   "esport_1000": 10.17
+  },
+  "08030": {
+   "espais_esportius": 122,
+   "esport_1000": 15.73
+  },
+  "08108": {
+   "espais_esportius": 67,
+   "esport_1000": 9.72
+  },
+  "08066": {
+   "espais_esportius": 39,
+   "esport_1000": 18.01
+  },
+  "08290": {
+   "espais_esportius": 18,
+   "esport_1000": 8.29
+  },
+  "08279": {
+   "espais_esportius": 873,
+   "esport_1000": 3.75
+  },
+  "08029": {
+   "espais_esportius": 134,
+   "esport_1000": 26.52
+  },
+  "08153": {
+   "espais_esportius": 17,
+   "esport_1000": 20.88
+  },
+  "08267": {
+   "espais_esportius": 67,
+   "esport_1000": 7.03
+  },
+  "08107": {
+   "espais_esportius": 128,
+   "esport_1000": 7.75
+  },
+  "08181": {
+   "espais_esportius": 86,
+   "esport_1000": 7.8
+  },
+  "08300": {
+   "espais_esportius": 53,
+   "esport_1000": 6.78
+  },
+  "08120": {
+   "espais_esportius": 83,
+   "esport_1000": 8.46
+  },
+  "08091": {
+   "espais_esportius": 35,
+   "esport_1000": 4.27
+  },
+  "08096": {
+   "espais_esportius": 218,
+   "esport_1000": 3.35
+  },
+  "08001": {
+   "espais_esportius": 74,
+   "esport_1000": 5.6
+  },
+  "08051": {
+   "espais_esportius": 170,
+   "esport_1000": 6.69
+  },
+  "08009": {
+   "espais_esportius": 97,
+   "esport_1000": 7.52
+  },
+  "08146": {
+   "espais_esportius": 22,
+   "esport_1000": 10.31
+  },
+  "08208": {
+   "espais_esportius": 122,
+   "esport_1000": 15.04
+  },
+  "08033": {
+   "espais_esportius": 98,
+   "esport_1000": 5.28
+  },
+  "08041": {
+   "espais_esportius": 92,
+   "esport_1000": 5.27
+  },
+  "08121": {
+   "espais_esportius": 517,
+   "esport_1000": 3.94
+  },
+  "08147": {
+   "espais_esportius": 98,
+   "esport_1000": 3.92
+  },
+  "08086": {
+   "espais_esportius": 151,
+   "esport_1000": 7.24
+  },
+  "08248": {
+   "espais_esportius": 47,
+   "esport_1000": 5.91
+  },
+  "08076": {
+   "espais_esportius": 119,
+   "esport_1000": 5.26
+  },
+  "08222": {
+   "espais_esportius": 47,
+   "esport_1000": 17.93
+  },
+  "08075": {
+   "espais_esportius": 68,
+   "esport_1000": 10.78
+  },
+  "08148": {
+   "espais_esportius": 33,
+   "esport_1000": 7.38
+  },
+  "08273": {
+   "espais_esportius": 42,
+   "esport_1000": 12.78
+  },
+  "08046": {
+   "espais_esportius": 110,
+   "esport_1000": 5.77
+  }
+ },
+ "barris": {
+  "10": {
+   "espais_esportius": 64,
+   "esport_1000": 1.64
+  },
+  "11": {
+   "espais_esportius": 158,
+   "esport_1000": 3.94
+  },
+  "12": {
+   "espais_esportius": 42,
+   "esport_1000": 13.23
+  },
+  "13": {
+   "espais_esportius": 89,
+   "esport_1000": 2.8
+  },
+  "14": {
+   "espais_esportius": 22,
+   "esport_1000": 2.02
+  },
+  "15": {
+   "espais_esportius": 53,
+   "esport_1000": 3.11
+  },
+  "16": {
+   "espais_esportius": 30,
+   "esport_1000": 1.42
+  },
+  "17": {
+   "espais_esportius": 32,
+   "esport_1000": 1.27
+  },
+  "18": {
+   "espais_esportius": 94,
+   "esport_1000": 2.01
+  },
+  "19": {
+   "espais_esportius": 116,
+   "esport_1000": 2.49
+  },
+  "20": {
+   "espais_esportius": 280,
+   "esport_1000": 11.37
+  },
+  "21": {
+   "espais_esportius": 211,
+   "esport_1000": 16.91
+  },
+  "22": {
+   "espais_esportius": 18,
+   "esport_1000": 3.7
+  },
+  "23": {
+   "espais_esportius": 276,
+   "esport_1000": 11.07
+  },
+  "24": {
+   "espais_esportius": 72,
+   "esport_1000": 4.41
+  },
+  "25": {
+   "espais_esportius": 224,
+   "esport_1000": 8.36
+  },
+  "26": {
+   "espais_esportius": 160,
+   "esport_1000": 3.25
+  },
+  "27": {
+   "espais_esportius": 95,
+   "esport_1000": 3.08
+  },
+  "28": {
+   "espais_esportius": 57,
+   "esport_1000": 3.37
+  },
+  "29": {
+   "espais_esportius": 11,
+   "esport_1000": 1.37
+  },
+  "30": {
+   "espais_esportius": 93,
+   "esport_1000": 6.67
+  },
+  "31": {
+   "espais_esportius": 99,
+   "esport_1000": 1.92
+  },
+  "32": {
+   "espais_esportius": 73,
+   "esport_1000": 2
+  },
+  "33": {
+   "espais_esportius": 77,
+   "esport_1000": 2.93
+  },
+  "34": {
+   "espais_esportius": 19,
+   "esport_1000": 1.97
+  },
+  "35": {
+   "espais_esportius": 62,
+   "esport_1000": 1.58
+  },
+  "36": {
+   "espais_esportius": 93,
+   "esport_1000": 9.45
+  },
+  "37": {
+   "espais_esportius": 38,
+   "esport_1000": 1.12
+  },
+  "38": {
+   "espais_esportius": 0,
+   "esport_1000": 0
+  },
+  "39": {
+   "espais_esportius": 53,
+   "esport_1000": 6.72
+  },
+  "40": {
+   "espais_esportius": 34,
+   "esport_1000": 6.35
+  },
+  "41": {
+   "espais_esportius": 127,
+   "esport_1000": 20.86
+  },
+  "42": {
+   "espais_esportius": 3,
+   "esport_1000": 2.67
+  },
+  "43": {
+   "espais_esportius": 110,
+   "esport_1000": 3.54
+  },
+  "44": {
+   "espais_esportius": 51,
+   "esport_1000": 1.93
+  },
+  "45": {
+   "espais_esportius": 64,
+   "esport_1000": 2.05
+  },
+  "46": {
+   "espais_esportius": 30,
+   "esport_1000": 1.73
+  },
+  "47": {
+   "espais_esportius": 3,
+   "esport_1000": 1.41
+  },
+  "48": {
+   "espais_esportius": 27,
+   "esport_1000": 1.73
+  },
+  "49": {
+   "espais_esportius": 21,
+   "esport_1000": 3.04
+  },
+  "50": {
+   "espais_esportius": 28,
+   "esport_1000": 1.59
+  },
+  "51": {
+   "espais_esportius": 10,
+   "esport_1000": 0.74
+  },
+  "52": {
+   "espais_esportius": 41,
+   "esport_1000": 1.46
+  },
+  "53": {
+   "espais_esportius": 20,
+   "esport_1000": 2.46
+  },
+  "54": {
+   "espais_esportius": 14,
+   "esport_1000": 4.33
+  },
+  "55": {
+   "espais_esportius": 30,
+   "esport_1000": 2.61
+  },
+  "56": {
+   "espais_esportius": 6,
+   "esport_1000": 4.17
+  },
+  "57": {
+   "espais_esportius": 33,
+   "esport_1000": 2.92
+  },
+  "58": {
+   "espais_esportius": 20,
+   "esport_1000": 7.5
+  },
+  "59": {
+   "espais_esportius": 31,
+   "esport_1000": 1.95
+  },
+  "60": {
+   "espais_esportius": 122,
+   "esport_1000": 2.06
+  },
+  "61": {
+   "espais_esportius": 59,
+   "esport_1000": 1.89
+  },
+  "62": {
+   "espais_esportius": 46,
+   "esport_1000": 3.02
+  },
+  "63": {
+   "espais_esportius": 25,
+   "esport_1000": 1.11
+  },
+  "64": {
+   "espais_esportius": 49,
+   "esport_1000": 1.24
+  },
+  "65": {
+   "espais_esportius": 67,
+   "esport_1000": 2.49
+  },
+  "66": {
+   "espais_esportius": 39,
+   "esport_1000": 2.21
+  },
+  "67": {
+   "espais_esportius": 57,
+   "esport_1000": 6.13
+  },
+  "68": {
+   "espais_esportius": 87,
+   "esport_1000": 2.5
+  },
+  "69": {
+   "espais_esportius": 73,
+   "esport_1000": 5.3
+  },
+  "70": {
+   "espais_esportius": 82,
+   "esport_1000": 2.67
+  },
+  "71": {
+   "espais_esportius": 57,
+   "esport_1000": 2.58
+  },
+  "72": {
+   "espais_esportius": 68,
+   "esport_1000": 2.52
+  },
+  "73": {
+   "espais_esportius": 65,
+   "esport_1000": 2.1
+  },
+  "01": {
+   "espais_esportius": 97,
+   "esport_1000": 1.91
+  },
+  "02": {
+   "espais_esportius": 41,
+   "esport_1000": 1.5
+  },
+  "03": {
+   "espais_esportius": 127,
+   "esport_1000": 8.66
+  },
+  "04": {
+   "espais_esportius": 45,
+   "esport_1000": 1.96
+  },
+  "05": {
+   "espais_esportius": 51,
+   "esport_1000": 1.35
+  },
+  "06": {
+   "espais_esportius": 46,
+   "esport_1000": 0.86
+  },
+  "07": {
+   "espais_esportius": 195,
+   "esport_1000": 4.29
+  },
+  "08": {
+   "espais_esportius": 93,
+   "esport_1000": 2.17
+  },
+  "09": {
+   "espais_esportius": 105,
+   "esport_1000": 1.78
+  }
+ }
+}

@@ -34,13 +34,19 @@ const puro = between("const R_EARTH", SEC("2. ESTADO"))       // utilidades y fo
            + between("const pct1 =", SEC("3. CARGA"))         // HIP, cuota, CAPES, capa()
            + between("/** Mínimos cuadrados", SEC("6. RENDER")); // ols, niceTicks
 
-const { CAPES, CAPA_DE, ols, niceTicks, cuota, HIP, fmtMin } = new Function(`
+const {
+  CAPES, CAPA_DE, ols, niceTicks, cuota, HIP, fmtMin,
+  cobertura, avisCobertura, percentil, valorsOrdenats, extrem,
+  passaRang, passaCats, xarxesDe, frase,
+} = new Function(`
   const getComputedStyle = () => ({ getPropertyValue: () => "#000" });
   const document = { documentElement: {} };
-  const S = { capa: "compra_m2" };
+  const S = { capa: "compra_m2", filtres: [], cats: { tipus: [], comarca: [], districte: [], xarxa: [] } };
   let ROWS = [], DATA = null, RANGS = new Map(), TREND = null;
   ${puro}
-  return { CAPES, CAPA_DE, ols, niceTicks, cuota, HIP, fmtMin };
+  return { CAPES, CAPA_DE, ols, niceTicks, cuota, HIP, fmtMin,
+           cobertura, avisCobertura, percentil, valorsOrdenats, extrem,
+           passaRang, passaCats, xarxesDe, frase };
 `)();
 
 const Z = JSON.parse(readFileSync(new URL("../pages/data/zonas.json", import.meta.url), "utf8"));
@@ -81,9 +87,9 @@ for (const c of CAPES) {
   }
   console.log("     " + c.id.padEnd(24)
     + String(nums.length).padStart(7) + "/" + zones.length
-    + "   " + String(c.fmt(lo)).padStart(11)
-    + "  " + String(c.fmt(hi)).padStart(11)
-    + (c.muni ? "   solo municipal" : ""));
+    + "   " + String(c.fmt(lo)).padStart(13)
+    + "  " + String(c.fmt(hi)).padStart(13)
+    + (c.viu ? "" : "   " + (avisCobertura(c, zones) || "todas")));
 }
 console.log("");
 
@@ -94,40 +100,55 @@ ok(conNaN.length === 0, "ninguna capa produce NaN ni Infinity",
 ok(fmtMal.length === 0, "todos los formateadores devuelven texto legible en los extremos",
    fmtMal.length ? `(${fmtMal.join(", ")})` : "");
 
-/* Las capas marcadas `muni` no deben tener ni un valor en los barrios, y las
-   que no lo están deben llegar a los 73. Si esto se cruza, la leyenda miente. */
-let cobMal = [];
+/* La cobertura ya no se declara a mano en cada capa: se cuenta de los datos.
+   Lo que hay que comprobar, entonces, no es que la bandera coincida, sino que
+   la cuenta que hace la página coincida con la que declara el fichero en
+   `meta.indicadors.camps`. Es lo mismo que se vigilaba antes —que la leyenda
+   no prometa un mapa que no va a salir— pero sin banderas que mantener. */
+const nMuni = zones.filter(m => m.tipus !== "barri").length;
+const nBarri = zones.filter(m => m.tipus === "barri").length;
+const declarat = new Map((Z.meta?.indicadors?.camps || []).map(c => [c.camp, c]));
+let cobMal = [], cobComprovades = 0;
 for (const c of CAPES) {
   if (c.viu) continue;                       // el tiempo no es un indicador
-  const bar = zones.filter(m => m.tipus === "barri" && c.get(m) != null).length;
-  if (c.muni && bar > 0) cobMal.push(`${c.id} dice municipal y tiene ${bar} barrios`);
-  if (!c.muni && bar === 0) cobMal.push(`${c.id} no dice municipal y no tiene ningún barrio`);
+  const k = cobertura(c, zones);
+  const real = { muni: zones.filter(m => m.tipus !== "barri" && c.get(m) != null).length,
+                 barri: zones.filter(m => m.tipus === "barri" && c.get(m) != null).length };
+  // 1. la cuenta cacheada de la página es la cuenta de verdad
+  if (k.muni !== real.muni || k.barri !== real.barri) {
+    cobMal.push(`${c.id} cuenta ${k.muni}/${k.barri} y de verdad son ${real.muni}/${real.barri}`);
+  }
+  if (k.nMuni !== nMuni || k.nBarri !== nBarri) {
+    cobMal.push(`${c.id} cree que hay ${k.nMuni}+${k.nBarri} zonas`);
+  }
+  // 2. y coincide con lo que declara el fichero, para las capas que son un
+  //    campo de `ind` tal cual (las derivadas —hipoteca, esfuerzo— no lo son)
+  const d = declarat.get(c.id);
+  if (d) {
+    cobComprovades++;
+    if (d.municipis !== real.muni || d.barris !== real.barri) {
+      cobMal.push(`${c.id}: el fichero declara ${d.municipis}/${d.barris} y la capa lee ${real.muni}/${real.barri}`);
+    }
+  }
 }
-ok(cobMal.length === 0, "la marca «solo municipal» coincide con los datos",
-   cobMal.length ? `(${cobMal.join("; ")})` : "");
+ok(cobMal.length === 0,
+   `la cobertura calculada cuadra con los datos y con meta.indicadors.camps`,
+   cobMal.length ? `(${cobMal.join("; ")})` : `(${cobComprovades} capas contrastadas con el fichero)`);
 
-/* `parcial` promete que además faltan municipios —no dos o tres sin precio
-   publicado, sino un hueco estructural—. El umbral distingue las dos cosas: a
-   una capa le pueden faltar un par de zonas por muestra corta sin que el mapa
-   deje de leerse. Si algún día el Ministerio bajara su umbral de habitantes y
-   las cubriera casi todas, la leyenda seguiría prometiendo un mapa medio gris
-   que ya no lo estaría: mejor que falle aquí. */
-const LLINDAR_PARCIAL = 0.8;
-const nMuni = zones.filter(m => m.tipus !== "barri").length;
-let parMal = [];
+/* El aviso que la página escribe al lado del nombre de la capa tiene que
+   decir la verdad: si dice «solo municipios» no puede haber ni un barrio con
+   dato, y si no dice nada es que llegan a las 164. */
+let avisMal = [];
 for (const c of CAPES) {
   if (c.viu) continue;
-  const con = zones.filter(m => m.tipus !== "barri" && c.get(m) != null).length;
-  const frac = con / nMuni;
-  if (c.parcial && frac >= LLINDAR_PARCIAL) {
-    parMal.push(`${c.id} dice parcial y cubre ${con}/${nMuni}`);
-  }
-  if (!c.parcial && con > 0 && frac < LLINDAR_PARCIAL) {
-    parMal.push(`${c.id} cubre ${con}/${nMuni} municipios y no dice parcial`);
-  }
+  const k = cobertura(c, zones), a = avisCobertura(c, zones);
+  if (!a && k.total !== k.n) avisMal.push(`${c.id} no avisa y le faltan ${k.n - k.total}`);
+  if (a && k.total === k.n) avisMal.push(`${c.id} avisa «${a}» y las cubre todas`);
+  if (/solo municipios/.test(a) && k.barri > 0) avisMal.push(`${c.id} dice municipios y tiene ${k.barri} barrios`);
+  if (/solo barrios/.test(a) && k.muni > 0) avisMal.push(`${c.id} dice barrios y tiene ${k.muni} municipios`);
 }
-ok(parMal.length === 0, "la marca «cobertura parcial» coincide con los datos",
-   parMal.length ? `(${parMal.join("; ")})` : "");
+ok(avisMal.length === 0, "el aviso de cobertura de cada capa dice la verdad",
+   avisMal.length ? `(${avisMal.join("; ")})` : "");
 
 /* Las tasas del Ministerio se calculan en build-transport.mjs a partir de
    recuentos y del padrón. Un error de denominador daría cifras absurdas sin
@@ -161,6 +182,111 @@ ok(CAPES.every(c => c.nom && c.eix && c.nota && typeof c.get === "function"
    "cada capa lleva nombre, unidad, nota y sus dos funciones");
 ok(CAPA_DE.get("compra_m2") !== undefined,
    "la capa por defecto del estado inicial existe");
+
+/* -------- percentiles -------- */
+/* De ellos salen las barras de la ficha, las de la comparación y la frase. Si
+   se salen de 0-100, o si la zona más barata no sale abajo del todo, las tres
+   cosas mienten a la vez. */
+console.log("\n══ los percentiles ═════════════════════════════");
+let pctMal = [], pctN = 0;
+for (const c of CAPES) {
+  if (c.viu) continue;
+  const vs = valorsOrdenats(c, zones);
+  if (vs.length < 4) continue;
+  pctN++;
+  for (const m of zones) {
+    const v = c.get(m);
+    if (v == null) continue;
+    const p = percentil(c, v, zones);
+    if (p == null || !Number.isFinite(p) || p < 0 || p > 100) {
+      pctMal.push(`${c.id} da ${p} para ${m.nom}`);
+      break;
+    }
+  }
+  // El extremo de abajo tiene que salir abajo y el de arriba, arriba.
+  const pLo = percentil(c, vs[0], zones), pHi = percentil(c, vs[vs.length - 1], zones);
+  if (!(pLo < 50)) pctMal.push(`${c.id}: el mínimo sale en el percentil ${pLo}`);
+  if (!(pHi > 50)) pctMal.push(`${c.id}: el máximo sale en el percentil ${pHi}`);
+}
+ok(pctMal.length === 0, `los percentiles de las ${pctN} capas caen entre 0 y 100 y respetan el orden`,
+   pctMal.length ? `(${pctMal.slice(0, 4).join("; ")})` : "");
+
+/* Un superlativo empatado no es un superlativo: `extrem` solo puede decir
+   «max» si nadie más iguala ese valor, porque la frase lo afirma en serio. */
+const cDen = CAPA_DE.get("densitat_hab_km2");
+const den = valorsOrdenats(cDen, zones);
+ok(extrem(cDen, den[den.length - 1], zones) === "max"
+   && extrem(cDen, den[0], zones) === "min"
+   && extrem(cDen, den[Math.floor(den.length / 2)], zones) === null,
+   "el extremo solo se afirma en el máximo y el mínimo de verdad");
+
+/* -------- el motor de filtros -------- */
+console.log("\n══ el motor de filtros ═════════════════════════");
+const cCompra = CAPA_DE.get("compra_m2");
+const preus = valorsOrdenats(cCompra, zones);
+const medPreu = preus[Math.floor(preus.length / 2)];
+const fBarat = { capa: "compra_m2", lo: preus[0], hi: medPreu, sense: false };
+const dins = zones.filter(m => passaRang(m, fBarat));
+const sensePreu = zones.filter(m => m.compra_eur_m2 == null);
+ok(dins.every(m => m.compra_eur_m2 != null && m.compra_eur_m2 <= medPreu),
+   `un filtro de rango deja pasar solo lo que cae dentro`, `(${dins.length} zonas)`);
+ok(dins.length > 0 && dins.length < zones.length, "y filtra algo, pero no todo");
+ok(sensePreu.every(m => !passaRang(m, fBarat)),
+   `las ${sensePreu.length} zonas sin dato quedan fuera por defecto`);
+ok(sensePreu.every(m => passaRang(m, { ...fBarat, sense: true })),
+   "…y entran si se pide expresamente incluirlas");
+ok(zones.every(m => passaRang(m, { capa: "compra_m2", lo: preus[0], hi: preus.at(-1), sense: true })),
+   "un filtro con el rango entero y las zonas sin dato no descarta a nadie");
+
+const nBarris = zones.filter(m => m.tipus === "barri").length;
+ok(zones.filter(m => passaCats(m, { tipus: ["barri"] })).length === nBarris,
+   `el filtro de tipo deja los ${nBarris} barrios`);
+ok(zones.every(m => passaCats(m, {})) && zones.every(m => passaCats(m, null)),
+   "sin categorías marcadas no se descarta nada");
+const ambMetro = zones.filter(m => passaCats(m, { xarxa: ["Metro"] }));
+ok(ambMetro.length > 0 && ambMetro.every(m => xarxesDe(m).includes("Metro")),
+   `el filtro de red deja solo las ${ambMetro.length} zonas con metro`);
+const senseTren = zones.filter(m => passaCats(m, { xarxa: ["cap"] }));
+ok(senseTren.length > 0 && senseTren.every(m => xarxesDe(m).length === 0),
+   `y «sin tren ni metro» deja las ${senseTren.length} que no tienen ninguna`);
+// Y entre categorías se exigen todas: barrio Y del Eixample.
+const eix = zones.filter(m => passaCats(m, { tipus: ["barri"], districte: ["Eixample"] }));
+ok(eix.length > 0 && eix.every(m => m.tipus === "barri" && m.districte === "Eixample"),
+   `dos categorías a la vez se exigen las dos`, `(${eix.length} barrios del Eixample)`);
+
+/* -------- la frase de cada zona -------- */
+/* Se genera desde los datos, así que cualquier hueco sale como `undefined` o
+   como «NaN €» en mitad de una frase que alguien va a leer. Se comprueban las
+   164, no una muestra. */
+console.log("\n══ la frase de cada zona ═══════════════════════");
+let fraseMal = [], llarg = 0, ambRasgo = 0;
+for (const m of zones) {
+  const f = frase(m, zones);
+  if (typeof f !== "string" || f.length < 20) { fraseMal.push(`${m.nom}: «${f}»`); continue; }
+  if (/undefined|NaN|Infinity|null/.test(f)) fraseMal.push(`${m.nom}: ${f}`);
+  if (!/\.$/.test(f)) fraseMal.push(`${m.nom}: no acaba en punto`);
+  if (/\s{2,}/.test(f)) fraseMal.push(`${m.nom}: espacios dobles`);
+  llarg = Math.max(llarg, f.length);
+  if (/Destaca por/.test(f)) ambRasgo++;
+}
+ok(fraseMal.length === 0, `las ${zones.length} zonas producen una frase legible`,
+   fraseMal.length ? `(${fraseMal.slice(0, 3).join(" · ")})` : `(la más larga, ${llarg} caracteres)`);
+ok(ambRasgo >= zones.length * 0.5,
+   "más de la mitad de las zonas tienen un rasgo que destacar",
+   `(${ambRasgo}/${zones.length})`);
+// Una zona a la que le falta todo tiene que seguir dando una frase, no un hueco.
+const pelada = { id: "X", tipus: "municipi", nom: "Nada", nom_llarg: "Nada",
+                 comarca: "Maresme", destins: {}, ind: {} };
+const fp = frase(pelada, zones);
+ok(typeof fp === "string" && fp.length > 10 && !/undefined|NaN/.test(fp),
+   "una zona sin ningún dato sigue dando una frase", `«${fp}»`);
+console.log(`\n     ejemplo · ${zones.find(m => m.id === "B01")?.nom_llarg}`);
+console.log(`     ${frase(zones.find(m => m.id === "B01"), zones)}`);
+const sample = zones.find(m => m.tipus !== "barri" && m.ind?.zones_a_bcn > 2);
+if (sample) {
+  console.log(`\n     ejemplo · ${sample.nom_llarg}`);
+  console.log(`     ${frase(sample, zones)}`);
+}
 
 /* -------- la hipoteca -------- */
 console.log("\n══ la cuota de hipoteca ════════════════════════");

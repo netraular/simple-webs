@@ -25,9 +25,17 @@
    página es clara, la otra era oscura, y dos temas para una sola pregunta era
    justo lo que sobraba.
 
-   Un solo mando —«Colorear por»— manda a la vez sobre el color del mapa, el eje
-   vertical del gráfico, la leyenda y una columna de la tabla. Es lo que permite
-   tener diecisiete magnitudes sin diecisiete controles.
+   Cuarenta magnitudes y un solo mecanismo. Cada una de ellas —precio, tiempo,
+   renta, ruido, altitud— es una «capa» con las mismas cuatro piezas: cómo se
+   lee de la zona, cómo se escribe, qué unidad tiene y qué avisa. De ahí salen,
+   sin una línea por indicador: el color del mapa, los dos ejes del gráfico, las
+   columnas de la tabla, las barras de percentil de la ficha, las filas de la
+   comparación y —lo nuevo— los filtros. Cualquier capa se puede convertir en un
+   filtro de rango porque ya sabe todo lo que un filtro necesita saber.
+
+   Las cuatro vistas —mapa, gráfico, tabla y ranking— son la misma selección
+   vista de cuatro maneras. Pasar el ratón por una enciende la zona en las otras
+   tres; pinchar abre su ficha; fijar hasta cuatro las pone una al lado de otra.
    =========================================================================== */
 
 :root{
@@ -92,7 +100,18 @@ h1{font-size:2.2rem;font-weight:700;letter-spacing:0;line-height:1.12;margin:7px
 .coverage strong{font-size:2.6rem;line-height:1;color:var(--accent);font-weight:700}
 .coverage span{font-size:.76rem;color:var(--ink-2);max-width:13ch}
 .stamp{font-size:.72rem;color:var(--muted);line-height:1.6}
-.workspace{display:grid;grid-template-columns:310px minmax(0,1fr);gap:32px;align-items:start}
+.workspace{display:grid;grid-template-columns:340px minmax(0,1fr);gap:32px;align-items:start}
+
+/* ---------- tira de cifras ----------
+   Cuatro números que resumen la selección de un vistazo. No son un gráfico ni
+   lo fingen: son la cifra grande y qué es, que es lo que se lee sin mirar. */
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1px;background:var(--hairline);
+      border:1px solid var(--hairline);border-radius:8px;overflow:hidden;margin-bottom:26px}
+.kpi{background:var(--surface);padding:14px 16px;min-width:0}
+.kpi b{display:block;font-size:1.65rem;font-weight:700;line-height:1.1;font-variant-numeric:tabular-nums}
+.kpi .k-lbl{display:block;margin-top:3px;font-size:.72rem;color:var(--ink-2);line-height:1.35}
+.kpi .k-cmp{display:block;margin-top:4px;font-size:.68rem;color:var(--muted)}
+.kpi.k-main b{color:var(--ok)}
 
 /* ---------- barra de condiciones ---------- */
 .filters{
@@ -167,6 +186,91 @@ h1{font-size:2.2rem;font-weight:700;letter-spacing:0;line-height:1.12;margin:7px
   color:var(--muted);cursor:pointer;padding:0 2px;
 }
 .cond .clear:hover{color:var(--ink)}
+.cond .rename{
+  flex:1;min-width:0;font:inherit;font-size:.8rem;background:var(--surface);color:var(--ink);
+  border:1px solid transparent;border-radius:5px;padding:4px 5px;
+}
+.cond .rename:hover,.cond .rename:focus{border-color:var(--axis)}
+
+/* ---------- panel de filtros: una sección por pregunta ----------
+   Plegables porque son seis y abiertas de golpe ocupan tres pantallas. La
+   cuenta que va al lado del título es lo que permite tenerlas cerradas sin
+   olvidarse de lo que hay dentro. */
+.fsec{border:0;border-top:1px solid var(--hairline);padding:0;margin:0}
+.fsec:first-of-type{border-top:0}
+.fsec > summary{
+  display:flex;align-items:center;gap:8px;padding:13px 0;cursor:pointer;
+  font-size:.82rem;font-weight:700;color:var(--ink-2);list-style:none;
+}
+.fsec > summary::-webkit-details-marker{display:none}
+.fsec > summary::after{content:"▾";margin-left:auto;font-size:.68rem;color:var(--muted)}
+.fsec[open] > summary::after{content:"▴"}
+.fsec > summary .cnt{
+  font-weight:700;font-size:.66rem;background:var(--accent-soft);color:#a63b28;
+  border-radius:9px;padding:1px 7px;font-variant-numeric:tabular-nums;
+}
+.fsec-body{display:flex;flex-direction:column;gap:18px;padding-bottom:16px}
+
+/* ---------- filtro de rango: histograma y dos asas ----------
+   El histograma no es adorno: sin él, arrastrar un extremo es a ciegas. Con
+   él se ve dónde está el grueso de las zonas antes de tocar nada, así que el
+   control y el dato son la misma pieza. */
+.rf{display:flex;flex-direction:column;gap:5px}
+.rf-top{display:flex;align-items:baseline;gap:8px}
+.rf-nom{flex:1;min-width:0;font-size:.78rem;font-weight:700;color:var(--ink-2);line-height:1.3}
+.rf-del{flex:none;font:inherit;font-size:1rem;line-height:1;background:none;border:0;color:var(--muted);cursor:pointer;padding:0 3px}
+.rf-del:hover{color:var(--accent)}
+.rf-hist{display:flex;align-items:flex-end;gap:1px;height:32px}
+.rf-hist i{flex:1;min-width:0;min-height:1px;background:var(--seq-200);border-radius:1px 1px 0 0}
+.rf-hist i.out{background:var(--surface-2)}
+.rf-val{display:flex;justify-content:space-between;gap:8px;font-size:.74rem;color:var(--ink-2);font-variant-numeric:tabular-nums}
+.rf-val b{color:var(--ink)}
+.rf-foot{font-size:.7rem;color:var(--muted);line-height:1.4}
+.rf-foot .imp{color:var(--accent);font-weight:700}
+.rf-na{
+  display:block;font:inherit;font-size:.7rem;font-weight:700;text-align:left;
+  background:none;border:0;padding:2px 0;cursor:pointer;color:#a63b28;
+}
+.rf-na.on{color:var(--muted);font-weight:400}
+.rf-na:hover{text-decoration:underline}
+
+/* Los dos deslizadores se solapan sobre un mismo carril: el carril no recibe
+   el ratón y los pulgares sí. Es la única forma de tener dos asas sobre un
+   rango sin traerse una librería. */
+.rng{position:relative;height:28px}
+.rng-track{position:absolute;left:0;right:0;top:12px;height:4px;border-radius:2px;background:var(--surface-2)}
+.rng-track i{position:absolute;top:0;bottom:0;border-radius:2px;background:var(--series-1)}
+.rng input[type=range]{
+  position:absolute;left:0;top:0;width:100%;height:28px;margin:0;
+  background:none;pointer-events:none;appearance:none;-webkit-appearance:none;
+}
+.rng input[type=range]::-webkit-slider-thumb{
+  pointer-events:auto;appearance:none;-webkit-appearance:none;
+  width:18px;height:18px;border-radius:50%;cursor:pointer;
+  background:var(--surface);border:2px solid var(--series-1);box-shadow:0 1px 3px #203b2826;
+}
+.rng input[type=range]::-moz-range-thumb{
+  pointer-events:auto;width:16px;height:16px;border-radius:50%;cursor:pointer;
+  background:var(--surface);border:2px solid var(--series-1);
+}
+.rng input[type=range]::-moz-range-track{background:none}
+
+/* ---------- fichas de categoría ---------- */
+.chips{display:flex;flex-wrap:wrap;gap:5px}
+.chip{
+  font:inherit;font-size:.72rem;font-weight:600;background:var(--surface);color:var(--ink-2);
+  border:1px solid var(--hairline);border-radius:14px;padding:5px 10px;cursor:pointer;min-height:30px;
+}
+.chip:hover{border-color:var(--series-1)}
+.chip[aria-pressed=true]{background:var(--series-1);border-color:var(--series-1);color:#fff}
+.chip .c{opacity:.6;font-weight:400;margin-left:4px;font-variant-numeric:tabular-nums}
+.chips-lbl{font-size:.72rem;font-weight:700;color:var(--muted);margin-bottom:5px;text-transform:uppercase}
+.addf select{
+  font:inherit;font-size:.8rem;width:100%;min-height:42px;padding:10px;cursor:pointer;
+  background:var(--surface);color:var(--series-1);font-weight:600;
+  border:1px dashed var(--axis);border-radius:6px;
+}
+.addf select:hover{border-color:var(--series-1)}
 
 /* ---------- tarjetas ---------- */
 main{min-width:0;padding:0 0 48px}
@@ -225,14 +329,17 @@ main{min-width:0;padding:0 0 48px}
 .rank-empty{margin-top:16px;font-size:.88rem;color:var(--ink-2);max-width:60ch}
 
 /* ---------- mapa ---------- */
-.map-layout{display:grid;grid-template-columns:minmax(0,1fr);gap:16px;margin-top:14px}
+/* El panel de la derecha es la ficha cuando hay una zona abierta y la leyenda
+   cuando no. Van en la misma columna a propósito: son la misma pregunta —«qué
+   estoy viendo»— contestada al nivel del mapa entero o al de una zona. */
+.map-layout{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:20px;margin-top:14px;align-items:start}
 .map-box{position:relative;background:radial-gradient(circle,#a9bdba45 1px,transparent 1px),#e8efec;background-size:18px 18px;border:1px solid #d2dfd8;border-radius:8px;overflow:hidden;touch-action:none}
 .map-box svg{display:block;width:100%;height:auto;aspect-ratio:1.65;cursor:crosshair}
 .map-box.is-picking{outline:3px solid var(--series-1);outline-offset:3px}
 .map-caption{position:absolute;bottom:12px;left:14px;pointer-events:none;font-size:.65rem;font-weight:700;text-transform:uppercase;color:#526d65;background:#f4f6f5e8;padding:4px 7px;border-radius:3px}
-.map-layout > aside{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px;font-size:.78rem}
+.map-layout > aside{display:flex;flex-direction:column;gap:22px;font-size:.78rem;min-width:0}
 .map-layout > aside > .legend{margin:0}
-#panel-itin{grid-column:1/-1;border-top:1px solid var(--hairline);padding-top:16px}
+#panel-itin{border-top:1px solid var(--hairline);padding-top:16px}
 #legend-xarxes{display:flex;flex-wrap:wrap;gap:0 18px;align-content:start}
 #legend-xarxes h3{width:100%}
 .zona{stroke:var(--surface);stroke-width:.6;vector-effect:non-scaling-stroke;transition:fill .18s ease}
@@ -242,6 +349,19 @@ main{min-width:0;padding:0 0 48px}
 /* Contorno verde de las que cumplen: el relleno ya codifica el precio (o el
    tiempo), así que «cumple» no puede ser otro relleno. Va al borde. */
 .zona.is-ok{stroke:var(--ok);stroke-width:1.6}
+/* El realce cruzado: la misma zona encendida en el mapa, el gráfico, el
+   ranking y la tabla a la vez. Se pone y se quita conmutando esta clase, sin
+   volver a pintar nada: un render completo por movimiento de ratón sería
+   inusable con 164 polígonos. */
+.zona.is-hi{stroke:var(--ink);stroke-width:2.6;opacity:1}
+.sc-dot.is-hi{stroke:var(--ink);stroke-width:2.4;opacity:1}
+tbody tr.is-hi td,tbody tr.is-hi td:first-child{background:var(--surface-2)}
+.rk.is-hi{border-color:var(--ink)}
+
+/* Chapa numerada de las zonas fijadas: el número es el mismo que encabeza su
+   columna en la comparación, y por eso no hace falta darles color. */
+.pin-badge{fill:var(--ink);stroke:var(--surface);stroke-width:1.5;vector-effect:non-scaling-stroke;pointer-events:none}
+.pin-num{fill:#fff;font-weight:700;text-anchor:middle;pointer-events:none}
 
 .linia{fill:none;vector-effect:non-scaling-stroke;pointer-events:none;stroke-linejoin:round;stroke-linecap:round}
 .l-Rodalies{stroke:var(--net-rodalies);stroke-width:2.1}
@@ -332,6 +452,57 @@ main{min-width:0;padding:0 0 48px}
 }
 .net-row button:hover{text-decoration:underline}
 
+/* ---------- ficha de zona ----------
+   Lo que se sabe de una zona, en el sitio donde estabas mirando: al lado del
+   mapa. La frase primero porque es lo único que se lee entero; después las
+   cifras, y después los percentiles, que es donde se ve si un número es
+   normal o raro sin tener que conocer el área. */
+.ficha{border:1px solid var(--axis);border-radius:8px;background:var(--surface);padding:16px;min-width:0}
+.fi-top{display:flex;align-items:flex-start;gap:10px}
+.fi-nom{flex:1;min-width:0;font-size:1rem;font-weight:700;line-height:1.25;overflow-wrap:anywhere}
+.fi-sub{font-size:.72rem;color:var(--muted);margin-top:2px}
+.fi-close{flex:none;font:inherit;font-size:1.1rem;line-height:1;background:none;border:0;color:var(--muted);cursor:pointer;padding:2px 4px}
+.fi-close:hover{color:var(--ink)}
+.fi-frase{margin-top:11px;font-size:.82rem;color:var(--ink-2);line-height:1.5}
+.fi-xifres{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px 12px;margin-top:14px}
+.fi-xifres div{min-width:0}
+.fi-xifres b{display:block;font-size:.95rem;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.2}
+.fi-xifres span{display:block;font-size:.68rem;color:var(--muted);margin-top:1px}
+.fi-h{margin-top:16px;font-size:.68rem;font-weight:700;text-transform:uppercase;color:var(--muted)}
+.fi-acc{display:flex;gap:6px;margin-top:14px;flex-wrap:wrap}
+
+/* Barra de percentil. Una sola serie, un solo tono, y la mediana marcada con
+   una línea: sin esa marca una barra al 50 % parece «poco» cuando es justo el
+   centro del área. */
+.pct{display:grid;grid-template-columns:1fr auto;gap:2px 10px;align-items:baseline;margin-top:9px;font-size:.74rem}
+.pct .p-n{color:var(--ink-2);min-width:0;overflow-wrap:anywhere;line-height:1.3}
+.pct .p-v{font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+.pct-bar{grid-column:1/-1;position:relative;height:6px;border-radius:3px;background:var(--surface-2);overflow:hidden}
+.pct-bar i{position:absolute;left:0;top:0;bottom:0;background:var(--seq-400);border-radius:3px}
+.pct-bar::after{content:"";position:absolute;left:50%;top:0;bottom:0;width:1px;background:var(--axis)}
+.pct-na{color:var(--muted);font-weight:400}
+
+/* ---------- comparación ---------- */
+table.cmp th,table.cmp td{vertical-align:top}
+table.cmp thead th{text-transform:none;font-size:.76rem;color:var(--ink);white-space:normal;cursor:default;min-width:120px}
+table.cmp thead th:first-child{min-width:160px}
+table.cmp thead th .num{
+  display:inline-grid;place-items:center;width:18px;height:18px;margin-right:6px;
+  background:var(--ink);color:#fff;border-radius:50%;font-size:.62rem;vertical-align:1px;
+}
+table.cmp tbody th{
+  text-align:left;font-weight:600;font-size:.8rem;color:var(--ink-2);white-space:normal;
+  position:sticky;left:0;background:var(--surface);border-bottom:1px solid var(--hairline);padding:12px;
+}
+table.cmp td{font-weight:700}
+table.cmp .cmp-med{color:var(--muted);font-weight:600}
+table.cmp .pct-bar{margin-top:5px;width:100%}
+.cmp-drop{
+  font:inherit;font-size:.68rem;font-weight:600;background:none;border:0;padding:0;margin-top:3px;
+  color:var(--series-1);cursor:pointer;display:block;
+}
+.cmp-drop:hover{text-decoration:underline}
+
 /* ---------- itinerario ---------- */
 .itin{margin-top:10px;font-size:.8rem}
 .itin ol{list-style:none;margin:0}
@@ -404,22 +575,26 @@ footer a{color:var(--focus)}
 .state{padding:56px 20px;text-align:center;color:var(--muted);grid-column:2}
 .visually-hidden{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 
+@media (max-width:1320px){
+  .map-layout{grid-template-columns:minmax(0,1fr) 290px;gap:16px}
+}
 @media (max-width:1150px){
   .wrap{padding:0 24px}
-  .workspace{grid-template-columns:290px minmax(0,1fr);gap:24px}
+  .workspace{grid-template-columns:300px minmax(0,1fr);gap:24px}
   .filters{padding:16px}
   .rank{grid-template-columns:repeat(2,minmax(0,1fr))}
   .coverage{display:none}
+  .kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+  /* Por debajo de aquí la ficha al lado del mapa deja el mapa en nada: pasa a
+     ir debajo, que es donde la vista sigue siendo la misma. */
+  .map-layout{grid-template-columns:minmax(0,1fr)}
+  .map-layout > aside{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px}
+  .ficha,#panel-itin{grid-column:1/-1}
 }
 @media (max-width:850px){
   .workspace{grid-template-columns:minmax(0,1fr);gap:24px}
   .filters{position:static;max-height:none}
-  .filters-inner{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px 24px;align-items:start}
-  .filter-heading{grid-column:1/-1}
   .mobile-map-link{display:block}
-  .cond-field{grid-row:2/4}
-  .slider-field{border:0;padding:0}
-  .filter-foot{grid-column:2}
   .state{grid-column:1}
   .map-box svg{aspect-ratio:1.4}
 }
@@ -431,8 +606,10 @@ footer a{color:var(--focus)}
   header{padding:24px 0}
   h1{font-size:1.75rem}
   .lede{font-size:.85rem}
-  .filters-inner{display:flex;gap:18px}
-  .slider-field{border-top:1px solid var(--hairline);padding-top:16px}
+  .kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .kpi b{font-size:1.35rem}
+  .map-layout > aside{grid-template-columns:minmax(0,1fr)}
+  .fi-xifres{grid-template-columns:repeat(2,minmax(0,1fr))}
   .filter-foot{font-size:.7rem}
   .cond{padding:9px 0}
   .cond input[type=number]{min-height:36px}
@@ -471,39 +648,61 @@ footer a{color:var(--focus)}
   <header>
     <div>
       <span class="eyebrow">Barcelona · Transporte público y vivienda</span>
-      <h1>Tu próximo barrio, bien conectado.</h1>
-      <p class="lede">Menos trayecto. Más posibilidades. Vivienda y tiempos puerta a puerta en el área de Barcelona.</p>
+      <h1>Tu próximo barrio, con todo sobre la mesa.</h1>
+      <p class="lede">Vivienda, transporte, vecindario y entorno de las 164 zonas del área de Barcelona. Filtra por lo que te importe y compáralas.</p>
     </div>
     <div class="coverage"><strong>164</strong><span>zonas · 91 municipios y 73 barrios</span></div>
   </header>
+  <div class="kpis" id="kpis" hidden></div>
 </div>
 
 <div class="wrap workspace">
-<aside class="filters" aria-label="Condiciones del viaje">
+<aside class="filters" aria-label="Criterios de búsqueda">
   <div class="filters-inner" id="filters" hidden>
     <div class="filter-heading">
-      <h2>Tu día a día</h2>
+      <h2>Tus criterios</h2>
       <a class="mobile-map-link" href="#map-title">Ver mapa ↓</a>
-      <button class="btn icon-btn" id="f-reset" type="button" title="Restablecer condiciones" aria-label="Restablecer condiciones">↺</button>
+      <button class="btn icon-btn" id="f-reset" type="button" title="Restablecer criterios" aria-label="Restablecer criterios">↺</button>
     </div>
 
-    <div class="field cond-field">
-      <span class="lbl" id="f-cond-label"><span class="filter-index" aria-hidden="true">1</span> Destinos y tiempo máximo</span>
-      <div class="conds" id="f-conds" role="group" aria-labelledby="f-cond-label"></div>
-      <div class="segmented" role="group" aria-label="Destinos que deben cumplir el límite">
-        <button class="btn btn-sm" type="button" id="f-comb-algun" aria-pressed="true">Al menos uno</button>
-        <button class="btn btn-sm" type="button" id="f-comb-tots" aria-pressed="false">Todos</button>
+    <details class="fsec" id="sec-viaje" open>
+      <summary>Tu viaje <span class="cnt" id="cnt-viaje" hidden></span></summary>
+      <div class="fsec-body">
+        <div class="field cond-field">
+          <span class="lbl" id="f-cond-label">Destinos y tiempo máximo</span>
+          <div class="conds" id="f-conds" role="group" aria-labelledby="f-cond-label"></div>
+          <div class="segmented" role="group" aria-label="Destinos que deben cumplir el límite">
+            <button class="btn btn-sm" type="button" id="f-comb-algun" aria-pressed="true">Al menos uno</button>
+            <button class="btn btn-sm" type="button" id="f-comb-tots" aria-pressed="false">Todos</button>
+          </div>
+        </div>
+        <div class="field slider-field">
+          <label for="f-peu">Caminata máxima total</label>
+          <div class="slider-row">
+            <input type="range" id="f-peu" min="0" max="60" step="1" value="30">
+            <span class="slider-val" id="f-peu-v">30 min</span>
+          </div>
+          <div class="slider-scale" aria-hidden="true"><span>0 min</span><span>Sin límite</span></div>
+        </div>
       </div>
-    </div>
+    </details>
 
-    <div class="field slider-field">
-      <label for="f-peu"><span class="filter-index" aria-hidden="true">2</span> Caminata máxima total</label>
-      <div class="slider-row">
-        <input type="range" id="f-peu" min="0" max="60" step="1" value="30">
-        <span class="slider-val" id="f-peu-v">30 min</span>
+    <details class="fsec" id="sec-rangos" open>
+      <summary>Datos de la zona <span class="cnt" id="cnt-rangos" hidden></span></summary>
+      <div class="fsec-body">
+        <div id="f-rangs"></div>
+        <div class="addf">
+          <label class="visually-hidden" for="f-add">Añadir un filtro sobre otro dato</label>
+          <select id="f-add"></select>
+        </div>
       </div>
-      <div class="slider-scale" aria-hidden="true"><span>0 min</span><span>Sin límite</span></div>
-    </div>
+    </details>
+
+    <details class="fsec" id="sec-tipo">
+      <summary>Tipo de zona <span class="cnt" id="cnt-tipo" hidden></span></summary>
+      <div class="fsec-body" id="f-cats"></div>
+    </details>
+
     <div class="filter-foot"><strong>Horarios programados, no en directo</strong><p class="stamp" id="stamp"></p></div>
   </div>
 </aside>
@@ -546,7 +745,9 @@ footer a{color:var(--focus)}
         </div>
 
         <aside>
-          <div class="legend">
+          <div class="ficha" id="ficha" hidden aria-live="polite"></div>
+
+          <div class="legend" id="legend-seq">
             <h3 id="legend-title">Precio de compra</h3>
             <div class="ramp" id="legend-ramp"></div>
             <div class="ramp-ticks"><span id="legend-lo"></span><span id="legend-hi"></span></div>
@@ -555,7 +756,7 @@ footer a{color:var(--focus)}
               <span class="swatch" style="background:var(--seq-null)"></span> <span id="legend-null">Sin dato</span>
             </div>
             <div class="swatch-row">
-              <span class="swatch" style="background:transparent;border:2px solid var(--ok)"></span> Cumple tus condiciones
+              <span class="swatch" style="background:transparent;border:2px solid var(--ok)"></span> Cumple tus criterios
             </div>
           </div>
 
@@ -573,8 +774,10 @@ footer a{color:var(--focus)}
 
     <section class="card results-section" aria-labelledby="results-title">
       <div class="results-heading">
-        <h2 id="results-title" class="section-label">Tus opciones de vivienda</h2>
-        <a href="#todas-las-zonas">Comparar todas las zonas →</a>
+        <h2 id="results-title" class="section-label">Zonas que cumplen tus criterios</h2>
+        <label class="capa-field" for="f-ordre">Ordenadas por
+          <select id="f-ordre"></select>
+        </label>
       </div>
       <div aria-live="polite" aria-atomic="true">
         <p class="verdict" id="verdict"></p>
@@ -584,21 +787,46 @@ footer a{color:var(--focus)}
       <p class="rank-more" id="rank-more"></p>
     </section>
 
-    <!-- ===================== PRECIO CONTRA VIAJE ===================== -->
+    <!-- ===================== COMPARACIÓN ===================== -->
+    <section class="card" id="comparacion" aria-labelledby="cmp-title" hidden>
+      <div class="card-head">
+        <div>
+          <h2 id="cmp-title">Las que has fijado, una al lado de otra</h2>
+          <p class="sub" id="cmp-sub"></p>
+        </div>
+        <div class="btn-group">
+          <button class="btn btn-sm" id="cmp-clear" type="button">Quitar todas</button>
+        </div>
+      </div>
+      <div class="table-scroll" tabindex="0" role="region" aria-label="Comparación de las zonas fijadas, desplazable horizontalmente">
+        <table class="cmp"><thead id="cmp-head"></thead><tbody id="cmp-body"></tbody></table>
+      </div>
+      <p class="legend-note">La barra de cada celda es el percentil: dónde cae esa zona dentro de las que tienen ese dato. Llena del todo significa «el valor más alto», no «lo mejor».</p>
+    </section>
+
+    <!-- ===================== UN DATO CONTRA OTRO ===================== -->
     <section class="card" id="grafico" aria-labelledby="sc-title">
       <div class="card-head">
         <div>
-          <h2 id="sc-title">¿Sale a cuenta alejarse?</h2>
+          <h2 id="sc-title">Un dato contra otro</h2>
           <p class="sub" id="sc-sub"></p>
+        </div>
+        <div class="btn-group">
+          <label class="capa-field" for="f-ejex">Eje horizontal
+            <select id="f-ejex"></select>
+          </label>
+          <label class="capa-field" for="f-ejey">Eje vertical
+            <select id="f-ejey"></select>
+          </label>
         </div>
       </div>
       <div class="scatter-box" id="scatter-box">
         <svg id="scatter" role="img" aria-labelledby="sc-title" aria-describedby="sc-desc"></svg>
         <desc id="sc-desc" class="visually-hidden">
-          Gráfico de dispersión: cada zona es un punto, con el tiempo de viaje
-          en el eje horizontal y la magnitud elegida en el vertical. La línea
-          discontinua es la tendencia. Los mismos valores están en la tabla
-          siguiente.
+          Gráfico de dispersión: cada zona es un punto, con las dos magnitudes
+          que elijas en los ejes y el tamaño del círculo según su población. La
+          línea discontinua es la tendencia. Los mismos valores están en la
+          tabla del final de la página.
         </desc>
       </div>
       <p class="sc-empty" id="sc-empty" hidden></p>
@@ -879,33 +1107,46 @@ const XARXES = ["Rodalies", "FGC", "Metro", "Tram", "Bus"];
    2. ESTADO
    =========================================================================== */
 const S = {
-  conds: {},                 // id destino -> {on, max}
+  conds: {},                 // id destino | "pt:<id>" -> {on, max}
   combinar: "algun",         // "algun" | "tots"
   maxPeu: 30,
-  capa: "compra_m2",         // qué magnitud pintan el mapa, el gráfico y la tabla
+  filtres: [],               // [{capa, lo, hi, sense}] — rangos sobre cualquier capa
+  cats: { tipus: [], comarca: [], districte: [], xarxa: [] },
+  capa: "compra_m2",         // qué magnitud pinta el mapa (y colorea el gráfico)
+  ejeX: "temps",             // ejes del gráfico, los dos elegibles
+  ejeY: "compra_m2",
   xarxa: true,               // dibujar la red ferroviaria
   bus: false,                // …y los buses (se activa desde la leyenda)
-  puntLliure: null,          // {lat, lon} elegido en el mapa
+  punts: [],                 // [{id, nom, lat, lon}] — puntos libres del mapa
   picking: false,
   nomesOk: false,
-  selected: null,
+  focus: null,               // la zona abierta en la ficha
+  hover: null,               // la zona bajo el ratón, encendida en las cuatro vistas
+  pinned: [],                // hasta PIN_MAX zonas, la comparación
+  ordre: "compra_m2",        // por qué criterio se ordena el ranking
   sortKey: "compra_eur_m2", sortDir: 1,
   view: null,                // viewBox del mapa
 };
 
 let DATA = null, GEO = null, PATHS = null, PROJ = null, ROWS = [];
 let LINIES = null, ANCORES = null, ISO = null, RUTES = null;
-let TREND = null;              // recta precio ↔ tiempo del gráfico, y su R²
+let TREND = null;              // recta X ↔ Y del gráfico, y su R²
 const cache = new Map();
+
+/** Cuántas zonas caben en la comparación. Cuatro columnas más la mediana es lo
+    que entra sin scroll horizontal y lo que alguien compara de verdad. */
+const PIN_MAX = 4;
 
 /* ===========================================================================
    2b. CAPAS — lo que se puede mirar de una zona
 
-   El mapa pintaba precio o tiempo, y eran dos botones. Ahora hay además los
-   indicadores del INE y de Idescat que vienen en `zonas.json`, y todos entran
-   por el mismo sitio: un solo desplegable que manda a la vez sobre el color
-   del mapa, el eje vertical del gráfico, la leyenda y una columna de la tabla.
-   Un mando, cuatro superficies que no se pueden contradecir.
+   Una capa es una magnitud con todo lo que hace falta para trabajarla: cómo se
+   lee de la zona (`get`), cómo se escribe (`fmt`), en qué unidad (`eix`) y qué
+   hay que advertir (`nota`). De esas cuatro piezas salen, sin una línea de
+   código por indicador: el color del mapa, los dos ejes del gráfico, la
+   leyenda, las columnas de la tabla, las barras de percentil de la ficha, las
+   filas de la comparación y los filtros de rango. Añadir un indicador es
+   añadir una entrada aquí.
 
    El sentido del color no cambia nunca: **más claro, menos**. En precio y en
    tiempo eso además coincide con «mejor»; en los demás no hay mejor ni peor y
@@ -914,9 +1155,16 @@ const cache = new Map();
    `viu` marca las capas que dependen de los filtros (solo el tiempo): su
    escala se recalcula con cada cambio, mientras que las demás se escalan
    sobre las 164 zonas para que el mapa no se recoloree al mover un filtro.
-   `muni` marca las que el INE solo publica por municipio.
+
+   Lo que **no** hay aquí es una bandera de cobertura. Antes cada capa decía a
+   mano si era «solo municipal» o «parcial», y había que mantenerlo a mano y
+   que el test lo vigilara. Con capas que existen solo por barrio —el ruido—
+   ese par de banderas ya no describía la realidad. Ahora la cobertura se
+   cuenta de los datos (`cobertura`) y de ahí salen solos el texto de la
+   leyenda, el sufijo del desplegable y el aviso del filtro.
    =========================================================================== */
 const pct1 = (v) => nf(1).format(v) + " %";
+const dec1 = (v) => nf(1).format(v);
 
 /* Supuestos de la hipoteca. Son los mismos para las 164 zonas a propósito: la
    capa compara zonas, no ofertas de banco. Cualquiera de los tres que cambies
@@ -954,6 +1202,41 @@ const CAPES = [
         + "Mide el esfuerzo con los sueldos de quien ya vive ahí, no con el tuyo. "
         + "Cuanto más claro, menos años." },
 
+  { id: "superficie_mitjana", grup: "Vivienda", nom: "Tamaño del piso medio", eix: "m²",
+    get: (m) => m.superficie_mitjana_m2, fmt: (v) => fmtInt(v) + " m²",
+    nota: "Superficie media de las viviendas que se venden en la zona. Explica "
+        + "buena parte de la diferencia entre el precio por metro y el precio "
+        + "del piso entero: un barrio caro de pisos pequeños puede salir más "
+        + "asequible en total que uno barato de pisos grandes." },
+  { id: "pct_habitatge_lloguer", grup: "Vivienda", nom: "Viviendas en alquiler", eix: "%",
+    get: (m) => m.ind?.pct_habitatge_lloguer, fmt: pct1,
+    nota: "Porcentaje del parque de viviendas que está en alquiler. Dice si "
+        + "encontrarás piso de alquiler o casi todo es de propiedad." },
+  { id: "habitatge_buit", grup: "Vivienda", nom: "Vivienda vacía o de temporada", eix: "%",
+    get: (m) => m.ind?.pct_habitatge_principal == null ? null : 100 - m.ind.pct_habitatge_principal,
+    fmt: pct1,
+    nota: "Porcentaje de viviendas que no son la residencia habitual de nadie: "
+        + "segundas residencias, pisos vacíos y alquiler de temporada juntos, "
+        + "porque el censo no los separa. Alto en los pueblos de costa y de "
+        + "montaña; es el complemento de «viviendas principales»." },
+
+  { id: "transport_eur_mes", grup: "Coste de vivir aquí", nom: "Abono de transporte", eix: "€/mes",
+    get: (m) => m.ind?.transport_eur_mes, fmt: (v) => fmtEur(v) + "/mes",
+    nota: "Lo que cuesta al mes la T-usual de la zona tarifaria del municipio. "
+        + "Es el coste recurrente que no sale en el precio del piso y que puede "
+        + "dar la vuelta a un ahorro de alquiler." },
+  { id: "zones_a_bcn", grup: "Coste de vivir aquí", nom: "Zonas tarifarias hasta Barcelona",
+    eix: "zonas",
+    get: (m) => m.ind?.zones_a_bcn, fmt: (v) => fmtInt(v) + (v === 1 ? " zona" : " zonas"),
+    nota: "Cuántas coronas del sistema tarifario integrado hay que cruzar para "
+        + "llegar a Barcelona. Uno significa tarifa urbana: son los 36 "
+        + "municipios del área metropolitana." },
+  { id: "aigua_eur_m3", grup: "Coste de vivir aquí", nom: "Precio del agua", eix: "€/m³",
+    get: (m) => m.ind?.aigua_eur_m3, fmt: (v) => nf(2).format(v) + " €/m³",
+    nota: "Precio medio del metro cúbico de agua doméstica, con todos los "
+        + "conceptos de la factura. Cambia más de lo que parece entre "
+        + "municipios vecinos, porque depende del operador y del canon." },
+
   { id: "temps", grup: "Tu viaje", nom: "Tiempo de viaje", eix: "min", viu: true,
     get: (m) => m.valor, fmt: fmtMin,
     nota: "Tiempo puerta a puerta hacia los destinos que has marcado. Cuanto más claro, más cerca." },
@@ -966,10 +1249,25 @@ const CAPES = [
   { id: "renda_llar_eur", grup: "Quién vive aquí", nom: "Renta del hogar", eix: "€/año",
     get: (m) => m.ind?.renda_llar_eur, fmt: (v) => fmtEur(v) + "/año",
     nota: "Renta neta media por hogar declarada a Hacienda." },
-  { id: "pct_estrangera", grup: "Quién vive aquí", nom: "Población extranjera", eix: "%",
-    get: (m) => m.ind?.pct_estrangera, fmt: pct1,
-    nota: "Porcentaje de vecinos con nacionalidad extranjera. Es nacionalidad, "
-        + "no lugar de nacimiento: quien se ha nacionalizado cuenta como español." },
+  { id: "renda_persona_eur", grup: "Quién vive aquí", nom: "Renta por persona", eix: "€/año",
+    get: (m) => m.ind?.renda_persona_eur, fmt: (v) => fmtEur(v) + "/año",
+    nota: "Renta neta media por habitante. Comparada con la del hogar, dice "
+        + "cuánta gente sostiene cada casa: donde los hogares son grandes, la "
+        + "renta por persona cae aunque la del hogar sea alta." },
+  { id: "ist", grup: "Quién vive aquí", nom: "Índice socioeconómico", eix: "base 100",
+    get: (m) => m.ind?.ist, fmt: dec1,
+    nota: "Índice sintético de Idescat a partir de renta, estudios y ocupación. "
+        + "Cataluña = 100." },
+  { id: "atur_taxa_pct", grup: "Quién vive aquí", nom: "Paro", eix: "%",
+    get: (m) => m.ind?.atur_taxa_pct, fmt: pct1,
+    nota: "Tasa de paro censal: población desocupada sobre población activa." },
+  { id: "pct_educacio_superior", grup: "Quién vive aquí", nom: "Estudios superiores", eix: "%",
+    get: (m) => m.ind?.pct_educacio_superior, fmt: pct1,
+    nota: "Porcentaje de población con estudios superiores." },
+  { id: "gini", grup: "Quién vive aquí", nom: "Desigualdad (Gini)", eix: "Gini",
+    get: (m) => m.ind?.gini, fmt: dec1,
+    nota: "Índice de Gini de la renta. 0 sería el reparto perfectamente igual; "
+        + "cuanto más alto, más desigual." },
   { id: "edat_mitjana", grup: "Quién vive aquí", nom: "Edad media", eix: "años",
     get: (m) => m.ind?.edat_mitjana, fmt: (v) => nf(1).format(v) + " años",
     nota: "Edad media de la población." },
@@ -979,73 +1277,371 @@ const CAPES = [
   { id: "pct_65_mes", grup: "Quién vive aquí", nom: "De 65 años o más", eix: "%",
     get: (m) => m.ind?.pct_65_mes, fmt: pct1,
     nota: "Porcentaje de población de 65 años o más." },
+  { id: "mida_mitjana_llar", grup: "Quién vive aquí", nom: "Personas por hogar", eix: "personas",
+    get: (m) => m.ind?.mida_mitjana_llar, fmt: (v) => nf(1).format(v) + " personas",
+    nota: "Tamaño medio del hogar. Separa los barrios de pisos compartidos y "
+        + "gente sola de los de familias con hijos." },
   { id: "pct_llars_unipersonals", grup: "Quién vive aquí", nom: "Hogares de una persona", eix: "%",
     get: (m) => m.ind?.pct_llars_unipersonals, fmt: pct1,
     nota: "Porcentaje de hogares en los que vive una sola persona." },
-
-  { id: "ist", grup: "Solo por municipio", nom: "Índice socioeconómico", eix: "base 100", muni: true,
-    get: (m) => m.ind?.ist, fmt: (v) => nf(1).format(v),
-    nota: "Índice sintético de Idescat a partir de renta, estudios y ocupación. "
-        + "Cataluña = 100." },
-  { id: "atur_taxa_pct", grup: "Solo por municipio", nom: "Paro", eix: "%", muni: true,
-    get: (m) => m.ind?.atur_taxa_pct, fmt: pct1,
-    nota: "Tasa de paro censal: población desocupada sobre población activa." },
-  { id: "pct_educacio_superior", grup: "Solo por municipio", nom: "Estudios superiores", eix: "%", muni: true,
-    get: (m) => m.ind?.pct_educacio_superior, fmt: pct1,
-    nota: "Porcentaje de población con estudios superiores." },
-  { id: "gini", grup: "Solo por municipio", nom: "Desigualdad (Gini)", eix: "Gini", muni: true,
-    get: (m) => m.ind?.gini, fmt: (v) => nf(1).format(v),
-    nota: "Índice de Gini de la renta. 0 sería el reparto perfectamente igual; "
-        + "cuanto más alto, más desigual." },
-  { id: "pct_habitatge_lloguer", grup: "Solo por municipio", nom: "Viviendas en alquiler", eix: "%", muni: true,
-    get: (m) => m.ind?.pct_habitatge_lloguer, fmt: pct1,
-    nota: "Porcentaje del parque de viviendas que está en alquiler. Dice si "
-        + "encontrarás piso de alquiler o casi todo es de propiedad." },
-  { id: "turismes_per_1000_hab", grup: "Solo por municipio", nom: "Coches por 1.000 habitantes",
-    eix: "coches/1.000 hab.", muni: true,
+  { id: "pct_estrangera", grup: "Quién vive aquí", nom: "Población extranjera", eix: "%",
+    get: (m) => m.ind?.pct_estrangera, fmt: pct1,
+    nota: "Porcentaje de vecinos con nacionalidad extranjera. Es nacionalidad, "
+        + "no lugar de nacimiento: quien se ha nacionalizado cuenta como español." },
+  { id: "creixement_1000", grup: "Quién vive aquí", nom: "Crecimiento de población",
+    eix: "por 1.000 hab.",
+    get: (m) => m.ind?.creixement_1000, fmt: (v) => (v > 0 ? "+" : "") + nf(1).format(v) + " ‰",
+    nota: "Variación anual de la población por cada mil habitantes, nacimientos "
+        + "y migraciones juntos. Positivo, el municipio gana vecinos; negativo, "
+        + "los pierde. Es la única capa con valores negativos." },
+  { id: "turismes_per_1000_hab", grup: "Quién vive aquí", nom: "Coches por 1.000 habitantes",
+    eix: "coches/1.000 hab.",
     get: (m) => m.ind?.turismes_per_1000_hab, fmt: (v) => fmtInt(v),
     nota: "Turismos matriculados por cada mil habitantes. Es la otra cara del "
         + "transporte público: donde no llega, se depende del coche." },
 
-  { id: "zona_verda_m2_hab", grup: "Seguridad y entorno", nom: "Zona verde por habitante",
-    eix: "m²/hab.", muni: true,
+  { id: "densitat_hab_km2", grup: "El sitio", nom: "Densidad de población", eix: "hab./km²",
+    get: (m) => m.ind?.densitat_hab_km2, fmt: (v) => fmtInt(v) + " hab./km²",
+    nota: "Habitantes por kilómetro cuadrado. Es lo que más separa un barrio de "
+        + "Barcelona de un pueblo del Penedès, y va de menos de cien a más de "
+        + "cincuenta mil: el mapa se lee mejor sabiéndolo." },
+  { id: "superficie_km2", grup: "El sitio", nom: "Extensión", eix: "km²",
+    get: (m) => m.superficie_km2, fmt: (v) => nf(v < 10 ? 1 : 0).format(v) + " km²",
+    nota: "Superficie de la zona. Importa para leer el resto: cuanto más grande "
+        + "es un municipio, menos describe su media a ningún sitio concreto." },
+  { id: "dist_mar_km", grup: "El sitio", nom: "Distancia al mar", eix: "km",
+    get: (m) => m.ind?.dist_mar_km, fmt: (v) => nf(1).format(v) + " km",
+    nota: "En línea recta desde el punto de referencia de la zona hasta la "
+        + "costa. No es distancia a una playa —la costa incluye puertos y "
+        + "acantilados— ni se mide desde el borde del término." },
+  { id: "dist_bcn_km", grup: "El sitio", nom: "Distancia a Barcelona", eix: "km",
+    get: (m) => m.dist_bcn_km, fmt: (v) => nf(1).format(v) + " km",
+    nota: "En línea recta hasta el centro de Barcelona. Es la distancia física, "
+        + "que no es lo mismo que el tiempo de viaje: un pueblo con estación "
+        + "puede estar más cerca en minutos que un barrio sin ella." },
+  { id: "altitud_m", grup: "El sitio", nom: "Altitud", eix: "m",
+    get: (m) => m.ind?.altitud_m, fmt: (v) => fmtInt(v) + " m",
+    nota: "Altitud del núcleo urbano sobre el nivel del mar." },
+  { id: "zona_verda_m2_hab", grup: "El sitio", nom: "Zona verde por habitante", eix: "m²/hab.",
     get: (m) => m.ind?.zona_verda_m2_hab, fmt: (v) => nf(1).format(v) + " m²",
     nota: "Metros cuadrados de suelo verde urbano por habitante. Un municipio "
         + "pequeño rodeado de monte sale altísimo: mide el verde que hay "
         + "dentro del término, no lo cerca que tienes un parque." },
-  { id: "delictes_1000", grup: "Seguridad y entorno", nom: "Delitos en total",
-    eix: "por 1.000 hab.", muni: true, parcial: true,
-    get: (m) => m.ind?.delictes_1000, fmt: (v) => nf(1).format(v),
+  { id: "centres_educatius_1000", grup: "El sitio", nom: "Centros educativos",
+    eix: "centros/1.000 hab.",
+    get: (m) => m.ind?.centres_educatius_1000, fmt: (v) => nf(2).format(v),
+    nota: "Centros por cada mil habitantes, de la guardería a la escuela de "
+        + "adultos. Se dispara en los municipios pequeños —dos centros sobre "
+        + "novecientos vecinos dan una tasa altísima— y no mide plazas ni "
+        + "calidad, solo cuántos hay." },
+  { id: "pct_centres_publics", grup: "El sitio", nom: "Centros públicos", eix: "%",
+    get: (m) => m.ind?.pct_centres_publics, fmt: pct1,
+    nota: "Porcentaje de centros de titularidad pública. El concertado cuenta "
+        + "como privado: es público contra todo lo demás, no público contra "
+        + "privado puro. No se publica donde hay menos de cinco centros." },
+  { id: "pct_soroll_65db", grup: "El sitio", nom: "Ruido de día (≥65 dB)", eix: "% de vecinos",
+    get: (m) => m.ind?.pct_soroll_65db, fmt: pct1,
+    nota: "Porcentaje de vecinos expuestos a 65 decibelios o más en el índice "
+        + "de día completo, que es el valor que la normativa catalana fija para "
+        + "zona residencial. Va de 0,3 % a 49 % dentro de la misma ciudad." },
+  { id: "pct_soroll_nit_55db", grup: "El sitio", nom: "Ruido de noche (≥55 dB)", eix: "% de vecinos",
+    get: (m) => m.ind?.pct_soroll_nit_55db, fmt: pct1,
+    nota: "Porcentaje de vecinos expuestos a 55 decibelios o más de noche, el "
+        + "umbral de descanso de la directiva europea. Hay barrios tranquilos "
+        + "de día y ruidosos de noche: son dos preguntas distintas." },
+  { id: "pressio_estacional_pct", grup: "El sitio", nom: "Población de temporada", eix: "%",
+    get: (m) => m.ind?.pressio_estacional_pct, fmt: pct1,
+    nota: "Población equivalente a tiempo completo anual sobre la residente. "
+        + "Por encima de cien, el municipio recibe más gente de la que vive en "
+        + "él: turismo, segunda residencia o puestos de trabajo. Por debajo, "
+        + "la gente sale a trabajar fuera." },
+
+  { id: "delictes_1000", grup: "Seguridad", nom: "Delitos en total",
+    eix: "por 1.000 hab.",
+    get: (m) => m.ind?.delictes_1000, fmt: dec1,
     nota: "Infracciones penales conocidas en todo el año, por cada mil "
         + "habitantes. Se cuentan donde ocurren, no donde vive quien las "
         + "sufre: el aeropuerto dispara el Prat de Llobregat, y en las "
         + "ciudades grandes casi la mitad son hurtos. Léela como «cuánto "
         + "pasa aquí», no como «qué riesgo corro si vivo aquí»." },
-  { id: "robatoris_domicili_1000", grup: "Seguridad y entorno", nom: "Robos en domicilio",
-    eix: "por 1.000 hab.", muni: true, parcial: true,
-    get: (m) => m.ind?.robatoris_domicili_1000, fmt: (v) => nf(1).format(v),
+  { id: "robatoris_domicili_1000", grup: "Seguridad", nom: "Robos en domicilio",
+    eix: "por 1.000 hab.",
+    get: (m) => m.ind?.robatoris_domicili_1000, fmt: dec1,
     nota: "Robos con fuerza en viviendas, por cada mil habitantes. Es la única "
         + "de las tres que mide algo que le pasa a quien vive allí, y por eso "
         + "no se parece a las otras: arriba salen municipios acomodados de "
         + "casa baja, que es donde se roba en casas." },
-  { id: "robatoris_violencia_1000", grup: "Seguridad y entorno", nom: "Robos con violencia",
-    eix: "por 1.000 hab.", muni: true, parcial: true,
-    get: (m) => m.ind?.robatoris_violencia_1000, fmt: (v) => nf(1).format(v),
+  { id: "robatoris_violencia_1000", grup: "Seguridad", nom: "Robos con violencia",
+    eix: "por 1.000 hab.",
+    get: (m) => m.ind?.robatoris_violencia_1000, fmt: dec1,
     nota: "Robos con violencia o intimidación, por cada mil habitantes. Misma "
         + "advertencia que el total: se cuentan donde ocurren, y se concentran "
         + "donde hay mucha gente de paso." },
 ];
 const CAPA_DE = new Map(CAPES.map(c => [c.id, c]));
 const capa = () => CAPA_DE.get(S.capa) || CAPES[0];
+const GRUPS = [...new Set(CAPES.map(c => c.grup))];
+
+/* ---------- cobertura: contada, no declarada ----------
+   Cuántas zonas tienen dato en cada capa, separando municipios de barrios.
+   Es lo que permite que la leyenda, el desplegable y los filtros digan la
+   verdad sobre una capa sin que nadie tenga que acordarse de actualizarla:
+   los delitos cubren 38 municipios y ningún barrio, el ruido 73 barrios y
+   ningún municipio, y las dos cosas se cuentan igual.
+
+   Se cachea por identificador porque se pregunta en cada pintada y recorrer
+   164 zonas × 41 capas por fotograma no hace falta: los datos no cambian en
+   toda la vida de la página. */
+const COB = new Map();
+function cobertura(c, zones) {
+  if (c.viu) return null;                 // el tiempo depende de tus destinos
+  if (!COB.has(c.id)) {
+    const zs = zones || DATA?.zones || [];
+    // Sin zonas no se cachea nada: cachear un cero aquí lo deja cacheado para
+    // siempre, y lo que sale por el otro lado es una frase que dice «de las 0
+    // zonas con este dato». Pasó, y por eso está escrito.
+    if (!zs.length) return null;
+    let muni = 0, barri = 0, nMuni = 0, nBarri = 0;
+    for (const z of zs) {
+      const esBarri = z.tipus === "barri";
+      if (esBarri) nBarri++; else nMuni++;
+      if (c.get(z) == null) continue;
+      if (esBarri) barri++; else muni++;
+    }
+    COB.set(c.id, { muni, barri, nMuni, nBarri, total: muni + barri, n: nMuni + nBarri });
+  }
+  return COB.get(c.id);
+}
+
+/** La cobertura en cuatro palabras, para ponerla al lado del nombre de la capa.
+    Vacío cuando llega a todas: no hay nada que advertir. */
+function avisCobertura(c, zones) {
+  const k = cobertura(c, zones);
+  if (!k || k.total === k.n) return "";
+  if (k.barri === 0) return `solo municipios, ${k.muni} de ${k.nMuni}`;
+  if (k.muni === 0) return `solo barrios de Barcelona, ${k.barri} de ${k.nBarri}`;
+  return `${k.total} de ${k.n} zonas`;
+}
+
+/* ---------- percentiles ----------
+   Dónde cae una zona dentro de las que tienen ese dato. Es la pieza que hace
+   comparables magnitudes que no lo son —euros, decibelios, metros— y de ella
+   salen las barras de la ficha, las de la comparación y la frase.
+
+   Se usa el rango medio: con empates, el valor repetido no se lleva ni el
+   suelo ni el techo del tramo, que es lo que haría que dos zonas idénticas
+   salieran en percentiles distintos. */
+const PCTL = new Map();
+function valorsOrdenats(c, zones) {
+  if (!PCTL.has(c.id)) {
+    const zs = zones || DATA?.zones || [];
+    if (!zs.length) return [];            // mismo motivo que en `cobertura`
+    PCTL.set(c.id, zs.map(z => c.get(z)).filter(v => v != null).sort((a, b) => a - b));
+  }
+  return PCTL.get(c.id);
+}
+
+function percentil(c, v, zones) {
+  if (v == null) return null;
+  const a = valorsOrdenats(c, zones);
+  if (a.length < 4) return null;
+  let lo = 0, hi = a.length;
+  while (lo < hi) { const mid = (lo + hi) >> 1; if (a[mid] < v) lo = mid + 1; else hi = mid; }
+  let up = lo;
+  while (up < a.length && a[up] === v) up++;
+  return Math.round(100 * ((lo + up) / 2) / a.length);
+}
+
+/** «max» o «min» solo si de verdad lo es y nadie más lo iguala. Un superlativo
+    empatado no es un superlativo, y la frase no puede afirmarlo. */
+function extrem(c, v, zones) {
+  const a = valorsOrdenats(c, zones);
+  if (a.length < 10 || v == null) return null;
+  if (v === a[a.length - 1] && v > a[a.length - 2]) return "max";
+  if (v === a[0] && v < a[1]) return "min";
+  return null;
+}
+
+/* ---------- filtros de rango ----------
+   Cualquier capa puede ser un filtro sin código nuevo: `get` dice qué leer,
+   `fmt` cómo escribirlo y los valores ordenados dan el rango y el histograma. */
+
+/** ¿Pasa esta zona este filtro? Sin dato queda fuera salvo que se pida lo
+    contrario: quien filtra por precio no espera que se cuelen las zonas sin
+    precio, pero tampoco que desaparezcan en silencio — de eso se encarga el
+    aviso rojo del panel. */
+function passaRang(m, f) {
+  const c = CAPA_DE.get(f.capa);
+  if (!c) return true;
+  const v = c.get(m);
+  if (v == null) return !!f.sense;
+  return v >= f.lo - 1e-9 && v <= f.hi + 1e-9;
+}
+
+/** Las redes de transporte que llegan a la zona, como lista. */
+const xarxesDe = (m) => (m.tren ? m.tren.split(" · ") : []);
+
+/** Filtros categóricos. Dentro de una categoría los valores suman (o); entre
+    categorías se exigen todas (y), que es como se lee un panel de filtros. */
+function passaCats(m, K) {
+  if (!K) return true;
+  if (K.tipus?.length && !K.tipus.includes(m.tipus === "barri" ? "barri" : "municipi")) return false;
+  if (K.comarca?.length && !K.comarca.includes(m.comarca)) return false;
+  if (K.districte?.length && !(m.tipus === "barri" && K.districte.includes(m.districte))) return false;
+  if (K.xarxa?.length) {
+    const x = xarxesDe(m);
+    if (!K.xarxa.some(n => n === "cap" ? x.length === 0 : x.includes(n))) return false;
+  }
+  return true;
+}
+
+/** Cómo se llama en una frase el criterio que una zona no cumple. */
+const nomFalla = (k) =>
+  k === "viatge" ? "tu viaje"
+  : k === "cat" ? "el tipo de zona"
+  : (CAPA_DE.get(k.slice(2))?.nom.toLowerCase() || k);
+
+/* ---------- la frase de cada zona ----------
+   Cuatro cláusulas —qué es y cuánta gente vive, la vivienda, la conexión y el
+   rasgo por el que se sale de la norma—, cada una construida desde los datos y
+   omitida entera si le falta el dato. No se afirma ningún superlativo que los
+   números no sostengan, y el rasgo distintivo se enuncia sin valorarlo: las
+   capas demográficas describen, no puntúan. */
+
+/* Las siete comarcas del ámbito son todas masculinas («el Maresme», «el Baix
+   Llobregat»), pero el conjunto podría crecer y una comarca femenina daría
+   «Municipio del Anoia». Las conocidas van escritas. */
+const COMARQUES_FEM = new Set(["Anoia", "Selva", "Cerdanya", "Segarra", "Garrotxa",
+  "Noguera", "Terra Alta", "Conca de Barberà", "Ribera d'Ebre", "Val d'Aran", "Segarra"]);
+const deComarca = (c) => (COMARQUES_FEM.has(c) ? "de la " : "del ") + c;
+
+/** Los rasgos con los que se busca «¿por qué destaca esta zona?». No están ni
+    el precio ni el tiempo: la frase ya los ha dicho antes y repetirlos dejaría
+    fuera lo que de verdad la distingue. Los nombres están redactados para que
+    encajen detrás de «destaca por» sin concordar en género con nada. */
+const RASGOS = [
+  ["densitat_hab_km2", "la densidad de población"],
+  ["dist_mar_km", "lo lejos que queda del mar"],
+  ["altitud_m", "la altitud"],
+  ["superficie_km2", "la extensión"],
+  ["edat_mitjana", "la edad media"],
+  ["pct_menors_18", "la proporción de menores de 18 años"],
+  ["pct_65_mes", "la proporción de mayores de 65"],
+  ["pct_estrangera", "la proporción de población extranjera"],
+  ["pct_llars_unipersonals", "la proporción de hogares de una sola persona"],
+  ["mida_mitjana_llar", "el tamaño de los hogares"],
+  ["renda_llar_eur", "la renta del hogar"],
+  ["pct_educacio_superior", "la proporción con estudios superiores"],
+  ["zona_verda_m2_hab", "la zona verde por habitante"],
+  ["pct_soroll_65db", "la exposición al ruido"],
+  ["centres_educatius_1000", "los centros educativos por habitante"],
+  ["pressio_estacional_pct", "la población de temporada"],
+  ["habitatge_buit", "la vivienda vacía o de temporada"],
+  ["creixement_1000", "el crecimiento de población"],
+  ["turismes_per_1000_hab", "los coches por habitante"],
+];
+
+/** Solo se cuenta como rasgo lo que se sale de verdad: por debajo del 20 o por
+    encima del 80. Con un percentil de 65 la frase diría una obviedad. */
+const RASGO_MIN = 30;
+
+const bandaCompra = (p) =>
+  p < 10 ? "Está entre las más baratas del área para comprar"
+  : p < 30 ? "Comprar sale barato para el área"
+  : p <= 70 ? "Comprar está en la media del área"
+  : p <= 90 ? "Comprar sale caro para el área"
+  : "Está entre las más caras del área para comprar";
+
+const bandaLloguer = (p) =>
+  p < 10 ? "de los más bajos"
+  : p < 30 ? "por debajo de la media"
+  : p <= 70 ? "en la media"
+  : p <= 90 ? "por encima de la media"
+  : "de los más altos";
+
+function frase(m, zones) {
+  const parts = [];
+  const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
+  const C = (id) => CAPA_DE.get(id);
+  const P = (id) => { const c = C(id); return c ? percentil(c, c.get(m), zones) : null; };
+
+  // 1. qué es y cuánta gente vive aquí
+  const quien = m.tipus === "barri"
+    ? `Barrio${m.districte ? ` de ${m.districte}` : ""}`
+    : `Municipio ${deComarca(m.comarca)}`;
+  const tam = [];
+  if (m.poblacio != null) tam.push(`${fmtInt(m.poblacio)} habitantes`);
+  if (m.tipus !== "barri" && m.dist_bcn_km != null) {
+    tam.push(`a ${nf(0).format(Math.round(m.dist_bcn_km))} km de Barcelona`);
+  }
+  parts.push(quien + (tam.length ? `, ${tam.join(", ")}` : "") + ".");
+
+  // 2. la vivienda
+  const pc = P("compra_m2"), pl = P("lloguer");
+  if (pc != null) {
+    let t = `${bandaCompra(pc)} (${C("compra_m2").fmt(m.compra_eur_m2)})`;
+    if (pl != null) t += `, y el alquiler queda ${bandaLloguer(pl)} (${C("lloguer").fmt(m.lloguer_eur_mes)})`;
+    parts.push(t + ".");
+  } else if (pl != null) {
+    parts.push(`Sin precio de compra publicado; el alquiler queda ${bandaLloguer(pl)} `
+             + `(${C("lloguer").fmt(m.lloguer_eur_mes)}).`);
+  }
+
+  // 3. la conexión
+  const xs = xarxesDe(m);
+  const ps = P("sortides");
+  const conex = [];
+  if (xs.length) {
+    conex.push(`Tiene ${xs.join(" y ")}`
+      + (m.sortides ? ` con ${fmtInt(m.sortides)} salidas entre las 7 y las 9` : ""));
+    if (ps != null && ps >= 85) conex[0] += ", de las zonas mejor servidas del área";
+    else if (ps != null && ps <= 15) conex[0] += ", de las peor servidas de las que tienen estación";
+  } else {
+    conex.push("No tiene estación de tren ni de metro: la conexión depende del bus");
+  }
+  const zt = m.zona_tarifaria, ab = m.ind?.transport_eur_mes;
+  if (zt) conex.push(`zona tarifaria ${zt}${ab != null ? `, ${fmtEur(ab)}/mes de abono` : ""}`);
+  parts.push(cap(conex.join("; ")) + ".");
+
+  // 4. el rasgo por el que se sale de la norma
+  let millor = null;
+  for (const [id, nom] of RASGOS) {
+    const c = C(id);
+    if (!c) continue;
+    const v = c.get(m);
+    if (v == null) continue;
+    const p = percentil(c, v, zones);
+    if (p == null) continue;
+    const d = Math.abs(p - 50);
+    if (!millor || d > millor.d) millor = { c, nom, v, p, d };
+  }
+  if (millor && millor.d >= RASGO_MIN) {
+    const n = cobertura(millor.c, zones)?.total || valorsOrdenats(millor.c, zones).length;
+    const e = extrem(millor.c, millor.v, zones);
+    const alt = millor.p > 50;
+    const cola = e === "max" ? `más que ninguna otra de las ${n} zonas con este dato`
+               : e === "min" ? `menos que ninguna otra de las ${n} zonas con este dato`
+               : `por ${alt ? "encima" : "debajo"} del ${alt ? millor.p : 100 - millor.p} %`
+                 + ` de las ${n} zonas con este dato`;
+    parts.push(`Destaca por ${millor.nom}: ${millor.c.fmt(millor.v)}, ${cola}.`);
+  }
+
+  return parts.join(" ");
+}
 
 /** Lo que el fichero cuenta sobre las capas de seguridad: el umbral de
     habitantes por debajo del cual el Ministerio no publica, y los años. Se lee
     del dato y no se escribe a mano para que no se desfase al reconstruirlo. */
 const SEG = () => DATA?.meta?.indicadors?.seguretat || null;
 
-/** La capa del eje vertical del gráfico. Contra el tiempo no se puede dibujar
-    el tiempo, así que ahí el gráfico se queda con el precio. */
-const capaY = () => capa().viu ? CAPA_DE.get("compra_m2") : capa();
+/** Los dos ejes del gráfico, cada uno elegible entre las 41 capas. Si alguien
+    pone la misma en los dos, el eje vertical se aparta al precio: una nube
+    sobre la diagonal no dice nada. */
+const capaX = () => CAPA_DE.get(S.ejeX) || CAPA_DE.get("temps");
+const capaY = () => {
+  const y = CAPA_DE.get(S.ejeY) || CAPA_DE.get("compra_m2");
+  return y.id === capaX().id ? CAPA_DE.get(y.id === "compra_m2" ? "lloguer" : "compra_m2") : y;
+};
 
 /** Cuántas tarjetas de ranking se enseñan. Nueve llenan tres filas de tres en
     pantalla ancha y siguen cabiendo de un vistazo; el resto está en la tabla. */
@@ -1201,41 +1797,68 @@ function initConds(first) {
       ? { on: d.id === "pl-catalunya" || d.id === "sant-cugat-estacio", max: 90 }
       : (prev[d.id] || { on: false, max: 90 });
   }
-  if (S.puntLliure) S.conds.__lliure = prev.__lliure || { on: true, max: 90 };
+  for (const p of S.punts) {
+    S.conds[CP + p.id] = prev[CP + p.id] || { on: true, max: 90 };
+  }
+}
+
+/* Los puntos libres son condiciones como las demás, con el prefijo por
+   delante. Que compartan el mismo diccionario es lo que permite que el
+   ranking, la tabla, el tooltip y el itinerario no tengan que distinguirlos. */
+const CP = "pt:";
+const esPunt = (id) => id.startsWith(CP);
+const puntDe = (id) => S.punts.find(p => CP + p.id === id) || null;
+
+/** Cuántos puntos propios caben. Cuatro ya son más destinos que los seis
+    oficiales juntos y el mapa deja de leerse. */
+const PUNT_MAX = 4;
+let seqPunt = 0;
+function afegeixPunt(lat, lon) {
+  if (S.punts.length >= PUNT_MAX) return null;
+  const p = { id: "p" + (++seqPunt), nom: `Mi punto ${S.punts.length + 1}`, lat, lon };
+  S.punts.push(p);
+  S.conds[CP + p.id] = { on: true, max: 90 };
+  return p;
+}
+function treuPunt(pid) {
+  S.punts = S.punts.filter(p => p.id !== pid);
+  delete S.conds[CP + pid];
 }
 
 const condsActives = () =>
   Object.entries(S.conds).filter(([, c]) => c.on).map(([id]) => id);
 
-/** Los anclajes cercanos al punto libre, con su caminata ya calculada. Se hace
-    una sola vez por punto, no una por zona. */
-let LLIURE = null;    // {lat, lon, prop:[{i, peu}], sensePar:bool}
+/** Los anclajes cercanos a cada punto libre, con su caminata ya calculada. Se
+    hace una vez por punto, no una por zona y punto. */
+let LLIURE = new Map();          // id de punto -> {lat, lon, prop:[{i, peu}], sensePar}
 const RADI_ANCORA = 2.5;         // km — más lejos, caminar deja de ser una opción
 const MAX_PEU_DIRECTE = 60;      // min — tope para el «vete andando y ya está»
 
 function preparaLliure() {
-  LLIURE = null;
-  if (!S.puntLliure || !ANCORES || !ISO) return;
-  const { lat, lon } = S.puntLliure;
+  LLIURE = new Map();
+  if (!S.punts.length || !ANCORES || !ISO) return;
   const { bbox, dlat, dlon, ncols } = ANCORES;
-  const prop = [];
-  ANCORES.ancores.forEach((packed, i) => {
-    const iy = Math.floor(packed / ncols), ix = packed % ncols;
-    const aLat = bbox[0] + (iy + 0.5) * dlat, aLon = bbox[1] + (ix + 0.5) * dlon;
-    if (Math.abs(aLat - lat) > 0.03 || Math.abs(aLon - lon) > 0.04) return;  // criba rápida
-    if (haversine(aLat, aLon, lat, lon) > RADI_ANCORA) return;
-    prop.push({ i, peu: caminarMin(aLat, aLon, lat, lon) });
-  });
-  LLIURE = { lat, lon, prop, sensePar: prop.length === 0 };
+  for (const { id, lat, lon } of S.punts) {
+    const prop = [];
+    ANCORES.ancores.forEach((packed, i) => {
+      const iy = Math.floor(packed / ncols), ix = packed % ncols;
+      const aLat = bbox[0] + (iy + 0.5) * dlat, aLon = bbox[1] + (ix + 0.5) * dlon;
+      if (Math.abs(aLat - lat) > 0.03 || Math.abs(aLon - lon) > 0.04) return;  // criba rápida
+      if (haversine(aLat, aLon, lat, lon) > RADI_ANCORA) return;
+      prop.push({ i, peu: caminarMin(aLat, aLon, lat, lon) });
+    });
+    LLIURE.set(id, { lat, lon, prop, sensePar: prop.length === 0 });
+  }
 }
 
-/** Tiempo estimado de una zona hasta el punto libre. null si no hay forma. */
-function minsLliure(m) {
-  if (!LLIURE || LLIURE.sensePar || !ISO) return null;
+/** Tiempo estimado de una zona hasta un punto libre. null si no hay forma. */
+function minsLliure(m, pid) {
+  const L = LLIURE.get(pid ?? S.punts[0]?.id);
+  if (!L || L.sensePar || !ISO) return null;
   const fila = ISO.fila(m.id);
   if (!fila) return null;
   let best = Infinity;
-  for (const { i, peu } of LLIURE.prop) {
+  for (const { i, peu } of L.prop) {
     const t = fila[i];
     if (t === 255) continue;
     const tot = t + peu;
@@ -1245,21 +1868,26 @@ function minsLliure(m) {
   // Pero solo cuenta si es una caminata que alguien haría: sin este tope, una
   // zona sin ninguna parada a la que llegar «resolvía» el trayecto andando
   // 50 km y devolvía 757 minutos, que es peor que no decir nada.
-  const aPeu = caminarMin(m.lat, m.lon, LLIURE.lat, LLIURE.lon);
+  const aPeu = caminarMin(m.lat, m.lon, L.lat, L.lon);
   if (aPeu <= MAX_PEU_DIRECTE && aPeu < best) best = aPeu;
   return best === Infinity ? null : Math.round(best);
 }
 
-/** Datos de una zona hacia una condición. Unifica destinos exactos y punto
-    libre para que el resto del código no tenga que distinguirlos. */
+/** Datos de una zona hacia una condición. Unifica destinos exactos y puntos
+    libres para que el resto del código no tenga que distinguirlos. */
 function viatge(m, id) {
-  if (id === "__lliure") {
-    const min = minsLliure(m);
+  if (esPunt(id)) {
+    const min = minsLliure(m, id.slice(CP.length));
     return min == null ? null : { min, estimat: true, a_peu: null };
   }
   const v = m.destins[id];
   return v ? { ...v, estimat: false } : null;
 }
+
+/** Cómo se llama una condición en pantalla. */
+const nomCond = (id) => esPunt(id)
+  ? (puntDe(id)?.nom || "Mi punto")
+  : (DATA.meta.destins.find(d => d.id === id)?.nom || id);
 
 /** ¿Esta zona cumple la condición? La caminata se exige sobre la misma ruta que
     cumple el tiempo: no vale mezclar la caminata de una ruta con el tiempo de
@@ -1274,48 +1902,80 @@ function compleixCond(m, id) {
   return true;
 }
 
+const CATS = ["tipus", "comarca", "districte", "xarxa"];
+const hiHaCats = () => CATS.some(k => S.cats[k].length > 0);
+
+/** Los criterios activos, en las tres familias. Sin ninguno, nada «cumple» y
+    el mapa no se apaga: no hay nada contra lo que apagarlo. */
+const hiHaCriteris = () =>
+  condsActives().length > 0 || S.filtres.length > 0 || hiHaCats();
+
+/**
+ * Evalúa las 164 zonas contra todos los criterios a la vez.
+ *
+ * `ok` pasó de significar «llega a tiempo» a «cumple **todo** lo que has
+ * pedido»: el viaje es un criterio más, al lado de los rangos y de las
+ * categorías. Cada zona se lleva además `falla`, la lista de los criterios que
+ * no pasa, que es lo que permite al tooltip decir *por qué* no entra y al
+ * panel contar cuántas zonas devolvería quitar un filtro.
+ */
 function recompute() {
   preparaLliure();
   const actives = condsActives();
+  const hiHa = hiHaCriteris();
 
   ROWS = DATA.zones.map(m => {
     const compleixen = actives.filter(id => compleixCond(m, id));
-    const ok = actives.length === 0 ? false
-             : S.combinar === "tots" ? compleixen.length === actives.length
-                                     : compleixen.length > 0;
+    const okViatge = !actives.length ? true
+                   : S.combinar === "tots" ? compleixen.length === actives.length
+                                           : compleixen.length > 0;
+    const falla = [];
+    if (!okViatge) falla.push("viatge");
+    for (const f of S.filtres) if (!passaRang(m, f)) falla.push("f:" + f.capa);
+    if (!passaCats(m, S.cats)) falla.push("cat");
+
     // El tiempo que representa a la zona: con «los quiero todos», el que más
     // aprieta (el peor); con «me basta uno», el que te salva (el mejor).
     const temps = actives.map(id => viatge(m, id)?.min).filter(v => v != null);
     const valor = !temps.length ? null
                 : S.combinar === "tots" ? Math.max(...temps) : Math.min(...temps);
     const peus = actives.map(id => viatge(m, id)?.a_peu).filter(v => v != null);
-    return { ...m, ok, compleixen, valor, aPeu: peus.length ? Math.min(...peus) : null };
+    return { ...m, ok: hiHa && falla.length === 0, falla, compleixen, valor,
+             aPeu: peus.length ? Math.min(...peus) : null };
   });
 
   tendencia();
 }
 
+/** Cuántas zonas volverían si se quitara este criterio y solo este. Es el
+    número que convierte el panel en algo conectado: se ve lo que cuesta cada
+    filtro antes de tocarlo, en vez de descubrirlo moviéndolo. */
+const impacte = (clau) =>
+  ROWS.filter(m => !m.ok && m.falla.length === 1 && m.falla[0] === clau).length;
+
 /**
- * La recta que relaciona el tiempo de viaje con lo que cuesta la zona, y lo
- * que cada zona se desvía de ella.
+ * La recta que relaciona los dos ejes del gráfico, y lo que cada zona se
+ * desvía de ella.
  *
  * El residuo es la pregunta que hacía la página hermana: no «cuánto cuesta»,
  * sino «cuánto cuesta **para lo lejos que está**». Una zona por debajo de la
- * recta sale barata para su tiempo de viaje; una por encima, cara. Se calcula
- * sobre todas las zonas con los dos datos, cumplan o no las condiciones: si
- * solo entraran las que cumplen, la recta se movería con cada filtro y el
- * residuo dejaría de significar lo mismo de un momento a otro.
+ * recta sale barata para su tiempo de viaje; una por encima, cara. Con los dos
+ * ejes elegibles la pregunta se generaliza: cuánto se aparta una zona de lo
+ * que le tocaría por su X, sea la X la que sea. Se calcula sobre todas las
+ * zonas con los dos datos, cumplan o no los criterios: si solo entraran las
+ * que cumplen, la recta se movería con cada filtro y el residuo dejaría de
+ * significar lo mismo de un momento a otro.
  */
 function tendencia() {
-  const cy = capaY();
+  const cx = capaX(), cy = capaY();
   const pts = [], zonas = [];
   for (const m of ROWS) {
-    const x = m.valor, y = cy.get(m);
+    const x = cx.get(m), y = cy.get(m);
     if (x == null || y == null) continue;
     pts.push([x, y]); zonas.push(m);
   }
   const t = ols(pts);
-  TREND = t ? { ...t, capaY: cy.id } : null;
+  TREND = t ? { ...t, capaX: cx.id, capaY: cy.id } : null;
   if (!t) return;
   for (let i = 0; i < zonas.length; i++) {
     const [x, y] = pts[i];
@@ -1325,11 +1985,28 @@ function tendencia() {
   }
 }
 
-/** Las que cumplen y tienen precio, de más barata a más cara. Es la respuesta
-    de la página, y la usan el titular, el ranking y la barra de comparación. */
-const ranking = () => ROWS
-  .filter(m => m.ok && m.compra_eur_m2 != null)
-  .sort((a, b) => a.compra_eur_m2 - b.compra_eur_m2);
+/* El ranking ya no es solo de precio: se ordena por el criterio que se elija,
+   y solo entran las zonas que tienen ese dato. En las capas de dinero y de
+   tiempo lo bueno es lo bajo; en «salidas en hora punta» o «zona verde», lo
+   alto. El sentido va escrito aquí y no se deduce, porque deducirlo sería
+   inventarse qué es mejor en la edad media o en el porcentaje de extranjeros:
+   en esas no hay mejor, y por eso no pueden ordenar el ranking. */
+const ORDRE_ASC = ["compra_m2", "compra_total", "lloguer", "hipoteca", "esforc",
+                   "temps", "transport_eur_mes", "aigua_eur_m3", "zones_a_bcn",
+                   "delictes_1000", "robatoris_domicili_1000", "robatoris_violencia_1000",
+                   "pct_soroll_65db", "pct_soroll_nit_55db", "atur_taxa_pct"];
+const ORDRE_DESC = ["sortides", "zona_verda_m2_hab", "superficie_mitjana",
+                    "centres_educatius_1000", "pct_centres_publics", "renda_llar_eur"];
+const ORDENABLES = [...ORDRE_ASC, ...ORDRE_DESC];
+
+/** Las que cumplen todos tus criterios, ordenadas por el que hayas elegido.
+    Es la respuesta de la página: la usan el titular y el ranking. */
+function ranking() {
+  const c = CAPA_DE.get(ORDENABLES.includes(S.ordre) ? S.ordre : "compra_m2");
+  const dir = ORDRE_DESC.includes(c.id) ? -1 : 1;
+  return ROWS.filter(m => m.ok && c.get(m) != null)
+             .sort((a, b) => (c.get(a) - c.get(b)) * dir);
+}
 
 /* --- rangos de color ---------------------------------------------------- */
 
@@ -1397,13 +2074,240 @@ function niceTicks(lo, hi, n = 5) {
 function render() {
   recompute();
   renderConds();
+  renderFiltres();
+  renderCats();
+  renderKpis();
   renderVerdict();
   renderMap();
   renderLegend();
+  renderFicha();
   renderItin();
+  renderCompara();
   renderScatter();
   renderTable();
   renderTexts();
+  aplicaRealc();
+}
+
+/* ---------- el realce cruzado ----------
+   Pasar el ratón por una zona la enciende en el mapa, en el gráfico, en el
+   ranking y en la tabla a la vez. Se hace conmutando una clase sobre los
+   elementos que llevan ese `data-id`, y se recuerda cuáles fueron para no
+   tener que barrer el documento entero al apagarlos: son cuatro vistas de 164
+   elementos y esto corre en cada movimiento del ratón. */
+let realcats = [];
+function aplicaRealc() {
+  for (const el of realcats) el.classList.remove("is-hi");
+  realcats = S.hover
+    ? [...document.querySelectorAll(`[data-id="${S.hover}"]`)]
+    : [];
+  for (const el of realcats) el.classList.add("is-hi");
+}
+function realca(id) {
+  if (S.hover === id) return;
+  S.hover = id;
+  aplicaRealc();
+}
+
+/* ---------- panel de filtros ---------- */
+
+/** El histograma de una capa: en cuántas zonas cae cada tramo. Es el dato y el
+    control a la vez — sin él, arrastrar un extremo es a ciegas. */
+const HIST_N = 22;
+function histograma(c, lo, hi) {
+  const vs = valorsOrdenats(c);
+  const cubs = new Array(HIST_N).fill(0);
+  if (!vs.length) return cubs;
+  const a = vs[0], b = vs[vs.length - 1];
+  for (const v of vs) {
+    const k = b > a ? clamp(Math.floor((v - a) / (b - a) * HIST_N), 0, HIST_N - 1) : 0;
+    cubs[k]++;
+  }
+  return cubs;
+}
+
+/** Un filtro de rango se escribe con enteros 0-1000 y se lee en las unidades
+    de la capa: así el mismo control vale para euros, decibelios y kilómetros
+    sin tener que decidir un paso distinto para cada uno. */
+const PAS = 1000;
+const aPas = (v, lo, hi) => hi > lo ? Math.round((v - lo) / (hi - lo) * PAS) : 0;
+const dePas = (p, lo, hi) => lo + (hi - lo) * p / PAS;
+
+function renderFiltres() {
+  const box = $("#f-rangs");
+
+  box.innerHTML = S.filtres.map((f, idx) => {
+    const c = CAPA_DE.get(f.capa);
+    if (!c) return "";
+    const r = rang(c) || [0, 1];
+    const [lo, hi] = r;
+    const k = cobertura(c);
+    const sense = k ? k.n - k.total : 0;
+    const cubs = histograma(c);
+    const maxCub = Math.max(...cubs, 1);
+    const p0 = aPas(f.lo, lo, hi), p1 = aPas(f.hi, lo, hi);
+    const n = impacte("f:" + f.capa);
+    const dins = ROWS.filter(m => passaRang(m, f)).length;
+
+    const barres = cubs.map((v, i) => {
+      // Un tramo está dentro si se solapa con el rango elegido, no si su centro
+      // cae dentro: con 22 tramos, la diferencia se ve.
+      const a = lo + (hi - lo) * i / HIST_N, b = lo + (hi - lo) * (i + 1) / HIST_N;
+      const fora = b < f.lo - 1e-9 || a > f.hi + 1e-9;
+      return `<i class="${fora ? "out" : ""}" style="height:${(100 * v / maxCub).toFixed(1)}%"></i>`;
+    }).join("");
+
+    return `<div class="rf" data-f="${idx}">
+      <div class="rf-top">
+        <span class="rf-nom">${esc(c.nom)}</span>
+        <button type="button" class="rf-del" data-del="${idx}"
+                aria-label="Quitar el filtro de ${esc(c.nom)}" title="Quitar este filtro">×</button>
+      </div>
+      <div class="rf-hist" aria-hidden="true">${barres}</div>
+      <div class="rng">
+        <div class="rng-track"><i style="left:${(p0 / 10).toFixed(1)}%;right:${(100 - p1 / 10).toFixed(1)}%"></i></div>
+        <input type="range" min="0" max="${PAS}" value="${p0}" data-lo="${idx}"
+               aria-label="${esc(c.nom)}, mínimo">
+        <input type="range" min="0" max="${PAS}" value="${p1}" data-hi="${idx}"
+               aria-label="${esc(c.nom)}, máximo">
+      </div>
+      <div class="rf-val"><b>${esc(c.fmt(f.lo))}</b><b>${esc(c.fmt(f.hi))}</b></div>
+      <div class="rf-foot">${dins} ${dins === 1 ? "zona entra" : "zonas entran"} en este tramo${
+        n > 0 ? ` · <span class="imp">quitarlo devolvería ${n}</span>` : ""}</div>
+      ${sense > 0 ? `<button type="button" class="rf-na ${f.sense ? "on" : ""}" data-na="${idx}"
+          aria-pressed="${!!f.sense}">${f.sense
+            ? `Incluyendo las ${sense} zonas sin este dato — excluirlas`
+            : `Excluye ${sense} ${sense === 1 ? "zona" : "zonas"} sin este dato — incluirlas`}</button>` : ""}
+    </div>`;
+  }).join("");
+
+  // El desplegable de añadir se rehace en cada pintada porque las capas ya
+  // usadas desaparecen de la lista: ofrecer dos veces la misma no sirve.
+  const add = $("#f-add");
+  const usades = new Set(S.filtres.map(f => f.capa));
+  const lliures = CAPES.filter(c => !c.viu && !usades.has(c.id) && rang(c));
+  add.innerHTML = `<option value="">＋ Filtrar por otro dato…</option>`
+    + GRUPS.map(g => {
+        const dins = lliures.filter(c => c.grup === g);
+        if (!dins.length) return "";
+        return `<optgroup label="${esc(g)}">` + dins.map(c => {
+          const av = avisCobertura(c);
+          return `<option value="${esc(c.id)}">${esc(c.nom)}${av ? ` · ${esc(av)}` : ""}</option>`;
+        }).join("") + `</optgroup>`;
+      }).join("");
+  add.value = "";
+  add.disabled = lliures.length === 0;
+
+  const cnt = $("#cnt-rangos");
+  cnt.hidden = S.filtres.length === 0;
+  cnt.textContent = S.filtres.length;
+
+  // --- conexiones ---
+  box.querySelectorAll("[data-del]").forEach(b => {
+    b.onclick = () => { S.filtres.splice(+b.dataset.del, 1); render(); };
+  });
+  box.querySelectorAll("[data-na]").forEach(b => {
+    b.onclick = () => { const f = S.filtres[+b.dataset.na]; f.sense = !f.sense; render(); };
+  });
+  const mou = (idx, quin, valor) => {
+    const f = S.filtres[idx], c = CAPA_DE.get(f.capa), [lo, hi] = rang(c) || [0, 1];
+    const v = dePas(clamp(valor, 0, PAS), lo, hi);
+    // Las dos asas no se cruzan: la que empuja arrastra a la otra, que es lo
+    // que hace todo el mundo al intentar cruzarlas.
+    if (quin === "lo") { f.lo = Math.min(v, f.hi); } else { f.hi = Math.max(v, f.lo); }
+    render();
+  };
+  box.querySelectorAll("[data-lo]").forEach(el => {
+    el.oninput = () => mou(+el.dataset.lo, "lo", +el.value);
+  });
+  box.querySelectorAll("[data-hi]").forEach(el => {
+    el.oninput = () => mou(+el.dataset.hi, "hi", +el.value);
+  });
+}
+
+/* ---------- filtros categóricos ----------
+   Tipo, comarca, distrito y red. Se dibujan con la cuenta de zonas al lado
+   porque una ficha que no deja pasar a nadie es peor que no estar. */
+function renderCats() {
+  const zs = DATA.zones;
+  const comarques = [...new Set(zs.filter(m => m.tipus !== "barri").map(m => m.comarca))].sort((a, b) => a.localeCompare(b, "es"));
+  const districtes = [...new Set(zs.filter(m => m.tipus === "barri").map(m => m.districte))].sort((a, b) => a.localeCompare(b, "es"));
+  const xarxes = [...new Set(zs.flatMap(xarxesDe))].sort();
+
+  const blocs = [
+    { k: "tipus", t: "Municipio o barrio", vals: [
+        { v: "municipi", nom: "Municipios", n: zs.filter(m => m.tipus !== "barri").length },
+        { v: "barri", nom: "Barrios de Barcelona", n: zs.filter(m => m.tipus === "barri").length },
+      ] },
+    { k: "comarca", t: "Comarca", vals: comarques.map(v =>
+        ({ v, nom: v, n: zs.filter(m => m.comarca === v && m.tipus !== "barri").length })) },
+    { k: "districte", t: "Distrito de Barcelona", vals: districtes.map(v =>
+        ({ v, nom: v, n: zs.filter(m => m.districte === v).length })) },
+    { k: "xarxa", t: "Red que llega", vals: [
+        ...xarxes.map(v => ({ v, nom: v, n: zs.filter(m => xarxesDe(m).includes(v)).length })),
+        { v: "cap", nom: "Sin tren ni metro", n: zs.filter(m => !xarxesDe(m).length).length },
+      ] },
+  ];
+
+  $("#f-cats").innerHTML = blocs.map(b => `<div>
+    <div class="chips-lbl">${esc(b.t)}</div>
+    <div class="chips" role="group" aria-label="${esc(b.t)}">${b.vals.map(o =>
+      `<button type="button" class="chip" data-cat="${esc(b.k)}" data-val="${esc(o.v)}"
+               aria-pressed="${S.cats[b.k].includes(o.v)}">${esc(o.nom)}<span class="c">${o.n}</span></button>`
+    ).join("")}</div></div>`).join("");
+
+  const nCats = CATS.reduce((a, k) => a + S.cats[k].length, 0);
+  const cnt = $("#cnt-tipo");
+  cnt.hidden = nCats === 0;
+  cnt.textContent = nCats;
+
+  $("#f-cats").querySelectorAll("[data-cat]").forEach(b => {
+    b.onclick = () => {
+      const k = b.dataset.cat, v = b.dataset.val, a = S.cats[k];
+      const i = a.indexOf(v);
+      if (i < 0) a.push(v); else a.splice(i, 1);
+      render();
+    };
+  });
+}
+
+/* ---------- la tira de cifras ----------
+   La selección en cuatro números. Cada uno lleva debajo la referencia contra
+   la que se lee: una mediana sola no dice si es alta o baja. */
+function renderKpis() {
+  const hiHa = hiHaCriteris();
+  const sel = hiHa ? ROWS.filter(m => m.ok) : ROWS;
+  const tot = DATA.zones;
+  const tile = (valor, lbl, cmp, main) =>
+    `<div class="kpi${main ? " k-main" : ""}"><b>${esc(valor)}</b>
+      <span class="k-lbl">${lbl}</span>
+      ${cmp ? `<span class="k-cmp">${cmp}</span>` : ""}</div>`;
+
+  const med = (c, xs) => median(xs.map(m => c.get(m)));
+  const cCompra = CAPA_DE.get("compra_m2"), cLloguer = CAPA_DE.get("lloguer");
+  const mc = med(cCompra, sel), mcTot = med(cCompra, tot);
+  const ml = med(cLloguer, sel), mlTot = med(cLloguer, tot);
+
+  const contra = (v, ref) => v == null || ref == null || ref === 0 ? ""
+    : Math.abs(100 * (v / ref - 1)) < 1 ? "igual que la mediana del área"
+    : `${fmtInt(Math.abs(100 * (v / ref - 1)))} % ${v < ref ? "por debajo" : "por encima"} de la mediana del área`;
+
+  // El cuarto número es el tiempo si hay viaje que medir, y si no la densidad,
+  // que es lo que mejor separa un barrio de un pueblo.
+  const temps = sel.map(m => m.valor).filter(v => v != null);
+  const quart = temps.length
+    ? tile(fmtMin(median(temps)), "Tiempo mediano de viaje",
+           `al ${S.combinar === "tots" ? "peor" : "mejor"} de tus destinos`)
+    : tile(fmtInt(sel.filter(m => m.tipus === "barri").length) + " / " + fmtInt(sel.filter(m => m.tipus !== "barri").length),
+           "Barrios / municipios", "de los que has dejado pasar");
+
+  $("#kpis").innerHTML =
+      tile(fmtInt(sel.length), hiHa ? "Zonas que cumplen tus criterios" : "Zonas en el área",
+           hiHa ? `de ${tot.length}` : "91 municipios y 73 barrios", true)
+    + tile(mc == null ? "—" : fmtEur(mc) + "/m²", "Precio mediano de compra", contra(mc, mcTot))
+    + tile(ml == null ? "—" : fmtEur(ml) + "/mes", "Alquiler mediano", contra(ml, mlTot))
+    + quart;
+  $("#kpis").hidden = false;
 }
 
 /* ---------- gráfico: lo que cuesta contra lo que tardas ----------
@@ -1436,14 +2340,15 @@ function scGeom() {
 
 function renderScatter() {
   const svg = $("#scatter"), buida = $("#sc-empty");
-  const cy = capaY();
-  const pts = ROWS.filter(m => m.valor != null && cy.get(m) != null);
+  const cx = capaX(), cy = capaY();
+  const pts = ROWS.filter(m => cx.get(m) != null && cy.get(m) != null);
 
-  const motiu = !condsActives().length
-    ? "Marca algún destino a la izquierda y aquí verás lo que cuesta cada zona "
-      + "frente a lo que tardas en llegar."
+  const motiu = cx.viu && !condsActives().length
+    ? "El eje horizontal es el tiempo de viaje y no hay ningún destino marcado. "
+      + "Marca uno a la izquierda, o elige otro dato para el eje."
     : pts.length < 3
-      ? "Con los destinos marcados no hay zonas suficientes con los dos datos para dibujar nada."
+      ? `Solo hay ${pts.length} ${pts.length === 1 ? "zona" : "zonas"} con los dos datos `
+        + `a la vez: no da para dibujar nada. Prueba con otra pareja de ejes.`
       : null;
   if (motiu) {
     svg.innerHTML = "";
@@ -1459,8 +2364,14 @@ function renderScatter() {
 
   const SC = scGeom();
   const f = SC.f;
-  const xs = pts.map(m => m.valor), ys = pts.map(m => cy.get(m));
-  const x0 = 0, x1 = Math.max(...xs) * 1.04 || 1;
+  const xs = pts.map(m => cx.get(m)), ys = pts.map(m => cy.get(m));
+  // El eje horizontal arranca en cero cuando eso significa algo —minutos,
+  // euros, porcentajes—, y se ciñe a los datos cuando no: en altitud o en edad
+  // media, forzar el cero deja toda la nube apelotonada en el borde derecho.
+  const xLo = Math.min(...xs), xHi = Math.max(...xs);
+  const desdeZero = xLo >= 0 && xLo <= (xHi - xLo) * 1.5;
+  const padX = (xHi - xLo) * .05 || Math.abs(xHi) * .1 || 1;
+  const x0 = desdeZero ? 0 : xLo - padX, x1 = (xHi + (desdeZero ? padX * .8 : padX)) || 1;
   const yLo = Math.min(...ys), yHi = Math.max(...ys);
   const pad = (yHi - yLo) * .08 || Math.abs(yHi) * .1 || 1;
   const y0 = yLo - pad, y1 = yHi + pad;
@@ -1484,12 +2395,12 @@ function renderScatter() {
     const x = px(v).toFixed(1);
     s += `<line class="sc-grid" x1="${x}" y1="${SC.t.toFixed(1)}" x2="${x}" y2="${(SC.h - SC.b).toFixed(1)}"/>`;
     s += `<text class="sc-tick" style="font-size:${TICK.toFixed(2)}px" x="${x}"`
-       + ` y="${(SC.h - SC.b + f(16)).toFixed(1)}" text-anchor="middle">${fmtInt(v)}</text>`;
+       + ` y="${(SC.h - SC.b + f(16)).toFixed(1)}" text-anchor="middle">${esc(tickY(v, cx))}</text>`;
   }
   s += `<line class="sc-axis" x1="${SC.l.toFixed(1)}" y1="${(SC.h - SC.b).toFixed(1)}" x2="${(SC.w - SC.r).toFixed(1)}" y2="${(SC.h - SC.b).toFixed(1)}"/>`;
   s += `<line class="sc-axis" x1="${SC.l.toFixed(1)}" y1="${SC.t.toFixed(1)}" x2="${SC.l.toFixed(1)}" y2="${(SC.h - SC.b).toFixed(1)}"/>`;
   s += `<text class="sc-title" style="font-size:${TIT.toFixed(2)}px" x="${(SC.w - SC.r).toFixed(1)}"`
-     + ` y="${(SC.h - f(6)).toFixed(1)}" text-anchor="end">Tiempo de viaje (min)</text>`;
+     + ` y="${(SC.h - f(6)).toFixed(1)}" text-anchor="end">${esc(cx.nom)} (${esc(cx.eix)})</text>`;
   s += `<text class="sc-title" style="font-size:${TIT.toFixed(2)}px"`
      + ` x="${-(SC.t + (SC.h - SC.b - SC.t) / 2).toFixed(1)}" y="${f(13).toFixed(1)}"`
      + ` transform="rotate(-90)" text-anchor="middle">${esc(cy.nom)} (${esc(cy.eix)})</text>`;
@@ -1516,14 +2427,14 @@ function renderScatter() {
   // pesa lo mismo que una de 900— y el color, con la misma rampa del mapa.
   const [lo, hi] = rangActual();
   const popMax = Math.max(...pts.map(m => m.poblacio || 0), 1);
-  const hiHaConds = condsActives().length > 0;
+  const hiHaConds = hiHaCriteris();
   for (const m of pts) {
-    const x = px(m.valor), y = py(cy.get(m));
+    const x = px(cx.get(m)), y = py(cy.get(m));
     const r = f(3.6 + 5 * Math.sqrt((m.poblacio || 0) / popMax));
     const cls = "sc-dot"
       + (hiHaConds && !m.ok ? " is-dim" : "")
       + (m.ok ? " is-ok" : "")
-      + (S.selected === m.id ? " is-sel" : "");
+      + (S.focus === m.id ? " is-sel" : "");
     s += `<circle class="${cls}" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${r.toFixed(1)}"`
        + ` fill="${seqColor(valorColor(m), lo, hi)}" data-id="${esc(m.id)}"></circle>`;
     // Diana invisible: a 4 px de radio los puntos pequeños no se pueden tocar.
@@ -1534,15 +2445,15 @@ function renderScatter() {
   // Rótulos, pocos y con criterio: la más barata para su tiempo, la más cara,
   // y la seleccionada. Poner los 164 nombres sería repetir el error del mapa.
   const conResid = pts.filter(m => m.resid != null);
-  const destacats = new Set();
+  const destacats = new Set(S.pinned);
   if (conResid.length >= 6) {
     destacats.add(conResid.reduce((a, b) => a.resid < b.resid ? a : b).id);
     destacats.add(conResid.reduce((a, b) => a.resid > b.resid ? a : b).id);
   }
-  if (S.selected) destacats.add(S.selected);
+  if (S.focus) destacats.add(S.focus);
   for (const m of pts) {
     if (!destacats.has(m.id)) continue;
-    const x = px(m.valor), y = py(cy.get(m));
+    const x = px(cx.get(m)), y = py(cy.get(m));
     const dreta = x < SC.w * .72;
     s += `<text class="sc-lbl" style="font-size:${LBL.toFixed(2)}px"`
        + ` x="${(x + f(dreta ? 11 : -11)).toFixed(1)}" y="${(y + f(4)).toFixed(1)}"`
@@ -1554,36 +2465,37 @@ function renderScatter() {
 
   const nOk = pts.filter(m => m.ok).length;
   $("#sc-sub").textContent =
-    `${pts.length} zonas con los dos datos${hiHaConds ? `, ${nOk} compatibles con tu viaje` : ""}`
-    + ` · cada círculo es una zona y su tamaño, su población.`;
+    `${pts.length} zonas con los dos datos${hiHaConds ? `, ${nOk} cumplen tus criterios` : ""}`
+    + ` · cada círculo es una zona, su tamaño es la población y su color, `
+    + `${capa().nom.toLowerCase()}, lo mismo que el mapa.`;
 
   // El R² decide el tono de la frase. Con la nube deshecha, decir «la
   // tendencia es» sería vender una relación que los datos no sostienen.
   const r2 = TREND?.r2 ?? 0;
-  const porMin = TREND ? TREND.b : 0;
-  // «Barato» solo se puede decir de lo que se paga. En un porcentaje de
-  // población o en una edad media no hay barato ni caro, y el paso por cada
-  // diez minutos se mide en puntos, no en un «%» que se leería como relativo.
-  const DINERS = ["compra_m2", "compra_total", "lloguer", "hipoteca"];
-  const diners = DINERS.includes(cy.id);
-  const salt = Math.abs(porMin * 10);
-  const saltTxt = cy.eix === "%" ? nf(1).format(salt) + " puntos" : cy.fmt(salt);
+  const pend = TREND ? TREND.b : 0;
+  // El paso se dice sobre un salto redondo del eje horizontal, no sobre «una
+  // unidad»: «por cada minuto» no se lee, «por cada 10 minutos» sí. El salto
+  // sale del propio rango para que valga igual en minutos, en euros o en km.
+  const salt = niceTicks(x0, x1, 8);
+  const paso = salt.length > 1 ? salt[1] - salt[0] : (x1 - x0) / 8;
+  const dY = Math.abs(pend * paso);
+  const dYTxt = cy.eix === "%" ? nf(1).format(dY) + " puntos" : cy.fmt(dY);
 
   $("#sc-note").textContent = r2 < .15
-    ? `La recta explica solo un ${fmtInt(r2 * 100)} % de la variación: con estos `
-      + `destinos, el tiempo de viaje casi no predice ${cy.nom.toLowerCase()}. `
-      + `Léela como una referencia, no como una regla.`
-    : `La recta explica un ${fmtInt(r2 * 100)} % de la variación. `
-      + `Por cada 10 minutos más de viaje, ${cy.nom.toLowerCase()} `
-      + `${porMin < 0 ? "baja" : "sube"} de media ${saltTxt}. `
-      + (diners
-          ? "Los puntos por debajo salen baratos para lo lejos que están; los de arriba, caros."
-          : "Los puntos por debajo se quedan por debajo de lo que les tocaría por "
-            + "su tiempo de viaje; los de arriba, por encima.");
+    ? `La recta explica solo un ${fmtInt(r2 * 100)} % de la variación: `
+      + `${cx.nom.toLowerCase()} casi no predice ${cy.nom.toLowerCase()}. `
+      + `Léela como una referencia, no como una regla — y ojo, aunque la predijera, `
+      + `eso no diría que una cosa cause la otra.`
+    : `La recta explica un ${fmtInt(r2 * 100)} % de la variación: por cada `
+      + `${esc(cx.fmt(paso))} más de ${cx.nom.toLowerCase()}, ${cy.nom.toLowerCase()} `
+      + `${pend < 0 ? "baja" : "sube"} de media ${dYTxt}. `
+      + `Los puntos por debajo de la recta se quedan por debajo de lo que les tocaría `
+      + `por su ${cx.nom.toLowerCase()}; los de arriba, por encima. `
+      + `Es una relación, no una causa.`;
 }
 
-/** Las marcas del eje vertical, sin unidad: la unidad ya va en el título del
-    eje, y repetirla en cada marca ensucia. */
+/** Las marcas de los ejes, sin unidad: la unidad ya va en el título del eje, y
+    repetirla en cada marca ensucia. */
 function tickY(v, c) {
   if (c.id === "temps") return fmtInt(v);
   if (Math.abs(v) >= 10000) return fmtInt(v / 1000) + "k";
@@ -1592,34 +2504,38 @@ function tickY(v, c) {
 
 function renderConds() {
   const box = $("#f-conds");
-  const files = DATA.meta.destins.map(d => ({ id: d.id, nom: d.nom, est: false }));
-  // El punto libre es una fila más, esté elegido o no: si solo apareciera
-  // después de pincharlo, nadie descubriría que se puede pinchar.
-  files.push({ id: "__lliure", nom: "Otro punto del mapa", est: true });
-
-  box.innerHTML = files.map(f => {
-    const c = S.conds[f.id] || { on: false, max: 90 };
-    const sensePunt = f.id === "__lliure" && !S.puntLliure;
-    if (sensePunt) {
-      return `<div class="cond is-off is-pick">
-        <span class="pin" aria-hidden="true"></span>
-        <button type="button" class="pick-btn" id="c-pick">${
-          S.picking ? "Cancelar selección" : "Añadir punto en el mapa"}</button>
-      </div>`;
-    }
+  const fila = (id, nom, est, pid) => {
+    const c = S.conds[id] || { on: false, max: 90 };
     return `<div class="cond ${c.on ? "is-on" : "is-off"}">
-      <input type="checkbox" id="c-${esc(f.id)}" data-cond="${esc(f.id)}" ${c.on ? "checked" : ""}>
-      <label class="cn" for="c-${esc(f.id)}" title="${esc(f.nom)}">${esc(f.nom)}${
-        f.est ? ` <span class="est">estimado</span>` : ""}</label>
+      <input type="checkbox" id="c-${esc(id)}" data-cond="${esc(id)}" ${c.on ? "checked" : ""}>
+      ${pid
+        ? `<input class="rename" type="text" value="${esc(nom)}" data-nom="${esc(pid)}"
+                  aria-label="Nombre de este punto" maxlength="28">`
+        : `<label class="cn" for="c-${esc(id)}" title="${esc(nom)}">${esc(nom)}</label>`}
+      ${est ? `<span class="est">est.</span>` : ""}
       <span class="ct">
-        <input type="number" data-max="${esc(f.id)}" min="5" max="240" step="5" value="${c.max}"
-               aria-label="Minutos como mucho hasta ${esc(f.nom)}">min
+        <input type="number" data-max="${esc(id)}" min="5" max="240" step="5" value="${c.max}"
+               aria-label="Minutos como mucho hasta ${esc(nom)}">min
       </span>
-      ${f.id === "__lliure"
-        ? `<button type="button" class="clear" id="c-clear" aria-label="Quitar mi punto" title="Quitar mi punto">×</button>`
-        : ""}
+      ${pid ? `<button type="button" class="clear" data-drop="${esc(pid)}"
+                 aria-label="Quitar ${esc(nom)}" title="Quitar este punto">×</button>` : ""}
     </div>`;
-  }).join("");
+  };
+
+  let html = DATA.meta.destins.map(d => fila(d.id, d.nom, false, null)).join("");
+  html += S.punts.map(p => fila(CP + p.id, p.nom, true, p.id)).join("");
+
+  // La invitación a poner un punto propio está siempre, aunque ya haya alguno:
+  // si solo apareciera cuando no hay ninguno, nadie descubriría que caben más.
+  if (S.punts.length < PUNT_MAX) {
+    html += `<div class="cond is-off is-pick">
+      <span class="pin" aria-hidden="true"></span>
+      <button type="button" class="pick-btn" id="c-pick">${S.picking
+        ? "Cancelar — pincha aquí o pulsa Esc"
+        : S.punts.length ? "Añadir otro punto en el mapa" : "Añadir un punto en el mapa"}</button>
+    </div>`;
+  }
+  box.innerHTML = html;
 
   box.querySelectorAll("input[data-cond]").forEach(el => {
     el.onchange = () => { S.conds[el.dataset.cond].on = el.checked; render(); };
@@ -1630,34 +2546,55 @@ function renderConds() {
       if (Number.isFinite(v)) { S.conds[el.dataset.max].max = clamp(v, 5, 240); render(); }
     };
   });
+  box.querySelectorAll("input[data-nom]").forEach(el => {
+    // Se renombra sin volver a pintar: un `render()` por tecla quitaría el
+    // foco del campo a media palabra. El mapa se actualiza al salir.
+    const p = S.punts.find(x => x.id === el.dataset.nom);
+    el.oninput = () => { if (p) p.nom = el.value.trim() || "Mi punto"; };
+    el.onchange = () => render();
+  });
+  box.querySelectorAll("[data-drop]").forEach(b => {
+    b.onclick = () => { treuPunt(b.dataset.drop); setPicking(false); render(); };
+  });
   const pick = box.querySelector("#c-pick");
   if (pick) pick.onclick = () => setPicking(!S.picking);
-  const clear = box.querySelector("#c-clear");
-  if (clear) clear.onclick = () => {
-    S.puntLliure = null; delete S.conds.__lliure; setPicking(false); render();
-  };
+
+  const nv = condsActives().length;
+  const cnt = $("#cnt-viaje");
+  cnt.hidden = nv === 0;
+  cnt.textContent = nv;
 }
 
 /** El titular. Es lo primero que se lee y tiene que contestar la pregunta sin
-    que haya que interpretar nada: cuántas cumplen y cuál es la más barata. */
+    que haya que interpretar nada: cuántas cumplen y cuál encabeza. */
 function renderVerdict() {
-  const actives = condsActives();
   const ok = ROWS.filter(m => m.ok);
   const rk = ranking();
+  const c = CAPA_DE.get(ORDENABLES.includes(S.ordre) ? S.ordre : "compra_m2");
+  const desc = ORDRE_DESC.includes(c.id);
   const v = $("#verdict"), vs = $("#verdict-sub");
+  const buida = () => { $("#rank").innerHTML = ""; $("#rank-more").textContent = ""; };
 
-  if (!actives.length) {
-    v.innerHTML = "Marca algún destino para empezar.";
-    vs.textContent = "Sin destinos seleccionados.";
-    $("#rank").innerHTML = "";
-    $("#rank-more").textContent = "";
+  if (!hiHaCriteris()) {
+    v.innerHTML = "Las <span class=\"n\">164 zonas</span> están sobre la mesa.";
+    vs.textContent = "Pon un destino, un filtro o un tipo de zona a la izquierda y "
+                   + "aquí quedarán las que cumplan todo lo que pidas. Mientras tanto, "
+                   + "el mapa y el gráfico las enseñan todas.";
+    buida();
     return;
   }
   if (!ok.length) {
-    v.innerHTML = `<span class="n">Ninguna zona</span> cumple lo que pides.`;
-    vs.textContent = "No hay conexiones dentro de estos límites de tiempo y caminata.";
-    $("#rank").innerHTML = "";
-    $("#rank-more").textContent = "";
+    v.innerHTML = `<span class="n">Ninguna zona</span> cumple todo lo que pides.`;
+    // Cuál es el criterio que más gente deja fuera. Sin esto, «ninguna» es un
+    // callejón sin salida: con esto se sabe qué aflojar.
+    const claus = new Map();
+    for (const m of ROWS) for (const k of m.falla) claus.set(k, (claus.get(k) || 0) + 1);
+    const pitjor = [...claus.entries()].sort((a, b) => b[1] - a[1])[0];
+    vs.textContent = pitjor
+      ? `El criterio que más deja fuera es ${nomFalla(pitjor[0])}: `
+        + `${pitjor[1]} de las ${ROWS.length} zonas no lo pasan. Prueba a aflojarlo.`
+      : "Prueba a aflojar alguno de los criterios.";
+    buida();
     return;
   }
 
@@ -1667,52 +2604,61 @@ function renderVerdict() {
 
   v.innerHTML = `<span class="n">${ok.length} ${ok.length === 1 ? "zona" : "zonas"}</span> `
     + `${ok.length === 1 ? "cumple" : "cumplen"} lo que pides`
-    + (primera ? ` · la más barata, <span class="cheap">${esc(primera.nom_llarg)}</span>, `
-               + `a ${fmtEur(primera.compra_eur_m2)}/m²` : "");
+    + (primera ? ` · ${desc ? "arriba del todo" : "a la cabeza"}, `
+               + `<span class="cheap">${esc(primera.nom_llarg)}</span>, `
+               + `con ${esc(c.fmt(c.get(primera)))}` : "");
 
-  const sensePreu = ok.length - rk.length;
+  const sense = ok.length - rk.length;
   vs.textContent =
     (medOk != null && medTot != null
-      ? `Mediana de las que cumplen: ${fmtEur(medOk)}/m², un ${
+      ? `Mediana de compra de las que cumplen: ${fmtEur(medOk)}/m², un ${
           fmtInt(Math.abs(100 * (medOk / medTot - 1)))} % ${
           medOk <= medTot ? "por debajo" : "por encima"} de la mediana del área. `
       : "")
-    + `Precios medios de compra, de menor a mayor.`
-    + (sensePreu > 0
-        ? ` ${sensePreu} ${sensePreu === 1 ? "cumple pero no tiene" : "cumplen pero no tienen"} `
-          + `precio publicado y ${sensePreu === 1 ? "no aparece" : "no aparecen"} aquí.`
+    + `Ordenadas por ${c.nom.toLowerCase()}, de ${desc ? "más a menos" : "menos a más"}.`
+    + (sense > 0
+        ? ` ${sense} ${sense === 1 ? "cumple pero no tiene" : "cumplen pero no tienen"} `
+          + `ese dato publicado y ${sense === 1 ? "no aparece" : "no aparecen"} aquí.`
         : "");
 
-  // La barra se escala contra la más cara del grupo: mide «cuánto más barata es
-  // esta que la peor de las que te valen», que es la comparación que importa
+  // La barra se escala contra el extremo del grupo: mide «cuánto se separa
+  // esta de la peor de las que te valen», que es la comparación que importa
   // cuando ya has filtrado. Contra el área entera, todas saldrían casi iguales.
-  const topPreu = rk.length ? rk[rk.length - 1].compra_eur_m2 : 1;
+  const vals = rk.map(m => c.get(m));
+  const top = Math.max(...vals, 1e-9), bot = Math.min(...vals);
   $("#rank").innerHTML = rk.slice(0, RANK_N).map((m, i) => {
     const id = condPrincipal(m);
     const t = id ? viatge(m, id) : null;
-    const dest = id === "__lliure" ? { nom: "tu punto" } : DATA.meta.destins.find(d => d.id === id);
+    const val = c.get(m);
+    const w = top > bot
+      ? (desc ? 100 * (val - bot) / (top - bot) : 100 * (1 - (val - bot) / (top - bot)))
+      : 100;
+    const pin = S.pinned.indexOf(m.id);
     return `<button type="button" class="rk" data-id="${esc(m.id)}"
-              aria-pressed="${S.selected === m.id}">
+              aria-pressed="${S.focus === m.id}">
       <span class="rk-top"><span class="rk-pos">${i + 1}</span>
-        <span class="rk-nom">${esc(m.nom_llarg)}</span></span>
+        <span class="rk-nom">${esc(m.nom_llarg)}${pin >= 0 ? ` <span class="tag">fijada ${pin + 1}</span>` : ""}</span></span>
       <span class="rk-sub">${esc(m.tipus === "barri" ? m.districte : m.comarca)}</span>
-      <span class="rk-preu">${fmtEur(m.compra_eur_m2)} <small>/m²</small></span>
-      <span class="rk-bar"><i style="width:${
-        clamp(100 * m.compra_eur_m2 / topPreu, 4, 100).toFixed(1)}%"></i></span>
-      <span class="rk-meta">${t && dest
-        ? `<span class="mn">${fmtMin(t.min)}</span> a ${esc(dest.nom)}`
-        : "sin tiempo"}${m.aPeu != null ? ` · <span class="mn">${m.aPeu} min</span> a pie` : ""}</span>
+      <span class="rk-preu">${esc(c.fmt(val))}</span>
+      <span class="rk-bar"><i style="width:${clamp(w, 4, 100).toFixed(1)}%"></i></span>
+      <span class="rk-meta">${c.id !== "compra_m2" && m.compra_eur_m2 != null
+        ? `<span class="mn">${fmtEur(m.compra_eur_m2)}</span>/m² · ` : ""}${t && id
+        ? `<span class="mn">${fmtMin(t.min)}</span> a ${esc(nomCond(id))}`
+        : "sin tiempo de viaje"}</span>
     </button>`;
   }).join("");
 
   $("#rank-more").textContent = rk.length > RANK_N
     ? `Y ${rk.length - RANK_N} más que también cumplen, en la tabla del final.` : "";
 
-  $("#rank").querySelectorAll("[data-id]").forEach(b => {
-    b.onclick = () => {
+  const rank = $("#rank");
+  rank.querySelectorAll("[data-id]").forEach(b => {
+    b.onclick = (e) => {
+      if (e.shiftKey || e.ctrlKey || e.metaKey) return fixa(b.dataset.id);
       selecciona(b.dataset.id);
-      if (S.selected) $("#panel-itin").scrollIntoView({ block: "nearest" });
     };
+    b.onpointerenter = () => realca(b.dataset.id);
+    b.onpointerleave = () => realca(null);
   });
 }
 
@@ -1792,16 +2738,14 @@ function caixesDestins(px) {
   for (const d of DATA.meta.destins) {
     if (S.conds[d.id]?.on) afegeix(PROJ.x(d.lon), PROJ.y(d.lat), d.nom, 9);
   }
-  if (S.puntLliure) {
-    afegeix(PROJ.x(S.puntLliure.lon), PROJ.y(S.puntLliure.lat), "Tu punto", 12);
-  }
+  for (const p of S.punts) afegeix(PROJ.x(p.lon), PROJ.y(p.lat), p.nom, 12);
   return out;
 }
 
 function renderMap() {
   const [lo, hi] = rangActual();
   const v = S.view;
-  const hiHaConds = condsActives().length > 0;
+  const hiHaConds = hiHaCriteris();
 
   /* Cuánto amplía el viewBox ahora mismo. Todo lo que tiene que medir igual en
      pantalla —radios de los puntos, cuerpos de letra— se divide por esto: si no,
@@ -1819,7 +2763,7 @@ function renderMap() {
     const cls = "zona"
       + (hiHaConds && !m.ok ? " is-dim" : "")
       + (m.ok ? " is-ok" : "")
-      + (S.selected === m.id ? " is-sel" : "");
+      + (S.focus === m.id ? " is-sel" : "");
     s += `<path class="${cls}" d="${d}" fill="${seqColor(valorColor(m), lo, hi)}"
             data-id="${esc(m.id)}"><title>${esc(m.nom_llarg)}</title></path>`;
   }
@@ -1870,16 +2814,31 @@ function renderMap() {
     }
   }
 
-  // --- 5. punto libre ---
-  if (S.puntLliure) {
-    const x = PROJ.x(S.puntLliure.lon), y = PROJ.y(S.puntLliure.lat);
+  // --- 5. puntos propios ---
+  for (const p of S.punts) {
+    const x = PROJ.x(p.lon), y = PROJ.y(p.lat);
+    if (!enLlenc(x, y)) continue;
+    const actiu = S.conds[CP + p.id]?.on;
     s += `<circle class="poi-ring" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${px(9).toFixed(2)}"/>`;
-    s += `<circle class="poi-dot" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${px(5.5).toFixed(2)}"/>`;
+    s += `<circle class="poi-dot" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${px(5.5).toFixed(2)}" opacity="${actiu ? 1 : .45}"/>`;
     s += `<text class="poi-lbl" x="${(x + px(12)).toFixed(1)}" y="${(y + px(4)).toFixed(1)}"`
-       + ` style="font-size:${px(11).toFixed(2)}px">Tu punto</text>`;
+       + ` style="font-size:${px(11).toFixed(2)}px">${esc(p.nom)}</text>`;
   }
 
-  // --- 6. itinerario de la seleccionada, por encima de todo ---
+  // --- 6. chapas de las zonas fijadas ---
+  // El número es el mismo que encabeza su columna en la comparación: es lo que
+  // permite pasar de la tabla al mapa sin buscar por el nombre.
+  S.pinned.forEach((id, i) => {
+    const m = ROWS.find(r => r.id === id);
+    if (!m) return;
+    const x = PROJ.x(m.lon), y = PROJ.y(m.lat);
+    if (!enLlenc(x, y)) return;
+    s += `<circle class="pin-badge" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${px(9).toFixed(2)}"/>`;
+    s += `<text class="pin-num" x="${x.toFixed(1)}" y="${(y + px(3.6)).toFixed(1)}"`
+       + ` style="font-size:${px(10.5).toFixed(2)}px">${i + 1}</text>`;
+  });
+
+  // --- 7. itinerario de la zona abierta, por encima de todo ---
   s += dibuixaRuta(px);
 
   const svg = $("#map");
@@ -1891,11 +2850,11 @@ function renderMap() {
     a pie van punteados: son reales, pero no son una línea de transporte y
     dibujarlos iguales haría creer que existe un servicio que no existe. */
 function dibuixaRuta(px = (n) => n) {
-  if (!S.selected) return "";
-  const m = ROWS.find(r => r.id === S.selected);
+  if (!S.focus) return "";
+  const m = ROWS.find(r => r.id === S.focus);
   if (!m) return "";
   const id = condPrincipal(m);
-  if (!id || id === "__lliure") return "";
+  if (!id || esPunt(id)) return "";
   const r = ruta(m.id, id);            // puede no estar aún: rutas.json es diferido
   if (!r || !r.linies?.length) return "";
 
@@ -1937,20 +2896,30 @@ function renderLegend() {
   $("#legend-lo").textContent = buit ? "—" : c.fmt(r[0]);
   $("#legend-hi").textContent = buit ? "—" : c.fmt(r[1]);
 
-  // Cuántas zonas se quedan sin color, y por qué. En las capas que solo
-  // existen por municipio son los 73 barrios de golpe, y eso hay que decirlo
-  // antes de que alguien lea el gris como «aquí no pasa nada».
-  // A las capas `parcial` no les faltan solo los barrios: les falta también
-  // más de la mitad de los municipios, y decir «los 73 barrios» ahí sería
-  // dejar 53 huecos sin explicar.
-  const sense = DATA.zones.length - DATA.zones.filter(m => c.get(m) != null).length;
-  const muniSense = DATA.zones.filter(m => m.tipus !== "barri" && c.get(m) == null).length;
+  // Cuántas zonas se quedan sin color, y qué clase de zonas son. El gris no
+  // significa «aquí no pasa nada» y hay que decirlo antes de que alguien lo
+  // lea así: la cuenta se hace de los datos, separando municipios de barrios,
+  // porque las capas fallan por un lado o por el otro y nunca igual.
+  const k = cobertura(c);
+  const faltenMuni = k ? k.nMuni - k.muni : 0;
+  const faltenBarri = k ? k.nBarri - k.barri : 0;
+  const trossos = [];
+  if (faltenMuni) trossos.push(`${faltenMuni} ${faltenMuni === 1 ? "municipio" : "municipios"}`);
+  if (faltenBarri) trossos.push(`${faltenBarri} ${faltenBarri === 1 ? "barrio" : "barrios"}`);
   $("#legend-null").textContent =
     c.viu ? "Sin ruta viable"
-    : c.parcial ? `Sin dato · ${DATA.meta.zones.barris} barrios y ${muniSense} municipios`
-    : c.muni ? `Sin dato · los ${DATA.meta.zones.barris} barrios de Barcelona`
-    : sense ? `Sin dato publicado · ${sense} ${sense === 1 ? "zona" : "zonas"}`
+    : trossos.length ? `Sin dato · ${trossos.join(" y ")}`
     : "Sin dato publicado";
+
+  // El porqué del hueco, dicho con la forma que tiene ese hueco en concreto.
+  const perque =
+    !k || k.total === k.n ? ""
+    : k.barri === 0 ? " No se publica por barrio, así que Barcelona sale en gris entera."
+    : k.muni === 0 ? " Solo lo publica el Ayuntamiento de Barcelona: fuera de la ciudad, en gris."
+    : k.muni < k.nMuni * 0.8
+      ? ` Solo lo publica el Ministerio para los municipios de más de ${
+          fmtInt(SEG()?.llindar_habitants || 20000)} habitantes: el resto del mapa, en gris.`
+      : " A unas pocas zonas les falta el dato y se quedan en gris.";
 
   $("#legend-note").textContent =
     c.viu && !condsActives().length
@@ -1959,12 +2928,7 @@ function renderLegend() {
         ? (S.combinar === "tots"
             ? "Cada zona, coloreada por el destino que más le cuesta de los que has marcado."
             : "Cada zona, coloreada por el mejor de los destinos que has marcado.")
-        : c.nota + (c.parcial
-            ? ` Solo lo publica el Ministerio para los municipios de más de ${
-                fmtInt(SEG()?.llindar_habitants || 20000)} habitantes: el resto del mapa, en gris.`
-            : c.muni
-              ? " El INE no lo publica por barrio, así que Barcelona sale en gris entera."
-              : "");
+        : c.nota + perque;
 
   const usades = LINIES ? XARXES.filter(x => LINIES.linies.some(l => l.xarxa === x)) : [];
   $("#legend-xarxes").innerHTML = "<h3>Redes</h3>" + (usades.length
@@ -1984,24 +2948,143 @@ function renderLegend() {
   if (bus) bus.onclick = () => { S.bus = !S.bus; render(); };
 }
 
+/* ---------- la ficha de zona ----------
+   Lo que se sabe de una zona, al lado del mapa donde estabas mirando. La
+   frase primero, luego cuatro cifras y luego los percentiles, que es donde se
+   ve si un número es normal o raro sin conocerse el área de memoria. */
+
+/** Los indicadores que se enseñan con barra de percentil, y en qué orden. No
+    están los 41: una ficha con cuarenta barras no es una ficha. */
+const FICHA_CAPES = ["compra_m2", "lloguer", "esforc", "transport_eur_mes",
+  "sortides", "renda_llar_eur", "densitat_hab_km2", "edat_mitjana",
+  "pct_estrangera", "pct_soroll_65db", "zona_verda_m2_hab", "dist_mar_km"];
+
+/** Una barra de percentil con su etiqueta. `null` se dice, no se esconde: un
+    hueco silencioso se lee como un cero. */
+function barraPctl(c, m) {
+  const v = c.get(m);
+  const p = percentil(c, v);
+  if (v == null) {
+    return `<div class="pct"><span class="p-n">${esc(c.nom)}</span>
+      <span class="p-v pct-na">sin dato</span></div>`;
+  }
+  return `<div class="pct"><span class="p-n">${esc(c.nom)}</span>
+    <span class="p-v">${esc(c.fmt(v))}</span>
+    <span class="pct-bar" role="img" aria-label="${p == null ? "sin percentil"
+      : `percentil ${p} de las zonas con este dato`}"><i style="width:${p == null ? 0 : p}%"></i></span></div>`;
+}
+
+function renderFicha() {
+  const box = $("#ficha"), leg = $("#legend-seq");
+  const m = S.focus ? ROWS.find(r => r.id === S.focus) : null;
+  // La leyenda y la ficha comparten sitio: la ficha contesta «qué es esta
+  // zona» y la leyenda «qué estoy viendo en el mapa». Con una zona abierta,
+  // la segunda pregunta ya no es la que tienes.
+  box.hidden = !m;
+  leg.hidden = !!m;
+  if (!m) return;
+
+  const pin = S.pinned.indexOf(m.id);
+  const xifra = (c, extra) => {
+    const v = c.get(m);
+    return `<div><b>${v == null ? "—" : esc(c.fmt(v))}</b><span>${esc(extra || c.nom)}</span></div>`;
+  };
+  const id = condPrincipal(m);
+  const t = id ? viatge(m, id) : null;
+
+  box.innerHTML = `
+    <div class="fi-top">
+      <div style="min-width:0">
+        <div class="fi-nom">${esc(m.nom_llarg)}</div>
+        <div class="fi-sub">${esc(m.tipus === "barri" ? `${m.districte} · barrio de Barcelona` : `${m.comarca} · municipio`)}${
+          m.ok ? " · cumple tus criterios" : hiHaCriteris()
+            ? ` · no cumple ${esc(m.falla.map(nomFalla).join(", "))}` : ""}</div>
+      </div>
+      <button type="button" class="fi-close" id="fi-x" aria-label="Cerrar la ficha" title="Cerrar">×</button>
+    </div>
+    <p class="fi-frase">${esc(frase(m))}</p>
+    <div class="fi-xifres">
+      ${xifra(CAPA_DE.get("compra_m2"), "Compra")}
+      ${xifra(CAPA_DE.get("lloguer"), "Alquiler")}
+      <div><b>${t ? esc(fmtMin(t.min)) : "—"}</b><span>${t && id
+        ? `hasta ${esc(nomCond(id))}` : "sin viaje marcado"}</span></div>
+      ${xifra(CAPA_DE.get("transport_eur_mes"), "Abono de transporte")}
+    </div>
+    <div class="fi-h">Dónde cae dentro del área</div>
+    ${FICHA_CAPES.map(cid => CAPA_DE.get(cid)).filter(Boolean)
+       .filter(c => c.get(m) != null).map(c => barraPctl(c, m)).join("")}
+    <div class="fi-acc">
+      <button type="button" class="btn btn-sm" id="fi-pin" aria-pressed="${pin >= 0}">${
+        pin >= 0 ? `Fijada (${pin + 1}) — quitar`
+        : S.pinned.length >= PIN_MAX ? `Comparar — ya hay ${PIN_MAX}` : "Comparar esta zona"}</button>
+    </div>`;
+
+  $("#fi-x").onclick = () => { S.focus = null; render(); };
+  $("#fi-pin").onclick = () => fixa(m.id);
+}
+
+/* ---------- la comparación ----------
+   Tabla y no un gráfico de barras multiserie a propósito: veinte indicadores
+   por cuatro zonas necesitarían identidad por color, y eso chocaría con la
+   rampa del mapa y con los colores de red. Las columnas etiquetadas no
+   necesitan ningún color. La mediana del área va como una columna más porque
+   sin ella un número suelto no dice si es alto o bajo. */
+function renderCompara() {
+  const sec = $("#comparacion");
+  const zs = S.pinned.map(id => ROWS.find(r => r.id === id)).filter(Boolean);
+  sec.hidden = zs.length === 0;
+  if (!zs.length) return;
+
+  // Solo las filas en las que alguna de las fijadas tiene dato: una fila de
+  // cuatro rayas no compara nada.
+  const files = CAPES.filter(c => !c.viu && zs.some(m => c.get(m) != null));
+
+  $("#cmp-sub").textContent = `${zs.length} ${zs.length === 1 ? "zona fijada" : "zonas fijadas"}`
+    + ` · ${files.length} indicadores con dato en alguna de ellas`
+    + (S.pinned.length < PIN_MAX ? ` · caben ${PIN_MAX - S.pinned.length} más` : "");
+
+  $("#cmp-head").innerHTML = "<tr><th>Indicador</th>"
+    + zs.map((m, i) => `<th><span class="num">${i + 1}</span>${esc(m.nom_llarg)}
+        <button type="button" class="cmp-drop" data-drop-pin="${esc(m.id)}">quitar</button></th>`).join("")
+    + `<th>Mediana del área</th></tr>`;
+
+  $("#cmp-body").innerHTML = files.map(c => {
+    const med = median(DATA.zones.map(z => c.get(z)));
+    const cel = (m) => {
+      const v = c.get(m);
+      if (v == null) return `<td class="na">—</td>`;
+      const p = percentil(c, v);
+      return `<td>${esc(c.fmt(v))}
+        <span class="pct-bar" role="img" aria-label="${p == null ? "sin percentil"
+          : `percentil ${p}`}"><i style="width:${p == null ? 0 : p}%"></i></span></td>`;
+    };
+    return `<tr><th scope="row">${esc(c.nom)}</th>${zs.map(cel).join("")}`
+         + `<td class="cmp-med">${med == null ? "—" : esc(c.fmt(med))}</td></tr>`;
+  }).join("");
+
+  sec.querySelectorAll("[data-drop-pin]").forEach(b => {
+    b.onclick = () => fixa(b.dataset.dropPin);
+  });
+  $("#cmp-clear").onclick = () => { S.pinned = []; render(); };
+}
+
 function renderItin() {
   const panel = $("#panel-itin");
-  const m = S.selected ? ROWS.find(r => r.id === S.selected) : null;
+  const m = S.focus ? ROWS.find(r => r.id === S.focus) : null;
   if (!m) { panel.hidden = true; return; }
   panel.hidden = false;
 
   const id = condPrincipal(m);
-  const dest = id === "__lliure" ? { nom: "tu punto" } : DATA.meta.destins.find(d => d.id === id);
-  $("#itin-title").textContent = dest ? `${m.nom_llarg} → ${dest.nom}` : m.nom_llarg;
+  $("#itin-title").textContent = id ? `${m.nom_llarg} → ${nomCond(id)}` : m.nom_llarg;
 
   if (!id) {
     $("#itin").innerHTML = `<p class="legend-note">Marca algún destino para ver el itinerario.</p>`;
     return;
   }
-  if (id === "__lliure") {
+  if (esPunt(id)) {
     const t = viatge(m, id);
     $("#itin").innerHTML = t
-      ? `<p class="legend-note">Estimación: <strong>${fmtMin(t.min)}</strong> hasta tu punto.
+      ? `<p class="legend-note">Estimación: <strong>${fmtMin(t.min)}</strong> hasta ${esc(nomCond(id))}.
          Es el mejor encaje entre llegar a una parada cercana y caminar desde ella;
          no hay itinerario con nombre porque no se ha encaminado ese trayecto concreto.</p>`
       : `<p class="legend-note">Sin estimación: no hay ninguna parada a menos de 2,5 km de tu punto, o esta zona no llega.</p>`;
@@ -2050,23 +3133,29 @@ function colsTaula() {
     { k: "aPeu", t: "A pie", fmt: (m) => m.aPeu == null ? null : `${m.aPeu} min` },
   ];
   for (const id of condsActives()) {
-    const d = id === "__lliure" ? { nom: "Tu punto" } : DATA.meta.destins.find(x => x.id === id);
-    cols.push({ k: "d:" + id, t: d?.nom || id, fmt: (m) => fmtMinOrNull(viatge(m, id)?.min) });
+    cols.push({ k: "d:" + id, t: nomCond(id), fmt: (m) => fmtMinOrNull(viatge(m, id)?.min) });
   }
   cols.push({ k: "compra_eur_m2", t: "€/m²", fmt: (m) => m.compra_eur_m2 == null ? null : fmtEur(m.compra_eur_m2) });
   cols.push({ k: "lloguer_eur_mes", t: "Alquiler", fmt: (m) => m.lloguer_eur_mes == null ? null : fmtEur(m.lloguer_eur_mes) + "/mes" });
 
-  // Lo que estés mirando en el mapa aparece aquí como columna ordenable, para
-  // que se pueda leer en números lo que el color solo insinúa. Las que ya
-  // están fijas —precio y alquiler— no se repiten.
-  const c = capa();
-  const FIJAS = ["compra_m2", "lloguer", "temps"];
-  if (!FIJAS.includes(c.id)) {
+  // Lo que estés mirando en el mapa y aquello por lo que estés filtrando
+  // aparecen aquí como columnas ordenables: la tabla responde a los mismos
+  // mandos que el resto, que es lo que la hace parte de la misma vista y no
+  // un anexo. Las que ya están fijas no se repiten.
+  const FIJAS = new Set(["compra_m2", "lloguer", "temps"]);
+  const posades = new Set();
+  const afegeix = (c) => {
+    if (!c || c.viu || FIJAS.has(c.id) || posades.has(c.id)) return;
+    posades.add(c.id);
     cols.push({ k: "capa:" + c.id, t: c.nom, fmt: (m) => {
       const v = c.get(m);
       return v == null ? null : c.fmt(v);
     } });
-  }
+  };
+  afegeix(capa());
+  for (const f of S.filtres) afegeix(CAPA_DE.get(f.capa));
+  const ord = CAPA_DE.get(S.ordre);
+  if (ord && ORDENABLES.includes(S.ordre)) afegeix(ord);
   return cols;
 }
 
@@ -2105,15 +3194,18 @@ function renderTable() {
       // La etiqueta «barrio» va aquí y no en el nombre: en el ranking y en el
       // tooltip el «(Barcelona)» ya lo dice, pero en una tabla ordenable por
       // precio conviene ver de un golpe qué escala estás comparando.
-      const tag = i === 0 && m.tipus === "barri" ? `<span class="tag">barrio</span>` : "";
+      const pinIdx = i === 0 ? S.pinned.indexOf(m.id) : -1;
+      const tag = (i === 0 && m.tipus === "barri" ? `<span class="tag">barrio</span>` : "")
+                + (pinIdx >= 0 ? `<span class="tag">fijada ${pinIdx + 1}</span>` : "");
       return `<td class="${val == null ? "na" : ""}">${pre}${val == null ? "—" : esc(val)}${tag}</td>`;
     }).join("");
-    return `<tr data-id="${esc(m.id)}" class="${m.ok ? "" : "no-ok"} ${S.selected === m.id ? "is-sel" : ""}">${tds}</tr>`;
+    return `<tr data-id="${esc(m.id)}" class="${m.ok ? "" : "no-ok"} ${S.focus === m.id ? "is-sel" : ""}">${tds}</tr>`;
   }).join("");
 
   const n = rows.length;
   $("#tbl-sub").textContent = `${n} ${n === 1 ? "zona" : "zonas"}`
-    + (S.nomesOk ? " compatibles con tu viaje." : " · Compra, alquiler y conexiones.");
+    + (S.nomesOk ? " que cumplen tus criterios." : ". Las columnas siguen a tus filtros y al mapa.")
+    + " Pincha una fila para abrir su ficha.";
 }
 
 function renderTexts() {
@@ -2238,7 +3330,7 @@ function lecturaResidu(m) {
   // diecinueve nombres distintos daba frases mal construidas.
   return `<div class="t-flag" style="color:${baix ? "var(--ok)" : "var(--accent)"}">`
        + `${baix ? "▼" : "▲"} ${fmtInt(Math.abs(p))} % ${baix ? "por debajo" : "por encima"}`
-       + ` de lo que le tocaría por su tiempo de viaje</div>`;
+       + ` de lo que le tocaría por su ${esc(capaX().nom.toLowerCase())}</div>`;
 }
 
 /** Precios que salen de muy pocas operaciones. El número es el que publica la
@@ -2262,10 +3354,9 @@ function showTip(id, ev) {
   if (!m) return hideTip();
   const actives = condsActives();
   const files = actives.map(cid => {
-    const d = cid === "__lliure" ? { nom: "Tu punto" } : DATA.meta.destins.find(x => x.id === cid);
     const v = viatge(m, cid);
     const cumple = compleixCond(m, cid);
-    return `<dt>${esc(d?.nom || cid)}${v?.estimat ? " (est.)" : ""}</dt>
+    return `<dt>${esc(nomCond(cid))}${v?.estimat ? " (est.)" : ""}</dt>
             <dd style="color:${v?.min == null ? "var(--muted)" : cumple ? "var(--ok)" : "var(--ink)"}">${
               v?.min == null ? "—" : fmtMin(v.min)}</dd>`;
   }).join("");
@@ -2302,8 +3393,9 @@ function showTip(id, ev) {
     </dl>
     ${lecturaResidu(m)}
     ${avisMostra(m)}
-    ${actives.length ? `<div class="t-flag" style="color:${m.ok ? "var(--ok)" : "var(--muted)"}">${
-      m.ok ? "✓ Cumple tus condiciones" : "No cumple"}</div>` : ""}`;
+    ${hiHaCriteris() ? `<div class="t-flag" style="color:${m.ok ? "var(--ok)" : "var(--muted)"}">${
+      m.ok ? "✓ Cumple todos tus criterios"
+           : `No cumple ${esc(m.falla.map(nomFalla).join(", "))}`}</div>` : ""}`;
   tip.classList.add("on");
   tip.setAttribute("aria-hidden", "false");
   moveTip(ev);
@@ -2326,11 +3418,35 @@ function hideTip() { tip.classList.remove("on"); tip.setAttribute("aria-hidden",
     llega rutas.json. Pedirlo antes de pintar dejaría la interfaz muerta medio
     segundo por un panel lateral. */
 function selecciona(id) {
-  S.selected = S.selected === id ? null : id;
+  S.focus = S.focus === id ? null : id;
   render();
-  if (S.selected && !RUTES) carregaRutes().then(render).catch(e => {
+  if (S.focus && !RUTES) carregaRutes().then(render).catch(e => {
     console.warn("sin rutas.json:", e.message);
   });
+}
+
+/** Fijar o soltar una zona de la comparación. El tope es duro y no se avisa
+    con un diálogo: el botón ya dice que están las cuatro. */
+function fixa(id) {
+  const i = S.pinned.indexOf(id);
+  if (i >= 0) S.pinned.splice(i, 1);
+  else if (S.pinned.length < PIN_MAX) S.pinned.push(id);
+  else return;
+  render();
+}
+
+/** Un desplegable de capas agrupado, con la cobertura escrita al lado del
+    nombre: se ve antes de elegir que esa capa dejará medio mapa en gris. */
+function omplerSelect(sel, actual, filtre) {
+  sel.innerHTML = GRUPS.map(g => {
+    const dins = CAPES.filter(c => c.grup === g && (!filtre || filtre(c)));
+    if (!dins.length) return "";
+    return `<optgroup label="${esc(g)}">` + dins.map(c => {
+      const av = avisCobertura(c);
+      return `<option value="${esc(c.id)}"${c.id === actual ? " selected" : ""}>${
+        esc(c.nom)}${av ? ` · ${esc(av)}` : ""}</option>`;
+    }).join("") + `</optgroup>`;
+  }).join("");
 }
 
 function initUI() {
@@ -2353,16 +3469,39 @@ function initUI() {
     render();
   };
 
-  // El desplegable se monta una sola vez: las capas no cambian en vida de la
-  // página. Las que solo existen por municipio van en su propio grupo, para
-  // que se vea antes de elegirlas que dejarán Barcelona en gris.
+  // Los cuatro desplegables de capas se montan una vez: las capas no cambian
+  // en vida de la página. Cada uno lleva la cobertura escrita al lado del
+  // nombre, para que se vea antes de elegir que dejará medio mapa en gris.
   const sel = $("#f-capa");
-  const grups = [...new Set(CAPES.map(c => c.grup))];
-  sel.innerHTML = grups.map(g =>
-    `<optgroup label="${esc(g)}">` + CAPES.filter(c => c.grup === g).map(c =>
-      `<option value="${esc(c.id)}"${c.id === S.capa ? " selected" : ""}>${esc(c.nom)}</option>`
-    ).join("") + `</optgroup>`).join("");
+  omplerSelect(sel, S.capa);
   sel.onchange = () => { S.capa = sel.value; render(); };
+
+  const ejeX = $("#f-ejex"), ejeY = $("#f-ejey");
+  omplerSelect(ejeX, S.ejeX);
+  omplerSelect(ejeY, S.ejeY, (c) => !c.viu);   // el tiempo solo va en horizontal
+  ejeX.onchange = () => { S.ejeX = ejeX.value; render(); };
+  ejeY.onchange = () => { S.ejeY = ejeY.value; render(); };
+
+  // El ranking solo se ordena por capas con un sentido escrito: en la edad
+  // media o en el porcentaje de extranjeros no hay «mejor», y un ranking
+  // necesita saber hacia dónde va.
+  const ord = $("#f-ordre");
+  omplerSelect(ord, S.ordre, (c) => ORDENABLES.includes(c.id));
+  ord.onchange = () => { S.ordre = ord.value; render(); };
+
+  // Añadir un filtro: la capa elegida entra con su rango entero, así que no
+  // quita nada hasta que se mueve. Descubrir el control filtrando de golpe
+  // sería una trampa.
+  const add = $("#f-add");
+  add.onchange = () => {
+    const c = CAPA_DE.get(add.value);
+    const r = c && rang(c);
+    if (r && !S.filtres.some(f => f.capa === c.id)) {
+      S.filtres.push({ capa: c.id, lo: r[0], hi: r[1], sense: false });
+      $("#sec-rangos").open = true;
+    }
+    render();
+  };
 
   $("#f-xarxa").onclick = (e) => {
     S.xarxa = !S.xarxa;
@@ -2379,14 +3518,17 @@ function initUI() {
 
   $("#f-reset").onclick = () => {
     S.combinar = "algun"; S.maxPeu = 30;
-    S.puntLliure = null; S.nomesOk = false; S.selected = null;
-    S.capa = "compra_m2"; S.xarxa = true; S.bus = false;
+    S.punts = []; S.nomesOk = false; S.focus = null; S.hover = null; S.pinned = [];
+    S.filtres = []; S.cats = { tipus: [], comarca: [], districte: [], xarxa: [] };
+    S.capa = "compra_m2"; S.ejeX = "temps"; S.ejeY = "compra_m2"; S.ordre = "compra_m2";
+    S.xarxa = true; S.bus = false;
     peu.value = 30; $("#f-peu-v").textContent = "30 min";
     $("#f-comb-algun").setAttribute("aria-pressed", "true");
     $("#f-comb-tots").setAttribute("aria-pressed", "false");
     $("#f-nomes").setAttribute("aria-pressed", "false");
     $("#f-xarxa").setAttribute("aria-pressed", "true");
-    sel.value = "compra_m2";
+    sel.value = "compra_m2"; ejeX.value = "temps"; ejeY.value = "compra_m2";
+    ord.value = "compra_m2";
     initConds(true);
     setPicking(false);
     zoomFit();
@@ -2395,42 +3537,54 @@ function initUI() {
   // --- mapa ---
   const map = $("#map");
   map.addEventListener("pointermove", (ev) => {
-    if (mapDrag) return hideTip();
+    if (mapDrag) { realca(null); return hideTip(); }
     const t = ev.target.closest("[data-id]");
-    if (t) showTip(t.dataset.id, ev); else hideTip();
+    if (t) { realca(t.dataset.id); showTip(t.dataset.id, ev); }
+    else { realca(null); hideTip(); }
   });
-  map.addEventListener("pointerleave", hideTip);
+  map.addEventListener("pointerleave", () => { realca(null); hideTip(); });
   map.addEventListener("click", (ev) => {
     if (mapDrag > 3) return;
     if (S.picking) {
       const p = svgPoint(map, ev);
-      S.puntLliure = { lat: PROJ.invLat(p.y), lon: PROJ.invLon(p.x) };
-      S.conds.__lliure = { on: true, max: S.conds.__lliure?.max ?? 90 };
+      const nou = afegeixPunt(PROJ.invLat(p.y), PROJ.invLon(p.x));
       setPicking(false);          // devuelve el cursor y repinta la fila
       // La matriz solo se descarga ahora, la primera vez que hace falta.
-      carregaIso().then(render).catch(e => {
+      if (nou) carregaIso().then(render).catch(e => {
         console.warn("sin isócronas:", e.message);
-        S.puntLliure = null; delete S.conds.__lliure; render();
+        treuPunt(nou.id); render();
       });
       render();
       return;
     }
     const t = ev.target.closest("[data-id]");
-    if (t) selecciona(t.dataset.id);
-    else if (S.selected) { S.selected = null; render(); }
+    if (!t) { if (S.focus) { S.focus = null; render(); } return; }
+    // Con ⇧ o Ctrl se fija para comparar en vez de abrir la ficha: es el gesto
+    // que ya usa todo el mundo para «y también este».
+    if (ev.shiftKey || ev.ctrlKey || ev.metaKey) fixa(t.dataset.id);
+    else selecciona(t.dataset.id);
   });
 
-  // --- gráfico: mismo tooltip y misma selección que el mapa ---
+  // --- gráfico: mismo tooltip, mismo realce y misma selección que el mapa ---
   const sc = $("#scatter");
   sc.addEventListener("pointermove", (e) => {
     const t = e.target.closest("[data-id]");
-    if (t) showTip(t.dataset.id, e); else hideTip();
+    if (t) { realca(t.dataset.id); showTip(t.dataset.id, e); }
+    else { realca(null); hideTip(); }
   });
-  sc.addEventListener("pointerleave", hideTip);
+  sc.addEventListener("pointerleave", () => { realca(null); hideTip(); });
   sc.addEventListener("click", (e) => {
     const t = e.target.closest("[data-id]");
-    if (t) selecciona(t.dataset.id);
-    else if (S.selected) { S.selected = null; render(); }
+    if (!t) { if (S.focus) { S.focus = null; render(); } return; }
+    if (e.shiftKey || e.ctrlKey || e.metaKey) fixa(t.dataset.id);
+    else selecciona(t.dataset.id);
+  });
+
+  // Esc cierra la ficha, y antes que eso cancela la elección de un punto.
+  addEventListener("keydown", (e) => {
+    if (e.key !== "Escape") return;
+    if (S.picking) setPicking(false);
+    else if (S.focus) { S.focus = null; render(); }
   });
 
   $("#thead").onclick = (e) => {
@@ -2442,16 +3596,17 @@ function initUI() {
   };
   $("#tbody").onclick = (e) => {
     const tr = e.target.closest("tr");
-    if (tr) {
-      selecciona(tr.dataset.id);
-      if (S.selected) $("#panel-itin").scrollIntoView({ block: "nearest" });
-    }
+    if (!tr) return;
+    if (e.shiftKey || e.ctrlKey || e.metaKey) return fixa(tr.dataset.id);
+    selecciona(tr.dataset.id);
+    if (S.focus) $("#ficha").scrollIntoView({ block: "nearest" });
   };
   $("#tbody").addEventListener("pointermove", (e) => {
     const tr = e.target.closest("tr");
-    if (tr) showTip(tr.dataset.id, e); else hideTip();
+    if (tr) { realca(tr.dataset.id); showTip(tr.dataset.id, e); }
+    else { realca(null); hideTip(); }
   });
-  $("#tbody").addEventListener("pointerleave", hideTip);
+  $("#tbody").addEventListener("pointerleave", () => { realca(null); hideTip(); });
 
   /* El gráfico mide su caja para decidir la altura y el cuerpo de letra, así
      que al cambiar el ancho de la ventana hay que rehacerlo. Solo él: el mapa

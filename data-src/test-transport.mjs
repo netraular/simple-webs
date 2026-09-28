@@ -860,8 +860,9 @@ if (ANC && ISOZ && ISOZ.ids?.length) {
     api = new Function(js + `
       return { S, initConds, recompute, minsLliure, fetchJSON, carregaIso, svgPoint,
                set DATA_(v){ DATA = v }, get DATA_(){ return DATA },
-               get LLIURE_(){ return LLIURE },
-               set PUNT_(v){ S.puntLliure = v } };
+               get LLIURE_(){ return LLIURE.get("test") },
+               set PUNT_(v){ S.punts = [{ id: "test", nom: "Punto de prueba",
+                                          lat: v.lat, lon: v.lon }] } };
     `)();
     api.DATA_ = await api.fetchJSON("data/zonas.json");
     api.initConds(true);
@@ -909,8 +910,11 @@ if (ANC && ISOZ && ISOZ.ids?.length) {
     for (const id of PUNTS) {
       const d = destins.find((x) => x.id === id);
       if (!d) { aviso(`el destino «${id}» ya no existe: me salto su columna del estimador`); continue; }
+      // La página admite hasta cuatro puntos propios; aquí se prueba uno cada
+      // vez, con el mismo nombre, para poder comparar sus seis columnas de
+      // error contra los tiempos exactos del mismo destino.
       api.PUNT_ = { lat: d.lat, lon: d.lon };
-      api.S.conds.__lliure = { on: true, max: 90 };
+      api.S.conds["pt:test"] = { on: true, max: 90 };
       api.recompute();
 
       const errores = [];

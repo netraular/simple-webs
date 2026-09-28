@@ -6,8 +6,9 @@ Dos fuentes, las dos oficiales y las dos solo municipales:
   · Delitos. «Balance de Criminalidad» del Ministerio del Interior, año
     completo. Solo publica el desglose por municipio de los **mayores de
     20.000 habitantes**, así que de nuestros 92 municipios cubre unos 39 y
-    ninguno de los 73 barrios de Barcelona. Los Mossos publican por Área
-    Básica Policial, que en Barcelona son 10 distritos: tampoco sirve.
+    ninguno de los 73 barrios de Barcelona. Dentro de la ciudad ese hueco lo
+    tapa build_delictes_bcn.py, que reparte el total de aquí entre los 10
+    distritos con los datos de los Mossos por Área Básica Policial.
 
   · Zona verde por habitante. Observatori del Territori de la Diputació de
     Barcelona, vía Socrata. Ese sí cubre los 92, también sin barrios.

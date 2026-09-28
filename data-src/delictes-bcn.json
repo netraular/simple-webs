@@ -1,0 +1,70 @@
+{
+ "generat": "2026-09-28",
+ "any": 2025,
+ "font": "Mossos d'Esquadra · Fets coneguts per ABP (Socrata qnyt-emjc), creuat amb dtpq-6fvw i i2dd-kfpa",
+ "factor_prorrateig": 1.0123,
+ "nota": "Reparto entre distritos según los Mossos; nivel total según el Balance de Criminalidad del Ministerio del Interior, que es la misma vara con la que se miden los 91 municipios. Los recuentos son absolutos: la tasa la calcula build-transport.mjs. Es dato de distrito, no de barrio: los barrios de un mismo distrito comparten número. «ABP Virtual» (ciberdelincuencia, sin territorio) y «ABP Barcelona» (unidad aparte de los distritos) quedan fuera.",
+ "sense_dada": "No hay equivalente de «robos con fuerza en domicilios»: los Mossos publican «Robatori amb força» y «…interior vehicle», y ninguna de las dos es eso.",
+ "districtes": {
+  "01": {
+   "nom": "Ciutat Vella",
+   "abp": "34",
+   "delictes_total": 38246,
+   "robatoris_violencia": 4108
+  },
+  "02": {
+   "nom": "Eixample",
+   "abp": "35",
+   "delictes_total": 41684,
+   "robatoris_violencia": 2364
+  },
+  "03": {
+   "nom": "Sants-Montjuïc",
+   "abp": "36",
+   "delictes_total": 19956,
+   "robatoris_violencia": 1627
+  },
+  "04": {
+   "nom": "les Corts",
+   "abp": "37",
+   "delictes_total": 6995,
+   "robatoris_violencia": 361
+  },
+  "05": {
+   "nom": "Sarrià-Sant Gervasi",
+   "abp": "38",
+   "delictes_total": 7223,
+   "robatoris_violencia": 391
+  },
+  "06": {
+   "nom": "Gràcia",
+   "abp": "39",
+   "delictes_total": 6338,
+   "robatoris_violencia": 311
+  },
+  "07": {
+   "nom": "Horta Guinardó",
+   "abp": "40",
+   "delictes_total": 7918,
+   "robatoris_violencia": 553
+  },
+  "08": {
+   "nom": "Nou Barris",
+   "abp": "41",
+   "delictes_total": 8906,
+   "robatoris_violencia": 658
+  },
+  "09": {
+   "nom": "Sant Andreu",
+   "abp": "42",
+   "delictes_total": 11179,
+   "robatoris_violencia": 762
+  },
+  "10": {
+   "nom": "Sant Martí",
+   "abp": "43",
+   "delictes_total": 21233,
+   "robatoris_violencia": 1707
+  }
+ }
+}

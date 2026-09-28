@@ -152,8 +152,15 @@ ok(avisMal.length === 0, "el aviso de cobertura de cada capa dice la verdad",
 
 /* Las tasas del Ministerio se calculan en build-transport.mjs a partir de
    recuentos y del padrón. Un error de denominador daría cifras absurdas sin
-   romper nada, así que se acotan contra el rango que tiene sentido. */
-const TASES = { delictes_1000: [5, 250], robatoris_violencia_1000: [0, 40],
+   romper nada, así que se acotan contra el rango que tiene sentido.
+
+   El techo de `delictes_1000` era 250 mientras el dato solo llegaba a nivel de
+   municipio. Con el reparto por distrito dentro de Barcelona, Ciutat Vella sale
+   a 330 y es cierto: son 38.246 hechos sobre 115.000 vecinos, y dos tercios del
+   total de la ciudad son hurtos concentrados en el casco viejo y la playa. Se
+   sube a 400, que sigue dejando fuera cualquier error de denominador —el
+   siguiente distrito está en 150— pero no llama falso a un dato que no lo es. */
+const TASES = { delictes_1000: [5, 400], robatoris_violencia_1000: [0, 40],
                 robatoris_domicili_1000: [0, 20], zona_verda_m2_hab: [0.5, 400] };
 let tasaMal = [];
 for (const [camp, [lo, hi]] of Object.entries(TASES)) {

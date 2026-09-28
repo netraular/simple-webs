@@ -69,12 +69,14 @@ const linies  = readOpt("linies.json");
 const iso     = readOpt("isocrones.json");
 const pois    = read(src("pois.json"));
 const segur   = readOpt("seguretat.json");
+const delBcn  = readOpt("delictes-bcn.json");
 const tarifes = readOpt("tarifes.json");
 const centres = readOpt("centres.json");
 const soroll  = readOpt("soroll.json");
 const costa   = readOpt("costa.geojson");
 
 if (!segur)   avisos.push("falta seguretat.json: sin delitos ni zona verde (python3 build_seguretat.py)");
+if (!delBcn)  avisos.push("falta delictes-bcn.json: los 73 barrios se quedan sin delitos (python3 build_delictes_bcn.py)");
 if (!tarifes) avisos.push("falta tarifes.json: sin zona tarifaria, abono ni agua (python3 build_tarifes.py)");
 if (!centres) avisos.push("falta centres.json: sin centros educativos (node build_centres.mjs)");
 if (!soroll)  avisos.push("falta soroll.json: sin ruido en los barrios (python3 build_soroll.py)");
@@ -185,6 +187,47 @@ function seguretat(o, id, poblacio) {
     if (!tasa) { o[camp] = v; continue; }
     if (!poblacio) continue;                 // sin padrón no hay tasa que valga
     o[camp] = Math.round(v / poblacio * 1000 * 10) / 10;
+  }
+  return o;
+}
+
+/* --- delitos dentro de Barcelona -------------------------------------------
+   Los 73 barrios no tienen dato propio —nadie lo publica— pero sí lo tiene su
+   distrito: las Áreas Básicas Policiales de los Mossos son, dentro de la
+   ciudad, exactamente los 10 distritos. Así que los barrios de un mismo
+   distrito comparten número, y la página lo dice con esas palabras. Es peor
+   alternativa que un dato por barrio y mucho mejor que la anterior, que era un
+   único número para los 73.
+
+   La tasa se calcula con la población del **distrito**, no la del barrio: el
+   recuento es del distrito entero y dividirlo por los 50.863 vecinos del Raval
+   daría una tasa siete veces inflada. */
+const pobDistricte = new Map();
+for (const m of barris.municipis) {
+  const d = normDistr(m.comarca);
+  if (d) pobDistricte.set(d, (pobDistricte.get(d) || 0) + (m.poblacio || 0));
+}
+const delPerDistr = new Map();
+for (const d of Object.values(delBcn?.districtes || {})) {
+  delPerDistr.set(normDistr(d.nom), d);
+}
+
+/** Nombres de distrito comparables: los Mossos escriben «Horta Guinardó» y el
+    padrón «Horta-Guinardó», y ese guion no puede costar un indicador. */
+function normDistr(s) {
+  return String(s || "").toLowerCase()
+    .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    .replace(/[-']/g, " ").replace(/\s+/g, " ").trim();
+}
+
+/** Añade al bloque `ind` de un barrio los delitos de su distrito. */
+function delictesBarri(o, districte) {
+  const d = delPerDistr.get(normDistr(districte));
+  const pob = pobDistricte.get(normDistr(districte));
+  if (!d || !pob) return o;
+  for (const { camp, origen, tasa } of SEGURETAT) {
+    if (!tasa || d[origen] == null) continue;
+    o[camp] = Math.round(d[origen] / pob * 1000 * 10) / 10;
   }
   return o;
 }
@@ -388,14 +431,16 @@ function zona(m, id, tipus, t) {
     destins: dst,
   };
 
-  // Los barrios no reciben nada de seguretat.json ni de tarifes.json: ninguna
-  // de sus fuentes baja del municipio, y repartir el dato de Barcelona entre
-  // sus 73 barrios pintaría 73 zonas iguales fingiendo un detalle que no
-  // existe. El ruido va al revés: solo barrios.
+  // Los barrios no reciben nada de tarifes.json: la zona tarifaria y el agua no
+  // bajan del municipio, y repartir el dato de Barcelona entre sus 73 barrios
+  // pintaría 73 zonas iguales fingiendo un detalle que no existe. El ruido va
+  // al revés: solo barrios. Los delitos están en medio —son del distrito— y por
+  // eso tienen su propio inyector.
   const ind = indicadors(m.ind);
   if (tipus === "barri") {
     copia(ind, soroll?.barris?.[cb], SOROLL);
     copia(ind, centres?.barris?.[cb], CENTRES);
+    delictesBarri(ind, m.comarca);
   } else {
     seguretat(ind, id, m.poblacio);
     copia(ind, tar, TARIFES);

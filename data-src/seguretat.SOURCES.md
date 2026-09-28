@@ -1,7 +1,9 @@
 # `seguretat.json` — fonts de dades
 
 Generat amb `build_seguretat.py`. Dues fonts oficials, totes dues **només
-municipals**: cap de les dues baixa al barri.
+municipals**: cap de les dues baixa al barri. Dins de Barcelona els delictes els
+reparteix **`build_delictes_bcn.py`** pels 10 districtes, amb els Mossos i
+prorratejat contra el total d'aquí — vegeu `delictes-bcn.SOURCES.md`.
 
 Es guarden **recuentos absoluts**, no taxes. Qui divideix pel padró és
 `build-transport.mjs`, amb el mateix padró que fa servir la resta de la
@@ -30,8 +32,11 @@ en compleixen el llindar 38. Els 53 restants no hi són, i no hi ha cap altra
 font que els cobreixi:
 
 - Els **Mossos d'Esquadra** publiquen per **Àrea Bàsica Policial** — 62 per a
-  tota Catalunya, sense columna de municipi. A Barcelona una ABP és un
-  districte: 10, no els 73 barris.
+  tota Catalunya, sense columna de municipi. Fora de Barcelona una ABP agrupa
+  municipis molt diferents entre si (dotze del Vallès Oriental comparteixen la de
+  Granollers), i repartir-la donaria **20 valors per als 91**: seria inventar. En
+  canvi **dins** de Barcelona una ABP **és** un districte, i allà sí s'aprofita:
+  els 73 barris passen d'un sol número a deu. Ho fa `build_delictes_bcn.py`.
 - El **portal de dades obertes de l'Ajuntament** no té cap conjunt de delictes
   (cerques de `delictes`, `robatoris`, `furts`, `victimització`, `mossos`,
   `seguretat ciutadana`: cap resultat). Sí que hi ha

@@ -439,5 +439,38 @@ ok(ticksMal.length === 0, "las marcas caen dentro del rango y son finitas",
 ok(fmtMin(45) === "45 min" && fmtMin(85) === "1 h 25" && fmtMin(null) === "—",
    "los minutos se leen como «45 min», «1 h 25» y «—»");
 
+console.log("\n══ búsqueda de candidatas ══════════════════════");
+const buscarCandidatas = new Function("S", "ROWS", "CAPA_DE", "ORDENABLES", "ORDRE_DESC",
+  between("function zonesCandidates()", "/* --- rangos de color") + "return zonesCandidates();");
+const candidatas = (filas, cerca = "", ordre = "compra_m2") =>
+  buscarCandidatas({ cerca, ordre }, filas, CAPA_DE, ORDENABLES, ORDRE_DESC);
+const todasCandidatas = zones.map(zona => ({ ...zona, ok: true }));
+const ordenOriginal = todasCandidatas.map(zona => zona.id).join(",");
+const ordenadas = candidatas(todasCandidatas);
+ok(ordenadas.length === zones.length, "la lista conserva las zonas sin dato de ordenación");
+const conPrecio = ordenadas.filter(zona => zona.compra_eur_m2 != null);
+ok(conPrecio.every((zona, index) => index === 0 || conPrecio[index - 1].compra_eur_m2 <= zona.compra_eur_m2),
+   "compra ordena de menor a mayor");
+ok(ordenadas.slice(conPrecio.length).every(zona => zona.compra_eur_m2 == null),
+   "las zonas sin precio aparecen al final");
+const porEstaciones = candidatas(todasCandidatas, "", "estacions");
+const capaEstaciones = CAPA_DE.get("estacions");
+const conEstaciones = porEstaciones.filter(zona => capaEstaciones.get(zona) != null);
+ok(conEstaciones.every((zona, index) => index === 0 || capaEstaciones.get(conEstaciones[index - 1]) >= capaEstaciones.get(zona)),
+   "estaciones ordena de mayor a menor");
+const sarria = candidatas(todasCandidatas, " SARRIA ");
+ok(sarria.length > 0 && sarria.some(zona => zona.nom === "Sarrià"),
+   "la búsqueda ignora acentos, mayúsculas y espacios exteriores");
+ok(candidatas(todasCandidatas, "Eixample").length === 6,
+   "la búsqueda también encuentra los barrios de un distrito");
+ok(candidatas(todasCandidatas, "zzzzzzzz").length === 0, "una búsqueda sin coincidencias devuelve una lista vacía");
+ok(candidatas(todasCandidatas.map(zona => ({ ...zona, ok: false }))).length === 0,
+   "las zonas que incumplen filtros no aparecen como candidatas");
+ok(todasCandidatas.map(zona => zona.id).join(",") === ordenOriginal,
+   "buscar y ordenar no modifica el orden de los datos originales");
+let sintaxisValida = true;
+try { new Function(js); } catch { sintaxisValida = false; }
+ok(sintaxisValida, "el JavaScript completo de la página compila");
+
 console.log(`\n${pasan}/${pasan + fallan} comprobaciones pasan`);
 if (fallan) process.exit(1);

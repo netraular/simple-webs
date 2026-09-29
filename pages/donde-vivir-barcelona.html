@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>¿Dónde puedo vivir? · Explorador de vivienda, transporte y vecindario en el área de Barcelona</title>
-<meta name="description" content="Filtra las 164 zonas del área de Barcelona —91 municipios y los 73 barrios de la ciudad— por lo que te importe: precio, alquiler, tiempo de viaje puerta a puerta, distancia a Rodalies o FGC, delitos, ruido, densidad, renta, paro, colegios, deporte, zona verde, locales vacíos y treinta datos oficiales más. Criterios en una barra, mapa ancho, tabla comparable con percentiles, ficha de cada zona y comparación de hasta cuatro.">
-<meta name="theme-color" content="#f4f6f5">
+<meta name="description" content="Encuentra dónde vivir en el área de Barcelona. Explora 164 barrios y municipios por precio de compra, alquiler y trayecto; consulta su entorno y servicios, y compara hasta cuatro zonas con datos y fuentes oficiales.">
+<meta name="theme-color" content="#f5f6f8">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='88'>🚆</text></svg>">
 <style>
 /* ===========================================================================
@@ -33,12 +33,9 @@
    comparación y —lo nuevo— los filtros. Cualquier capa se puede convertir en un
    filtro de rango porque ya sabe todo lo que un filtro necesita saber.
 
-   Las tres vistas —mapa, tabla y gráfico— son la misma selección vista de tres
-   maneras, y una sola barra de criterios las gobierna a las tres. Pasar el
-   ratón por una enciende la zona en las otras dos; pinchar abre su ficha; fijar
-   hasta cuatro las pone una al lado de otra. La tabla es la superficie donde de
-   verdad se comparan: viene ancha, se le añaden columnas y cada celda numérica
-   lleva su percentil pintado detrás.
+  Mapa con lista de candidatas, tabla y gráfico comparten los criterios.
+  La comparación empieza por un resumen temático y conserva el acceso a
+  todos los indicadores. Los datos ausentes nunca se convierten en ceros.
    =========================================================================== */
 
 :root{
@@ -373,9 +370,6 @@ main{min-width:0;padding:0 0 48px}
 .verdict-sub{margin-top:5px;font-size:.76rem;color:var(--ink-2);max-width:100ch}
 
 /* ---------- mapa ---------- */
-/* Por defecto el mapa ocupa el ancho entero. La ficha solo se lleva una
-   columna cuando hay una zona abierta: superponerla taparía justo el mapa que
-   estás mirando, y tenerla siempre reservada encogía el mapa para nada. */
 .map-layout{--explorer-height:580px;display:grid;grid-template-columns:340px minmax(0,1fr);gap:18px;margin-top:16px;align-items:start}
 .map-layout.amb-ficha{grid-template-columns:340px minmax(0,1fr)}
 .zone-rail,.map-layout > aside{grid-column:1;grid-row:1;height:var(--explorer-height);overflow-y:auto;overscroll-behavior:contain;background:var(--surface);border:1px solid var(--hairline);border-radius:6px;scrollbar-width:thin}
@@ -567,17 +561,36 @@ tbody tr.is-hi td,tbody tr.is-hi td:first-child{background:var(--surface-2)}
 .fi-avis{margin-top:8px;font-size:.68rem;color:var(--muted);line-height:1.45}
 /* Las notas por ámbito. La nota nunca aparece sin poder abrirla: el <details>
    no es un adorno, es la condición para enseñar un número resumido. */
-.nota-d{margin-top:9px;font-size:.74rem}
+.nota-d{margin-top:12px;padding-top:0;border:0;font-size:.74rem}
 .nota-d>summary{display:grid;grid-template-columns:1fr auto;gap:2px 10px;align-items:baseline;cursor:pointer;list-style:none}
 .nota-d>summary::-webkit-details-marker{display:none}
 .nota-d>summary:focus-visible{outline:2px solid var(--seq-500);outline-offset:2px;border-radius:3px}
 .nota-d .n-n{color:var(--ink-2)}
+.nota-d .n-n::after{content:" +";color:var(--series-1);font-weight:700}
+.nota-d[open] .n-n::after{content:" −"}
 .nota-d .n-v{font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
 .nota-d .n-de{grid-column:1/-1;font-size:.66rem;color:var(--muted)}
 .nota-d .pct-bar{grid-column:1/-1;margin-top:3px}
 .nota-desg{margin:6px 0 2px;padding-left:10px;border-left:2px solid var(--surface-2);font-size:.68rem;color:var(--muted)}
 .nota-desg div{display:flex;justify-content:space-between;gap:10px;margin-top:3px}
 .nota-desg b{font-weight:700;font-variant-numeric:tabular-nums;color:var(--ink-2)}
+.fi-details{padding-top:10px;margin-top:18px}
+.fi-details summary{font-size:.78rem;color:var(--ink-2)}
+.fi-details .fi-h{margin-top:8px}
+.btn-primary{background:var(--series-1);border-color:var(--series-1);color:#fff;text-decoration:none;display:inline-flex;align-items:center;justify-content:center}
+.btn-primary:hover{background:#065c50;color:#fff}
+.fi-acc .btn{width:100%}
+.check-field{display:flex;align-items:center;gap:8px;font-size:.76rem;color:var(--ink-2);cursor:pointer}
+.check-field input{accent-color:var(--series-1);width:16px;height:16px}
+.compare-dock{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);z-index:55;width:min(960px,calc(100% - 32px));display:flex;align-items:center;gap:16px;padding:12px 16px;background:var(--surface);border:1px solid var(--axis);border-radius:6px;box-shadow:0 5px 24px #20343124}
+.dock-label{font-size:.74rem;font-weight:700;white-space:nowrap}
+.dock-label b{display:block;font-size:.68rem;color:var(--muted);font-weight:400}
+.dock-zones{display:flex;gap:8px;overflow-x:auto;flex:1;min-width:0;scrollbar-width:thin}
+.dock-zone{display:flex;align-items:center;gap:5px;padding:5px 7px 5px 9px;background:var(--surface-2);border-radius:4px;flex:none;max-width:190px;font-size:.73rem}
+.dock-zone span{overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.dock-zone button{border:0;background:none;color:var(--ink-2);font:inherit;cursor:pointer;flex:none;width:28px;height:28px;font-size:1rem}
+.compare-dock > a{flex:none;font-size:.76rem}
+body:has(.compare-dock:not([hidden])){padding-bottom:90px}
 
 /* ---------- comparación ---------- */
 table.cmp th,table.cmp td{vertical-align:top}
@@ -593,6 +606,8 @@ table.cmp tbody th{
 }
 table.cmp td{font-weight:700}
 table.cmp .cmp-med{color:var(--muted);font-weight:600}
+table.cmp .cmp-group th{position:static;background:var(--surface-2);color:var(--ink);font-size:.69rem;text-transform:uppercase;padding:9px 12px}
+table.cmp .cmp-note{display:block;color:var(--muted);font-size:.66rem;font-weight:400;margin-top:3px;max-width:240px}
 table.cmp .pct-bar{margin-top:5px;width:100%}
 .cmp-drop{
   font:inherit;font-size:.68rem;font-weight:600;background:none;border:0;padding:0;margin-top:3px;
@@ -697,8 +712,6 @@ footer a{color:var(--focus)}
   .wrap{padding:0 24px}
   .coverage{display:none}
   .kpi{padding:14px 16px}
-  /* Por debajo de aquí la ficha al lado del mapa deja el mapa en nada: pasa a
-     ir debajo, que es donde la vista sigue siendo la misma. */
 }
 @media (max-width:850px){
   .map-layout,.map-layout.amb-ficha{grid-template-columns:minmax(0,1fr);--explorer-height:420px}
@@ -729,7 +742,7 @@ footer a{color:var(--focus)}
   .cond.is-pick{padding:11px}
   .btn{min-height:40px}
   .card-head{gap:12px}
-  .map-layout{--explorer-height:350px}
+  .map-layout,.map-layout.amb-ficha{--explorer-height:350px}
   .map-layout > aside{gap:16px}
   .verdict{font-size:1.1rem}
   .results-heading{align-items:baseline}
@@ -741,10 +754,16 @@ footer a{color:var(--focus)}
   .fchip .fc-body{white-space:normal;text-align:left}
   .fb-right{gap:6px}
   .card-head > .btn-group{width:100%;align-items:center}
+  .compare-dock{bottom:0;width:100%;border-radius:0;padding:10px 12px;gap:10px;flex-wrap:wrap}
+  .dock-label{flex:1}
+  .dock-label b{display:inline;margin-left:6px}
+  .dock-zones{order:3;flex-basis:100%}
+  .dock-zone{padding-block:0;font-size:.68rem}
+  body:has(.compare-dock:not([hidden])){padding-bottom:120px}
   footer{padding-bottom:28px}
 }
 @media (prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
-@media print{.filterbar,.map-zoom,.topbar{display:none}.card{break-inside:avoid}}
+@media print{.filterbar,.map-zoom,.topbar,.compare-dock,.viewbar{display:none}.card{break-inside:avoid}.table-scroll{max-height:none;overflow:visible}.map-layout > aside{height:auto}}
 </style>
 </head>
 <body>
@@ -831,6 +850,11 @@ footer a{color:var(--focus)}
 
 <main id="main" tabindex="-1" hidden>
 
+    <div class="compare-dock" id="compare-dock" aria-label="Zonas guardadas para comparar" hidden>
+      <span class="dock-label">Tu selección <b id="dock-count" role="status"></b></span>
+      <div class="dock-zones" id="dock-zones"></div>
+      <a class="btn btn-primary" href="#comparacion" id="open-compare">Ver comparación</a>
+    </div>
     <section class="card verdict-band" aria-label="Resumen de tu selección">
       <div aria-live="polite" aria-atomic="true">
         <p class="verdict" id="verdict"></p>
@@ -890,9 +914,6 @@ footer a{color:var(--focus)}
           </div>
         </div>
 
-        <!-- La ficha es columna, pero solo cuando hay una zona abierta: sin
-             ella el mapa ocupa el ancho entero. Superponerla taparía justo el
-             mapa que estás mirando; encogerlo, no. -->
         <aside id="map-aside" hidden>
           <div class="ficha" id="ficha" hidden aria-live="polite"></div>
           <div class="legend" id="panel-itin" hidden>
@@ -922,27 +943,6 @@ footer a{color:var(--focus)}
       <p class="stamp" id="stamp"></p>
     </section>
 
-    <!-- ===================== VEREDICTO =====================
-         Antes aquí venían nueve tarjetas de ranking que repetían, con otra
-         forma, la tabla ordenada por precio, y se comían una pantalla entera.
-         Se queda la frase, que es la parte que contestaba algo. -->
-    <!-- ===================== COMPARACIÓN ===================== -->
-    <section class="card" id="comparacion" aria-labelledby="cmp-title" hidden>
-      <div class="card-head">
-        <div>
-          <h2 id="cmp-title">Las que has fijado, una al lado de otra</h2>
-          <p class="sub" id="cmp-sub"></p>
-        </div>
-        <div class="btn-group">
-          <button class="btn btn-sm" id="cmp-clear" type="button">Quitar todas</button>
-        </div>
-      </div>
-      <div class="table-scroll" tabindex="0" role="region" aria-label="Comparación de las zonas fijadas, desplazable horizontalmente">
-        <table class="cmp"><thead id="cmp-head"></thead><tbody id="cmp-body"></tbody></table>
-      </div>
-      <p class="legend-note">La barra de cada celda es el percentil: dónde cae esa zona dentro de las que tienen ese dato. Llena del todo significa «el valor más alto», no «lo mejor».</p>
-    </section>
-
     <!-- ===================== TABLA ===================== -->
     <section class="card" id="todas-las-zonas" role="tabpanel" aria-labelledby="tab-table" tabindex="0" hidden>
       <div class="card-head">
@@ -956,7 +956,7 @@ footer a{color:var(--focus)}
         </div>
       </div>
       <div class="table-scroll" tabindex="0" role="region" aria-label="Comparativa de zonas, desplazable horizontalmente">
-        <table>
+        <table aria-labelledby="table-title">
           <thead id="thead"></thead>
           <tbody id="tbody"></tbody>
         </table>
@@ -991,6 +991,23 @@ footer a{color:var(--focus)}
       </div>
       <p class="sc-empty" id="sc-empty" hidden></p>
       <p class="legend-note" id="sc-note"></p>
+    </section>
+
+    <section class="card" id="comparacion" aria-labelledby="cmp-title" hidden>
+      <div class="card-head">
+        <div>
+          <h2 id="cmp-title" tabindex="-1">Tus zonas, frente a frente</h2>
+          <p class="sub" id="cmp-sub"></p>
+        </div>
+        <div class="btn-group">
+          <label class="check-field"><input type="checkbox" id="cmp-all">Todos los indicadores</label>
+          <button class="btn btn-sm" id="cmp-clear" type="button">Vaciar comparación</button>
+        </div>
+      </div>
+      <div class="table-scroll" tabindex="0" role="region" aria-label="Comparación de las zonas guardadas, desplazable horizontalmente">
+        <table class="cmp" aria-labelledby="cmp-title"><thead id="cmp-head"></thead><tbody id="cmp-body"></tbody></table>
+      </div>
+      <p class="legend-note">Las notas por ámbito van de 0 a 100 y son relativas al área: más alto, más favorable. En el resto de indicadores, la barra refleja el percentil, no una valoración. Sin dato no significa cero.</p>
     </section>
 
     <!-- ===================== METODOLOGÍA ===================== -->
@@ -1483,6 +1500,7 @@ const S = {
   vista: "vista-mapa",
   cerca: "",
   limit: 12,
+  cmpAll: false,
   ordre: "compra_m2",        // por qué criterio encabeza el veredicto
   cols: [],                  // columnas que has añadido tú a la tabla
   pop: null,                 // {tipus, idx, ancora} — el único desplegable
@@ -2675,6 +2693,7 @@ function niceTicks(lo, hi, n = 5) {
    6. RENDER
    =========================================================================== */
 function render() {
+  const focusId = document.activeElement?.id;
   recompute();
   renderConds();
   renderCats();
@@ -2692,6 +2711,7 @@ function render() {
   renderTable();
   renderTexts();
   aplicaRealc();
+  if (focusId && document.activeElement === document.body) document.getElementById(focusId)?.focus({ preventScroll: true });
 }
 
 function renderCandidates() {
@@ -2720,7 +2740,7 @@ function renderCandidates() {
           ? `<span class="zone-extra">${esc(criteri.nom)}: <b>${mostraValor(zona, S.ordre)}</b></span>` : ""}
       </button>
       <div class="zone-foot">
-        <span class="zone-trip">${temps ? `<b>${esc(fmtMin(temps.min))}</b> a ${esc(nomCond(desti))}` : "Sin trayecto seleccionado"}</span>
+        <span class="zone-trip">${temps ? `<b>${esc(fmtMin(temps.min))}</b> a ${esc(nomCond(desti))}` : desti ? "Sin ruta disponible" : "Sin trayecto seleccionado"}</span>
         <button class="btn zone-pin" type="button" data-pin-zone="${esc(zona.id)}" aria-pressed="${pin >= 0}" aria-label="${pin >= 0 ? "Quitar" : "Comparar"} ${esc(zona.nom_llarg)}" ${pin < 0 && S.pinned.length >= PIN_MAX ? "disabled" : ""}>${pin >= 0 ? `✓ Guardada ${pin + 1}` : "＋ Comparar"}</button>
       </div>
     </article>`;
@@ -2879,8 +2899,9 @@ function renderChips() {
   if (nv) {
     const ambTope = actives.filter(id => S.conds[id].max != null).length;
     fitxes.push({
-      pop: { tipus: "viatge" }, nom: "Tu viaje",
-      val: `${nv} ${nv === 1 ? "destino" : "destinos"}`
+      pop: { tipus: "viatge" }, nom: "Trayecto",
+      val: (nv === 1 ? nomCond(actives[0]) : `${nv} destinos`)
+        + (nv === 1 && S.conds[actives[0]].max != null ? ` · ≤ ${S.conds[actives[0]].max} min` : "")
          + (ambTope ? "" : " · sin tope")
          + (ambTope && S.maxPeu < 60 ? ` · a pie ≤ ${S.maxPeu} min` : ""),
       buit: ambTope === 0,
@@ -2919,6 +2940,8 @@ function renderChips() {
               title="Quitar este criterio" aria-label="Quitar ${esc(x.nom)}">×</button>
     </span>`;
   }).join("")
+    + [["compra_m2", "Compra"], ["lloguer", "Alquiler"]].filter(([id]) => !S.filtres.some(filtre => filtre.capa === id))
+      .map(([id, nom]) => `<button class="btn btn-sm" type="button" data-quick-filter="${id}" aria-haspopup="dialog">${nom} ▾</button>`).join("")
     + `<button type="button" class="btn btn-sm fb-add" id="fb-add"
                aria-expanded="${!!(S.pop && S.pop.tipus === "afegir")}">＋ filtro</button>`;
 
@@ -2929,6 +2952,13 @@ function renderChips() {
     b.onclick = () => { tancaPop(); fitxes[+b.dataset.treu].treu(); render(); };
   });
   $("#fb-add").onclick = (e) => obrePop({ tipus: "afegir" }, e.currentTarget);
+  box.querySelectorAll("[data-quick-filter]").forEach(boto => {
+    boto.onclick = () => {
+      S.filtres.push({ capa: boto.dataset.quickFilter, lo: null, hi: null, sense: false });
+      render();
+      obrePop({ tipus: "rang", idx: S.filtres.length - 1 }, box.querySelectorAll("[data-open]")[fitxes.length]);
+    };
+  });
 
   // Las fichas se rehacen enteras en cada pintada, así que el desplegable
   // abierto se quedaría colgando de un nodo ya desechado —y `situaPop` lo
@@ -3909,19 +3939,17 @@ function blocNotes(m) {
         <span class="n-n">${esc(a.nom)}</span>
         <span class="n-v">${esc(nf(0).format(n))} / 100</span>
         <span class="n-de">de ${amb.length} ${amb.length === 1 ? "indicador" : "indicadores"}${
-          amb.length < d.length ? ` (faltan ${d.length - amb.length})` : ""} · toca para ver cuáles</span>
+          amb.length < d.length ? ` (faltan ${d.length - amb.length})` : ""}</span>
         <span class="pct-bar abs" role="img" aria-label="nota ${n} sobre 100"
           ><i style="width:${n}%"></i></span>
       </summary><div class="nota-desg">${
         d.map(x => `<div><span>${esc(x.c.nom)}</span><b>${x.punts == null ? "—"
           : esc(nf(0).format(x.punts))}</b></div>`).join("")}</div></details>`;
   }).join("");
-  return `<div class="fi-h">Notas por ámbito</div>${files}
-    <p class="fi-avis">Cada nota es la media de los percentiles de sus
-      indicadores dentro de las 164 zonas, con los que van al revés invertidos:
-      un 50 quiere decir «en la mitad», no «aprobado raspado». No hay nota
-      global a propósito: cuánto pesa la seguridad frente al precio es cosa
-      tuya.</p>`;
+  return `<div class="fi-h">Perfil de la zona</div>${files}
+    <p class="fi-avis">Notas relativas al área: 50 es la mitad, no un aprobado.
+      Media de percentiles, invertidos cuando un valor menor es más favorable.
+      Sin puntuación global. <a href="#metodologia">Criterios y fuentes</a>.</p>`;
 }
 
 function blocOrigen(m) {
@@ -3947,15 +3975,15 @@ function blocOrigen(m) {
 function renderFicha() {
   const box = $("#ficha");
   const m = S.focus ? ROWS.find(r => r.id === S.focus) : null;
-  // La columna de la derecha solo existe mientras hay una zona abierta. El
-  // resto del tiempo el mapa se queda con el ancho entero, que es para lo que
-  // se quitó de ahí la leyenda.
   box.hidden = !m;
   $("#zone-rail").hidden = !!m;
   $("#map-aside").hidden = !m;
   $("#map-layout").classList.toggle("amb-ficha", !!m);
   if (!m) return;
 
+  const oberts = box.dataset.zone === m.id
+    ? [...box.querySelectorAll("details")].map(detall => detall.open) : [];
+  box.dataset.zone = m.id;
   const pin = S.pinned.indexOf(m.id);
   const xifra = (c, extra) => {
     const v = c.get(m);
@@ -3974,31 +4002,34 @@ function renderFicha() {
       </div>
       <button type="button" class="fi-close" id="fi-x" aria-label="Volver a las zonas candidatas" title="Volver a las zonas">×</button>
     </div>
+    <div class="fi-acc">
+      <button type="button" class="btn btn-primary btn-sm" id="fi-pin" aria-pressed="${pin >= 0}" ${pin < 0 && S.pinned.length >= PIN_MAX ? "disabled" : ""}>${
+        pin >= 0 ? `✓ Guardada en comparación · quitar`
+        : S.pinned.length >= PIN_MAX ? `Comparación completa (${PIN_MAX})` : "＋ Comparar esta zona"}</button>
+    </div>
     <p class="fi-frase">${esc(frase(m))}</p>
     <div class="fi-xifres">
       ${xifra(CAPA_DE.get("compra_m2"), "Compra")}
       ${xifra(CAPA_DE.get("lloguer"), "Alquiler")}
       <div><b>${t ? esc(fmtMin(t.min)) : "—"}</b><span>${t && id
         ? `hasta ${esc(nomCond(id))}` : "sin viaje marcado"}</span></div>
-      ${xifra(CAPA_DE.get("hipoteca"), "Cuota de hipoteca")}
+      ${xifra(CAPA_DE.get("hipoteca"), "Hipoteca estimada")}
     </div>
+    <p class="fi-avis">Alquiler: contratos registrados. Hipoteca: ${fmtInt(HIP.entrada * 100)} % de entrada, ${HIP.anys} años y ${nf(1).format(HIP.tin * 100)} % TIN; sin impuestos ni gastos.</p>
     ${blocNotes(m)}
-    <div class="fi-h">Dónde cae dentro del área</div>
-    ${FICHA_CAPES.map(cid => CAPA_DE.get(cid)).filter(Boolean)
-       .filter(c => c.get(m) != null).map(c => barraPctl(c, m)).join("")}
-    ${blocOrigen(m)}
-    <div class="fi-acc">
-      <button type="button" class="btn btn-sm" id="fi-pin" aria-pressed="${pin >= 0}">${
-        pin >= 0 ? `Fijada (${pin + 1}) — quitar`
-        : S.pinned.length >= PIN_MAX ? `Comparar — ya hay ${PIN_MAX}` : "Comparar esta zona"}</button>
-    </div>`;
+    <details class="fi-details"><summary>Indicadores en detalle</summary>
+      ${FICHA_CAPES.map(cid => CAPA_DE.get(cid)).filter(Boolean)
+         .map(c => barraPctl(c, m)).join("")}
+    </details>
+    ${m.origen ? `<details class="fi-details"><summary>Composición del vecindario</summary>${blocOrigen(m)}</details>` : ""}`;
 
+  box.querySelectorAll("details").forEach((detall, index) => { detall.open = !!oberts[index]; });
   $("#fi-x").onclick = () => {
     S.focus = null; render();
     const origen = $("#zone-list").querySelector(`[data-open-zone="${m.id}"]`);
     (origen || $("#zone-search")).focus({ preventScroll: true });
   };
-  $("#fi-pin").onclick = () => fixa(m.id);
+  $("#fi-pin").onclick = () => { fixa(m.id); $("#fi-pin").focus({ preventScroll: true }); };
 }
 
 /* ---------- la comparación ----------
@@ -4011,39 +4042,55 @@ function renderCompara() {
   const sec = $("#comparacion");
   const zs = S.pinned.map(id => ROWS.find(r => r.id === id)).filter(Boolean);
   sec.hidden = zs.length === 0;
+  $("#compare-dock").hidden = zs.length === 0;
+  $("#nav-compare").hidden = zs.length === 0;
+  $("#nav-compare-count").textContent = `(${zs.length})`;
+  $("#dock-count").textContent = `${zs.length} de ${PIN_MAX} zonas`;
+  $("#dock-zones").innerHTML = zs.map(zona => `<span class="dock-zone"><span title="${esc(zona.nom_llarg)}">${esc(zona.nom)}</span><button type="button" data-dock-drop="${esc(zona.id)}" title="Quitar ${esc(zona.nom_llarg)}" aria-label="Quitar ${esc(zona.nom_llarg)} de la comparación">×</button></span>`).join("");
   if (!zs.length) return;
 
   // Solo las filas en las que alguna de las fijadas tiene dato: una fila de
   // cuatro rayas no compara nada.
-  const files = CAPES.filter(c => !c.viu && zs.some(m => c.get(m) != null));
+  const resum = ["compra_m2", "lloguer", "hipoteca", "temps", "zones_a_bcn", "dist_estacio_km", "nota_transport", "nota_serveis", "nota_seguretat", "nota_entorn"];
+  const files = CAPES.filter(c => (S.cmpAll || resum.includes(c.id)) && zs.some(m => c.get(m) != null));
 
   $("#cmp-sub").textContent = `${zs.length} ${zs.length === 1 ? "zona fijada" : "zonas fijadas"}`
-    + ` · ${files.length} indicadores con dato en alguna de ellas`
-    + (S.pinned.length < PIN_MAX ? ` · caben ${PIN_MAX - S.pinned.length} más` : "");
+    + ` · ${files.length} indicadores${S.cmpAll ? "" : " esenciales"}`
+    + ` · referencia: mediana del área`;
 
   $("#cmp-head").innerHTML = "<tr><th>Indicador</th>"
     + zs.map((m, i) => `<th><span class="num">${i + 1}</span>${esc(m.nom_llarg)}
         <button type="button" class="cmp-drop" data-drop-pin="${esc(m.id)}">quitar</button></th>`).join("")
     + `<th>Mediana del área</th></tr>`;
 
+  let grup = null;
   $("#cmp-body").innerHTML = files.map(c => {
-    const med = median(DATA.zones.map(z => c.get(z)));
+    const nouGrup = grup !== c.grup;
+    grup = c.grup;
+    const med = median((c.viu ? ROWS : DATA.zones).map(z => c.get(z)));
     const cel = (m) => {
       const v = c.get(m);
-      if (v == null) return `<td class="na">—</td>`;
-      const p = percentil(c, v);
+      if (v == null) return `<td class="na">Sin dato</td>`;
+      const nota = c.id.startsWith("nota_");
+      const p = nota ? v : percentil(c, v);
       return `<td>${esc(c.fmt(v))}
-        <span class="pct-bar" role="img" aria-label="${p == null ? "sin percentil"
-          : `percentil ${p}`}"><i style="width:${p == null ? 0 : p}%"></i></span></td>`;
+        <span class="pct-bar${nota ? " abs" : ""}" role="img" aria-label="${p == null ? "sin percentil"
+          : nota ? `nota ${nf(0).format(p)} sobre 100` : `percentil ${p}`}"><i style="width:${p == null ? 0 : p}%"></i></span></td>`;
     };
-    return `<tr><th scope="row">${esc(c.nom)}</th>${zs.map(cel).join("")}`
+    const cobertura = avisCobertura(c);
+    return (nouGrup ? `<tr class="cmp-group"><th colspan="${zs.length + 2}">${esc(c.grup)}</th></tr>` : "")
+         + `<tr><th scope="row" title="${esc(c.nota)}">${esc(c.nom)}${cobertura ? `<span class="cmp-note">${esc(cobertura)}</span>` : ""}</th>${zs.map(cel).join("")}`
          + `<td class="cmp-med">${med == null ? "—" : esc(c.fmt(med))}</td></tr>`;
   }).join("");
 
   sec.querySelectorAll("[data-drop-pin]").forEach(b => {
-    b.onclick = () => fixa(b.dataset.dropPin);
+    b.onclick = () => {
+      fixa(b.dataset.dropPin);
+      const seguent = sec.querySelector("[data-drop-pin]") || document.querySelector('[data-view][aria-selected="true"]');
+      seguent.focus({ preventScroll: true });
+    };
   });
-  $("#cmp-clear").onclick = () => { S.pinned = []; render(); };
+  $("#cmp-clear").onclick = () => { S.pinned = []; render(); document.querySelector('[data-view][aria-selected="true"]').focus({ preventScroll: true }); };
 }
 
 function renderItin() {
@@ -4527,6 +4574,17 @@ function omplerSelect(sel, actual, filtre) {
 }
 
 function initUI() {
+  $("#cmp-all").onchange = event => { S.cmpAll = event.target.checked; renderCompara(); };
+  $("#dock-zones").onclick = event => {
+    const boto = event.target.closest("[data-dock-drop]");
+    if (!boto) return;
+    fixa(boto.dataset.dockDrop);
+    const seguent = $("#dock-zones").querySelector("button") || document.querySelector('[data-view][aria-selected="true"]');
+    seguent.focus({ preventScroll: true });
+  };
+  for (const id of ["open-compare", "nav-compare"]) {
+    document.getElementById(id).onclick = () => $("#cmp-title").focus({ preventScroll: true });
+  }
   const pestanyes = [...document.querySelectorAll("[data-view]")];
   pestanyes.forEach((boto, index) => {
     boto.onclick = () => canviaVista(boto.dataset.view);
@@ -4648,6 +4706,7 @@ function initUI() {
     S.filtres = []; S.cats = { tipus: [], comarca: [], districte: [], xarxa: [] };
     S.cols = []; tancaPop();
     S.cerca = ""; S.limit = 12; $("#zone-search").value = "";
+    S.cmpAll = false; $("#cmp-all").checked = false;
     S.sortKey = "capa:compra_m2"; S.sortDir = 1;
     S.capa = "compra_m2"; S.ejeX = "temps"; S.ejeY = "compra_m2"; S.ordre = "compra_m2";
     S.xarxa = true; S.bus = false;
@@ -4713,7 +4772,7 @@ function initUI() {
   addEventListener("keydown", (e) => {
     if (e.key !== "Escape") return;
     if (S.picking) setPicking(false);
-    else if (S.focus) { S.focus = null; render(); }
+    else if (S.focus) $("#fi-x").click();
   });
 
   $("#thead").onclick = (e) => {
@@ -4722,6 +4781,7 @@ function initUI() {
     if (S.sortKey === th.dataset.k) S.sortDir *= -1;
     else { S.sortKey = th.dataset.k; S.sortDir = 1; }
     renderTable();
+    $("#thead").querySelector(`[data-k="${S.sortKey}"] .table-sort`)?.focus({ preventScroll: true });
   };
   $("#tbody").onclick = (e) => {
     const tr = e.target.closest("tr");

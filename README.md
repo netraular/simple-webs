@@ -66,6 +66,14 @@ anything without an agreed direction of "better" describes and does not grade. T
 deliberately **no overall grade**: weighting safety against price is the reader's call,
 not the page's.
 
+The explorer opens with a searchable candidate list beside the map; table and scatter
+views have their own tabs. Search matches names, districts and counties without accents,
+and missing sort values stay at the end rather than hiding those zones. A persistent
+selection bar holds up to four zones. Comparison starts with ten key indicators grouped
+by topic, with the complete set available on demand. The detail panel keeps source and
+coverage caveats visible, while secondary indicators are collapsible. `test-capas.mjs`
+also checks candidate search, sorting and whole-page JavaScript syntax.
+
 ```sh
 cd data-src
 python3 fetch-transit.py         # ~1.150 routing queries, ~1 h

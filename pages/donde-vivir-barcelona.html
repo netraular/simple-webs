@@ -137,6 +137,11 @@ h1{font-size:2.2rem;font-weight:700;letter-spacing:0;line-height:1.12;margin:7px
        background:var(--surface);overflow:hidden;min-height:32px}
 .fchip:hover{border-color:var(--series-1)}
 .fchip.is-open{border-color:var(--series-1);box-shadow:inset 0 0 0 1px var(--series-1)}
+/* Puesto para mirarlo, no para descartar. Se distingue a simple vista de uno
+   que sí está filtrando, porque si no el contador no cuadra con lo que ves. */
+.fchip.is-buit{border-style:dashed;background:var(--plane)}
+.fchip.is-buit .fc-nom{color:var(--muted)}
+.fchip.is-buit .fc-val{color:var(--muted);font-style:italic}
 .fchip > button{font:inherit;background:none;border:0;cursor:pointer;color:var(--ink);padding:0 12px}
 .fchip .fc-body{display:flex;align-items:center;gap:6px;font-size:.76rem;white-space:nowrap}
 .fchip .fc-nom{font-weight:700;color:var(--ink-2)}
@@ -268,8 +273,25 @@ h1{font-size:2.2rem;font-weight:700;letter-spacing:0;line-height:1.12;margin:7px
 .rf-hist{display:flex;align-items:flex-end;gap:1px;height:32px}
 .rf-hist i{flex:1;min-width:0;min-height:1px;background:var(--seq-200);border-radius:1px 1px 0 0}
 .rf-hist i.out{background:var(--surface-2)}
-.rf-val{display:flex;justify-content:space-between;gap:8px;font-size:.74rem;color:var(--ink-2);font-variant-numeric:tabular-nums}
-.rf-val b{color:var(--ink)}
+/* Las dos casillas. Son la forma de dejar un lado en blanco, que con dos asas
+   sobre un carril no se puede expresar: un asa siempre está en algún sitio. */
+.rf-boxes{display:flex;align-items:flex-end;gap:8px}
+.rf-box{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px;font-size:.7rem;color:var(--muted)}
+.rf-box input{
+  font:inherit;font-size:.82rem;width:100%;min-height:36px;padding:6px 8px;
+  background:var(--surface);color:var(--ink);border:1px solid var(--axis);border-radius:6px;
+  text-align:right;font-variant-numeric:tabular-nums;
+}
+.rf-box input::placeholder{color:var(--muted);font-size:.74rem}
+.rf-unit{flex:none;font-size:.72rem;color:var(--muted);padding-bottom:9px;white-space:nowrap}
+.rf-clear{
+  font:inherit;font-size:.7rem;font-weight:700;text-align:left;
+  background:none;border:0;padding:2px 0;cursor:pointer;color:var(--series-1);
+}
+.rf-clear:hover{text-decoration:underline}
+/* Sin límites, el carril se queda en gris: la franja azul de lado a lado
+   parecía un rango puesto a mano que abarcaba todo, y no es lo mismo. */
+.rng-track.buit i{background:var(--surface-2);box-shadow:inset 0 0 0 1px var(--axis)}
 .rf-foot{font-size:.7rem;color:var(--muted);line-height:1.4}
 .rf-foot .imp{color:var(--accent);font-weight:700}
 .rf-na{
@@ -1650,12 +1672,30 @@ function extrem(c, v, zones) {
     contrario: quien filtra por precio no espera que se cuelen las zonas sin
     precio, pero tampoco que desaparezcan en silencio — de eso se encarga el
     aviso rojo del panel. */
+/** Un criterio de rango con los dos lados vacíos **no filtra**: está puesto
+    para mirarlo, no para descartar. Lo dice aquí una sola vez y de ahí lo leen
+    el contador, el impacto, el veredicto y la ficha de la barra. */
+const filtreActiu = (f) => f && (f.lo != null || f.hi != null);
+
+/**
+ * ¿Pasa esta zona el criterio?
+ *
+ * El caso que arregla esto: antes un filtro recién añadido entraba con el
+ * rango entero puesto y **ya descartaba a todas las zonas sin ese dato**.
+ * Añadías «delitos» solo para verlo en el mapa y desaparecían 126 zonas sin
+ * que tú hubieras pedido nada. Ahora un filtro sin límites deja pasar a todo
+ * el mundo, tenga el dato o no; en cuanto pones un lado, el que no tiene dato
+ * no puede demostrar que lo cumple y sale, que es lo de siempre.
+ */
 function passaRang(m, f) {
+  if (!filtreActiu(f)) return true;
   const c = CAPA_DE.get(f.capa);
   if (!c) return true;
   const v = c.get(m);
   if (v == null) return !!f.sense;
-  return v >= f.lo - 1e-9 && v <= f.hi + 1e-9;
+  if (f.lo != null && v < f.lo - 1e-9) return false;
+  if (f.hi != null && v > f.hi + 1e-9) return false;
+  return true;
 }
 
 /** Las redes de transporte que llegan a la zona, como lista. */
@@ -2074,6 +2114,11 @@ const nomCond = (id) => esPunt(id)
     no se aplica — se dice en el tooltip y en la metodología. */
 function compleixCond(m, id) {
   const c = S.conds[id];
+  // Destino marcado con el minutero en blanco: «enséñame el tiempo, no me
+  // descartes por él». Es el caso de quien va en coche y quiere ver el dato
+  // sin que le borre medio mapa. La zona sigue aportando su tiempo al color y
+  // a la tabla; lo único que no hace es excluir.
+  if (c.max == null) return true;
   const v = viatge(m, id);
   if (!v || v.min == null) return false;
   if (v.min > c.max) return false;
@@ -2087,7 +2132,8 @@ const hiHaCats = () => CATS.some(k => S.cats[k].length > 0);
 /** Los criterios activos, en las tres familias. Sin ninguno, nada «cumple» y
     el mapa no se apaga: no hay nada contra lo que apagarlo. */
 const hiHaCriteris = () =>
-  condsActives().length > 0 || S.filtres.length > 0 || hiHaCats();
+  condsActives().some(id => S.conds[id].max != null)
+  || S.filtres.some(filtreActiu) || hiHaCats();
 
 /**
  * Evalúa las 164 zonas contra todos los criterios a la vez.
@@ -2110,7 +2156,7 @@ function recompute() {
                                            : compleixen.length > 0;
     const falla = [];
     if (!okViatge) falla.push("viatge");
-    for (const f of S.filtres) if (!passaRang(m, f)) falla.push("f:" + f.capa);
+    for (const f of S.filtres) if (filtreActiu(f) && !passaRang(m, f)) falla.push("f:" + f.capa);
     if (!passaCats(m, S.cats)) falla.push("cat");
 
     // El tiempo que representa a la zona: con «los quiero todos», el que más
@@ -2322,6 +2368,24 @@ const dePas = (p, lo, hi) => lo + (hi - lo) * p / PAS;
 /** El control de un criterio de rango: histograma, las dos asas, lo que entra
     y lo que devolvería quitarlo. Es exactamente la tarjeta que antes vivía en
     el panel lateral; ahora la pinta el desplegable y nadie más. */
+/** Cuántos decimales pide esta capa para escribirse en una casilla. El `fmt`
+    de la capa lleva la unidad pegada y aquí estorba: en la casilla va el
+    número pelado, con la unidad al lado una sola vez. */
+function decimalsDe(c) {
+  const [lo, hi] = rang(c) || [0, 1];
+  const span = Math.abs(hi - lo);
+  return span >= 100 ? 0 : span >= 10 ? 1 : 2;
+}
+const aCasella = (v, c) => v == null ? "" : String(Number(v.toFixed(decimalsDe(c))));
+
+/** Qué piezas lleva el control ahora mismo. Si esto cambia hay que rehacer el
+    nodo; mientras no cambie, basta con parchearle los números. */
+function formaRang(f, c) {
+  const k = cobertura(c);
+  const actiu = filtreActiu(f);
+  return `${actiu}|${actiu && k && k.n - k.total > 0}`;
+}
+
 function controlRang(f, idx) {
   const c = CAPA_DE.get(f.capa);
   if (!c) return "";
@@ -2330,31 +2394,51 @@ function controlRang(f, idx) {
   const sense = k ? k.n - k.total : 0;
   const cubs = histograma(c);
   const maxCub = Math.max(...cubs, 1);
-  const p0 = aPas(f.lo, lo, hi), p1 = aPas(f.hi, lo, hi);
+  // Un lado vacío es el extremo para el asa y para el histograma, pero `null`
+  // para el filtro: la diferencia es justo lo que hace que no descarte.
+  const vLo = f.lo == null ? lo : f.lo, vHi = f.hi == null ? hi : f.hi;
+  const p0 = aPas(vLo, lo, hi), p1 = aPas(vHi, lo, hi);
+  const actiu = filtreActiu(f);
   const n = impacte("f:" + f.capa);
   const dins = ROWS.filter(m => passaRang(m, f)).length;
+  const pas = decimalsDe(c) === 0 ? "1" : decimalsDe(c) === 1 ? "0.1" : "0.01";
 
   const barres = cubs.map((v, i) => {
     // Un tramo está dentro si se solapa con el rango elegido, no si su centro
     // cae dentro: con 22 tramos, la diferencia se ve.
     const a = lo + (hi - lo) * i / HIST_N, b = lo + (hi - lo) * (i + 1) / HIST_N;
-    const fora = b < f.lo - 1e-9 || a > f.hi + 1e-9;
+    const fora = b < vLo - 1e-9 || a > vHi + 1e-9;
     return `<i class="${fora ? "out" : ""}" style="height:${(100 * v / maxCub).toFixed(1)}%"></i>`;
   }).join("");
 
-  return `<div class="rf" data-f="${idx}">
+  const casella = (quin, val, etiqueta) => `<label class="rf-box">
+    <span>${etiqueta}</span>
+    <input type="number" inputmode="decimal" step="${pas}" data-box="${quin}" data-i="${idx}"
+           value="${esc(aCasella(val, c))}" placeholder="sin límite"
+           aria-label="${esc(c.nom)}, ${etiqueta.toLowerCase()}">
+  </label>`;
+
+  return `<div class="rf" data-f="${idx}" data-forma="${esc(formaRang(f, c))}">
     <div class="rf-hist" aria-hidden="true">${barres}</div>
     <div class="rng">
-      <div class="rng-track"><i style="left:${(p0 / 10).toFixed(1)}%;right:${(100 - p1 / 10).toFixed(1)}%"></i></div>
+      <div class="rng-track ${actiu ? "" : "buit"}"><i style="left:${(p0 / 10).toFixed(1)}%;right:${(100 - p1 / 10).toFixed(1)}%"></i></div>
       <input type="range" min="0" max="${PAS}" value="${p0}" data-lo="${idx}"
              aria-label="${esc(c.nom)}, mínimo">
       <input type="range" min="0" max="${PAS}" value="${p1}" data-hi="${idx}"
              aria-label="${esc(c.nom)}, máximo">
     </div>
-    <div class="rf-val"><b>${esc(c.fmt(f.lo))}</b><b>${esc(c.fmt(f.hi))}</b></div>
-    <div class="rf-foot">${dins} ${dins === 1 ? "zona entra" : "zonas entran"} en este tramo${
-      n > 0 ? ` · <span class="imp">quitarlo devolvería ${n}</span>` : ""}</div>
-    ${sense > 0 ? `<button type="button" class="rf-na ${f.sense ? "on" : ""}" data-na="${idx}"
+    <div class="rf-boxes">
+      ${casella("lo", f.lo, "Desde")}
+      <span class="rf-unit">${esc(c.eix || "")}</span>
+      ${casella("hi", f.hi, "Hasta")}
+    </div>
+    <div class="rf-foot">${actiu
+      ? `${dins} ${dins === 1 ? "zona entra" : "zonas entran"} en este tramo`
+        + (n > 0 ? ` · <span class="imp">quitarlo devolvería ${n}</span>` : "")
+      : `Sin límites: no descarta a nadie. Vacía una casilla para quitar ese lado; `
+        + `déjalas las dos en blanco y el dato solo se mira.`}</div>
+    ${actiu ? `<button type="button" class="rf-clear" data-buida="${idx}">Quitar los dos límites</button>` : ""}
+    ${sense > 0 && actiu ? `<button type="button" class="rf-na ${f.sense ? "on" : ""}" data-na="${idx}"
         aria-pressed="${!!f.sense}">${f.sense
           ? `Incluyendo las ${sense} zonas sin este dato — excluirlas`
           : `Excluye ${sense} ${sense === 1 ? "zona" : "zonas"} sin este dato — incluirlas`}</button>` : ""}
@@ -2366,11 +2450,9 @@ function controlRang(f, idx) {
 function resumRang(f) {
   const c = CAPA_DE.get(f.capa);
   if (!c) return "";
-  const [lo, hi] = rang(c) || [0, 1];
-  const aba = f.lo <= lo + 1e-9, arr = f.hi >= hi - 1e-9;
-  if (aba && arr) return "todo el rango";
-  if (aba) return `≤ ${c.fmt(f.hi)}`;
-  if (arr) return `≥ ${c.fmt(f.lo)}`;
+  if (f.lo == null && f.hi == null) return "sin límite";
+  if (f.lo == null) return `≤ ${c.fmt(f.hi)}`;
+  if (f.hi == null) return `≥ ${c.fmt(f.lo)}`;
   return `${c.fmt(f.lo)} – ${c.fmt(f.hi)}`;
 }
 
@@ -2381,13 +2463,19 @@ const NOM_CAT = { tipus: "Tipo", comarca: "Comarca", districte: "Distrito", xarx
     control, la × lo quita: son dos acciones y van en dos botones. */
 function renderChips() {
   const fitxes = [];
-  const nv = condsActives().length;
-  if (nv) fitxes.push({
-    pop: { tipus: "viatge" }, nom: "Tu viaje",
-    val: `${nv} ${nv === 1 ? "destino" : "destinos"}`
-       + (S.maxPeu < 60 ? ` · a pie ≤ ${S.maxPeu} min` : ""),
-    treu: () => { for (const c of Object.values(S.conds)) c.on = false; },
-  });
+  const actives = condsActives();
+  const nv = actives.length;
+  if (nv) {
+    const ambTope = actives.filter(id => S.conds[id].max != null).length;
+    fitxes.push({
+      pop: { tipus: "viatge" }, nom: "Tu viaje",
+      val: `${nv} ${nv === 1 ? "destino" : "destinos"}`
+         + (ambTope ? "" : " · sin tope")
+         + (ambTope && S.maxPeu < 60 ? ` · a pie ≤ ${S.maxPeu} min` : ""),
+      buit: ambTope === 0,
+      treu: () => { for (const c of Object.values(S.conds)) c.on = false; },
+    });
+  }
   for (const k of CATS) {
     const v = S.cats[k];
     if (!v.length) continue;
@@ -2403,6 +2491,7 @@ function renderChips() {
     if (!c) return;
     fitxes.push({
       pop: { tipus: "rang", idx }, nom: c.nom, val: resumRang(f),
+      buit: !filtreActiu(f),
       treu: () => { S.filtres.splice(idx, 1); },
     });
   });
@@ -2410,7 +2499,8 @@ function renderChips() {
   const box = $("#fb-chips");
   box.innerHTML = fitxes.map((x, i) => {
     const obert = S.pop && S.pop.tipus === x.pop.tipus && S.pop.idx === x.pop.idx;
-    return `<span class="fchip ${obert ? "is-open" : ""}" data-chip="${i}">
+    return `<span class="fchip ${obert ? "is-open" : ""} ${x.buit ? "is-buit" : ""}" data-chip="${i}"
+      title="${x.buit ? "Puesto para mirarlo: no descarta ninguna zona" : ""}">
       <button type="button" class="fc-body" data-open="${i}" aria-expanded="${!!obert}">
         <span class="fc-nom">${esc(x.nom)}</span><span class="fc-val">${esc(x.val)}</span>
       </button>
@@ -2524,9 +2614,10 @@ function renderPop() {
         b.onclick = () => {
           const id = b.dataset.capa;
           if (esCol) { if (!S.cols.includes(id)) S.cols.push(id); }
-          else {
-            const r = rang(CAPA_DE.get(id));
-            if (r) S.filtres.push({ capa: id, lo: r[0], hi: r[1], sense: false });
+          else if (!S.filtres.some(f => f.capa === id)) {
+            // Entra sin límites: añadir un dato para mirarlo no puede
+            // descartar a nadie, y menos a las zonas que no lo tienen.
+            S.filtres.push({ capa: id, lo: null, hi: null, sense: false });
           }
           tancaPop();
           render();
@@ -2560,12 +2651,40 @@ function lligaRang(box) {
   box.querySelectorAll("[data-na]").forEach(b => {
     b.onclick = () => { const f = S.filtres[+b.dataset.na]; f.sense = !f.sense; render(); };
   });
+  box.querySelectorAll("[data-buida]").forEach(b => {
+    b.onclick = () => { const f = S.filtres[+b.dataset.buida]; f.lo = f.hi = null; render(); };
+  });
+
+  // Las casillas: vaciar una quita ese lado. Se escucha `change` y no `input`
+  // porque a medio teclear «1800» pasas por «1» y «18», y filtrar por eso
+  // borraría el mapa bajo los dedos de quien está escribiendo.
+  box.querySelectorAll("[data-box]").forEach(el => {
+    el.onchange = () => {
+      const f = S.filtres[+el.dataset.i], c = CAPA_DE.get(f.capa);
+      const [lo, hi] = rang(c) || [0, 1];
+      const cru = el.value.trim();
+      const v = cru === "" ? null : Number(cru.replace(",", "."));
+      const quin = el.dataset.box;
+      if (v != null && !Number.isFinite(v)) return render();   // basura: se descarta
+      f[quin] = v == null ? null : clamp(v, lo, hi);
+      // Si los dos lados existen y se han cruzado, gana el que acabas de
+      // escribir: es el que tienes en la cabeza.
+      if (f.lo != null && f.hi != null && f.lo > f.hi) {
+        if (quin === "lo") f.hi = f.lo; else f.lo = f.hi;
+      }
+      render();
+    };
+  });
+
   const mou = (idx, quin, valor) => {
     const f = S.filtres[idx], c = CAPA_DE.get(f.capa), [lo, hi] = rang(c) || [0, 1];
     const v = dePas(clamp(valor, 0, PAS), lo, hi);
+    // Mover un asa es ponerle límite a ese lado. El otro, si estaba vacío, se
+    // queda vacío: arrastrar el mínimo no debería inventarte un máximo.
     // Las dos asas no se cruzan: la que empuja arrastra a la otra, que es lo
     // que hace todo el mundo al intentar cruzarlas.
-    if (quin === "lo") { f.lo = Math.min(v, f.hi); } else { f.hi = Math.max(v, f.lo); }
+    if (quin === "lo") { f.lo = f.hi == null ? v : Math.min(v, f.hi); }
+    else { f.hi = f.lo == null ? v : Math.max(v, f.lo); }
     render();
   };
   box.querySelectorAll("[data-lo]").forEach(el => {
@@ -2589,25 +2708,34 @@ function refrescaPop() {
   const cos = $("#pop-body"), rf = cos.querySelector(".rf");
   if (!c || !rf) return;
   const [lo, hi] = rang(c) || [0, 1];
-  const p0 = aPas(f.lo, lo, hi), p1 = aPas(f.hi, lo, hi);
+  const vLo = f.lo == null ? lo : f.lo, vHi = f.hi == null ? hi : f.hi;
+  const p0 = aPas(vLo, lo, hi), p1 = aPas(vHi, lo, hi);
 
-  rf.querySelector(".rng-track i").style.cssText =
+  const via = rf.querySelector(".rng-track");
+  via.classList.toggle("buit", !filtreActiu(f));
+  via.querySelector("i").style.cssText =
     `left:${(p0 / 10).toFixed(1)}%;right:${(100 - p1 / 10).toFixed(1)}%`;
   const [ilo, ihi] = rf.querySelectorAll("input[type=range]");
   if (document.activeElement !== ilo) ilo.value = p0;
   if (document.activeElement !== ihi) ihi.value = p1;
-  rf.querySelector(".rf-val").innerHTML = `<b>${esc(c.fmt(f.lo))}</b><b>${esc(c.fmt(f.hi))}</b>`;
+  for (const el of rf.querySelectorAll("[data-box]")) {
+    if (document.activeElement === el) continue;      // no se le escribe encima a quien teclea
+    el.value = aCasella(f[el.dataset.box], c);
+  }
 
   rf.querySelectorAll(".rf-hist i").forEach((el, i) => {
     const a = lo + (hi - lo) * i / HIST_N, b = lo + (hi - lo) * (i + 1) / HIST_N;
-    el.classList.toggle("out", b < f.lo - 1e-9 || a > f.hi + 1e-9);
+    el.classList.toggle("out", b < vLo - 1e-9 || a > vHi + 1e-9);
   });
 
   const dins = ROWS.filter(m => passaRang(m, f)).length;
   const n = impacte("f:" + f.capa);
-  rf.querySelector(".rf-foot").innerHTML =
-    `${dins} ${dins === 1 ? "zona entra" : "zonas entran"} en este tramo`
-    + (n > 0 ? ` · <span class="imp">quitarlo devolvería ${n}</span>` : "");
+  const actiu = filtreActiu(f);
+  rf.querySelector(".rf-foot").innerHTML = actiu
+    ? `${dins} ${dins === 1 ? "zona entra" : "zonas entran"} en este tramo`
+      + (n > 0 ? ` · <span class="imp">quitarlo devolvería ${n}</span>` : "")
+    : `Sin límites: no descarta a nadie. Vacía una casilla para quitar ese lado; `
+      + `déjalas las dos en blanco y el dato solo se mira.`;
 
   const na = rf.querySelector(".rf-na");
   if (na) {
@@ -2618,7 +2746,20 @@ function refrescaPop() {
       ? `Incluyendo las ${sense} zonas sin este dato — excluirlas`
       : `Excluye ${sense} ${sense === 1 ? "zona" : "zonas"} sin este dato — incluirlas`;
   }
+  // Los dos botones de abajo aparecen y desaparecen según haya límites, y eso
+  // el parcheo no lo alcanza. Se rehace el nodo entero solo cuando hace falta
+  // —y nunca mientras un asa está agarrada, que es cuando rehacerlo cortaría
+  // el arrastre.
+  if (rf.dataset.forma !== formaRang(f, c) && !arrossegant) {
+    const cos = $("#pop-body");
+    cos.innerHTML = controlRang(f, S.pop.idx) + (c.nota ? `<p class="rf-foot">${esc(c.nota)}</p>` : "");
+    lligaRang(cos);
+  }
 }
+
+/* Mientras un asa está agarrada no se rehace su nodo: arrancarlo de la página
+   a media pulsación cortaría el arrastre en seco. Lo conmuta `initUI`. */
+let arrossegant = false;
 
 /* ---------- filtros categóricos ----------
    Tipo, comarca, distrito y red. Se dibujan con la cuenta de zonas al lado
@@ -2904,8 +3045,9 @@ function renderConds() {
         : `<label class="cn" for="c-${esc(id)}" title="${esc(nom)}">${esc(nom)}</label>`}
       ${est ? `<span class="est">est.</span>` : ""}
       <span class="ct">
-        <input type="number" data-max="${esc(id)}" min="5" max="240" step="5" value="${c.max}"
-               aria-label="Minutos como mucho hasta ${esc(nom)}">min
+        <input type="number" data-max="${esc(id)}" min="5" max="240" step="5"
+               value="${c.max == null ? "" : c.max}" placeholder="—"
+               aria-label="Minutos como mucho hasta ${esc(nom)}; en blanco, sin tope">min
       </span>
       ${pid ? `<button type="button" class="clear" data-drop="${esc(pid)}"
                  aria-label="Quitar ${esc(nom)}" title="Quitar este punto">×</button>` : ""}
@@ -2931,9 +3073,14 @@ function renderConds() {
     el.onchange = () => { S.conds[el.dataset.cond].on = el.checked; render(); };
   });
   box.querySelectorAll("input[data-max]").forEach(el => {
-    el.oninput = () => {
-      const v = parseInt(el.value, 10);
-      if (Number.isFinite(v)) { S.conds[el.dataset.max].max = clamp(v, 5, 240); render(); }
+    // En blanco = sin tope: el destino se marca para ver el tiempo, no para
+    // filtrar por él. Va en `change` y no en `input` para no filtrar por el
+    // «4» de quien está escribiendo «45».
+    el.onchange = () => {
+      const cru = el.value.trim();
+      const v = parseInt(cru, 10);
+      S.conds[el.dataset.max].max = cru === "" || !Number.isFinite(v) ? null : clamp(v, 5, 240);
+      render();
     };
   });
   box.querySelectorAll("input[data-nom]").forEach(el => {
@@ -3920,6 +4067,14 @@ function initUI() {
   addEventListener("resize", () => situaPop());
 
   $("#tbl-add").onclick = (e) => obrePop({ tipus: "columna" }, e.currentTarget);
+
+  // Mientras se arrastra un asa, el control no se rehace: ver `refrescaPop`.
+  addEventListener("pointerdown", (e) => {
+    if (e.target?.closest?.(".rng")) arrossegant = true;
+  }, true);
+  for (const ev of ["pointerup", "pointercancel"]) {
+    addEventListener(ev, () => { arrossegant = false; }, true);
+  }
 
   $("#f-xarxa").onclick = (e) => {
     S.xarxa = !S.xarxa;

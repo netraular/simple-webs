@@ -37,7 +37,7 @@ const puro = between("const R_EARTH", SEC("2. ESTADO"))       // utilidades y fo
 const {
   CAPES, CAPA_DE, ols, niceTicks, cuota, HIP, fmtMin,
   cobertura, avisCobertura, percentil, valorsOrdenats, extrem,
-  passaRang, passaCats, xarxesDe, frase,
+  passaRang, filtreActiu, passaCats, xarxesDe, frase,
 } = new Function(`
   const getComputedStyle = () => ({ getPropertyValue: () => "#000" });
   const document = { documentElement: {} };
@@ -46,7 +46,7 @@ const {
   ${puro}
   return { CAPES, CAPA_DE, ols, niceTicks, cuota, HIP, fmtMin,
            cobertura, avisCobertura, percentil, valorsOrdenats, extrem,
-           passaRang, passaCats, xarxesDe, frase };
+           passaRang, filtreActiu, passaCats, xarxesDe, frase };
 `)();
 
 const Z = JSON.parse(readFileSync(new URL("../pages/data/zonas.json", import.meta.url), "utf8"));
@@ -244,6 +244,39 @@ ok(sensePreu.every(m => passaRang(m, { ...fBarat, sense: true })),
    "…y entran si se pide expresamente incluirlas");
 ok(zones.every(m => passaRang(m, { capa: "compra_m2", lo: preus[0], hi: preus.at(-1), sense: true })),
    "un filtro con el rango entero y las zonas sin dato no descarta a nadie");
+
+/* -------- criterios que se pueden dejar vacíos --------
+   El fallo que esto vigila: antes un filtro recién añadido entraba con el
+   rango entero puesto y `sense: false`, así que descartaba de golpe a todas
+   las zonas sin ese dato. Añadías «delitos» para mirarlo y desaparecían 126
+   zonas sin haber pedido nada. Un criterio sin límites no puede descartar. */
+console.log("\n══ criterios sin límites ═══════════════════════");
+const buit = { capa: "delictes_1000", lo: null, hi: null, sense: false };
+const cDel = CAPA_DE.get("delictes_1000");
+const senseDel = zones.filter(m => cDel.get(m) == null);
+ok(!filtreActiu(buit) && !filtreActiu({ capa: "compra_m2", lo: null, hi: null }),
+   "un criterio con los dos lados en blanco no está activo");
+ok(filtreActiu({ ...buit, lo: 10 }) && filtreActiu({ ...buit, hi: 10 }),
+   "…y con un solo lado puesto, sí");
+ok(zones.every(m => passaRang(m, buit)),
+   `sin límites pasan las ${zones.length} zonas`);
+ok(senseDel.length > 0 && senseDel.every(m => passaRang(m, buit)),
+   `incluidas las ${senseDel.length} que no tienen ese dato, que es lo que fallaba`);
+
+const dels = valorsOrdenats(cDel, zones);
+const medDel = dels[Math.floor(dels.length / 2)];
+const nomesSostre = { capa: "delictes_1000", lo: null, hi: medDel, sense: false };
+const nomesTerra  = { capa: "delictes_1000", lo: medDel, hi: null, sense: false };
+ok(zones.every(m => { const v = cDel.get(m);
+      return passaRang(m, nomesSostre) === (v == null ? false : v <= medDel + 1e-9); }),
+   "con solo «hasta», filtra por arriba y por abajo no");
+ok(zones.every(m => { const v = cDel.get(m);
+      return passaRang(m, nomesTerra) === (v == null ? false : v >= medDel - 1e-9); }),
+   "con solo «desde», al revés");
+ok(zones.filter(m => passaRang(m, nomesSostre)).length
+   + zones.filter(m => passaRang(m, nomesTerra)).length
+   >= zones.length - senseDel.length,
+   "y entre los dos cubren todas las que tienen el dato");
 
 const nBarris = zones.filter(m => m.tipus === "barri").length;
 ok(zones.filter(m => passaCats(m, { tipus: ["barri"] })).length === nBarris,

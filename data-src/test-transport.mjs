@@ -340,6 +340,7 @@ const RANGS = {
   // marca el techo real. El 1.000 es el absurdo —un aviso por vecino al año—,
   // que solo puede salir de un denominador roto.
   queixes_1000: [0, 1000], queixes_neteja_1000: [0, 1000],
+  pct_nac_ue: [0, 100], pct_nac_llatinoamerica: [0, 100],
 };
 for (const z of zones) {
   for (const [camp, [lo, hi]] of Object.entries(RANGS)) {
@@ -368,6 +369,25 @@ if (IND_SRC) {
   }
   ok(estMal === 0, `«% extranjera» es 100 − «% española» en los ${comprovats} municipios`,
      estMal ? `(${estMal} no cuadran)` : "");
+}
+
+// El reparto por origen de la ficha: una lista del largo que anuncia el meta,
+// con porcentajes, y cuya suma no puede pasarse de 100 —es una parte de la
+// población, no un total—. Si un grupo se cuenta dos veces, esto lo caza.
+{
+  const ordre = Z.meta?.indicadors?.nacionalitats?.regions;
+  const amb = zones.filter((z) => z.origen);
+  let mal = 0;
+  for (const z of amb) {
+    const v = z.origen;
+    const suma = v.reduce((a, b) => a + (b || 0), 0);
+    if (!Array.isArray(v) || v.length !== ordre?.length
+        || v.some((x) => x != null && (!esNum(x) || x < 0 || x > 100))
+        || suma > 100.1) mal++;
+  }
+  ok(amb.length === 73 && mal === 0,
+     `el reparto por origen son ${ordre?.length} grupos en los 73 barrios y ninguno suma más de 100`,
+     mal ? `(${mal} mal de ${amb.length})` : `(${amb.length} zonas)`);
 }
 
 /* ================================ 2. los cuatro ficheros hablan de lo mismo */
@@ -1069,10 +1089,19 @@ ok(inicialGzip <= PRESSUPOST_GZIP,
    `→ ${n1(inicialGzip / 1024)} kB (${pc1(inicialGzip, PRESSUPOST_GZIP)} del presupuesto)`);
 /* Aviso, no fallo: nadie se descarga el total: son tres grupos que bajan por
    separado y la mayoría de visitas solo ve el primero. Pero si el conjunto crece
-   mucho es que algo se ha ido de las manos y conviene mirarlo. 1,6 MB son ~13 %
-   sobre los 1,42 de hoy: bastante para que un retoque normal no chille, poco
-   para que un fichero duplicado pase inadvertido. */
-const TOTAL_TOU = 1_600_000;
+   mucho es que algo se ha ido de las manos y conviene mirarlo: bastante para que
+   un retoque normal no chille, poco para que un fichero duplicado pase
+   inadvertido.
+
+   **Subido de 1,60 a 1,72 MB, y aquí queda por qué, que es la condición para
+   subirlo.** Saltó al añadir los servicios de OSM, los avisos del IRIS y el
+   origen de la población: 1.565 kB contra los 1.600 del tope. Se miró fichero a
+   fichero y no hay nada duplicado ni repetido —el crecimiento son 30 kB de
+   campos nuevos dentro de zonas.json, que sigue por debajo de su propio
+   presupuesto duro—. El resto del total son rutas.json e iso-zonas.json, que
+   bajan solo al abrir una zona o al pedir la isócrona. 1,72 MB vuelven a dejar
+   el ~10 % de margen que tenía el tope anterior. */
+const TOTAL_TOU = 1_720_000;
 if (total > TOTAL_TOU) {
   aviso(`el total pasa de ${n1(TOTAL_TOU / 1024 / 1024)} MB `
       + `(${n1(total / 1024 / 1024)} MB): revisa qué ha engordado`);

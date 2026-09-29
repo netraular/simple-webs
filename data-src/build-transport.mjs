@@ -78,6 +78,7 @@ const esport  = readOpt("esport.json");
 const edatHab = readOpt("edat-habitatge.json");
 const comerc  = readOpt("comerc.json");
 const queixes = readOpt("queixes.json");
+const nacions = readOpt("nacionalitats.json");
 const serveis = readOpt("serveis.json");
 
 if (!segur)   avisos.push("falta seguretat.json: sin delitos ni zona verde (python3 build_seguretat.py)");
@@ -90,6 +91,7 @@ if (!esport)  avisos.push("falta esport.json: sin espacios deportivos (node buil
 if (!edatHab) avisos.push("falta edat-habitatge.json: sin antigüedad del parque (python3 build_habitatge_edat.py)");
 if (!comerc)  avisos.push("falta comerc.json: sin locales vacíos (python3 build_comerc.py)");
 if (!queixes) avisos.push("falta queixes.json: sin avisos del IRIS (python3 build_queixes.py)");
+if (!nacions) avisos.push("falta nacionalitats.json: sin origen de la población (python3 build_nacionalitats.py)");
 if (!serveis) avisos.push("falta serveis.json: sin servicios de barrio (node fetch-serveis.mjs)");
 
 if (!transit) throw new Error("falta transit.json — lanza antes fetch-transit.py");
@@ -264,6 +266,10 @@ const ESPORT  = ["esport_1000"];
 const EDAT_HAB = ["pct_habitatge_pre1960"];
 const COMERC  = ["pct_locals_buits"];
 const QUEIXES = ["queixes_1000", "queixes_neteja_1000"];
+const NACIONS = ["pct_nac_ue", "pct_nac_llatinoamerica"];
+/** El orden de `z.origen`. Se publica en meta para que la ficha lo lea de ahí. */
+const ORIGEN_ORDRE = ["ue", "resta_europa", "africa", "llatinoamerica",
+                      "america_nord", "asia_oceania"];
 
 const copia = (o, font, camps) => {
   for (const c of camps) if (font?.[c] != null) o[c] = font[c];
@@ -600,6 +606,17 @@ function zona(m, id, tipus, t) {
     copia(ind, edatHab?.barris?.[cb], EDAT_HAB);
     copia(ind, comerc?.barris?.[cb], COMERC);
     copia(ind, queixes?.barris?.[cb], QUEIXES);
+    copia(ind, nacions?.barris?.[cb], NACIONS);
+    // El reparto completo no es una capa: no se colorea el mapa por «de dónde
+    // es la gente», y ordenar 164 zonas por eso sería justo lo que no se quiere
+    // hacer. Va suelto, solo a la ficha, donde se lee como lo que es.
+    //
+    // Y va como lista, no como objeto: repetir seis nombres de clave 73 veces
+    // cuesta 7 kB de la carga inicial, que es el 40 % de lo que queda de
+    // presupuesto, para no decir nada que no diga ya
+    // `meta.indicadors.nacionalitats.regions`.
+    const org = nacions?.barris?.[cb]?.regions;
+    if (org) z.origen = ORIGEN_ORDRE.map(k => org[k] ?? null);
     delictesBarri(ind, m.comarca);
     serveisDe(ind, z, servBarri, cb);
   } else {
@@ -756,7 +773,7 @@ const meta = {
     camps: [...INDICADORS.map(i => i.camp), "pct_estrangera",
             ...SEGURETAT.map(s => s.camp),
             ...TARIFES, ...CENTRES, ...SOROLL,
-            ...ESPORT, ...EDAT_HAB, ...COMERC, ...QUEIXES,
+            ...ESPORT, ...EDAT_HAB, ...COMERC, ...QUEIXES, ...NACIONS,
             ...Object.values(SERV_DENSITAT), ...Object.values(SERV_PER_KM2),
             ...Object.values(SERV_DISTANCIA),
             "densitat_hab_km2", "dist_estacio_km", "dist_tren_km"].map(camp => ({
@@ -861,6 +878,14 @@ const meta = {
       any: queixes.any ?? null,
       nota: queixes.nota ?? null,
       arees_excloses: queixes.arees_excloses ?? null,
+    } : null,
+    nacionalitats: nacions ? {
+      font: nacions.font ?? null,
+      any: nacions.any ?? null,
+      nota: nacions.nota ?? null,
+      // El orden en que la ficha pinta el reparto. Va aquí y no en la página
+      // para que añadir o partir un grupo sea un cambio de datos, no de HTML.
+      regions: ORIGEN_ORDRE,
     } : null,
     delictes_bcn: delBcn ? {
       font: delBcn.font ?? null,

@@ -1,0 +1,1039 @@
+{
+ "generat": "2026-09-29",
+ "font": "Ajuntament de Barcelona · Padró Municipal d'Habitants (OMD)",
+ "recursos": {
+  "regions": "9577a42e-224d-42ea-ae47-039824b265df",
+  "grups": "8fa43cfd-5d5b-4fc9-b40b-0a538d2b59b0"
+ },
+ "any": 2026,
+ "poblacio_padro": 1728973,
+ "celles_emmascarades": {
+  "regions": 455,
+  "grups": 260
+ },
+ "nota": "Reparto de la población por la región geográfica de su nacionalidad, según el padrón municipal. La nacionalidad no es el idioma ni el origen: quien se nacionaliza deja de contar como extranjero aunque llegara el año pasado, un brasileño cuenta en América del Sur y no habla español, y un argentino con pasaporte italiano cuenta en la UE. «América Latina» es Caribe más América Central más América del Sur, que es lo más cerca que llega un dato público de «habla hispana» sin llegar a serlo. No existe para los municipios: ni Idescat ni el INE publican el desglose por origen por debajo de la provincia.",
+ "barris": {
+  "01": {
+   "nom": "el Raval",
+   "poblacio_padro": 50859,
+   "pct_nac_ue": 9.8,
+   "pct_nac_llatinoamerica": 8.5,
+   "regions": {
+    "ue": 9.8,
+    "resta_europa": 2.4,
+    "africa": 4.9,
+    "llatinoamerica": 8.5,
+    "america_nord": 0.9,
+    "asia_oceania": 27.6
+   }
+  },
+  "02": {
+   "nom": "el Barri Gòtic",
+   "poblacio_padro": 27306,
+   "pct_nac_ue": 12.2,
+   "pct_nac_llatinoamerica": 9.9,
+   "regions": {
+    "ue": 12.2,
+    "resta_europa": 3.4,
+    "africa": 7.5,
+    "llatinoamerica": 9.9,
+    "america_nord": 1.4,
+    "asia_oceania": 33.6
+   }
+  },
+  "03": {
+   "nom": "la Barceloneta",
+   "poblacio_padro": 14650,
+   "pct_nac_ue": 18.7,
+   "pct_nac_llatinoamerica": 10.9,
+   "regions": {
+    "ue": 18.7,
+    "resta_europa": 3.8,
+    "africa": 3.5,
+    "llatinoamerica": 10.9,
+    "america_nord": 1.2,
+    "asia_oceania": 6.8
+   }
+  },
+  "04": {
+   "nom": "Sant Pere, Santa Caterina i la Ribera",
+   "poblacio_padro": 22980,
+   "pct_nac_ue": 19.6,
+   "pct_nac_llatinoamerica": 9.4,
+   "regions": {
+    "ue": 19.6,
+    "resta_europa": 5.2,
+    "africa": 4.3,
+    "llatinoamerica": 9.4,
+    "america_nord": 1.9,
+    "asia_oceania": 9.5
+   }
+  },
+  "05": {
+   "nom": "el Fort Pienc",
+   "poblacio_padro": 37667,
+   "pct_nac_ue": 10.8,
+   "pct_nac_llatinoamerica": 10.5,
+   "regions": {
+    "ue": 10.8,
+    "resta_europa": 2.2,
+    "africa": 5.3,
+    "llatinoamerica": 10.5,
+    "america_nord": 0.6,
+    "asia_oceania": 8.2
+   }
+  },
+  "06": {
+   "nom": "la Sagrada Família",
+   "poblacio_padro": 53190,
+   "pct_nac_ue": 9.4,
+   "pct_nac_llatinoamerica": 9.8,
+   "regions": {
+    "ue": 9.4,
+    "resta_europa": 2.4,
+    "africa": 1.2,
+    "llatinoamerica": 9.8,
+    "america_nord": 0.6,
+    "asia_oceania": 5.7
+   }
+  },
+  "07": {
+   "nom": "la Dreta de l'Eixample",
+   "poblacio_padro": 45464,
+   "pct_nac_ue": 14.2,
+   "pct_nac_llatinoamerica": 6.6,
+   "regions": {
+    "ue": 14.2,
+    "resta_europa": 3.8,
+    "africa": 1.4,
+    "llatinoamerica": 6.6,
+    "america_nord": 2.3,
+    "asia_oceania": 4.9
+   }
+  },
+  "08": {
+   "nom": "l'Antiga Esquerra de l'Eixample",
+   "poblacio_padro": 42921,
+   "pct_nac_ue": 11.4,
+   "pct_nac_llatinoamerica": 7.5,
+   "regions": {
+    "ue": 11.4,
+    "resta_europa": 2.9,
+    "africa": 1.2,
+    "llatinoamerica": 7.5,
+    "america_nord": 1.4,
+    "asia_oceania": 5.2
+   }
+  },
+  "09": {
+   "nom": "la Nova Esquerra de l'Eixample",
+   "poblacio_padro": 59112,
+   "pct_nac_ue": 8.0,
+   "pct_nac_llatinoamerica": 8.3,
+   "regions": {
+    "ue": 8.0,
+    "resta_europa": 1.9,
+    "africa": 1.0,
+    "llatinoamerica": 8.3,
+    "america_nord": 0.6,
+    "asia_oceania": 5.0
+   }
+  },
+  "10": {
+   "nom": "Sant Antoni",
+   "poblacio_padro": 38968,
+   "pct_nac_ue": 9.7,
+   "pct_nac_llatinoamerica": 7.2,
+   "regions": {
+    "ue": 9.7,
+    "resta_europa": 2.0,
+    "africa": 1.3,
+    "llatinoamerica": 7.2,
+    "america_nord": 0.8,
+    "asia_oceania": 7.9
+   }
+  },
+  "11": {
+   "nom": "el Poble-sec",
+   "poblacio_padro": 40121,
+   "pct_nac_ue": 11.4,
+   "pct_nac_llatinoamerica": 9.2,
+   "regions": {
+    "ue": 11.4,
+    "resta_europa": 2.5,
+    "africa": 2.7,
+    "llatinoamerica": 9.2,
+    "america_nord": 0.8,
+    "asia_oceania": 11.0
+   }
+  },
+  "12": {
+   "nom": "la Marina del Prat Vermell",
+   "poblacio_padro": 3144,
+   "pct_nac_ue": 7.7,
+   "pct_nac_llatinoamerica": 6.2,
+   "regions": {
+    "ue": 7.7,
+    "resta_europa": 3.7,
+    "africa": 3.5,
+    "llatinoamerica": 6.2,
+    "america_nord": 0.0,
+    "asia_oceania": 4.8
+   }
+  },
+  "13": {
+   "nom": "la Marina de Port",
+   "poblacio_padro": 31752,
+   "pct_nac_ue": 3.1,
+   "pct_nac_llatinoamerica": 9.0,
+   "regions": {
+    "ue": 3.1,
+    "resta_europa": 0.9,
+    "africa": 1.8,
+    "llatinoamerica": 9.0,
+    "america_nord": 0.1,
+    "asia_oceania": 7.3
+   }
+  },
+  "19": {
+   "nom": "les Corts",
+   "poblacio_padro": 46662,
+   "pct_nac_ue": 5.1,
+   "pct_nac_llatinoamerica": 6.2,
+   "regions": {
+    "ue": 5.1,
+    "resta_europa": 1.6,
+    "africa": 0.8,
+    "llatinoamerica": 6.2,
+    "america_nord": 0.6,
+    "asia_oceania": 3.8
+   }
+  },
+  "14": {
+   "nom": "la Font de la Guatlla",
+   "poblacio_padro": 10849,
+   "pct_nac_ue": 6.9,
+   "pct_nac_llatinoamerica": 8.3,
+   "regions": {
+    "ue": 6.9,
+    "resta_europa": 1.6,
+    "africa": 5.6,
+    "llatinoamerica": 8.3,
+    "america_nord": 0.2,
+    "asia_oceania": 5.5
+   }
+  },
+  "15": {
+   "nom": "Hostafrancs",
+   "poblacio_padro": 17005,
+   "pct_nac_ue": 8.2,
+   "pct_nac_llatinoamerica": 11.0,
+   "regions": {
+    "ue": 8.2,
+    "resta_europa": 2.3,
+    "africa": 2.9,
+    "llatinoamerica": 11.0,
+    "america_nord": 0.4,
+    "asia_oceania": 7.9
+   }
+  },
+  "18": {
+   "nom": "Sants",
+   "poblacio_padro": 46669,
+   "pct_nac_ue": 6.1,
+   "pct_nac_llatinoamerica": 11.6,
+   "regions": {
+    "ue": 6.1,
+    "resta_europa": 1.2,
+    "africa": 2.6,
+    "llatinoamerica": 11.6,
+    "america_nord": 0.4,
+    "asia_oceania": 7.4
+   }
+  },
+  "16": {
+   "nom": "la Bordeta",
+   "poblacio_padro": 21138,
+   "pct_nac_ue": 4.9,
+   "pct_nac_llatinoamerica": 7.4,
+   "regions": {
+    "ue": 4.9,
+    "resta_europa": 2.3,
+    "africa": 2.2,
+    "llatinoamerica": 7.4,
+    "america_nord": 0.2,
+    "asia_oceania": 5.4
+   }
+  },
+  "17": {
+   "nom": "Sants - Badal",
+   "poblacio_padro": 25225,
+   "pct_nac_ue": 4.5,
+   "pct_nac_llatinoamerica": 11.5,
+   "regions": {
+    "ue": 4.5,
+    "resta_europa": 1.2,
+    "africa": 1.1,
+    "llatinoamerica": 11.5,
+    "america_nord": 0.2,
+    "asia_oceania": 5.6
+   }
+  },
+  "20": {
+   "nom": "la Maternitat i Sant Ramon",
+   "poblacio_padro": 24607,
+   "pct_nac_ue": 4.9,
+   "pct_nac_llatinoamerica": 7.3,
+   "regions": {
+    "ue": 4.9,
+    "resta_europa": 1.6,
+    "africa": 1.0,
+    "llatinoamerica": 7.3,
+    "america_nord": 0.3,
+    "asia_oceania": 4.3
+   }
+  },
+  "21": {
+   "nom": "Pedralbes",
+   "poblacio_padro": 12466,
+   "pct_nac_ue": 8.4,
+   "pct_nac_llatinoamerica": 3.8,
+   "regions": {
+    "ue": 8.4,
+    "resta_europa": 3.6,
+    "africa": 0.9,
+    "llatinoamerica": 3.8,
+    "america_nord": 1.1,
+    "asia_oceania": 4.3
+   }
+  },
+  "22": {
+   "nom": "Vallvidrera, el Tibidabo i les Planes",
+   "poblacio_padro": 4852,
+   "pct_nac_ue": 10.0,
+   "pct_nac_llatinoamerica": 3.0,
+   "regions": {
+    "ue": 10.0,
+    "resta_europa": 2.9,
+    "africa": 0.8,
+    "llatinoamerica": 3.0,
+    "america_nord": 0.6,
+    "asia_oceania": 1.3
+   }
+  },
+  "23": {
+   "nom": "Sarrià",
+   "poblacio_padro": 24922,
+   "pct_nac_ue": 8.1,
+   "pct_nac_llatinoamerica": 3.2,
+   "regions": {
+    "ue": 8.1,
+    "resta_europa": 2.5,
+    "africa": 0.5,
+    "llatinoamerica": 3.2,
+    "america_nord": 0.9,
+    "asia_oceania": 2.5
+   }
+  },
+  "24": {
+   "nom": "les Tres Torres",
+   "poblacio_padro": 16321,
+   "pct_nac_ue": 5.2,
+   "pct_nac_llatinoamerica": 2.9,
+   "regions": {
+    "ue": 5.2,
+    "resta_europa": 2.1,
+    "africa": 0.7,
+    "llatinoamerica": 2.9,
+    "america_nord": 1.1,
+    "asia_oceania": 2.3
+   }
+  },
+  "25": {
+   "nom": "Sant Gervasi - la Bonanova",
+   "poblacio_padro": 26787,
+   "pct_nac_ue": 6.3,
+   "pct_nac_llatinoamerica": 4.9,
+   "regions": {
+    "ue": 6.3,
+    "resta_europa": 2.5,
+    "africa": 0.8,
+    "llatinoamerica": 4.9,
+    "america_nord": 0.9,
+    "asia_oceania": 2.8
+   }
+  },
+  "26": {
+   "nom": "Sant Gervasi - Galvany",
+   "poblacio_padro": 49196,
+   "pct_nac_ue": 7.7,
+   "pct_nac_llatinoamerica": 4.4,
+   "regions": {
+    "ue": 7.7,
+    "resta_europa": 3.1,
+    "africa": 0.7,
+    "llatinoamerica": 4.4,
+    "america_nord": 1.4,
+    "asia_oceania": 3.1
+   }
+  },
+  "27": {
+   "nom": "el Putxet i el Farró",
+   "poblacio_padro": 30777,
+   "pct_nac_ue": 8.0,
+   "pct_nac_llatinoamerica": 5.4,
+   "regions": {
+    "ue": 8.0,
+    "resta_europa": 2.6,
+    "africa": 0.8,
+    "llatinoamerica": 5.4,
+    "america_nord": 0.8,
+    "asia_oceania": 2.9
+   }
+  },
+  "28": {
+   "nom": "Vallcarca i els Penitents",
+   "poblacio_padro": 16907,
+   "pct_nac_ue": 7.4,
+   "pct_nac_llatinoamerica": 6.7,
+   "regions": {
+    "ue": 7.4,
+    "resta_europa": 2.7,
+    "africa": 0.9,
+    "llatinoamerica": 6.7,
+    "america_nord": 0.6,
+    "asia_oceania": 3.3
+   }
+  },
+  "29": {
+   "nom": "el Coll",
+   "poblacio_padro": 8045,
+   "pct_nac_ue": 6.8,
+   "pct_nac_llatinoamerica": 9.9,
+   "regions": {
+    "ue": 6.8,
+    "resta_europa": 2.2,
+    "africa": 1.4,
+    "llatinoamerica": 9.9,
+    "america_nord": 0.4,
+    "asia_oceania": 2.5
+   }
+  },
+  "30": {
+   "nom": "la Salut",
+   "poblacio_padro": 13923,
+   "pct_nac_ue": 7.6,
+   "pct_nac_llatinoamerica": 6.5,
+   "regions": {
+    "ue": 7.6,
+    "resta_europa": 1.7,
+    "africa": 1.6,
+    "llatinoamerica": 6.5,
+    "america_nord": 0.4,
+    "asia_oceania": 2.9
+   }
+  },
+  "31": {
+   "nom": "la Vila de Gràcia",
+   "poblacio_padro": 51477,
+   "pct_nac_ue": 12.5,
+   "pct_nac_llatinoamerica": 7.2,
+   "regions": {
+    "ue": 12.5,
+    "resta_europa": 2.6,
+    "africa": 1.2,
+    "llatinoamerica": 7.2,
+    "america_nord": 1.3,
+    "asia_oceania": 3.9
+   }
+  },
+  "32": {
+   "nom": "el Camp d'en Grassot i Gràcia Nova",
+   "poblacio_padro": 36421,
+   "pct_nac_ue": 8.5,
+   "pct_nac_llatinoamerica": 7.5,
+   "regions": {
+    "ue": 8.5,
+    "resta_europa": 1.8,
+    "africa": 1.0,
+    "llatinoamerica": 7.5,
+    "america_nord": 0.6,
+    "asia_oceania": 4.1
+   }
+  },
+  "33": {
+   "nom": "el Baix Guinardó",
+   "poblacio_padro": 26260,
+   "pct_nac_ue": 6.8,
+   "pct_nac_llatinoamerica": 8.2,
+   "regions": {
+    "ue": 6.8,
+    "resta_europa": 1.5,
+    "africa": 1.0,
+    "llatinoamerica": 8.2,
+    "america_nord": 0.2,
+    "asia_oceania": 3.5
+   }
+  },
+  "34": {
+   "nom": "Can Baró",
+   "poblacio_padro": 9626,
+   "pct_nac_ue": 6.3,
+   "pct_nac_llatinoamerica": 8.9,
+   "regions": {
+    "ue": 6.3,
+    "resta_europa": 2.2,
+    "africa": 1.3,
+    "llatinoamerica": 8.9,
+    "america_nord": 0.3,
+    "asia_oceania": 3.0
+   }
+  },
+  "35": {
+   "nom": "el Guinardó",
+   "poblacio_padro": 39136,
+   "pct_nac_ue": 5.8,
+   "pct_nac_llatinoamerica": 10.0,
+   "regions": {
+    "ue": 5.8,
+    "resta_europa": 1.9,
+    "africa": 1.1,
+    "llatinoamerica": 10.0,
+    "america_nord": 0.2,
+    "asia_oceania": 2.5
+   }
+  },
+  "36": {
+   "nom": "la Font d'en Fargues",
+   "poblacio_padro": 9834,
+   "pct_nac_ue": 3.6,
+   "pct_nac_llatinoamerica": 3.9,
+   "regions": {
+    "ue": 3.6,
+    "resta_europa": 1.4,
+    "africa": 0.9,
+    "llatinoamerica": 3.9,
+    "america_nord": 0.2,
+    "asia_oceania": 1.2
+   }
+  },
+  "37": {
+   "nom": "el Carmel",
+   "poblacio_padro": 33785,
+   "pct_nac_ue": 3.8,
+   "pct_nac_llatinoamerica": 12.4,
+   "regions": {
+    "ue": 3.8,
+    "resta_europa": 1.4,
+    "africa": 1.6,
+    "llatinoamerica": 12.4,
+    "america_nord": 0.1,
+    "asia_oceania": 3.5
+   }
+  },
+  "38": {
+   "nom": "la Teixonera",
+   "poblacio_padro": 12711,
+   "pct_nac_ue": 4.1,
+   "pct_nac_llatinoamerica": 12.4,
+   "regions": {
+    "ue": 4.1,
+    "resta_europa": 1.6,
+    "africa": 1.5,
+    "llatinoamerica": 12.4,
+    "america_nord": 0.2,
+    "asia_oceania": 3.4
+   }
+  },
+  "39": {
+   "nom": "Sant Genís dels Agudells",
+   "poblacio_padro": 7878,
+   "pct_nac_ue": 3.9,
+   "pct_nac_llatinoamerica": 13.7,
+   "regions": {
+    "ue": 3.9,
+    "resta_europa": 1.2,
+    "africa": 1.8,
+    "llatinoamerica": 13.7,
+    "america_nord": 0.2,
+    "asia_oceania": 2.8
+   }
+  },
+  "43": {
+   "nom": "Horta",
+   "poblacio_padro": 31106,
+   "pct_nac_ue": 2.9,
+   "pct_nac_llatinoamerica": 12.4,
+   "regions": {
+    "ue": 2.9,
+    "resta_europa": 1.0,
+    "africa": 1.9,
+    "llatinoamerica": 12.4,
+    "america_nord": 0.1,
+    "asia_oceania": 4.6
+   }
+  },
+  "40": {
+   "nom": "Montbau",
+   "poblacio_padro": 5338,
+   "pct_nac_ue": 4.0,
+   "pct_nac_llatinoamerica": 11.0,
+   "regions": {
+    "ue": 4.0,
+    "resta_europa": 1.5,
+    "africa": 0.7,
+    "llatinoamerica": 11.0,
+    "america_nord": 0.0,
+    "asia_oceania": 3.8
+   }
+  },
+  "41": {
+   "nom": "la Vall d'Hebron",
+   "poblacio_padro": 6073,
+   "pct_nac_ue": 3.3,
+   "pct_nac_llatinoamerica": 6.3,
+   "regions": {
+    "ue": 3.3,
+    "resta_europa": 1.2,
+    "africa": 1.0,
+    "llatinoamerica": 6.3,
+    "america_nord": 0.2,
+    "asia_oceania": 1.9
+   }
+  },
+  "42": {
+   "nom": "la Clota",
+   "poblacio_padro": 1107,
+   "pct_nac_ue": 3.5,
+   "pct_nac_llatinoamerica": 5.2,
+   "regions": {
+    "ue": 3.5,
+    "resta_europa": 1.4,
+    "africa": 1.7,
+    "llatinoamerica": 5.2,
+    "america_nord": 0.0,
+    "asia_oceania": 3.3
+   }
+  },
+  "44": {
+   "nom": "Vilapicina i la Torre Llobeta",
+   "poblacio_padro": 26464,
+   "pct_nac_ue": 3.2,
+   "pct_nac_llatinoamerica": 9.5,
+   "regions": {
+    "ue": 3.2,
+    "resta_europa": 1.1,
+    "africa": 0.9,
+    "llatinoamerica": 9.5,
+    "america_nord": 0.1,
+    "asia_oceania": 4.2
+   }
+  },
+  "45": {
+   "nom": "Porta",
+   "poblacio_padro": 31195,
+   "pct_nac_ue": 2.4,
+   "pct_nac_llatinoamerica": 17.1,
+   "regions": {
+    "ue": 2.4,
+    "resta_europa": 1.1,
+    "africa": 2.7,
+    "llatinoamerica": 17.1,
+    "america_nord": 0.1,
+    "asia_oceania": 7.2
+   }
+  },
+  "46": {
+   "nom": "el Turó de la Peira",
+   "poblacio_padro": 17362,
+   "pct_nac_ue": 2.5,
+   "pct_nac_llatinoamerica": 15.1,
+   "regions": {
+    "ue": 2.5,
+    "resta_europa": 1.3,
+    "africa": 2.0,
+    "llatinoamerica": 15.1,
+    "america_nord": 0.1,
+    "asia_oceania": 6.1
+   }
+  },
+  "47": {
+   "nom": "Can Peguera",
+   "poblacio_padro": 2079,
+   "pct_nac_ue": 1.8,
+   "pct_nac_llatinoamerica": 4.5,
+   "regions": {
+    "ue": 1.8,
+    "resta_europa": 0.1,
+    "africa": 1.7,
+    "llatinoamerica": 4.5,
+    "america_nord": 0.0,
+    "asia_oceania": 0.2
+   }
+  },
+  "48": {
+   "nom": "la Guineueta",
+   "poblacio_padro": 15617,
+   "pct_nac_ue": 2.1,
+   "pct_nac_llatinoamerica": 7.8,
+   "regions": {
+    "ue": 2.1,
+    "resta_europa": 0.9,
+    "africa": 1.0,
+    "llatinoamerica": 7.8,
+    "america_nord": 0.1,
+    "asia_oceania": 2.5
+   }
+  },
+  "49": {
+   "nom": "Canyelles",
+   "poblacio_padro": 6882,
+   "pct_nac_ue": 0.6,
+   "pct_nac_llatinoamerica": 4.9,
+   "regions": {
+    "ue": 0.6,
+    "resta_europa": 0.8,
+    "africa": 0.6,
+    "llatinoamerica": 4.9,
+    "america_nord": 0.0,
+    "asia_oceania": 2.0
+   }
+  },
+  "50": {
+   "nom": "les Roquetes",
+   "poblacio_padro": 17582,
+   "pct_nac_ue": 2.6,
+   "pct_nac_llatinoamerica": 16.4,
+   "regions": {
+    "ue": 2.6,
+    "resta_europa": 1.2,
+    "africa": 2.9,
+    "llatinoamerica": 16.4,
+    "america_nord": 0.1,
+    "asia_oceania": 5.6
+   }
+  },
+  "51": {
+   "nom": "Verdun",
+   "poblacio_padro": 13491,
+   "pct_nac_ue": 2.9,
+   "pct_nac_llatinoamerica": 13.8,
+   "regions": {
+    "ue": 2.9,
+    "resta_europa": 1.4,
+    "africa": 1.8,
+    "llatinoamerica": 13.8,
+    "america_nord": 0.1,
+    "asia_oceania": 5.3
+   }
+  },
+  "52": {
+   "nom": "la Prosperitat",
+   "poblacio_padro": 28166,
+   "pct_nac_ue": 2.5,
+   "pct_nac_llatinoamerica": 11.9,
+   "regions": {
+    "ue": 2.5,
+    "resta_europa": 0.9,
+    "africa": 1.3,
+    "llatinoamerica": 11.9,
+    "america_nord": 0.2,
+    "asia_oceania": 4.8
+   }
+  },
+  "53": {
+   "nom": "la Trinitat Nova",
+   "poblacio_padro": 8117,
+   "pct_nac_ue": 2.0,
+   "pct_nac_llatinoamerica": 11.6,
+   "regions": {
+    "ue": 2.0,
+    "resta_europa": 1.3,
+    "africa": 2.8,
+    "llatinoamerica": 11.6,
+    "america_nord": 0.0,
+    "asia_oceania": 8.3
+   }
+  },
+  "54": {
+   "nom": "Torre Baró",
+   "poblacio_padro": 3229,
+   "pct_nac_ue": 2.7,
+   "pct_nac_llatinoamerica": 7.7,
+   "regions": {
+    "ue": 2.7,
+    "resta_europa": 1.3,
+    "africa": 5.2,
+    "llatinoamerica": 7.7,
+    "america_nord": 0.0,
+    "asia_oceania": 3.7
+   }
+  },
+  "55": {
+   "nom": "Ciutat Meridiana",
+   "poblacio_padro": 11483,
+   "pct_nac_ue": 1.3,
+   "pct_nac_llatinoamerica": 14.6,
+   "regions": {
+    "ue": 1.3,
+    "resta_europa": 1.5,
+    "africa": 6.7,
+    "llatinoamerica": 14.6,
+    "america_nord": 0.0,
+    "asia_oceania": 6.4
+   }
+  },
+  "56": {
+   "nom": "Vallbona",
+   "poblacio_padro": 1423,
+   "pct_nac_ue": 1.5,
+   "pct_nac_llatinoamerica": 7.1,
+   "regions": {
+    "ue": 1.5,
+    "resta_europa": 1.2,
+    "africa": 1.8,
+    "llatinoamerica": 7.1,
+    "america_nord": 0.0,
+    "asia_oceania": 4.0
+   }
+  },
+  "57": {
+   "nom": "la Trinitat Vella",
+   "poblacio_padro": 11293,
+   "pct_nac_ue": 2.9,
+   "pct_nac_llatinoamerica": 11.6,
+   "regions": {
+    "ue": 2.9,
+    "resta_europa": 1.6,
+    "africa": 6.1,
+    "llatinoamerica": 11.6,
+    "america_nord": 0.0,
+    "asia_oceania": 9.8
+   }
+  },
+  "58": {
+   "nom": "Baró de Viver",
+   "poblacio_padro": 2654,
+   "pct_nac_ue": 2.0,
+   "pct_nac_llatinoamerica": 6.6,
+   "regions": {
+    "ue": 2.0,
+    "resta_europa": 0.6,
+    "africa": 3.6,
+    "llatinoamerica": 6.6,
+    "america_nord": 0.0,
+    "asia_oceania": 5.2
+   }
+  },
+  "59": {
+   "nom": "el Bon Pastor",
+   "poblacio_padro": 15860,
+   "pct_nac_ue": 2.0,
+   "pct_nac_llatinoamerica": 15.8,
+   "regions": {
+    "ue": 2.0,
+    "resta_europa": 1.0,
+    "africa": 3.5,
+    "llatinoamerica": 15.8,
+    "america_nord": 0.1,
+    "asia_oceania": 8.0
+   }
+  },
+  "60": {
+   "nom": "Sant Andreu",
+   "poblacio_padro": 59320,
+   "pct_nac_ue": 2.6,
+   "pct_nac_llatinoamerica": 5.7,
+   "regions": {
+    "ue": 2.6,
+    "resta_europa": 0.8,
+    "africa": 1.2,
+    "llatinoamerica": 5.7,
+    "america_nord": 0.1,
+    "asia_oceania": 2.2
+   }
+  },
+  "61": {
+   "nom": "la Sagrera",
+   "poblacio_padro": 31232,
+   "pct_nac_ue": 3.9,
+   "pct_nac_llatinoamerica": 9.6,
+   "regions": {
+    "ue": 3.9,
+    "resta_europa": 1.3,
+    "africa": 1.1,
+    "llatinoamerica": 9.6,
+    "america_nord": 0.2,
+    "asia_oceania": 4.8
+   }
+  },
+  "62": {
+   "nom": "el Congrés i els Indians",
+   "poblacio_padro": 15237,
+   "pct_nac_ue": 4.2,
+   "pct_nac_llatinoamerica": 9.0,
+   "regions": {
+    "ue": 4.2,
+    "resta_europa": 1.5,
+    "africa": 1.0,
+    "llatinoamerica": 9.0,
+    "america_nord": 0.2,
+    "asia_oceania": 3.3
+   }
+  },
+  "63": {
+   "nom": "Navas",
+   "poblacio_padro": 22596,
+   "pct_nac_ue": 5.4,
+   "pct_nac_llatinoamerica": 7.9,
+   "regions": {
+    "ue": 5.4,
+    "resta_europa": 1.2,
+    "africa": 1.0,
+    "llatinoamerica": 7.9,
+    "america_nord": 0.3,
+    "asia_oceania": 4.8
+   }
+  },
+  "64": {
+   "nom": "el Camp de l'Arpa del Clot",
+   "poblacio_padro": 39509,
+   "pct_nac_ue": 8.1,
+   "pct_nac_llatinoamerica": 9.1,
+   "regions": {
+    "ue": 8.1,
+    "resta_europa": 1.9,
+    "africa": 1.4,
+    "llatinoamerica": 9.1,
+    "america_nord": 0.3,
+    "asia_oceania": 4.4
+   }
+  },
+  "65": {
+   "nom": "el Clot",
+   "poblacio_padro": 26888,
+   "pct_nac_ue": 7.3,
+   "pct_nac_llatinoamerica": 7.1,
+   "regions": {
+    "ue": 7.3,
+    "resta_europa": 1.7,
+    "africa": 1.4,
+    "llatinoamerica": 7.1,
+    "america_nord": 0.3,
+    "asia_oceania": 3.5
+   }
+  },
+  "66": {
+   "nom": "el Parc i la Llacuna del Poblenou",
+   "poblacio_padro": 17631,
+   "pct_nac_ue": 12.1,
+   "pct_nac_llatinoamerica": 6.7,
+   "regions": {
+    "ue": 12.1,
+    "resta_europa": 3.8,
+    "africa": 2.3,
+    "llatinoamerica": 6.7,
+    "america_nord": 0.8,
+    "asia_oceania": 5.6
+   }
+  },
+  "67": {
+   "nom": "la Vila Olímpica del Poblenou",
+   "poblacio_padro": 9278,
+   "pct_nac_ue": 12.9,
+   "pct_nac_llatinoamerica": 3.5,
+   "regions": {
+    "ue": 12.9,
+    "resta_europa": 4.1,
+    "africa": 0.4,
+    "llatinoamerica": 3.5,
+    "america_nord": 1.2,
+    "asia_oceania": 2.6
+   }
+  },
+  "68": {
+   "nom": "el Poblenou",
+   "poblacio_padro": 34724,
+   "pct_nac_ue": 12.6,
+   "pct_nac_llatinoamerica": 5.2,
+   "regions": {
+    "ue": 12.6,
+    "resta_europa": 4.0,
+    "africa": 1.1,
+    "llatinoamerica": 5.2,
+    "america_nord": 0.8,
+    "asia_oceania": 3.4
+   }
+  },
+  "69": {
+   "nom": "Diagonal Mar i el Front Marítim del Poblenou",
+   "poblacio_padro": 13739,
+   "pct_nac_ue": 10.1,
+   "pct_nac_llatinoamerica": 4.2,
+   "regions": {
+    "ue": 10.1,
+    "resta_europa": 6.9,
+    "africa": 1.0,
+    "llatinoamerica": 4.2,
+    "america_nord": 0.6,
+    "asia_oceania": 3.3
+   }
+  },
+  "70": {
+   "nom": "el Besòs i el Maresme",
+   "poblacio_padro": 30677,
+   "pct_nac_ue": 3.8,
+   "pct_nac_llatinoamerica": 11.3,
+   "regions": {
+    "ue": 3.8,
+    "resta_europa": 2.9,
+    "africa": 5.7,
+    "llatinoamerica": 11.3,
+    "america_nord": 0.2,
+    "asia_oceania": 18.1
+   }
+  },
+  "71": {
+   "nom": "Provençals del Poblenou",
+   "poblacio_padro": 22066,
+   "pct_nac_ue": 6.8,
+   "pct_nac_llatinoamerica": 6.9,
+   "regions": {
+    "ue": 6.8,
+    "resta_europa": 2.5,
+    "africa": 2.0,
+    "llatinoamerica": 6.9,
+    "america_nord": 0.4,
+    "asia_oceania": 4.0
+   }
+  },
+  "72": {
+   "nom": "Sant Martí de Provençals",
+   "poblacio_padro": 27019,
+   "pct_nac_ue": 4.3,
+   "pct_nac_llatinoamerica": 7.0,
+   "regions": {
+    "ue": 4.3,
+    "resta_europa": 1.7,
+    "africa": 1.0,
+    "llatinoamerica": 7.0,
+    "america_nord": 0.2,
+    "asia_oceania": 6.5
+   }
+  },
+  "73": {
+   "nom": "la Verneda i la Pau",
+   "poblacio_padro": 30923,
+   "pct_nac_ue": 3.4,
+   "pct_nac_llatinoamerica": 7.0,
+   "regions": {
+    "ue": 3.4,
+    "resta_europa": 2.8,
+    "africa": 1.6,
+    "llatinoamerica": 7.0,
+    "america_nord": 0.1,
+    "asia_oceania": 6.7
+   }
+  }
+ }
+}

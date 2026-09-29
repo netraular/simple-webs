@@ -38,6 +38,7 @@ const {
   CAPES, CAPA_DE, ols, niceTicks, cuota, HIP, fmtMin,
   cobertura, avisCobertura, percentil, valorsOrdenats, extrem,
   passaRang, filtreActiu, passaCats, xarxesDe, frase,
+  AMBITS, capesAmbit, desglossa, notaAmbit, ORDRE_ASC, ORDRE_DESC, ORDENABLES,
 } = new Function(`
   const getComputedStyle = () => ({ getPropertyValue: () => "#000" });
   const document = { documentElement: {} };
@@ -46,7 +47,8 @@ const {
   ${puro}
   return { CAPES, CAPA_DE, ols, niceTicks, cuota, HIP, fmtMin,
            cobertura, avisCobertura, percentil, valorsOrdenats, extrem,
-           passaRang, filtreActiu, passaCats, xarxesDe, frase };
+           passaRang, filtreActiu, passaCats, xarxesDe, frase,
+           AMBITS, capesAmbit, desglossa, notaAmbit, ORDRE_ASC, ORDRE_DESC, ORDENABLES };
 `)();
 
 const Z = JSON.parse(readFileSync(new URL("../pages/data/zonas.json", import.meta.url), "utf8"));
@@ -73,7 +75,9 @@ const filas = zones.map(m => ({ ...m, valor: m.destins?.[DEST]?.min ?? null }));
 console.log("     capa                      con dato   mín          máx");
 let sinDato = [], conNaN = [], fmtMal = [];
 for (const c of CAPES) {
-  const vs = filas.map(m => c.get(m)).filter(v => v !== null && v !== undefined);
+  // Las capas derivadas —las notas por ámbito— necesitan las zonas para
+  // calcular percentiles: aquí dentro no hay DATA. Las demás lo ignoran.
+  const vs = filas.map(m => c.get(m, zones)).filter(v => v !== null && v !== undefined);
   const nums = vs.filter(v => typeof v === "number" && Number.isFinite(v));
   if (nums.length !== vs.length) conNaN.push(c.id);
   if (!nums.length) { sinDato.push(c.id); continue; }
@@ -277,6 +281,64 @@ ok(zones.filter(m => passaRang(m, nomesSostre)).length
    + zones.filter(m => passaRang(m, nomesTerra)).length
    >= zones.length - senseDel.length,
    "y entre los dos cubren todas las que tienen el dato");
+
+console.log("\n══ notas por ámbito ════════════════════════════");
+{
+  let fora = [];
+  for (const a of AMBITS) {
+    for (const c of capesAmbit(a.id)) {
+      if (!ORDENABLES.includes(c.id)) fora.push(`${a.id}:${c.id}`);
+    }
+  }
+  ok(fora.length === 0,
+     "ninguna capa sin sentido acordado entra en una nota",
+     fora.length ? `(${fora.join(", ")})` : `(${AMBITS.length} ámbitos)`);
+
+  let rang = [], pocas = [], sobran = [];
+  for (const a of AMBITS) {
+    const total = capesAmbit(a.id).length;
+    for (const m of zones) {
+      const n = notaAmbit(m, a.id, zones);
+      if (n == null) continue;
+      if (!Number.isFinite(n) || n < 0 || n > 100) rang.push(`${a.id}/${m.id}=${n}`);
+      const amb = desglossa(m, a.id, zones).filter(x => x.punts != null).length;
+      // La regla: con nota, al menos la mitad de las capas del ámbito.
+      if (amb * 2 < total) pocas.push(`${a.id}/${m.id}`);
+    }
+    // Y al revés: si tiene de sobra, tiene que haber nota.
+    for (const m of zones) {
+      const amb = desglossa(m, a.id, zones).filter(x => x.punts != null).length;
+      if (amb === total && total > 0 && notaAmbit(m, a.id, zones) == null) sobran.push(`${a.id}/${m.id}`);
+    }
+  }
+  ok(rang.length === 0, "todas las notas caen entre 0 y 100",
+     rang.length ? `(${rang.slice(0, 3).join(", ")})` : "");
+  ok(pocas.length === 0, "ninguna nota sale de menos de la mitad de sus indicadores",
+     pocas.length ? `(${pocas.slice(0, 3).join(", ")})` : "");
+  ok(sobran.length === 0, "y con todos los indicadores siempre hay nota",
+     sobran.length ? `(${sobran.slice(0, 3).join(", ")})` : "");
+
+  // El sentido: en un ámbito donde todo va en ORDRE_ASC («menos es mejor»), la
+  // zona con los valores más bajos tiene que sacar la nota más alta. Seguridad
+  // es exactamente ese caso, y es lo que comprueba que la inversión no esté al
+  // revés —el error que no daría ningún síntoma visible—.
+  const seg = capesAmbit("seguretat");
+  const totsAsc = seg.every(c => ORDRE_ASC.includes(c.id));
+  const cDe = CAPA_DE.get("delictes_1000");
+  const ambNota = zones.filter(m => notaAmbit(m, "seguretat", zones) != null && cDe.get(m) != null);
+  const pitjor = ambNota.reduce((a, b) => cDe.get(a) > cDe.get(b) ? a : b);
+  const millor = ambNota.reduce((a, b) => cDe.get(a) < cDe.get(b) ? a : b);
+  ok(totsAsc && notaAmbit(millor, "seguretat", zones) > notaAmbit(pitjor, "seguretat", zones),
+     "en seguridad, menos delitos es más nota (la inversión de ORDRE_ASC)",
+     `(${millor.nom} ${notaAmbit(millor, "seguretat", zones)} vs `
+     + `${pitjor.nom} ${notaAmbit(pitjor, "seguretat", zones)})`);
+
+  // Y el desglose que la ficha despliega: un percentil por capa, orientado.
+  const d = desglossa(zones.find(m => notaAmbit(m, "serveis", zones) != null), "serveis", zones);
+  ok(d.length === capesAmbit("serveis").length
+     && d.every(x => x.punts == null || (x.punts >= 0 && x.punts <= 100)),
+     `el desglose de servicios son ${d.length} indicadores con su percentil`);
+}
 
 const nBarris = zones.filter(m => m.tipus === "barri").length;
 ok(zones.filter(m => passaCats(m, { tipus: ["barri"] })).length === nBarris,

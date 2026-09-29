@@ -528,6 +528,19 @@ tbody tr.is-hi td,tbody tr.is-hi td:first-child{background:var(--surface-2)}
    marca de la mediana, que ahí no significaría nada. */
 .pct-bar.abs::after{display:none}
 .fi-avis{margin-top:8px;font-size:.68rem;color:var(--muted);line-height:1.45}
+/* Las notas por ámbito. La nota nunca aparece sin poder abrirla: el <details>
+   no es un adorno, es la condición para enseñar un número resumido. */
+.nota-d{margin-top:9px;font-size:.74rem}
+.nota-d>summary{display:grid;grid-template-columns:1fr auto;gap:2px 10px;align-items:baseline;cursor:pointer;list-style:none}
+.nota-d>summary::-webkit-details-marker{display:none}
+.nota-d>summary:focus-visible{outline:2px solid var(--seq-500);outline-offset:2px;border-radius:3px}
+.nota-d .n-n{color:var(--ink-2)}
+.nota-d .n-v{font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+.nota-d .n-de{grid-column:1/-1;font-size:.66rem;color:var(--muted)}
+.nota-d .pct-bar{grid-column:1/-1;margin-top:3px}
+.nota-desg{margin:6px 0 2px;padding-left:10px;border-left:2px solid var(--surface-2);font-size:.68rem;color:var(--muted)}
+.nota-desg div{display:flex;justify-content:space-between;gap:10px;margin-top:3px}
+.nota-desg b{font-weight:700;font-variant-numeric:tabular-nums;color:var(--ink-2)}
 
 /* ---------- comparación ---------- */
 table.cmp th,table.cmp td{vertical-align:top}
@@ -1371,6 +1384,48 @@ function cuota(preu) {
   return i === 0 ? c / n : c * i / (1 - (1 + i) ** -n);
 }
 
+/* ---------- las notas por ámbito ----------
+   Cinco notas y **ninguna global**: el peso entre ámbitos es exactamente donde
+   la opinión se disfraza de dato. Cuánto vale la seguridad frente al precio es
+   tuyo, no mío, y una nota global tendría que decidirlo a tus espaldas.
+
+   La receta es corta a propósito: la **media de los percentiles** de las capas
+   del ámbito, invirtiendo las que van al revés. Percentiles y no z-scores
+   porque casi todas estas distribuciones tienen una cola larga —un municipio
+   con el aeropuerto dentro, un barrio de 1.400 vecinos— y la media y la
+   desviación se la tragan entera; el percentil no.
+
+   Tres reglas, y las tres son para que la nota no aparente saber más de lo que
+   sabe:
+
+     · **solo puntúa lo que está en ORDRE_ASC u ORDRE_DESC.** Lo demás no tiene
+       un sentido acordado de «mejor», así que no puede sumar a una nota. Es la
+       misma regla que ya impedía ordenar el ranking por la edad media;
+     · **si a una zona le falta más de la mitad de las capas del ámbito, no hay
+       nota.** Una nota de seguridad calculada sobre una capa de tres no es una
+       nota, es un número con tipografía de nota;
+     · **la nota es relativa a las 164 zonas, no absoluta.** Un 50 significa «en
+       la mitad», no «aprobado raspado».
+
+   Entorno se queda hoy sin nota en los municipios, y no es un descuido: de sus
+   cuatro capas, tres —el ruido de día, el de noche y los locales vacíos— solo
+   existen para los 73 barrios. Antes que rellenarlo con lo que hubiera, se
+   prefiere decir que no hay. */
+const AMBITS = [
+  { id: "vivenda", nom: "Vivienda", capes:
+    ["compra_m2", "lloguer", "hipoteca", "superficie_mitjana"] },
+  { id: "transport", nom: "Transporte", capes:
+    ["dist_tren_km", "dist_estacio_km", "estacions", "parades_bus_km2", "zones_a_bcn"] },
+  { id: "serveis", nom: "Servicios", capes:
+    ["centres_educatius_1000", "esport_1000", "comercos_1000", "farmacies_1000",
+     "dist_salut_km", "dist_escola_km"] },
+  { id: "seguretat", nom: "Seguridad", capes:
+    ["delictes_1000", "robatoris_domicili_1000", "robatoris_violencia_1000"] },
+  { id: "entorn", nom: "Entorno", capes:
+    ["zona_verda_m2_hab", "pct_soroll_65db", "pct_soroll_nit_55db", "pct_locals_buits"] },
+];
+const AMBIT_DE = new Map(AMBITS.map(a => [a.id, a]));
+
 const CAPES = [
   { id: "compra_m2", grup: "Vivienda", nom: "Precio de compra", eix: "€/m²",
     get: (m) => m.compra_eur_m2, fmt: (v) => fmtEur(v) + "/m²",
@@ -1655,10 +1710,97 @@ const CAPES = [
     nota: "Robos con violencia o intimidación, por cada mil habitantes. Misma "
         + "advertencia que el total: se cuentan donde ocurren, y se concentran "
         + "donde hay mucha gente de paso." },
+
+  /* Las cinco notas. Son capas como las demás —colorean el mapa, filtran, van a
+     los ejes y a la tabla— sin una línea nueva en ninguna de esas vistas: esa
+     es toda la ventaja de que un indicador sea una entrada de esta tabla. La
+     aritmética y el porqué están arriba, en el bloque de AMBITS. */
+  ...AMBITS.map(a => ({
+    id: "nota_" + a.id, grup: "Notas por ámbito", nom: a.nom, eix: "0-100",
+    derivada: true,
+    // El segundo argumento es el mismo apaño que ya tienen `cobertura` y
+    // `percentil`: fuera de la página no hay DATA, y el test de capas necesita
+    // poder pasarle las zonas a mano.
+    get: (m, zones) => notaAmbit(m, a.id, zones),
+    fmt: (v) => nf(0).format(v) + " / 100",
+    nota: `Media de los percentiles de ${a.capes.length} indicadores de `
+        + `${a.nom.toLowerCase()}, con los que van al revés invertidos. Es `
+        + "relativa a las 164 zonas: un 50 quiere decir «en la mitad», no "
+        + "«aprobado raspado». Si a una zona le falta más de la mitad de esos "
+        + "indicadores no se le pone nota. No hay nota global a propósito: "
+        + "cuánto pesa la seguridad frente al precio es tuyo, no de la página." })),
 ];
 const CAPA_DE = new Map(CAPES.map(c => [c.id, c]));
 const capa = () => CAPA_DE.get(S.capa) || CAPES[0];
 const GRUPS = [...new Set(CAPES.map(c => c.grup))];
+
+
+/* ---------- hacia dónde es mejor ----------
+   El ranking no es solo de precio: se ordena por el criterio que se elija, y
+   solo entran las zonas que tienen ese dato. En las capas de dinero y de tiempo
+   lo bueno es lo bajo; en «estaciones» o «zona verde», lo alto. El sentido va
+   escrito aquí y no se deduce, porque deducirlo sería inventarse qué es mejor
+   en la edad media o en el porcentaje de extranjeros: en esas no hay mejor, y
+   por eso no pueden ordenar el ranking **ni entrar en ninguna nota**.
+
+   Está aquí arriba, con la tabla de capas, y no junto al ranking, porque desde
+   que hay notas por ámbito esto dejó de ser un detalle de la ordenación para
+   ser el ingrediente que hace que una nota no sea una opinión inventada. */
+const ORDRE_ASC = ["compra_m2", "compra_total", "lloguer", "hipoteca",
+                   "temps", "aigua_eur_m3", "zones_a_bcn",
+                   "dist_estacio_km", "dist_tren_km",
+                   "delictes_1000", "robatoris_domicili_1000", "robatoris_violencia_1000",
+                   "pct_soroll_65db", "pct_soroll_nit_55db", "atur_taxa_pct",
+                   "pct_locals_buits",
+                   "dist_salut_km", "dist_escola_km"];
+const ORDRE_DESC = ["zona_verda_m2_hab", "superficie_mitjana", "estacions",
+                    "centres_educatius_1000", "pct_centres_publics", "renda_llar_eur",
+                    "esport_1000",
+                    "comercos_1000", "farmacies_1000", "parades_bus_km2",
+                    // las cinco notas: por construcción, más es mejor
+                    "nota_vivenda", "nota_transport", "nota_serveis",
+                    "nota_seguretat", "nota_entorn"];
+const ORDENABLES = [...ORDRE_ASC, ...ORDRE_DESC];
+
+/** Las capas de un ámbito que de verdad pueden puntuar: existen y tienen
+    sentido acordado. `temps` queda fuera de todas porque depende de los
+    destinos que hayas marcado, y una nota que cambia cuando tocas un filtro no
+    es una nota de la zona. */
+function capesAmbit(id) {
+  const a = AMBIT_DE.get(id);
+  if (!a) return [];
+  return a.capes.map(cid => CAPA_DE.get(cid))
+          .filter(c => c && !c.viu && ORDENABLES.includes(c.id));
+}
+
+/** El desglose de una nota: qué capa aporta qué percentil, ya orientado. Lo usa
+    la ficha, y es lo que hace que la nota nunca aparezca sin poder abrirla. */
+function desglossa(m, id, zones) {
+  const out = [];
+  for (const c of capesAmbit(id)) {
+    const v = c.get(m, zones);
+    const p = percentil(c, v, zones);
+    if (v == null || p == null) { out.push({ c, v, p: null, punts: null }); continue; }
+    out.push({ c, v, p, punts: ORDRE_ASC.includes(c.id) ? 100 - p : p });
+  }
+  return out;
+}
+
+const NOTES = new Map();
+function notaAmbit(m, id, zones) {
+  if (!m) return null;
+  const k = id + "|" + m.id;
+  if (!NOTES.has(k)) {
+    const d = desglossa(m, id, zones);
+    const amb = d.filter(x => x.punts != null);
+    // «Más de la mitad» se comprueba así, con enteros, para que en un ámbito de
+    // tres capas hagan falta dos y no una y media redondeada a la baja.
+    NOTES.set(k, amb.length * 2 >= d.length && amb.length > 0
+      ? Math.round(amb.reduce((a, x) => a + x.punts, 0) / amb.length)
+      : null);
+  }
+  return NOTES.get(k);
+}
 
 /* ---------- cobertura: contada, no declarada ----------
    Cuántas zonas tienen dato en cada capa, separando municipios de barrios.
@@ -2285,25 +2427,6 @@ function tendencia() {
     zonas[i].residPct = esperat === 0 ? null : 100 * (y - esperat) / esperat;
   }
 }
-
-/* El ranking ya no es solo de precio: se ordena por el criterio que se elija,
-   y solo entran las zonas que tienen ese dato. En las capas de dinero y de
-   tiempo lo bueno es lo bajo; en «estaciones» o «zona verde», lo
-   alto. El sentido va escrito aquí y no se deduce, porque deducirlo sería
-   inventarse qué es mejor en la edad media o en el porcentaje de extranjeros:
-   en esas no hay mejor, y por eso no pueden ordenar el ranking. */
-const ORDRE_ASC = ["compra_m2", "compra_total", "lloguer", "hipoteca",
-                   "temps", "aigua_eur_m3", "zones_a_bcn",
-                   "dist_estacio_km", "dist_tren_km",
-                   "delictes_1000", "robatoris_domicili_1000", "robatoris_violencia_1000",
-                   "pct_soroll_65db", "pct_soroll_nit_55db", "atur_taxa_pct",
-                   "pct_locals_buits",
-                   "dist_salut_km", "dist_escola_km"];
-const ORDRE_DESC = ["zona_verda_m2_hab", "superficie_mitjana", "estacions",
-                    "centres_educatius_1000", "pct_centres_publics", "renda_llar_eur",
-                    "esport_1000",
-                    "comercos_1000", "farmacies_1000", "parades_bus_km2"];
-const ORDENABLES = [...ORDRE_ASC, ...ORDRE_DESC];
 
 /** Las que cumplen todos tus criterios, ordenadas por el que hayas elegido.
     Es la respuesta de la página: la usan el titular y el ranking. */
@@ -3562,6 +3685,39 @@ const ORIGEN_NOM = {
   asia_oceania: "Asia y Oceanía",
 };
 
+/* Las cinco notas en la ficha, cada una desplegable. La regla es la del bloque
+   de AMBITS: debajo del número va de cuántos indicadores sale, y al abrirlo
+   están los percentiles uno a uno. Un resumen que no se puede auditar no se
+   enseña. */
+function blocNotes(m) {
+  const files = AMBITS.map(a => {
+    const n = notaAmbit(m, a.id);
+    const d = desglossa(m, a.id);
+    const amb = d.filter(x => x.punts != null);
+    if (n == null) {
+      return `<div class="pct"><span class="p-n">${esc(a.nom)}</span>
+        <span class="p-v pct-na">${amb.length ? `solo ${amb.length} de ${d.length} indicadores`
+          : "sin datos"}</span></div>`;
+    }
+    return `<details class="nota-d"><summary>
+        <span class="n-n">${esc(a.nom)}</span>
+        <span class="n-v">${esc(nf(0).format(n))} / 100</span>
+        <span class="n-de">de ${amb.length} ${amb.length === 1 ? "indicador" : "indicadores"}${
+          amb.length < d.length ? ` (faltan ${d.length - amb.length})` : ""} · toca para ver cuáles</span>
+        <span class="pct-bar abs" role="img" aria-label="nota ${n} sobre 100"
+          ><i style="width:${n}%"></i></span>
+      </summary><div class="nota-desg">${
+        d.map(x => `<div><span>${esc(x.c.nom)}</span><b>${x.punts == null ? "—"
+          : esc(nf(0).format(x.punts))}</b></div>`).join("")}</div></details>`;
+  }).join("");
+  return `<div class="fi-h">Notas por ámbito</div>${files}
+    <p class="fi-avis">Cada nota es la media de los percentiles de sus
+      indicadores dentro de las 164 zonas, con los que van al revés invertidos:
+      un 50 quiere decir «en la mitad», no «aprobado raspado». No hay nota
+      global a propósito: cuánto pesa la seguridad frente al precio es cosa
+      tuya.</p>`;
+}
+
 function blocOrigen(m) {
   const ordre = DATA.meta?.indicadors?.nacionalitats?.regions;
   if (!m.origen || !Array.isArray(ordre)) return "";
@@ -3619,6 +3775,7 @@ function renderFicha() {
         ? `hasta ${esc(nomCond(id))}` : "sin viaje marcado"}</span></div>
       ${xifra(CAPA_DE.get("hipoteca"), "Cuota de hipoteca")}
     </div>
+    ${blocNotes(m)}
     <div class="fi-h">Dónde cae dentro del área</div>
     ${FICHA_CAPES.map(cid => CAPA_DE.get(cid)).filter(Boolean)
        .filter(c => c.get(m) != null).map(c => barraPctl(c, m)).join("")}

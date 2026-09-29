@@ -59,18 +59,28 @@ table columns, percentile bars and coverage notices all follow from it. Coverage
 counted from the data, never declared: `test-capas.mjs` checks that count against
 `meta.indicadors.camps`.
 
+Since 2026-09 the page also grades each zone 0-100 in five areas — housing, transport,
+services, safety, environment — as the mean of its indicators' percentiles, inverting
+the ones where less is better. Only measures listed in `ORDRE_ASC`/`ORDRE_DESC` score:
+anything without an agreed direction of "better" describes and does not grade. There is
+deliberately **no overall grade**: weighting safety against price is the reader's call,
+not the page's.
+
 ```sh
 cd data-src
 python3 fetch-transit.py         # ~1.150 routing queries, ~1 h
 python3 fetch-isocronas.py       # 165 one-to-all queries, ~6 min
 node fetch-linies.mjs            # OpenStreetMap; needs transit.json to pick the buses
 node fetch-estacions.mjs         # rail stations; needs linies.json to classify them
+node fetch-serveis.mjs           # OSM shops, pharmacies, clinics, schools, bus stops
 python3 build_seguretat.py       # crime + urban green space, by municipality
 python3 build_delictes_bcn.py    # crime by Barcelona district, for the 73 barris
 python3 build_tarifes.py         # ATM fare zone and water price
 python3 build_soroll.py          # noise exposure — Barcelona neighbourhoods only
 python3 build_habitatge_edat.py  # pre-1960 housing stock — barris only
 python3 build_comerc.py          # vacant ground-floor units — barris only
+python3 build_queixes.py         # IRIS citizen reports — barris only
+python3 build_nacionalitats.py   # region of nationality — barris only
 node build_esport.mjs            # sports facilities, municipalities and barris
 node build_centres.mjs           # schools, by municipality and by neighbourhood
 node build-transport.mjs         # merges into pages/data/ — downloads nothing
@@ -80,9 +90,19 @@ node test-capas.mjs              # the page's own layer code, run against the da
 
 `fetch-estacions.mjs` has to run after `fetch-linies.mjs`: it settles the network
 of a station it can't read off the tags by finding the nearest rail stop in
-`linies.json`. The seven `build_*` steps in the middle are independent of each
-other and of the routing ones — each writes its own `data-src/*.json` and
-`build-transport.mjs` picks up whatever is there, warning about what is missing.
+`linies.json`. `fetch-serveis.mjs` and the nine `build_*` steps in the middle are
+independent of each other and of the routing ones — each writes its own
+`data-src/*.json` and `build-transport.mjs` picks up whatever is there, warning
+about what is missing.
+
+The five neighbourhood-service measures come from OpenStreetMap because no official
+register covers the 91 municipalities and the 73 neighbourhoods at once. OSM's
+failure mode is the survivable one — it never invents, it can only be incomplete —
+and the build measures it instead of assuming: distances are computed against every
+point in the bounding box, densities are withheld below 2.000 inhabitants, and the
+school count is checked against the official directory (2.336 of 2.739, 85 %). It
+aborts if any category leaves more than 15 % of the zones at zero. See
+`serveis.SOURCES.md`.
 
 `build-transport.mjs` only reorganises what the three fetch steps produced: it
 merges the 91 municipalities and the 73 Barcelona neighbourhoods into one set of

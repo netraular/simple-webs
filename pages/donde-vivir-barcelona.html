@@ -1126,8 +1126,9 @@ footer a{color:var(--focus)}
             llena significa «el valor más alto», <strong>no «lo mejor»</strong>: en el
             precio, en el paro o en el ruido, lo alto es justo lo contrario. Por eso
             todas van del mismo color y ninguna se pinta de verde o de rojo: el sentido
-            lo pone cada magnitud y la barra no puede saberlo. La página no puntúa
-            ninguna zona, y las capas demográficas describen, no valoran.
+            lo pone cada magnitud y la barra no puede saberlo. Las capas demográficas
+            —la edad media, el origen, el porcentaje de extranjeros— describen, no
+            valoran, y por eso no ordenan el ranking ni entran en ninguna nota.
           </p>
           <p>
             El universo del percentil son las zonas <em>con ese dato</em>, no las 164
@@ -1151,6 +1152,57 @@ footer a{color:var(--focus)}
             con la rampa azul del mapa y con los colores de las redes. Las columnas
             etiquetadas y numeradas —el número es el mismo que lleva la chapa en el
             mapa— no necesitan ningún color.
+          </p>
+        </div>
+      </details>
+
+      <details>
+        <summary>Las cinco notas por ámbito, y por qué no hay una global</summary>
+        <div class="prose">
+          <p>
+            La página <strong>sí puntúa</strong>, desde esta versión, y conviene saber
+            exactamente qué hace. Cada zona recibe hasta cinco notas de 0 a 100 —vivienda,
+            transporte, servicios, seguridad y entorno— y cada una es la
+            <strong>media de los percentiles</strong> de los indicadores de ese ámbito,
+            invirtiendo los que van al revés: en el precio, en el ruido o en los delitos,
+            lo bajo suma.
+          </p>
+          <p>
+            <strong>Solo puntúa lo que tiene un sentido acordado de «mejor».</strong> La
+            misma lista que decide si el ranking ordena de menos a más o al revés decide
+            qué entra en una nota, y lo que no está en ella se queda fuera: la edad media,
+            el origen de los vecinos o el porcentaje de hogares de una persona no son
+            mejores ni peores, así que no suman. Tampoco suman los avisos al Ayuntamiento,
+            aunque tengan un sentido aparente: esa cifra mide la propensión a avisar tanto
+            como el problema, y una nota que baja porque los vecinos están organizados es
+            peor que no tener nota.
+          </p>
+          <p>
+            <strong>Percentiles y no puntuaciones tipificadas</strong> porque casi todas
+            estas distribuciones tienen una cola larga —un municipio con el aeropuerto
+            dentro, un barrio de mil cuatrocientos vecinos— y la media y la desviación se
+            la tragan entera. El percentil no se deja arrastrar.
+          </p>
+          <p>
+            <strong>La nota es relativa a las 164 zonas, no absoluta.</strong> Un 50
+            significa «en la mitad de la provincia», no «aprobado raspado». Y si a una
+            zona le falta más de la mitad de los indicadores de un ámbito, no hay nota:
+            una nota de seguridad calculada sobre un indicador de tres es un número con
+            tipografía de nota. Debajo de cada una va de cuántos indicadores sale, y al
+            desplegarla están los percentiles uno a uno — un resumen que no se puede
+            auditar no se enseña.
+          </p>
+          <p>
+            Hoy transporte y servicios llegan a las 164 zonas, vivienda a 158 y seguridad
+            a 111. <strong>Entorno solo existe para los 73 barrios</strong>, porque tres
+            de sus cuatro indicadores —el ruido de día, el de noche y los locales vacíos—
+            no se publican fuera de Barcelona.
+          </p>
+          <p>
+            <strong>No hay nota global, y es la decisión más importante de las cinco.</strong>
+            Para juntarlas habría que decidir cuánto pesa la seguridad frente al precio, o
+            el transporte frente al verde, y eso no es un dato: es la respuesta que has
+            venido a buscar. Una nota global la daría por ti y la disfrazaría de medida.
           </p>
         </div>
       </details>
@@ -1182,14 +1234,40 @@ footer a{color:var(--focus)}
             <span id="m-est-nota"></span>
           </p>
           <p>
-            <strong>Tres datos existen solo dentro de Barcelona</strong>, además
+            <strong>Cinco datos existen solo dentro de Barcelona</strong>, además
             del ruido: la <strong>antigüedad del parque</strong> (el porcentaje
             de viviendas anteriores a 1960, del catastro municipal), los
             <strong>locales vacíos</strong> (el censo comercial, que se levanta
-            recorriendo la ciudad a pie) y el desglose de los delitos por
-            distrito. Fuera de la ciudad no hay fuente equivalente y no se
-            rellena con nada.
+            recorriendo la ciudad a pie), el desglose de los delitos por
+            distrito, los <strong>avisos al Ayuntamiento</strong> y el
+            <strong>origen de la población</strong>. Fuera de la ciudad no hay
+            fuente equivalente y no se rellena con nada.
             <span id="m-comerc-nota"></span>
+          </p>
+          <p>
+            <strong>Cuidado con los avisos al Ayuntamiento.</strong>
+            <span id="m-queixes-nota"></span> Por eso esas dos capas se ven, filtran y
+            colorean el mapa, pero no ordenan el ranking ni entran en ninguna nota.
+          </p>
+          <p>
+            <strong>Los servicios de barrio salen de OpenStreetMap</strong>, no de un
+            registro oficial, porque no hay ninguno que valga a la vez para los 91
+            municipios y los 73 barrios. OSM tiene el defecto contrario al de un
+            registro: no se inventa nada, pero puede faltarle. Aquí eso se mide en vez
+            de suponerse — las distancias se calculan contra todos los puntos de la
+            provincia, así que un municipio al que no le hayan mapeado nada dentro sigue
+            teniendo un número honesto; las densidades no se publican por debajo de
+            2.000 habitantes; y las escuelas se contrastan con el directorio oficial:
+            OSM tiene 2.336 de las 2.739 que constan, el 85 %.
+          </p>
+          <p>
+            De cada servicio se publica <strong>una sola cifra</strong>, la que contesta
+            la pregunta: densidad donde importa que haya varios cerca (tiendas,
+            farmacias) y distancia donde necesitas uno y basta (centro de salud,
+            escuela). Las <strong>paradas de bus van por kilómetro cuadrado</strong> y
+            no por habitante: las paradas siguen la longitud de las calles, no la gente,
+            y por mil vecinos salían arriba Vallvidrera y la Marina del Prat Vermell
+            mientras el Barri Gòtic quedaba el último.
           </p>
           <p>
             <strong>El deporte es un recuento de espacios, no metros
@@ -1212,6 +1290,12 @@ footer a{color:var(--focus)}
             cuánto hace que vive aquí, y no dice nada por sí solo: es un dato
             demográfico, no una valoración de la zona.
           </p>
+          <p>
+            <strong>Y cuidado con el origen.</strong> <span id="m-nac-nota"></span>
+            El reparto completo va en la ficha de cada barrio y no como capa del mapa a
+            propósito: colorear la provincia por «de dónde es la gente» invitaría a
+            ordenarla por eso, que es justamente lo que aquí no se hace.
+          </p>
           <p id="m-ind-barris"></p>
           <p>
             Los años no son los mismos en todos los campos —la renta es de 2023, el
@@ -1228,11 +1312,13 @@ footer a{color:var(--focus)}
           <p>
             Sigue faltando lo que no se publica con este grano y pesa tanto como
             esto: la <strong>calidad del aire</strong> (solo 21 de los 91
-            municipios tienen estación, y por barrio habría que interpolar), los
-            <strong>centros de salud</strong> (el cero del registro significa «no
-            registrado», no «no hay»: comprobado en el Prat) y el estado real de
-            las viviendas. Antes que enseñar un número que no cuadra con el mapa,
-            no se enseña.
+            municipios tienen estación, y por barrio habría que interpolar) y el
+            estado real de las viviendas. Los <strong>centros de salud</strong>
+            estaban en esta lista y han salido a medias: el registro oficial de
+            CatSalut sigue sin servir —su cero significa «no registrado», no «no
+            hay», comprobado en el Prat—, pero la distancia al más cercano según
+            OpenStreetMap sí se puede medir, y es lo que se publica. Antes que
+            enseñar un número que no cuadra con el mapa, no se enseña.
           </p>
         </div>
       </details>
@@ -4077,6 +4163,8 @@ function renderTexts() {
     $("#m-est-nota").textContent = IND.estacions?.nota || "";
     $("#m-esport-nota").textContent = IND.esport?.nota || "";
     $("#m-comerc-nota").textContent = IND.comerc?.nota || "";
+    $("#m-queixes-nota").textContent = IND.queixes?.nota || "";
+    $("#m-nac-nota").textContent = IND.nacionalitats?.nota || "";
   }
 
   $("#m-fonts").innerHTML = `<ul>
@@ -4137,6 +4225,19 @@ function renderTexts() {
       <a href="https://analisi.transparenciacatalunya.cat/">Dades Obertes de
       Catalunya</a>${M.indicadors?.seguretat?.zona_verda_any
         ? `, año ${M.indicadors.seguretat.zona_verda_any}` : ""}.</li>
+    <li><strong>Tiendas de alimentación, farmacias, paradas de bus y distancias al
+      centro de salud y a la escuela</strong>: © colaboradores de
+      <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>, ODbL, vía
+      Overpass. Las escuelas se contrastan contra el directorio oficial del Departament
+      d'Educació: OSM tiene el 85 % de las que constan ahí.</li>
+    <li><strong>Avisos al Ayuntamiento</strong>: «IRIS · incidències, queixes i
+      suggeriments», <a href="https://opendata-ajuntament.barcelona.cat/">Open Data
+      BCN</a>${M.indicadors?.queixes?.any ? `, ${M.indicadors.queixes.any}` : ""}. Solo
+      los 73 barrios.</li>
+    <li><strong>Origen de la población</strong>: Padró Municipal d'Habitants, Oficina
+      Municipal de Dades, vía Open Data BCN${M.indicadors?.nacionalitats?.any
+        ? `, ${M.indicadors.nacionalitats.any}` : ""}. Solo los 73 barrios: ni Idescat
+      ni el INE publican el desglose por origen por debajo de la provincia.</li>
     <li><strong>Población</strong>: padrón municipal (INE) e Idescat.</li>
   </ul>`;
 }

@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>¿Dónde puedo vivir? · Explorador de vivienda, transporte y vecindario en el área de Barcelona</title>
-<meta name="description" content="Filtra las 164 zonas del área de Barcelona —91 municipios y los 73 barrios de la ciudad— por lo que te importe: precio, alquiler, tiempo de viaje puerta a puerta, abono de transporte, ruido, ruido nocturno, densidad, renta, paro, colegios, zona verde, distancia al mar y treinta datos oficiales más. Mapa, gráfico, ranking y tabla enlazados, ficha de cada zona y comparación de hasta cuatro.">
+<meta name="description" content="Filtra las 164 zonas del área de Barcelona —91 municipios y los 73 barrios de la ciudad— por lo que te importe: precio, alquiler, tiempo de viaje puerta a puerta, distancia a Rodalies o FGC, delitos, ruido, densidad, renta, paro, colegios, deporte, zona verde, locales vacíos y treinta datos oficiales más. Criterios en una barra, mapa ancho, tabla comparable con percentiles, ficha de cada zona y comparación de hasta cuatro.">
 <meta name="theme-color" content="#f4f6f5">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='88'>🚆</text></svg>">
 <style>
@@ -33,9 +33,12 @@
    comparación y —lo nuevo— los filtros. Cualquier capa se puede convertir en un
    filtro de rango porque ya sabe todo lo que un filtro necesita saber.
 
-   Las cuatro vistas —mapa, gráfico, tabla y ranking— son la misma selección
-   vista de cuatro maneras. Pasar el ratón por una enciende la zona en las otras
-   tres; pinchar abre su ficha; fijar hasta cuatro las pone una al lado de otra.
+   Las tres vistas —mapa, tabla y gráfico— son la misma selección vista de tres
+   maneras, y una sola barra de criterios las gobierna a las tres. Pasar el
+   ratón por una enciende la zona en las otras dos; pinchar abre su ficha; fijar
+   hasta cuatro las pone una al lado de otra. La tabla es la superficie donde de
+   verdad se comparan: viene ancha, se le añaden columnas y cada celda numérica
+   lleva su percentil pintado detrás.
    =========================================================================== */
 
 :root{
@@ -453,7 +456,7 @@ tbody tr.is-hi td,tbody tr.is-hi td:first-child{background:var(--surface-2)}
 .sc-lbl{fill:var(--ink);font-size:10.5px;font-weight:700;paint-order:stroke;stroke:var(--surface);stroke-width:.28em;pointer-events:none}
 .sc-empty{margin-top:14px;font-size:.85rem;color:var(--muted)}
 
-/* ---------- leyenda y panel lateral ---------- */
+/* ---------- leyenda ---------- */
 .legend h3{font-size:.68rem;font-weight:700;letter-spacing:0;text-transform:uppercase;color:var(--muted);margin-bottom:9px}
 .legend + .legend{margin-top:22px}
 .ramp{display:flex;height:13px;border-radius:3px;overflow:hidden}
@@ -1025,9 +1028,10 @@ footer a{color:var(--focus)}
               Castelldefels) da dos minutos andando. Es cierto y no informa de nada;
               aparece marcado para que no se cuele en una comparación.</li>
             <li><strong>El precio no está en todas.</strong> <span id="m-sensepreu"></span>
-              Una zona sin precio publicado puede cumplir tus criterios y no salir en el
-              ranking: el ranking necesita el dato por el que ordena, y sin dato no hay
-              puesto. Cuántas se quedan fuera por eso va escrito debajo del titular.</li>
+              Una zona sin precio publicado puede cumplir tus criterios y no poder
+              encabezar el veredicto: «a la cabeza» necesita el dato por el que ordena.
+              En la tabla sí sale, con un guion en esa columna y al final del orden.
+              Cuántas se quedan fuera por eso va escrito debajo del titular.</li>
           </ul>
           <p>
             Y lo que sigue sin estar aquí y decide tanto como esto: la calidad del aire
@@ -1041,10 +1045,13 @@ footer a{color:var(--focus)}
         <summary>Cómo se filtra, y qué pasa con lo que no tiene dato</summary>
         <div class="prose">
           <p>
-            Cualquiera de los <strong id="m-ncapas">41</strong> datos de la lista se puede
-            convertir en un filtro de rango. Una zona sale en el mapa encendida cuando
-            cumple <strong>todos</strong> los criterios a la vez: el viaje, cada rango y
-            cada categoría. El tooltip de las que no entran dice cuál las deja fuera.
+            Cualquiera de los <strong id="m-ncapas">43</strong> datos de la lista se puede
+            convertir en un filtro de rango, desde el «＋ filtro» de la barra de arriba.
+            Cada criterio activo se queda ahí como una ficha con su valor: el cuerpo de
+            la ficha reabre su control y la × lo quita. Una zona sale en el mapa
+            encendida cuando cumple <strong>todos</strong> los criterios a la vez: el
+            viaje, cada rango y cada categoría. El tooltip de las que no entran dice cuál
+            las deja fuera.
           </p>
           <p>
             <strong>Lo que no tiene dato queda fuera de ese filtro</strong>, que es lo que
@@ -1056,7 +1063,7 @@ footer a{color:var(--focus)}
             de Barcelona.
           </p>
           <p>
-            La cobertura de cada dato va escrita al lado de su nombre en los desplegables
+            La cobertura de cada dato va escrita al lado de su nombre en las listas
             («solo municipios, 38 de 91»), y <strong>se cuenta de los propios datos</strong>,
             no está escrita a mano en ningún sitio: si una fuente amplía o recorta su
             cobertura al reconstruir la página, el aviso cambia solo.
@@ -1074,15 +1081,18 @@ footer a{color:var(--focus)}
         <summary>El percentil, la frase y la comparación</summary>
         <div class="prose">
           <p>
-            Las barras de la ficha y de la comparación son <strong>percentiles</strong>:
+            Las barras de la ficha, de la comparación y de cada celda de la tabla son
+            <strong>percentiles</strong>:
             dónde cae esa zona dentro de las que tienen ese dato, de 0 a 100. Una barra
             llena significa «el valor más alto», <strong>no «lo mejor»</strong>: en el
-            precio, en el paro o en el ruido, lo alto es justo lo contrario. La página no
-            puntúa ninguna zona, y las capas demográficas describen, no valoran.
+            precio, en el paro o en el ruido, lo alto es justo lo contrario. Por eso
+            todas van del mismo color y ninguna se pinta de verde o de rojo: el sentido
+            lo pone cada magnitud y la barra no puede saberlo. La página no puntúa
+            ninguna zona, y las capas demográficas describen, no valoran.
           </p>
           <p>
             El universo del percentil son las zonas <em>con ese dato</em>, no las 164
-            siempre. En el ruido son 73 barrios, en los delitos 38 municipios, y la frase
+            siempre. En el ruido son 73 barrios, en los locales vacíos 69, y la frase
             lo dice cada vez («de las 73 zonas con este dato»). Comparar un barrio de un
             kilómetro cuadrado con un municipio de setenta en densidad o en zona verde
             sale muy desigual: es cierto lo que dice el número, pero no son objetos
@@ -1121,14 +1131,30 @@ footer a{color:var(--focus)}
           <p>
             Tres se calculan aquí a partir de datos publicados, y conviene
             saberlo: la <strong>densidad</strong> es población entre superficie;
-            la <strong>distancia al mar</strong> se mide en línea recta desde el
-            punto de referencia de la zona hasta la costa de Natural Earth
-            (escala 1:10 M, así que el error es de centenares de metros, y la
-            costa incluye puertos y acantilados, no solo playas); y la
-            <strong>vivienda vacía o de temporada</strong> es el complemento del
-            porcentaje de viviendas principales, que es lo que publica Idescat —
-            segundas residencias, pisos vacíos y alquiler de temporada van
-            juntos porque el censo no los separa.
+            las <strong>distancias a estación</strong> se miden en línea recta
+            desde el punto de referencia de la zona hasta la parada más cercana
+            de OpenStreetMap; y la <strong>vivienda vacía o de temporada</strong>
+            es el complemento del porcentaje de viviendas principales, que es lo
+            que publica Idescat — segundas residencias, pisos vacíos y alquiler
+            de temporada van juntos porque el censo no los separa.
+          </p>
+          <p>
+            <strong>Cuidado con las distancias a estación.</strong>
+            <span id="m-est-nota"></span>
+          </p>
+          <p>
+            <strong>Tres datos existen solo dentro de Barcelona</strong>, además
+            del ruido: la <strong>antigüedad del parque</strong> (el porcentaje
+            de viviendas anteriores a 1960, del catastro municipal), los
+            <strong>locales vacíos</strong> (el censo comercial, que se levanta
+            recorriendo la ciudad a pie) y el desglose de los delitos por
+            distrito. Fuera de la ciudad no hay fuente equivalente y no se
+            rellena con nada.
+            <span id="m-comerc-nota"></span>
+          </p>
+          <p>
+            <strong>El deporte es un recuento de espacios, no metros
+            cuadrados.</strong> <span id="m-esport-nota"></span>
           </p>
           <p>
             <strong>Cuidado con el ruido.</strong> Solo existe para los 73
@@ -1159,6 +1185,7 @@ footer a{color:var(--focus)}
             <span id="m-seg-cobertura"></span>
             <span id="m-seg-lloc"></span>
           </p>
+          <p id="m-seg-bcn"></p>
           <p>
             Sigue faltando lo que no se publica con este grano y pesa tanto como
             esto: la <strong>calidad del aire</strong> (solo 21 de los 91
@@ -3618,6 +3645,17 @@ function renderTexts() {
         + `tres capas dejan la mayor parte del mapa en gris.`;
       $("#m-seg-lloc").textContent = SG.nota_lloc || "";
     }
+
+    // Dentro de Barcelona la cifra es otra cosa y hay que decirlo: reparto de
+    // los Mossos por distrito sobre el nivel del Ministerio, así que los
+    // barrios de un mismo distrito comparten número.
+    const DB = IND.delictes_bcn;
+    $("#m-seg-bcn").textContent = DB
+      ? `Dentro de Barcelona sí hay desglose, pero por distrito: ${DB.nota}`
+      : "";
+    $("#m-est-nota").textContent = IND.estacions?.nota || "";
+    $("#m-esport-nota").textContent = IND.esport?.nota || "";
+    $("#m-comerc-nota").textContent = IND.comerc?.nota || "";
   }
 
   $("#m-fonts").innerHTML = `<ul>
@@ -3639,11 +3677,10 @@ function renderTexts() {
       parque de vehículos, altitud, viviendas principales, población de temporada y
       crecimiento</strong>: <a href="https://www.idescat.cat/dev/api/emex/">Idescat,
       API EMEX</a>, por municipio.</li>
-    <li><strong>Zona tarifaria y abono de transporte</strong>: visor público de la
+    <li><strong>Zona tarifaria</strong>: visor público de la
       <a href="https://www.atm.cat/">Autoritat del Transport Metropolità</a>. El número
       de zonas hasta Barcelona sale de las coronas que se cruzan, no del código de la
-      zona; el precio es la T-usual vigente. No es un conjunto del catálogo abierto:
-      no tiene licencia declarada.</li>
+      zona. No es un conjunto del catálogo abierto: no tiene licencia declarada.</li>
     <li><strong>Precio del agua</strong>: Agència Catalana de l'Aigua, vía
       <a href="https://analisi.transparenciacatalunya.cat/">Dades Obertes de
       Catalunya</a>.</li>
@@ -3653,13 +3690,27 @@ function renderTexts() {
     <li><strong>Ruido</strong>: «Població exposada al soroll · Mapa estratègic de
       soroll», <a href="https://opendata-ajuntament.barcelona.cat/">Open Data BCN</a>,
       2022. Solo los 73 barrios de Barcelona.</li>
-    <li><strong>Línea de costa</strong>:
-      <a href="https://www.naturalearthdata.com/">Natural Earth</a> 10 m, dominio
-      público, recortada a Cataluña.</li>
     <li><strong>Delitos</strong>: <a href="https://estadisticasdecriminalidad.ses.mir.es/">Ministerio
       del Interior, Balance de Criminalidad</a>${M.indicadors?.seguretat?.delictes_any
         ? `, año ${M.indicadors.seguretat.delictes_any}` : ""}. Solo municipios
-      de más de 20.000 habitantes.</li>
+      de más de 20.000 habitantes. El reparto entre los 10 distritos de Barcelona,
+      de los <strong>Mossos d'Esquadra</strong>, «Fets coneguts per Àrea Bàsica
+      Policial», vía <a href="https://analisi.transparenciacatalunya.cat/">Dades
+      Obertes de Catalunya</a>.</li>
+    <li><strong>Estaciones y distancias a estación</strong>: © colaboradores de
+      <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>, ODbL.
+      La red de cada estación se lee de sus etiquetas y, cuando no las lleva, de la
+      parada de línea más cercana.</li>
+    <li><strong>Espacios deportivos</strong>: Consell Català de l'Esport, «Cens
+      d'equipaments esportius», vía Dades Obertes de Catalunya. En Barcelona se
+      reparten por barrio con las coordenadas de cada espacio.</li>
+    <li><strong>Antigüedad del parque de vivienda</strong>: catastro municipal, vía
+      <a href="https://opendata-ajuntament.barcelona.cat/">Open Data BCN</a>${
+        M.indicadors?.edat_habitatge?.any ? `, ${M.indicadors.edat_habitatge.any}` : ""}.
+      Solo los 73 barrios de Barcelona.</li>
+    <li><strong>Locales vacíos</strong>: «Cens comercial de la ciutat de Barcelona»,
+      Open Data BCN${M.indicadors?.comerc?.any ? `, ${M.indicadors.comerc.any}` : ""}.
+      Solo los 73 barrios.</li>
     <li><strong>Zona verde por habitante</strong>: Diputació de Barcelona,
       Observatori del Territori, vía
       <a href="https://analisi.transparenciacatalunya.cat/">Dades Obertes de

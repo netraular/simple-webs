@@ -61,23 +61,28 @@ counted from the data, never declared: `test-capas.mjs` checks that count agains
 
 ```sh
 cd data-src
-python3 fetch-transit.py     # ~1.150 routing queries, ~1 h
-python3 fetch-isocronas.py   # 165 one-to-all queries, ~6 min
-node fetch-linies.mjs        # OpenStreetMap; needs transit.json to pick the buses
-python3 build_seguretat.py   # crime + urban green space, by municipality
-python3 build_tarifes.py     # ATM fare zone, monthly pass and water price
-python3 build_soroll.py      # noise exposure — Barcelona neighbourhoods only
-python3 build_costa.py       # coastline, clipped; only to recompute it
-node build_centres.mjs       # schools, by municipality and by neighbourhood
-node build-transport.mjs     # merges into pages/data/ — downloads nothing
-node test-transport.mjs      # contract, coverage and estimator error
-node test-capas.mjs          # the page's own layer code, run against the data
+python3 fetch-transit.py         # ~1.150 routing queries, ~1 h
+python3 fetch-isocronas.py       # 165 one-to-all queries, ~6 min
+node fetch-linies.mjs            # OpenStreetMap; needs transit.json to pick the buses
+node fetch-estacions.mjs         # rail stations; needs linies.json to classify them
+python3 build_seguretat.py       # crime + urban green space, by municipality
+python3 build_delictes_bcn.py    # crime by Barcelona district, for the 73 barris
+python3 build_tarifes.py         # ATM fare zone and water price
+python3 build_soroll.py          # noise exposure — Barcelona neighbourhoods only
+python3 build_habitatge_edat.py  # pre-1960 housing stock — barris only
+python3 build_comerc.py          # vacant ground-floor units — barris only
+node build_esport.mjs            # sports facilities, municipalities and barris
+node build_centres.mjs           # schools, by municipality and by neighbourhood
+node build-transport.mjs         # merges into pages/data/ — downloads nothing
+node test-transport.mjs          # contract, coverage and estimator error
+node test-capas.mjs              # the page's own layer code, run against the data
 ```
 
-The four middle steps are independent of each other and of the routing ones —
-each writes its own `data-src/*.json` and `build-transport.mjs` picks up
-whatever is there, warning about what is missing. `build_costa.py` only needs
-running if you want to redraw the coastline: its 3 kB output is committed.
+`fetch-estacions.mjs` has to run after `fetch-linies.mjs`: it settles the network
+of a station it can't read off the tags by finding the nearest rail stop in
+`linies.json`. The seven `build_*` steps in the middle are independent of each
+other and of the routing ones — each writes its own `data-src/*.json` and
+`build-transport.mjs` picks up whatever is there, warning about what is missing.
 
 `build-transport.mjs` only reorganises what the three fetch steps produced: it
 merges the 91 municipalities and the 73 Barcelona neighbourhoods into one set of

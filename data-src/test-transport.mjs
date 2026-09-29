@@ -330,6 +330,12 @@ const RANGS = {
   // tope deja sitio al ruido de los municipios pequeños sin tragarse un error
   // de denominador.
   esport_1000: [0, 40], pct_habitatge_pre1960: [0, 100], pct_locals_buits: [0, 100],
+  // Servicios de OpenStreetMap. Los techos son holgados a propósito: aquí lo
+  // que se vigila es que no salga un absurdo —una farmacia por vecino, una
+  // escuela a 40 km—, no acotar el dato real, que ya tiene sus propias
+  // guardas de cobertura en build-transport.mjs.
+  comercos_1000: [0, 20], farmacies_1000: [0, 10], parades_bus_km2: [0, 300],
+  dist_salut_km: [0, 25], dist_escola_km: [0, 25],
 };
 for (const z of zones) {
   for (const [camp, [lo, hi]] of Object.entries(RANGS)) {

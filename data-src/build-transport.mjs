@@ -77,6 +77,7 @@ const estac   = readOpt("estacions.json") || [];
 const esport  = readOpt("esport.json");
 const edatHab = readOpt("edat-habitatge.json");
 const comerc  = readOpt("comerc.json");
+const serveis = readOpt("serveis.json");
 
 if (!segur)   avisos.push("falta seguretat.json: sin delitos ni zona verde (python3 build_seguretat.py)");
 if (!delBcn)  avisos.push("falta delictes-bcn.json: los 73 barrios se quedan sin delitos (python3 build_delictes_bcn.py)");
@@ -87,6 +88,7 @@ if (!estac.length) avisos.push("falta estacions.json: sin distancia a la estaci�
 if (!esport)  avisos.push("falta esport.json: sin espacios deportivos (node build_esport.mjs)");
 if (!edatHab) avisos.push("falta edat-habitatge.json: sin antigüedad del parque (python3 build_habitatge_edat.py)");
 if (!comerc)  avisos.push("falta comerc.json: sin locales vacíos (python3 build_comerc.py)");
+if (!serveis) avisos.push("falta serveis.json: sin servicios de barrio (node fetch-serveis.mjs)");
 
 if (!transit) throw new Error("falta transit.json — lanza antes fetch-transit.py");
 if (!linies)  avisos.push("falta linies.json: la página se quedará sin la red dibujada");
@@ -310,7 +312,7 @@ const EST_TOTES = estac.map(s => [s.lon, s.lat]);
 const EST_TREN = estac.filter(s => s.xarxa === "Rodalies" || s.xarxa === "FGC")
                       .map(s => [s.lon, s.lat]);
 
-function distEstacioKm(lat, lon, punts) {
+function distEstacioKm(lat, lon, punts, dec = 1) {
   if (!punts.length) return null;
   const [px, py] = pla([lon, lat]);
   let millor = Infinity;
@@ -319,7 +321,150 @@ function distEstacioKm(lat, lon, punts) {
     const d2 = (x - px) ** 2 + (y - py) ** 2;
     if (d2 < millor) millor = d2;
   }
-  return Math.round(Math.sqrt(millor) * 10) / 10;
+  const f = 10 ** dec;
+  return Math.round(Math.sqrt(millor) * f) / f;
+}
+
+/* --- servicios de barrio, desde OpenStreetMap -------------------------------
+
+   Cinco categorías y, para cada una, **una sola cifra**: o la densidad o la
+   distancia, la que de verdad contesta la pregunta. Publicar las dos de todas
+   sería diez columnas para cinco preguntas.
+
+     · comercios y farmacias → **por mil habitantes**. Aquí lo que importa es
+       que haya varios cerca; uno solo a kilómetro y medio no resuelve la
+       compra diaria.
+     · salud y escuela → **distancia a la más cercana**. Necesitas una, no
+       ocho, y en un municipio de mil habitantes una tasa por mil es ruido puro.
+     · paradas de bus → **por kilómetro cuadrado**, que es la única de las tres
+       formas que dice algo aquí. Se probaron las otras dos y se descartaron con
+       los números delante, así que queda escrito para que nadie lo reintente:
+
+         — *por mil habitantes* mide superficie despoblada del revés. Las
+           paradas siguen la longitud de las calles, no a la gente, así que
+           salían disparadas las zonas grandes y vacías —Vallvidrera 21,8 y la
+           Marina del Prat Vermell 33,1— y el Barri Gòtic, el sitio mejor
+           comunicado de la ciudad, se quedaba en 0,7.
+         — *distancia a la más cercana* no distingue nada: **7 valores
+           distintos en 164 zonas**, mediana 0,1 km. Es cierto —aquí todo el
+           mundo tiene una parada a menos de 200 m— y por eso mismo no es un
+           indicador, es una constante.
+         — *por km²* da 138 valores distintos y arriba salen Ciutat Meridiana,
+           el Coll y el Carmel: barrios de ladera sin metro donde el bus es de
+           verdad la red que hay. Eso es lo que se quería medir.
+
+   El cero de OSM es ambiguo —«no hay» o «nadie lo ha mapeado»—, que es lo que
+   ya hizo descartar el registro de CAP y el de bibliotecas. Tres cosas lo
+   acotan, y las tres están medidas abajo, no supuestas:
+
+     1. las distancias se miden contra **todos** los puntos del rectángulo, no
+        solo los de la zona, así que a un municipio sin nada mapeado dentro le
+        sale la distancia real al del pueblo de al lado;
+     2. las densidades **no se publican por debajo de 2.000 habitantes**, mismo
+        criterio que el mínimo de locales del censo comercial;
+     3. si una categoría deja demasiadas zonas a cero, el build **se planta**.
+
+   Y el contraste que de verdad vale: las escuelas de OSM contra el directorio
+   oficial del Departament d'Educació, que ya está en centres.json. Si OSM se
+   queda muy corto ahí, está incompleto en general y las distancias mentirían.
+*/
+const SERV_DENSITAT = { comerc: "comercos_1000", farmacia: "farmacies_1000" };
+const SERV_PER_KM2 = { bus: "parades_bus_km2" };
+const SERV_DISTANCIA = { salut: "dist_salut_km", escola: "dist_escola_km" };
+const POB_MIN_DENSITAT = 2000;
+const AREA_MIN_KM2 = 0.2;
+const MAX_PCT_ZERO = 15;          // por categoría, en las zonas con población suficiente
+const MIN_ESCOLES_VS_OFICIAL = 0.7;
+
+const servPunts = serveis?.punts || [];
+/** Los puntos de cada categoría, ya en el plano local: se recorren 164 × N
+    veces y proyectar dentro del bucle costaría 3,6 M de cosenos. */
+const SERV_PLA = {};
+for (const [cat] of Object.entries({ ...SERV_DENSITAT, ...SERV_PER_KM2, ...SERV_DISTANCIA })) {
+  SERV_PLA[cat] = servPunts.filter(p => p.t === cat).map(p => [p.lon, p.lat]);
+}
+
+/* Recuento por zona. Un punto cae en un municipio o en un barrio de Barcelona,
+   nunca en los dos: los barrios sustituyen a la ciudad en la capa municipal. */
+const geoMuniCru  = read(src("municipis.geojson"));
+const geoBarriCru = read(src("bcn-barris.geojson"));
+
+function caixa(f) {
+  let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+  const scan = (anell) => { for (const [x, y] of anell) {
+    if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y;
+  } };
+  const g = f.geometry;
+  if (g?.type === "Polygon") g.coordinates.forEach(scan);
+  else if (g?.type === "MultiPolygon") g.coordinates.forEach(pol => pol.forEach(scan));
+  return [x0, y0, x1, y1];
+}
+function dinsAnell(anell, lon, lat) {
+  let dins = false;
+  for (let i = 0, j = anell.length - 1; i < anell.length; j = i++) {
+    const [xi, yi] = anell[i], [xj, yj] = anell[j];
+    if ((yi > lat) !== (yj > lat) && lon < ((xj - xi) * (lat - yi)) / (yj - yi) + xi) dins = !dins;
+  }
+  return dins;
+}
+/** Dentro del anillo exterior y fuera de todos los huecos. */
+const dinsPol = (pol, lon, lat) =>
+  dinsAnell(pol[0], lon, lat) && !pol.slice(1).some(f => dinsAnell(f, lon, lat));
+function dinsFeat(f, lon, lat) {
+  const g = f.geometry;
+  if (g?.type === "Polygon") return dinsPol(g.coordinates, lon, lat);
+  if (g?.type === "MultiPolygon") return g.coordinates.some(pol => dinsPol(pol, lon, lat));
+  return false;
+}
+
+/** Índice de features con su caja, para descartar rápido antes del test caro. */
+const indexa = (fc, clau) => fc.features.map(f => ({ f, cb: caixa(f), k: f.properties[clau] }));
+const idxMuni  = indexa(geoMuniCru, "codi_ine");
+const idxBarri = indexa(geoBarriCru, "codi_barri");
+
+const servMuni = new Map();       // ine  → { cat: n }
+const servBarri = new Map();      // codi → { cat: n }
+let servFora = 0;
+for (const p of servPunts) {
+  const busca = (idx) => {
+    for (const e of idx) {
+      if (p.lon < e.cb[0] || p.lon > e.cb[2] || p.lat < e.cb[1] || p.lat > e.cb[3]) continue;
+      if (dinsFeat(e.f, p.lon, p.lat)) return e.k;
+    }
+    return null;
+  };
+  const ine = busca(idxMuni);
+  if (!ine) { servFora++; continue; }
+  const [mapa, clau] = ine === BCN_INE ? [servBarri, busca(idxBarri)] : [servMuni, ine];
+  if (!clau) { servFora++; continue; }
+  if (!mapa.has(clau)) mapa.set(clau, {});
+  const c = mapa.get(clau);
+  c[p.t] = (c[p.t] || 0) + 1;
+}
+
+/** Las cifras de servicios de una zona. `clau` es el INE o el código de barrio. */
+function serveisDe(o, z, mapa, clau) {
+  if (!servPunts.length) return o;
+  const c = mapa.get(clau) || {};
+  // Dos decimales, y no uno como en las estaciones, porque aquí el rango entero
+  // cabe en la primera cifra: las farmacias van de 0 a 1,3 por mil y las escuelas
+  // están casi todas a menos de un kilómetro. Redondeando a décimas, 160 zonas se
+  // apelotonan en doce valores distintos y el indicador deja de distinguir nada
+  // —que es justo el motivo por el que se descartó la distancia a la parada de bus.
+  for (const [cat, camp] of Object.entries(SERV_DENSITAT)) {
+    if (!z.poblacio || z.poblacio < POB_MIN_DENSITAT) continue;
+    o[camp] = Math.round((c[cat] || 0) / z.poblacio * 1000 * 100) / 100;
+  }
+  for (const [cat, camp] of Object.entries(SERV_PER_KM2)) {
+    // Esta sí llega a 77, así que la décima ya separa: 137 valores en 162 zonas.
+    if (!z.superficie_km2 || z.superficie_km2 < AREA_MIN_KM2) continue;
+    o[camp] = Math.round((c[cat] || 0) / z.superficie_km2 * 10) / 10;
+  }
+  for (const [cat, camp] of Object.entries(SERV_DISTANCIA)) {
+    const d = distEstacioKm(z.lat, z.lon, SERV_PLA[cat], 2);
+    if (d != null) o[camp] = d;
+  }
+  return o;
 }
 
 function indicadors(ind) {
@@ -452,11 +597,13 @@ function zona(m, id, tipus, t) {
     copia(ind, edatHab?.barris?.[cb], EDAT_HAB);
     copia(ind, comerc?.barris?.[cb], COMERC);
     delictesBarri(ind, m.comarca);
+    serveisDe(ind, z, servBarri, cb);
   } else {
     seguretat(ind, id, m.poblacio);
     copia(ind, tar, TARIFES);
     copia(ind, centres?.municipis?.[id], CENTRES);
     copia(ind, esport?.municipis?.[id], ESPORT);
+    serveisDe(ind, z, servMuni, id);
   }
   z.ind = derivats(ind, z);
   return z;
@@ -606,6 +753,8 @@ const meta = {
             ...SEGURETAT.map(s => s.camp),
             ...TARIFES, ...CENTRES, ...SOROLL,
             ...ESPORT, ...EDAT_HAB, ...COMERC,
+            ...Object.values(SERV_DENSITAT), ...Object.values(SERV_PER_KM2),
+            ...Object.values(SERV_DISTANCIA),
             "densitat_hab_km2", "dist_estacio_km", "dist_tren_km"].map(camp => ({
       camp,
       municipis: zones.filter(z => z.tipus === "municipi" && z.ind[camp] != null).length,
@@ -624,6 +773,27 @@ const meta = {
       + "la ciudad entre sus barrios sería inventárselo. El ruido va justo al "
       + "revés —solo barrios— y los delitos solo cubren la mitad de los "
       + "municipios.",
+    serveis: serveis ? {
+      font: "© colaboradores de OpenStreetMap, ODbL · vía Overpass",
+      generat: serveis.generat,
+      pob_minima_densitat: POB_MIN_DENSITAT,
+      nota: "Los comercios de alimentación y las farmacias se cuentan dentro "
+        + "de la zona y se dan por mil habitantes; los centros de salud y las "
+        + "escuelas, como distancia en línea recta a la más cercana, que es lo "
+        + "que se pregunta de ellos: necesitas una, no ocho. Las paradas de bus "
+        + "van por kilómetro cuadrado y no por habitante, porque siguen la "
+        + "longitud de las calles y no a la gente: por habitante premiaban a "
+        + "las zonas grandes y vacías y dejaban al Barri Gòtic por los suelos. "
+        + "Las densidades no "
+        + `se publican por debajo de ${POB_MIN_DENSITAT} habitantes ni, en el `
+        + `caso del bus, de ${AREA_MIN_KM2} km², donde un `
+        + "punto arriba o abajo cambia la cifra de sitio. Sale de "
+        + "OpenStreetMap, que es la única fuente que llega a la vez a los 91 "
+        + "municipios y a los 73 barrios: no se inventa nada, pero puede "
+        + "faltarle. Por eso las distancias se miden contra todos los puntos "
+        + "del área y no solo contra los de la zona, y por eso el recuento de "
+        + "escuelas se contrasta con el directorio oficial antes de publicarse.",
+    } : null,
     // La seguridad va aparte porque no solo le faltan los barrios: le falta
     // media provincia. La página necesita poder decir el número exacto.
     seguretat: segur ? {
@@ -782,6 +952,56 @@ for (const c of meta.indicadors.camps) {
             + `(${c.municipis} mun. + ${c.barris} barrios)`
             + (c.barris === 0 ? "   ← solo municipal" : ""));
 }
+/* --- las guardas de los servicios ------------------------------------------
+   Se comprueban aquí y no en fetch-serveis.mjs porque hasta que los puntos no
+   están repartidos no se sabe si a alguna zona le falta todo. Y **paran el
+   build**: un indicador con demasiados ceros no se distingue de un indicador
+   que miente, y esta página se sostiene precisamente sobre no publicar eso. */
+if (serveis) {
+  console.log("  ── servicios (OpenStreetMap) ──");
+  const errors = [];
+  for (const [cat, camp] of Object.entries({ ...SERV_DENSITAT, ...SERV_PER_KM2 })) {
+    const amb = zones.filter(z => z.ind[camp] != null);
+    const zero = amb.filter(z => z.ind[camp] === 0);
+    const pct = amb.length ? 100 * zero.length / amb.length : 100;
+    console.log(`    ${camp.padEnd(24)} ${String(amb.length).padStart(3)}/${zones.length}  `
+              + `· ${zero.length} a cero (${pct.toFixed(0)} %)`);
+    if (pct > MAX_PCT_ZERO) {
+      errors.push(`«${cat}»: ${zero.length} de ${amb.length} zonas a cero (${pct.toFixed(0)} %, `
+        + `tope ${MAX_PCT_ZERO} %). O falta media provincia en OpenStreetMap o las etiquetas `
+        + `han cambiado; en cualquier caso el número no dice lo que parece.`);
+    }
+  }
+  for (const camp of Object.values(SERV_DISTANCIA)) {
+    const amb = zones.filter(z => z.ind[camp] != null);
+    const pitjor = Math.max(...amb.map(z => z.ind[camp]));
+    console.log(`    ${camp.padEnd(24)} ${String(amb.length).padStart(3)}/${zones.length}  `
+              + `· la más lejos, a ${pitjor} km`);
+    if (amb.length < zones.length) {
+      errors.push(`«${camp}» solo llega a ${amb.length} de ${zones.length} zonas: una distancia `
+        + `se mide contra todos los puntos del área, así que debería llegar a todas.`);
+    }
+  }
+  // El contraste que de verdad vale: OSM contra el directorio oficial. Si OSM
+  // se queda corto en las escuelas, está incompleto en general.
+  const osmEscoles = (serveis.compte?.escola) || 0;
+  const oficials = Object.values(centres?.municipis || {})
+    .reduce((a, m) => a + (m.centres_educatius || 0), 0);
+  if (oficials > 0) {
+    const rao = osmEscoles / oficials;
+    console.log(`    escuelas OSM/oficial     ${osmEscoles}/${oficials} = ${rao.toFixed(2)}`);
+    if (rao < MIN_ESCOLES_VS_OFICIAL) {
+      errors.push(`OpenStreetMap solo tiene ${osmEscoles} escuelas frente a las ${oficials} del `
+        + `directorio oficial (${(rao * 100).toFixed(0)} %, mínimo ${MIN_ESCOLES_VS_OFICIAL * 100} %): `
+        + `está incompleto y las distancias saldrían largas.`);
+    }
+  }
+  if (servFora) console.log(`    ${servFora} puntos fuera de todo polígono (de ${servPunts.length})`);
+  if (errors.length) {
+    throw new Error("los servicios no pasan sus propias comprobaciones:\n  · " + errors.join("\n  · "));
+  }
+}
+
 console.log(`  geometría             ${feats.length}/${zones.length} polígonos · `
           + `${vertexAbans} → ${vertexDespres} vértices `
           + `(−${(100 * (1 - vertexDespres / vertexAbans)).toFixed(0)}% a ${TOL_GEO_M} m)`);

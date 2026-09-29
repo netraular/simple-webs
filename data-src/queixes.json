@@ -1,0 +1,539 @@
+{
+ "generat": "2026-09-29",
+ "font": "Ajuntament de Barcelona · IRIS, incidències, queixes i suggeriments",
+ "url": "https://opendata-ajuntament.barcelona.cat/data/api/3/action/datastore_search_sql?sql=… FROM \"efc9fd4d-a812-427c-846d-a086d22012a4\"",
+ "recurs": "efc9fd4d-a812-427c-846d-a086d22012a4",
+ "any": 2025,
+ "fitxes_recurs": 287304,
+ "avisos_localitzats": 195976,
+ "arees_excloses": [
+  "Portal de tràmits",
+  "Informació  tràmits i atenció ciutadana",
+  "Gestions municipals",
+  "Hisenda"
+ ],
+ "tipus_exclosos": [
+  "CONSULTA",
+  "QUERY",
+  "AGRAIMENT",
+  "GRATITUDE"
+ ],
+ "arees_neteja": [
+  "Recollida i neteja de l'espai urbà",
+  "Manteniment de l'espai urbà"
+ ],
+ "nota": "Avisos, quejas y sugerencias que los vecinos mandan al Ayuntamiento por el IRIS, por mil habitantes. Mide la propensión a avisar tanto como el problema: un barrio organizado y con tiempo avisa más que uno que dejó de esperar respuesta, así que la cifra alta no prueba que un sitio esté peor. Se cuentan solo las fichas con barrio y se descartan las áreas administrativas (trámites, hacienda, gestiones), que hablan del Ayuntamiento y no del lugar. Dato de 2025, el último año completo. No existe para los municipios: cada ayuntamiento tiene su propio buzón y ninguno publica el recuento por zonas.",
+ "barris": {
+  "21": {
+   "nom": "Pedralbes",
+   "avisos": 925,
+   "avisos_neteja": 771,
+   "queixes_1000": 74.1,
+   "queixes_neteja_1000": 61.8
+  },
+  "25": {
+   "nom": "Sant Gervasi - la Bonanova",
+   "avisos": 2280,
+   "avisos_neteja": 1853,
+   "queixes_1000": 85.1,
+   "queixes_neteja_1000": 69.1
+  },
+  "67": {
+   "nom": "la Vila Olímpica del Poblenou",
+   "avisos": 2095,
+   "avisos_neteja": 1716,
+   "queixes_1000": 225.4,
+   "queixes_neteja_1000": 184.7
+  },
+  "36": {
+   "nom": "la Font d'en Fargues",
+   "avisos": 1509,
+   "avisos_neteja": 1197,
+   "queixes_1000": 153.3,
+   "queixes_neteja_1000": 121.6
+  },
+  "08": {
+   "nom": "l'Antiga Esquerra de l'Eixample",
+   "avisos": 4295,
+   "avisos_neteja": 3482,
+   "queixes_1000": 100.1,
+   "queixes_neteja_1000": 81.1
+  },
+  "22": {
+   "nom": "Vallvidrera, el Tibidabo i les Planes",
+   "avisos": 1050,
+   "avisos_neteja": 870,
+   "queixes_1000": 215.7,
+   "queixes_neteja_1000": 178.8
+  },
+  "44": {
+   "nom": "Vilapicina i la Torre Llobeta",
+   "avisos": 2354,
+   "avisos_neteja": 1978,
+   "queixes_1000": 88.9,
+   "queixes_neteja_1000": 74.7
+  },
+  "06": {
+   "nom": "la Sagrada Família",
+   "avisos": 5198,
+   "avisos_neteja": 4222,
+   "queixes_1000": 97.7,
+   "queixes_neteja_1000": 79.4
+  },
+  "03": {
+   "nom": "la Barceloneta",
+   "avisos": 1873,
+   "avisos_neteja": 1410,
+   "queixes_1000": 127.7,
+   "queixes_neteja_1000": 96.1
+  },
+  "49": {
+   "nom": "Canyelles",
+   "avisos": 994,
+   "avisos_neteja": 828,
+   "queixes_1000": 143.9,
+   "queixes_neteja_1000": 119.9
+  },
+  "50": {
+   "nom": "les Roquetes",
+   "avisos": 1515,
+   "avisos_neteja": 1260,
+   "queixes_1000": 86.1,
+   "queixes_neteja_1000": 71.6
+  },
+  "58": {
+   "nom": "Baró de Viver",
+   "avisos": 194,
+   "avisos_neteja": 158,
+   "queixes_1000": 72.7,
+   "queixes_neteja_1000": 59.2
+  },
+  "66": {
+   "nom": "el Parc i la Llacuna del Poblenou",
+   "avisos": 3366,
+   "avisos_neteja": 2706,
+   "queixes_1000": 190.8,
+   "queixes_neteja_1000": 153.4
+  },
+  "05": {
+   "nom": "el Fort Pienc",
+   "avisos": 4406,
+   "avisos_neteja": 3606,
+   "queixes_1000": 117.0,
+   "queixes_neteja_1000": 95.7
+  },
+  "32": {
+   "nom": "el Camp d'en Grassot i Gràcia Nova",
+   "avisos": 2444,
+   "avisos_neteja": 1912,
+   "queixes_1000": 67.1,
+   "queixes_neteja_1000": 52.5
+  },
+  "73": {
+   "nom": "la Verneda i la Pau",
+   "avisos": 3219,
+   "avisos_neteja": 2643,
+   "queixes_1000": 104.0,
+   "queixes_neteja_1000": 85.4
+  },
+  "26": {
+   "nom": "Sant Gervasi - Galvany",
+   "avisos": 3247,
+   "avisos_neteja": 2437,
+   "queixes_1000": 66.0,
+   "queixes_neteja_1000": 49.5
+  },
+  "34": {
+   "nom": "Can Baró",
+   "avisos": 1142,
+   "avisos_neteja": 865,
+   "queixes_1000": 118.4,
+   "queixes_neteja_1000": 89.7
+  },
+  "24": {
+   "nom": "les Tres Torres",
+   "avisos": 937,
+   "avisos_neteja": 759,
+   "queixes_1000": 57.3,
+   "queixes_neteja_1000": 46.4
+  },
+  "40": {
+   "nom": "Montbau",
+   "avisos": 902,
+   "avisos_neteja": 762,
+   "queixes_1000": 168.5,
+   "queixes_neteja_1000": 142.4
+  },
+  "63": {
+   "nom": "Navas",
+   "avisos": 2038,
+   "avisos_neteja": 1711,
+   "queixes_1000": 90.1,
+   "queixes_neteja_1000": 75.7
+  },
+  "61": {
+   "nom": "la Sagrera",
+   "avisos": 3306,
+   "avisos_neteja": 2748,
+   "queixes_1000": 105.8,
+   "queixes_neteja_1000": 87.9
+  },
+  "17": {
+   "nom": "Sants - Badal",
+   "avisos": 1898,
+   "avisos_neteja": 1503,
+   "queixes_1000": 75.2,
+   "queixes_neteja_1000": 59.5
+  },
+  "65": {
+   "nom": "el Clot",
+   "avisos": 3160,
+   "avisos_neteja": 2585,
+   "queixes_1000": 117.4,
+   "queixes_neteja_1000": 96.1
+  },
+  "15": {
+   "nom": "Hostafrancs",
+   "avisos": 1635,
+   "avisos_neteja": 1338,
+   "queixes_1000": 96.1,
+   "queixes_neteja_1000": 78.6
+  },
+  "02": {
+   "nom": "el Barri Gòtic",
+   "avisos": 5551,
+   "avisos_neteja": 4460,
+   "queixes_1000": 203.2,
+   "queixes_neteja_1000": 163.3
+  },
+  "64": {
+   "nom": "el Camp de l'Arpa del Clot",
+   "avisos": 3918,
+   "avisos_neteja": 3327,
+   "queixes_1000": 99.1,
+   "queixes_neteja_1000": 84.2
+  },
+  "30": {
+   "nom": "la Salut",
+   "avisos": 1690,
+   "avisos_neteja": 1334,
+   "queixes_1000": 121.2,
+   "queixes_neteja_1000": 95.6
+  },
+  "51": {
+   "nom": "Verdun",
+   "avisos": 950,
+   "avisos_neteja": 711,
+   "queixes_1000": 70.3,
+   "queixes_neteja_1000": 52.6
+  },
+  "27": {
+   "nom": "el Putxet i el Farró",
+   "avisos": 2982,
+   "avisos_neteja": 2402,
+   "queixes_1000": 96.8,
+   "queixes_neteja_1000": 78.0
+  },
+  "13": {
+   "nom": "la Marina de Port",
+   "avisos": 2944,
+   "avisos_neteja": 2278,
+   "queixes_1000": 92.7,
+   "queixes_neteja_1000": 71.7
+  },
+  "31": {
+   "nom": "la Vila de Gràcia",
+   "avisos": 6174,
+   "avisos_neteja": 4911,
+   "queixes_1000": 119.9,
+   "queixes_neteja_1000": 95.4
+  },
+  "47": {
+   "nom": "Can Peguera",
+   "avisos": 545,
+   "avisos_neteja": 445,
+   "queixes_1000": 256.8,
+   "queixes_neteja_1000": 209.7
+  },
+  "11": {
+   "nom": "el Poble-sec",
+   "avisos": 5251,
+   "avisos_neteja": 3927,
+   "queixes_1000": 130.8,
+   "queixes_neteja_1000": 97.8
+  },
+  "09": {
+   "nom": "la Nova Esquerra de l'Eixample",
+   "avisos": 6138,
+   "avisos_neteja": 5023,
+   "queixes_1000": 103.8,
+   "queixes_neteja_1000": 85.0
+  },
+  "38": {
+   "nom": "la Teixonera",
+   "avisos": 1507,
+   "avisos_neteja": 1266,
+   "queixes_1000": 118.4,
+   "queixes_neteja_1000": 99.5
+  },
+  "29": {
+   "nom": "el Coll",
+   "avisos": 1304,
+   "avisos_neteja": 1132,
+   "queixes_1000": 161.9,
+   "queixes_neteja_1000": 140.5
+  },
+  "46": {
+   "nom": "el Turó de la Peira",
+   "avisos": 1290,
+   "avisos_neteja": 1060,
+   "queixes_1000": 74.2,
+   "queixes_neteja_1000": 61.0
+  },
+  "16": {
+   "nom": "la Bordeta",
+   "avisos": 2814,
+   "avisos_neteja": 2344,
+   "queixes_1000": 133.0,
+   "queixes_neteja_1000": 110.8
+  },
+  "69": {
+   "nom": "Diagonal Mar i el Front Marítim del Poblenou",
+   "avisos": 2582,
+   "avisos_neteja": 2185,
+   "queixes_1000": 187.5,
+   "queixes_neteja_1000": 158.7
+  },
+  "62": {
+   "nom": "el Congrés i els Indians",
+   "avisos": 2533,
+   "avisos_neteja": 2134,
+   "queixes_1000": 166.1,
+   "queixes_neteja_1000": 139.9
+  },
+  "33": {
+   "nom": "el Baix Guinardó",
+   "avisos": 2170,
+   "avisos_neteja": 1719,
+   "queixes_1000": 82.6,
+   "queixes_neteja_1000": 65.4
+  },
+  "71": {
+   "nom": "Provençals del Poblenou",
+   "avisos": 2602,
+   "avisos_neteja": 2152,
+   "queixes_1000": 117.9,
+   "queixes_neteja_1000": 97.5
+  },
+  "60": {
+   "nom": "Sant Andreu",
+   "avisos": 5612,
+   "avisos_neteja": 4640,
+   "queixes_1000": 94.6,
+   "queixes_neteja_1000": 78.2
+  },
+  "68": {
+   "nom": "el Poblenou",
+   "avisos": 5630,
+   "avisos_neteja": 4725,
+   "queixes_1000": 162.1,
+   "queixes_neteja_1000": 136.0
+  },
+  "53": {
+   "nom": "la Trinitat Nova",
+   "avisos": 1120,
+   "avisos_neteja": 880,
+   "queixes_1000": 137.8,
+   "queixes_neteja_1000": 108.3
+  },
+  "43": {
+   "nom": "Horta",
+   "avisos": 3035,
+   "avisos_neteja": 2561,
+   "queixes_1000": 97.5,
+   "queixes_neteja_1000": 82.3
+  },
+  "04": {
+   "nom": "Sant Pere, Santa Caterina i la Ribera",
+   "avisos": 5395,
+   "avisos_neteja": 4311,
+   "queixes_1000": 234.7,
+   "queixes_neteja_1000": 187.5
+  },
+  "48": {
+   "nom": "la Guineueta",
+   "avisos": 2193,
+   "avisos_neteja": 1840,
+   "queixes_1000": 140.4,
+   "queixes_neteja_1000": 117.8
+  },
+  "12": {
+   "nom": "la Marina del Prat Vermell",
+   "avisos": 557,
+   "avisos_neteja": 399,
+   "queixes_1000": 175.5,
+   "queixes_neteja_1000": 125.7
+  },
+  "23": {
+   "nom": "Sarrià",
+   "avisos": 2264,
+   "avisos_neteja": 1801,
+   "queixes_1000": 90.8,
+   "queixes_neteja_1000": 72.2
+  },
+  "41": {
+   "nom": "la Vall d'Hebron",
+   "avisos": 889,
+   "avisos_neteja": 735,
+   "queixes_1000": 146.0,
+   "queixes_neteja_1000": 120.7
+  },
+  "55": {
+   "nom": "Ciutat Meridiana",
+   "avisos": 1029,
+   "avisos_neteja": 905,
+   "queixes_1000": 89.5,
+   "queixes_neteja_1000": 78.7
+  },
+  "45": {
+   "nom": "Porta",
+   "avisos": 2078,
+   "avisos_neteja": 1709,
+   "queixes_1000": 66.6,
+   "queixes_neteja_1000": 54.8
+  },
+  "56": {
+   "nom": "Vallbona",
+   "avisos": 222,
+   "avisos_neteja": 201,
+   "queixes_1000": 154.2,
+   "queixes_neteja_1000": 139.6
+  },
+  "59": {
+   "nom": "el Bon Pastor",
+   "avisos": 1517,
+   "avisos_neteja": 1207,
+   "queixes_1000": 95.6,
+   "queixes_neteja_1000": 76.1
+  },
+  "28": {
+   "nom": "Vallcarca i els Penitents",
+   "avisos": 3283,
+   "avisos_neteja": 2786,
+   "queixes_1000": 193.9,
+   "queixes_neteja_1000": 164.6
+  },
+  "19": {
+   "nom": "les Corts",
+   "avisos": 3988,
+   "avisos_neteja": 3217,
+   "queixes_1000": 85.4,
+   "queixes_neteja_1000": 68.9
+  },
+  "35": {
+   "nom": "el Guinardó",
+   "avisos": 3872,
+   "avisos_neteja": 3268,
+   "queixes_1000": 98.9,
+   "queixes_neteja_1000": 83.5
+  },
+  "70": {
+   "nom": "el Besòs i el Maresme",
+   "avisos": 3395,
+   "avisos_neteja": 2900,
+   "queixes_1000": 110.6,
+   "queixes_neteja_1000": 94.5
+  },
+  "42": {
+   "nom": "la Clota",
+   "avisos": 286,
+   "avisos_neteja": 223,
+   "queixes_1000": 254.7,
+   "queixes_neteja_1000": 198.6
+  },
+  "52": {
+   "nom": "la Prosperitat",
+   "avisos": 1944,
+   "avisos_neteja": 1655,
+   "queixes_1000": 69.0,
+   "queixes_neteja_1000": 58.7
+  },
+  "07": {
+   "nom": "la Dreta de l'Eixample",
+   "avisos": 8702,
+   "avisos_neteja": 7215,
+   "queixes_1000": 191.4,
+   "queixes_neteja_1000": 158.7
+  },
+  "10": {
+   "nom": "Sant Antoni",
+   "avisos": 5661,
+   "avisos_neteja": 4784,
+   "queixes_1000": 145.2,
+   "queixes_neteja_1000": 122.7
+  },
+  "72": {
+   "nom": "Sant Martí de Provençals",
+   "avisos": 2234,
+   "avisos_neteja": 1791,
+   "queixes_1000": 82.6,
+   "queixes_neteja_1000": 66.2
+  },
+  "14": {
+   "nom": "la Font de la Guatlla",
+   "avisos": 1141,
+   "avisos_neteja": 933,
+   "queixes_1000": 105.0,
+   "queixes_neteja_1000": 85.8
+  },
+  "54": {
+   "nom": "Torre Baró",
+   "avisos": 655,
+   "avisos_neteja": 572,
+   "queixes_1000": 202.4,
+   "queixes_neteja_1000": 176.8
+  },
+  "20": {
+   "nom": "la Maternitat i Sant Ramon",
+   "avisos": 2058,
+   "avisos_neteja": 1716,
+   "queixes_1000": 83.6,
+   "queixes_neteja_1000": 69.7
+  },
+  "39": {
+   "nom": "Sant Genís dels Agudells",
+   "avisos": 744,
+   "avisos_neteja": 602,
+   "queixes_1000": 94.3,
+   "queixes_neteja_1000": 76.3
+  },
+  "18": {
+   "nom": "Sants",
+   "avisos": 5553,
+   "avisos_neteja": 4633,
+   "queixes_1000": 119.0,
+   "queixes_neteja_1000": 99.3
+  },
+  "57": {
+   "nom": "la Trinitat Vella",
+   "avisos": 1098,
+   "avisos_neteja": 941,
+   "queixes_1000": 97.1,
+   "queixes_neteja_1000": 83.2
+  },
+  "37": {
+   "nom": "el Carmel",
+   "avisos": 3927,
+   "avisos_neteja": 3402,
+   "queixes_1000": 116.2,
+   "queixes_neteja_1000": 100.7
+  },
+  "01": {
+   "nom": "el Raval",
+   "avisos": 6967,
+   "avisos_neteja": 5621,
+   "queixes_1000": 137.0,
+   "queixes_neteja_1000": 110.5
+  }
+ }
+}

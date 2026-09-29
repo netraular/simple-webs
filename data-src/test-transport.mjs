@@ -336,6 +336,10 @@ const RANGS = {
   // guardas de cobertura en build-transport.mjs.
   comercos_1000: [0, 20], farmacies_1000: [0, 10], parades_bus_km2: [0, 300],
   dist_salut_km: [0, 25], dist_escola_km: [0, 25],
+  // Avisos del IRIS. Hoy van de 57 a 257 por mil: Can Peguera, que es diminuto,
+  // marca el techo real. El 1.000 es el absurdo —un aviso por vecino al año—,
+  // que solo puede salir de un denominador roto.
+  queixes_1000: [0, 1000], queixes_neteja_1000: [0, 1000],
 };
 for (const z of zones) {
   for (const [camp, [lo, hi]] of Object.entries(RANGS)) {

@@ -524,6 +524,10 @@ tbody tr.is-hi td,tbody tr.is-hi td:first-child{background:var(--surface-2)}
 .pct-bar i{position:absolute;left:0;top:0;bottom:0;background:var(--seq-400);border-radius:3px}
 .pct-bar::after{content:"";position:absolute;left:50%;top:0;bottom:0;width:1px;background:var(--axis)}
 .pct-na{color:var(--muted);font-weight:400}
+/* La misma barra, pero midiendo una proporción real y no un percentil: sin la
+   marca de la mediana, que ahí no significaría nada. */
+.pct-bar.abs::after{display:none}
+.fi-avis{margin-top:8px;font-size:.68rem;color:var(--muted);line-height:1.45}
 
 /* ---------- comparación ---------- */
 table.cmp th,table.cmp td{vertical-align:top}
@@ -1482,6 +1486,21 @@ const CAPES = [
     get: (m) => m.ind?.pct_estrangera, fmt: pct1,
     nota: "Porcentaje de vecinos con nacionalidad extranjera. Es nacionalidad, "
         + "no lugar de nacimiento: quien se ha nacionalizado cuenta como español." },
+  { id: "pct_nac_ue", grup: "Quién vive aquí", nom: "Nacionalidad de otro país de la UE",
+    eix: "%",
+    get: (m) => m.ind?.pct_nac_ue, fmt: pct1,
+    nota: "Vecinos con nacionalidad de otro país de la Unión Europea, sin contar "
+        + "la española. La nacionalidad no es el idioma ni el origen: quien se "
+        + "nacionaliza deja de contar, y un argentino con pasaporte italiano "
+        + "cuenta aquí. Solo los 73 barrios: ni Idescat ni el INE publican el "
+        + "desglose por origen por debajo de la provincia." },
+  { id: "pct_nac_llatinoamerica", grup: "Quién vive aquí",
+    nom: "Nacionalidad latinoamericana", eix: "%",
+    get: (m) => m.ind?.pct_nac_llatinoamerica, fmt: pct1,
+    nota: "Vecinos con nacionalidad del Caribe, de América Central o de América "
+        + "del Sur. Es lo más cerca que llega un dato público de «habla "
+        + "hispana» y no es lo mismo: dentro están Brasil y Haití, y fuera está "
+        + "quien ya tiene el DNI. Solo los 73 barrios." },
   { id: "creixement_1000", grup: "Quién vive aquí", nom: "Crecimiento de población",
     eix: "por 1.000 hab.",
     get: (m) => m.ind?.creixement_1000, fmt: (v) => (v > 0 ? "+" : "") + nf(1).format(v) + " ‰",
@@ -1516,24 +1535,6 @@ const CAPES = [
     nota: "Metros cuadrados de suelo verde urbano por habitante. Un municipio "
         + "pequeño rodeado de monte sale altísimo: mide el verde que hay "
         + "dentro del término, no lo cerca que tienes un parque." },
-  { id: "centres_educatius_1000", grup: "El sitio", nom: "Centros educativos",
-    eix: "centros/1.000 hab.",
-    get: (m) => m.ind?.centres_educatius_1000, fmt: (v) => nf(2).format(v),
-    nota: "Centros por cada mil habitantes, de la guardería a la escuela de "
-        + "adultos. Se dispara en los municipios pequeños —dos centros sobre "
-        + "novecientos vecinos dan una tasa altísima— y no mide plazas ni "
-        + "calidad, solo cuántos hay." },
-  { id: "esport_1000", grup: "El sitio", nom: "Espacios deportivos", eix: "por 1.000 hab.",
-    get: (m) => m.ind?.esport_1000, fmt: (v) => nf(2).format(v) + " por 1.000 hab.",
-    nota: "Pistas, salas, piscinas y campos del censo del Consell Català de "
-        + "l'Esport, por cada mil vecinos. Cuenta espacios, no instalaciones: un "
-        + "polideportivo con tres pistas son tres. Como todas las tasas por mil, "
-        + "se dispara en los municipios pequeños." },
-  { id: "pct_centres_publics", grup: "El sitio", nom: "Centros públicos", eix: "%",
-    get: (m) => m.ind?.pct_centres_publics, fmt: pct1,
-    nota: "Porcentaje de centros de titularidad pública. El concertado cuenta "
-        + "como privado: es público contra todo lo demás, no público contra "
-        + "privado puro. No se publica donde hay menos de cinco centros." },
   { id: "pct_locals_buits", grup: "El sitio", nom: "Locales vacíos", eix: "%",
     get: (m) => m.ind?.pct_locals_buits, fmt: (v) => nf(1).format(v) + " %",
     nota: "Qué proporción de los bajos del barrio no tiene actividad económica, "
@@ -1557,6 +1558,81 @@ const CAPES = [
         + "Por encima de cien, el municipio recibe más gente de la que vive en "
         + "él: turismo, segunda residencia o puestos de trabajo. Por debajo, "
         + "la gente sale a trabajar fuera." },
+  { id: "queixes_1000", grup: "El sitio", nom: "Avisos al Ayuntamiento",
+    eix: "por 1.000 hab.",
+    get: (m) => m.ind?.queixes_1000, fmt: (v) => nf(1).format(v) + " por 1.000 hab.",
+    nota: "Incidencias, quejas y sugerencias que los vecinos mandan al "
+        + "Ayuntamiento por el IRIS, por cada mil habitantes. Mide la propensión "
+        + "a avisar tanto como el problema: un barrio organizado y con tiempo "
+        + "avisa más que uno que dejó de esperar respuesta, así que el que sale "
+        + "alto puede ser el que más se cuida. Por eso esta capa no ordena el "
+        + "ranking ni entra en ninguna nota. Solo los 73 barrios." },
+  { id: "queixes_neteja_1000", grup: "El sitio", nom: "Avisos de limpieza y calle",
+    eix: "por 1.000 hab.",
+    get: (m) => m.ind?.queixes_neteja_1000, fmt: (v) => nf(1).format(v) + " por 1.000 hab.",
+    nota: "La parte de los avisos que habla de recogida y limpieza y de "
+        + "mantenimiento del espacio urbano: contenedores, aceras, farolas. Son "
+        + "el 82 % del total y lo que más se nota al vivir allí. Misma "
+        + "advertencia que el total, y por el mismo motivo tampoco puntúa." },
+
+
+  /* Servicios. Los tres primeros salen de registros oficiales; los cinco
+     siguientes, de OpenStreetMap, y por eso cada uno publica **una** cifra y no
+     dos: o la densidad o la distancia, la que de verdad contesta la pregunta.
+     El razonamiento está en serveis.SOURCES.md. */
+  { id: "centres_educatius_1000", grup: "Servicios", nom: "Centros educativos",
+    eix: "centros/1.000 hab.",
+    get: (m) => m.ind?.centres_educatius_1000, fmt: (v) => nf(2).format(v),
+    nota: "Centros por cada mil habitantes, de la guardería a la escuela de "
+        + "adultos. Se dispara en los municipios pequeños —dos centros sobre "
+        + "novecientos vecinos dan una tasa altísima— y no mide plazas ni "
+        + "calidad, solo cuántos hay." },
+  { id: "esport_1000", grup: "Servicios", nom: "Espacios deportivos", eix: "por 1.000 hab.",
+    get: (m) => m.ind?.esport_1000, fmt: (v) => nf(2).format(v) + " por 1.000 hab.",
+    nota: "Pistas, salas, piscinas y campos del censo del Consell Català de "
+        + "l'Esport, por cada mil vecinos. Cuenta espacios, no instalaciones: un "
+        + "polideportivo con tres pistas son tres. Como todas las tasas por mil, "
+        + "se dispara en los municipios pequeños." },
+  { id: "pct_centres_publics", grup: "Servicios", nom: "Centros públicos", eix: "%",
+    get: (m) => m.ind?.pct_centres_publics, fmt: pct1,
+    nota: "Porcentaje de centros de titularidad pública. El concertado cuenta "
+        + "como privado: es público contra todo lo demás, no público contra "
+        + "privado puro. No se publica donde hay menos de cinco centros." },
+  { id: "comercos_1000", grup: "Servicios", nom: "Tiendas de alimentación",
+    eix: "por 1.000 hab.",
+    get: (m) => m.ind?.comercos_1000, fmt: (v) => nf(2).format(v) + " por 1.000 hab.",
+    nota: "Supermercados, ultramarinos, fruterías, carnicerías y panaderías "
+        + "mapeados en OpenStreetMap, por cada mil vecinos. OSM no se inventa "
+        + "nada pero puede faltarle, así que un valor bajo puede ser un barrio "
+        + "sin tiendas o un barrio poco mapeado. No se publica por debajo de "
+        + "2.000 habitantes, donde una tienda arriba o abajo mueve la cifra." },
+  { id: "farmacies_1000", grup: "Servicios", nom: "Farmacias", eix: "por 1.000 hab.",
+    get: (m) => m.ind?.farmacies_1000, fmt: (v) => nf(2).format(v) + " por 1.000 hab.",
+    nota: "Farmacias de OpenStreetMap por cada mil vecinos. De lo mejor mapeado "
+        + "que hay, porque son negocios señalizados y con horario. Misma "
+        + "advertencia de tamaño: no se publica por debajo de 2.000 habitantes." },
+  { id: "parades_bus_km2", grup: "Servicios", nom: "Paradas de bus", eix: "por km²",
+    get: (m) => m.ind?.parades_bus_km2, fmt: (v) => nf(1).format(v) + " por km²",
+    nota: "Paradas de autobús por kilómetro cuadrado. Va por superficie y no por "
+        + "habitante a propósito: las paradas siguen la longitud de las calles, "
+        + "no la gente, y por mil vecinos salían arriba Vallvidrera y la Marina "
+        + "del Prat Vermell mientras el Barri Gòtic quedaba el último. Arriba "
+        + "salen los barrios de ladera sin metro, que es lo que se quería medir." },
+  { id: "dist_salut_km", grup: "Servicios", nom: "Distancia al centro de salud",
+    eix: "km",
+    get: (m) => m.ind?.dist_salut_km, fmt: (v) => nf(2).format(v) + " km",
+    nota: "Hasta el ambulatorio, consultorio u hospital más cercano de "
+        + "OpenStreetMap, en línea recta desde el punto de referencia de la "
+        + "zona. Se mide contra todos los puntos de la provincia, no solo los de "
+        + "dentro: un pueblo sin nada mapeado tiene igualmente un número "
+        + "honesto, el del pueblo de al lado. Necesitas uno, no ocho, y por eso "
+        + "es distancia y no densidad." },
+  { id: "dist_escola_km", grup: "Servicios", nom: "Distancia a la escuela", eix: "km",
+    get: (m) => m.ind?.dist_escola_km, fmt: (v) => nf(2).format(v) + " km",
+    nota: "Hasta la guardería o el colegio más cercano de OpenStreetMap, en "
+        + "línea recta. Convive con «centros educativos», que es oficial y mide "
+        + "otra cosa: aquélla dice cuántos hay por vecino y ésta, si tienes uno "
+        + "al lado. OSM tiene 2.336 de los 2.739 del directorio oficial." },
 
   { id: "delictes_1000", grup: "Seguridad", nom: "Delitos en total",
     eix: "por 1.000 hab.",
@@ -2221,10 +2297,12 @@ const ORDRE_ASC = ["compra_m2", "compra_total", "lloguer", "hipoteca",
                    "dist_estacio_km", "dist_tren_km",
                    "delictes_1000", "robatoris_domicili_1000", "robatoris_violencia_1000",
                    "pct_soroll_65db", "pct_soroll_nit_55db", "atur_taxa_pct",
-                   "pct_locals_buits"];
+                   "pct_locals_buits",
+                   "dist_salut_km", "dist_escola_km"];
 const ORDRE_DESC = ["zona_verda_m2_hab", "superficie_mitjana", "estacions",
                     "centres_educatius_1000", "pct_centres_publics", "renda_llar_eur",
-                    "esport_1000"];
+                    "esport_1000",
+                    "comercos_1000", "farmacies_1000", "parades_bus_km2"];
 const ORDENABLES = [...ORDRE_ASC, ...ORDRE_DESC];
 
 /** Las que cumplen todos tus criterios, ordenadas por el que hayas elegido.
@@ -3449,7 +3527,8 @@ function renderLegend() {
 const FICHA_CAPES = ["compra_m2", "lloguer", "hipoteca", "superficie_mitjana",
   "zones_a_bcn", "dist_tren_km", "estacions", "delictes_1000", "renda_llar_eur",
   "densitat_hab_km2", "pct_soroll_65db", "zona_verda_m2_hab", "esport_1000",
-  "pct_habitatge_pre1960", "pct_locals_buits"];
+  "pct_habitatge_pre1960", "pct_locals_buits",
+  "comercos_1000", "dist_salut_km", "parades_bus_km2", "queixes_neteja_1000"];
 
 /** Una barra de percentil con su etiqueta. `null` se dice, no se esconde: un
     hueco silencioso se lee como un cero. */
@@ -3464,6 +3543,43 @@ function barraPctl(c, m) {
     <span class="p-v">${esc(c.fmt(v))}</span>
     <span class="pct-bar" role="img" aria-label="${p == null ? "sin percentil"
       : `percentil ${p} de las zonas con este dato`}"><i style="width:${p == null ? 0 : p}%"></i></span></div>`;
+}
+
+/* ---------- de dónde es la gente ----------
+   Va en la ficha y **no** es una capa: no se colorea el mapa por el origen de
+   los vecinos, y ordenar 164 zonas por eso sería justamente lo que no se quiere
+   hacer. Aquí se lee como lo que es, un reparto que suma cien.
+
+   El orden lo manda el fichero (`meta.indicadors.nacionalitats.regions`), no
+   esta lista: si algún día se parte un grupo, cambia el dato y no el HTML. */
+const ORIGEN_NOM = {
+  espanyola: "Nacionalidad española",
+  ue: "Otro país de la Unión Europea",
+  resta_europa: "Resto de Europa",
+  africa: "África",
+  llatinoamerica: "América Latina",
+  america_nord: "América del Norte",
+  asia_oceania: "Asia y Oceanía",
+};
+
+function blocOrigen(m) {
+  const ordre = DATA.meta?.indicadors?.nacionalitats?.regions;
+  if (!m.origen || !Array.isArray(ordre)) return "";
+  // La parte española sale por resta y encabeza el bloque: sin ella el reparto
+  // parece que suma veinte y no cien, y se leería como si el barrio fuera
+  // mayoritariamente extranjero.
+  const parts = ordre.map((k, i) => [k, m.origen[i]]).filter(([, v]) => v != null);
+  const fora = parts.reduce((a, [, v]) => a + v, 0);
+  const files = [["espanyola", Math.round((100 - fora) * 10) / 10], ...parts];
+  return `<div class="fi-h">De dónde es la gente</div>`
+    + files.map(([k, v]) => `<div class="pct"><span class="p-n">${esc(ORIGEN_NOM[k] || k)}</span>
+        <span class="p-v">${esc(pct1(v))}</span>
+        <span class="pct-bar abs" role="img" aria-label="${esc(pct1(v))} de la población"
+          ><i style="width:${Math.max(0, Math.min(100, v))}%"></i></span></div>`).join("")
+    + `<p class="fi-avis">Nacionalidad registrada en el padrón, que no es el idioma
+        ni el origen: quien se nacionaliza deja de contar como extranjero, un brasileño
+        cuenta en América Latina y no habla español, y un argentino con pasaporte
+        italiano cuenta en la UE.</p>`;
 }
 
 function renderFicha() {
@@ -3506,6 +3622,7 @@ function renderFicha() {
     <div class="fi-h">Dónde cae dentro del área</div>
     ${FICHA_CAPES.map(cid => CAPA_DE.get(cid)).filter(Boolean)
        .filter(c => c.get(m) != null).map(c => barraPctl(c, m)).join("")}
+    ${blocOrigen(m)}
     <div class="fi-acc">
       <button type="button" class="btn btn-sm" id="fi-pin" aria-pressed="${pin >= 0}">${
         pin >= 0 ? `Fijada (${pin + 1}) — quitar`

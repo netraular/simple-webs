@@ -235,23 +235,40 @@ brillo local. NOAA explica que bajo el óvalo pueden verse buenas auroras con
 Kp bajo: <https://www.spaceweather.gov/content/tips-viewing-aurora>.
 
 Las ventanas destacadas son pares de meses completos consecutivos dentro de
-los próximos 36 meses del ciclo 25. Cada mes necesita al menos 10 análogos de
+los próximos 36 meses del ciclo 25, disponibles en el detalle de oportunidades
+del descenso actual, no como anuncio de un nuevo máximo solar. Cada mes necesita al menos 10 análogos de
 3 ciclos. Se ordenan por la media de las dos estimaciones mensuales y se eligen
 hasta tres alternativas cuyos inicios estén separados más de 120 días. Es un
 criterio de comparación, **no una probabilidad de éxito de un viaje**. Los meses
 ya empezados se omiten, porque el modelo estima meses completos.
 
-El calendario usa niveles relativos al mejor mes futuro del ciclo actual:
+El calendario usa niveles relativos al mejor mes futuro del horizonte completo,
+incluidos los supuestos del ciclo 26. La escala se mantiene al ocultar el escenario:
 sin coincidencias, <30 %, 30–60 %, 60–80 % y ≥80 % de su señal. Los porcentajes
 absolutos y la muestra siguen disponibles en la tabla de detalle. No incluye
 nubes ni intensidad local y no está calibrado como pronóstico de visibilidad.
 Los análogos de un mismo ciclo no son observaciones independientes.
 
-El ciclo 26 solo aparece si se activa su escenario. El rango muestra sensibilidad
+El ciclo 26 aparece por defecto, junto a su aviso de incertidumbre, y puede ocultarse.
+El rango muestra sensibilidad
 a los supuestos, no un intervalo de confianza. NOAA confirma que todavía no
 lo pronostica y sitúa su posible inicio entre 2029 y 2032:
 <https://www.spaceweather.gov/products/solar-cycle-progression> (consultado
 el 1 de octubre de 2026). El mínimo en 2030-12 del modelo no es una fecha oficial.
+
+La cabecera distingue el **siguiente entorno de máximo solar** de las ventanas
+de viaje cercanas. La referencia «hacia 2035–2036» toma el año del máximo
+registrado (2024), suma 11 y muestra ese año y el siguiente. Es una orientación
+amplia basada en la duración típica, no una previsión oficial ni un intervalo
+de confianza: el ciclo puede adelantarse o retrasarse varios años. NOAA explica
+esa periodicidad aproximada en
+<https://www.spaceweather.gov/phenomena/sunspotssolar-cycle>.
+
+El máximo de manchas solares no equivale necesariamente al pico de tormentas
+geomagnéticas, mucho menos al de auroras visibles desde Abisko. El descenso
+del ciclo 25 todavía puede ofrecer episodios intensos y el ciclo 26 no tiene
+por qué ser más fuerte. El calendario mensual conserva los cálculos por análogos:
+no se desplazan ni se fuerzan sus valores para producir un pico en 2035.
 
 ### Fotografía
 

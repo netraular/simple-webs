@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Abisko · cuándo viajar para ver auroras</title>
-<meta name="description" content="Ventanas orientativas para buscar auroras intensas en Abisko: actividad geomagnética histórica, ciclo solar y meses oscuros. Sin promesas de una noche concreta.">
+<meta name="description" content="El siguiente entorno de máximo solar para buscar auroras en Abisko: hacia 2035–2036 como horizonte aproximado, no fecha confirmada. Ciclo solar, historia y meses oscuros.">
 <meta name="theme-color" content="#f5f7f6">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='88'>🌌</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -155,9 +155,9 @@ footer p+p{margin-top:8px}
       <h1>Abisko</h1>
       <p class="intro">Cuándo viajar para buscar un cielo<br>con más actividad.</p>
       <div class="recomendacion" aria-live="polite" aria-atomic="true">
-        <p class="cap" id="h-cap">Comparando temporadas…</p>
-        <div class="big" id="h-big">Septiembre–marzo</div>
-        <p class="sub" id="h-sub">Los meses oscuros son el punto de partida. La actividad del Sol ayuda a elegir la temporada, no una noche exacta.</p>
+        <p class="cap" id="h-cap">El siguiente entorno de máximo solar</p>
+        <div class="big" id="h-big">Calculando el horizonte…</div>
+        <p class="sub" id="h-sub">El ciclo solar dura unos 11 años, pero no es un reloj. El siguiente máximo no equivale a una fecha garantizada de auroras intensas.</p>
       </div>
       <span class="chip" id="h-chip"></span>
     </div>
@@ -167,9 +167,11 @@ footer p+p{margin-top:8px}
 
 <main class="wrap">
   <section class="bloque" aria-labelledby="t-viaje">
-    <div class="encabezado"><h2 id="t-viaje">Cuándo viajar</h2><span class="cap">Próximos 3 años · ciclo actual</span></div>
-    <div class="ventanas" id="ventanas"><p class="vacio">Calculando ventanas a partir del historial…</p></div>
+    <div class="encabezado"><h2 id="t-viaje">Un ciclo, no una fecha exacta</h2><span class="cap">De un máximo al siguiente</span></div>
+    <div class="ventanas" id="horizonte"><p class="vacio">Comparando el máximo registrado con el próximo ciclo…</p></div>
+    <p class="nota">Los 11 años son una duración típica, no un plazo fijo desde la última gran aurora. Las tormentas fuertes pueden ocurrir alrededor del máximo y también en el descenso; el pico de auroras no tiene por qué coincidir con el de manchas solares.</p>
     <p class="advertencia"><b>Una temporada favorable no garantiza una aurora intensa.</b> En Abisko puedes ver auroras con Kp bajo. Aquí buscamos señales de actividad elevada; las nubes, la oscuridad y la actividad local decidirán lo que veas.</p>
+    <details class="tabla"><summary>Viajar antes: oportunidades del ciclo actual</summary><p class="nota">Estos rangos de los próximos tres años son alternativas dentro del descenso del ciclo 25, no el siguiente máximo solar ni una razón para esperar necesariamente hasta 2035.</p><div class="ventanas" id="ventanas"><p class="vacio">Calculando ventanas a partir del historial…</p></div></details>
     <div class="stats" id="stats"></div>
   </section>
 
@@ -178,8 +180,8 @@ footer p+p{margin-top:8px}
     <p class="nota" id="n-mapa"></p>
     <div class="chart" id="g-mapa"></div>
     <div class="ley" id="ley-mapa"></div>
-    <label class="check"><input type="checkbox" id="escenario"> Incluir escenario lejano del ciclo 26</label>
-    <p class="advertencia" id="n-escenario" hidden>El ciclo 26 todavía no tiene una previsión oficial de NOAA. Sus fechas y fuerza son supuestos: las celdas de borde discontinuo son escenarios, no fechas para reservar un viaje.</p>
+    <label class="check"><input type="checkbox" id="escenario" checked> Mostrar el escenario del siguiente ciclo solar</label>
+    <p class="advertencia" id="n-escenario">El ciclo 26 todavía no tiene una previsión oficial de NOAA. Sus fechas y fuerza son supuestos: las celdas de borde discontinuo son escenarios, no fechas para reservar un viaje.</p>
     <details class="tabla"><summary>Estimaciones del modelo y muestra histórica</summary><p class="nota">Cada porcentaje se refiere a un mes completo con al menos una noche que combine Kp ≥ 7 y oscuridad. No es la probabilidad de ver una aurora durante un viaje, ni un intervalo de confianza.</p><div class="tw" id="tb-mapa"></div></details>
   </section>
 
@@ -464,7 +466,7 @@ const luzLuna = (ms) => {
    Estado y cálculo
    ========================================================================= */
 let D, KP, N, DIA0, MAXDIA, AP_DIA, DSTDIA, DST_DESDE, FASE, MESES_H, CICLOS, AJUSTE;
-const S = { lugar: LUGARES.find((l) => l.nombre.startsWith("Abisko")), modo: "fuerte", kpManual: 21, verTormentas: 10, tab: "historia", escenario: false };
+const S = { lugar: LUGARES.find((l) => l.nombre.startsWith("Abisko")), modo: "fuerte", kpManual: 21, verTormentas: 10, tab: "historia", escenario: true };
 let C = null; // resultados del último cálculo
 
 async function carga() {
@@ -915,6 +917,21 @@ const cuando = (v) => {
 };
 const saturado = (F) => F.length && F.filter((o) => o.p > 0.95).length > F.length / 2;
 
+function horizonteSolar() {
+  const ultimoMaximo = fechaDia(CICLOS.at(-1).max);
+  const añoOrientativo = ultimoMaximo.getUTCFullYear() + 11;
+  return { ultimoMaximo, añoOrientativo, rango: `${añoOrientativo}–${añoOrientativo + 1}` };
+}
+
+function pintaHorizonte() {
+  const horizonte = horizonteSolar();
+  const añoAnterior = horizonte.ultimoMaximo.getUTCFullYear();
+  $("horizonte").innerHTML =
+    `<article class="ventana"><div class="puesto"><span>Máximo reciente · ciclo 25</span><span>01</span></div><h3>${añoAnterior}–${añoAnterior + 1}</h3><p>El entorno activo del ciclo actual. SILSO sitúa su máximo de manchas solares en ${MESES_L[horizonte.ultimoMaximo.getUTCMonth()]} de ${añoAnterior}.</p><p class="base">Máximo registrado · no un pico único de auroras</p></article>` +
+    `<article class="ventana"><div class="puesto"><span>Transición al ciclo 26</span><span>02</span></div><h3>2029–2032</h3><p>NOAA sitúa aquí el posible inicio del siguiente ciclo. Cerca de un mínimo suelen ser menos frecuentes las tormentas fuertes, pero no desaparecen las auroras.</p><p class="base">Ventana de inicio indicada por NOAA</p></article>` +
+    `<article class="ventana principal"><div class="puesto"><span>Próximo máximo orientativo</span><span>03</span></div><h3>Hacia ${horizonte.rango}</h3><p>La referencia al sumar unos 11 años al máximo anterior. El entorno del máximo y parte del descenso podrían volver a ser favorables; no sabemos si el ciclo 26 será más fuerte que el 25.</p><p class="base">Aproximación del ciclo · no previsión oficial</p></article>`;
+}
+
 function ventanasViaje(F, hoy = HOY()) {
   const fecha = fechaDia(hoy);
   const mesActual = fecha.getUTCFullYear() * 12 + fecha.getUTCMonth();
@@ -949,7 +966,7 @@ function viajes(r) {
     const motivo = [inicio.m, fin.m].some((mes) => [2, 3, 8, 9].includes(mes))
       ? "Cerca de un equinoccio, con oscuridad suficiente y una fase solar comparable al historial."
       : "Oscuridad suficiente y una señal de actividad favorable en meses históricos similares.";
-    return `<article class="ventana${indice === 0 ? " principal" : ""}"><div class="puesto"><span>${indice === 0 ? "Señal orientativa más alta" : "Alternativa"}</span><span>0${indice + 1}</span></div>` +
+    return `<article class="ventana"><div class="puesto"><span>${indice === 0 ? "Señal más alta del tramo próximo" : "Alternativa del ciclo actual"}</span><span>0${indice + 1}</span></div>` +
       `<h3>${esc(meses)}${inicio.y === fin.y ? `<span>${inicio.y}</span>` : ""}</h3><p>${motivo}</p>` +
       `<p class="base">${rango(muestra)} meses análogos por mes · ${rango(ciclos)} ciclos</p></article>`;
   }).join("") : `<p class="vacio">No hay pares de meses próximos del ciclo actual con muestra suficiente. El patrón estacional sigue siendo útil, pero no permite elegir un rango concreto.</p>`;
@@ -963,19 +980,17 @@ function temporadas(r) {
   ).join("");
   const maximoSolar = CICLOS.at(-1);
   const fechaMaximo = fechaDia(maximoSolar.max);
-  $("ciclo-resumen").textContent = `El máximo registrado del ciclo ${maximoSolar.n} fue en ${MESES_L[fechaMaximo.getUTCMonth()]} de ${fechaMaximo.getUTCFullYear()}. El historial suele favorecer el entorno del máximo y parte del descenso, pero no todos los años se comportan igual.`;
+  $("ciclo-resumen").textContent = `El máximo registrado del ciclo ${maximoSolar.n} fue en ${MESES_L[fechaMaximo.getUTCMonth()]} de ${fechaMaximo.getUTCFullYear()}. Un ciclo típico de unos 11 años orienta hacia ${horizonteSolar().rango} para el siguiente entorno de máximo. Las oportunidades próximas pertenecen al descenso actual.`;
 }
 
 function cabecera(r) {
   const L = r.L, F = r.futuro, dir = L.lat >= 0 ? "norte" : "sur";
   let cap, big, sub;
   if (L.nombre.startsWith("Abisko") && S.modo === "fuerte") {
-    const viajes = ventanasViaje(F);
-    cap = "Ventana destacada por el historial";
-    big = viajes.length ? rangoViaje(viajes[0]) : "Sin ventana próxima comparable";
-    sub = viajes.length
-      ? "Un rango con <b>actividad geomagnética elevada en meses históricos similares</b>. Orienta el viaje, no predice una tormenta ni garantiza una aurora intensa."
-      : "Busca los meses oscuros alrededor de los equinoccios. No hay una ventana próxima del ciclo actual que el modelo pueda comparar.";
+    const horizonte = horizonteSolar();
+    cap = "El siguiente entorno de máximo solar";
+    big = `Hacia ${horizonte.rango}`;
+    sub = `Tras el máximo de ${horizonte.ultimoMaximo.getUTCFullYear()}, un ciclo de unos <b>11 años</b> apunta a mediados de la década de 2030. Puede adelantarse o retrasarse varios años. <b>No es una fecha confirmada ni un pico garantizado de auroras</b>: las tormentas también pueden abundar durante el descenso.`;
   } else if (r.T === null) {
     cap = `Desde ${L.nombre}`;
     big = "No llega";
@@ -1006,7 +1021,7 @@ function cabecera(r) {
   $("h-cap").textContent = cap;
   $("h-big").textContent = big;
   $("h-sub").innerHTML = sub;
-  $("h-chip").textContent = L.nombre.startsWith("Abisko") && S.modo === "fuerte" ? "Referencia histórica: Kp ≥ 7 · no mide el brillo local" : r.T === null ? "Sin umbral alcanzable" : `Hace falta ${r.Ttxt}${r.Dn !== null ? " · datos desde 1957" : gTxt(r.T) ? ` (${gTxt(r.T)})` : ""}`;
+  $("h-chip").textContent = L.nombre.startsWith("Abisko") && S.modo === "fuerte" ? "Ciclo 26: todavía sin previsión oficial de NOAA" : r.T === null ? "Sin umbral alcanzable" : `Hace falta ${r.Ttxt}${r.Dn !== null ? " · datos desde 1957" : gTxt(r.T) ? ` (${gTxt(r.T)})` : ""}`;
   document.title = L.nombre.startsWith("Abisko") ? "Abisko · cuándo viajar para ver auroras" : `Auroras desde ${L.nombre} · ${big}`;
 }
 
@@ -1033,8 +1048,8 @@ function mapaFuturo(r) {
     return;
   }
   const años = [...new Set(F.map((o) => o.y))];
-  const referencia = r.futuro.filter((o) => !o.enC26 && o.ini >= HOY());
-  const maximo = Math.max(0.001, ...(referencia.length ? referencia : F).map((o) => o.p));
+  const referencia = r.futuro.filter((o) => o.ini >= HOY());
+  const maximo = Math.max(0.001, ...referencia.map((o) => o.p));
   const ancho = Math.max(300, host.clientWidth || 900);
   const anotar = ancho >= 620;
   const ml = 42, mr = anotar ? 150 : 6, mt = 20;
@@ -1070,7 +1085,7 @@ function mapaFuturo(r) {
     fila(+c26.max.slice(0, 4), "máximo (supuesto)");
   }
   $("ley-mapa").innerHTML = SENAL.map((texto, indice) => `<span><i style="background:var(--q${TONOS[indice]})"></i>${texto}</span>`).join("");
-  $("n-mapa").textContent = `Señal relativa al mejor mes ${referencia.length ? "del ciclo actual" : "del escenario"}: combina meses históricos de fase solar similar con la oscuridad de Abisko. No predice visibilidad. Los meses pasados o empezados se omiten.`;
+  $("n-mapa").textContent = "Señal relativa al mejor mes del horizonte completo, incluyendo los supuestos del ciclo 26. Compara el descenso actual, el mínimo y la siguiente fase activa; no predice visibilidad ni confirma cuándo llegará el próximo pico. Los meses pasados o empezados se omiten.";
   tabla($("tb-mapa"), ["Mes", "Estimación mensual", "Meses con señal / análogos", "Ciclos", "Rango de escenarios (26)"],
     F.map((o) => [`${MESES_L[o.m]} ${o.y}`, pct(o.p), `${o.ok}/${o.n}`, o.ciclos, o.enC26 ? `${pct(o.lo)}–${pct(o.hi)}` : "—"]), "Estimaciones mensuales del modelo histórico, no probabilidades de éxito del viaje");
 }
@@ -1305,8 +1320,9 @@ function metodo(r) {
   $("metodo").innerHTML = [
     `<b>Señal de actividad:</b> algún tramo de 3 h con Kp ≥ 7 (G3 o superior) y el Sol a más de 12° bajo el horizonte en Abisko. Es una referencia conservadora para buscar actividad elevada, no el mínimo necesario para ver auroras ni una medida de brillo. No son avistamientos registrados.`,
     `<b>Estimación mensual:</b> fracción de meses del pasado en la misma fase del ciclo (±1 año) y época (±1 mes) con al menos una noche así, corregida por la fuerza del ciclo mediante un ajuste empírico sobre ciclos completos. Se aplica la oscuridad de Abisko, pero no la nubosidad.`,
+    `<b>Horizonte del siguiente máximo:</b> el año del último máximo registrado más 11, mostrado junto al año siguiente como referencia amplia (${horizonteSolar().rango}). <a href="https://www.spaceweather.gov/phenomena/sunspotssolar-cycle">NOAA describe el ciclo como aproximadamente de 11 años</a>, no de duración fija. Esta referencia no es un intervalo de confianza ni una predicción del máximo de auroras. Las oportunidades cercanas pertenecen al ciclo actual, no a un nuevo máximo.`,
     `<b>Ventanas de viaje:</b> pares de meses completos consecutivos, ordenados por la media de sus estimaciones mensuales. Solo se consideran los próximos 36 meses del ciclo actual, con al menos 10 análogos y 3 ciclos por mes; las alternativas se separan más de 120 días. Esa media sirve para comparar, no es la probabilidad de un viaje de dos meses.`,
-    `<b>Colores:</b> sin coincidencias, menos del 30 %, 30–60 %, 60–80 % y al menos el 80 % de la señal del mejor mes del ciclo actual. Son niveles relativos, no probabilidades absolutas ni categorías oficiales de NOAA.`,
+    `<b>Colores:</b> sin coincidencias, menos del 30 %, 30–60 %, 60–80 % y al menos el 80 % de la señal del mejor mes del horizonte completo, incluidos los supuestos del ciclo 26. La escala no cambia al ocultar ese escenario. Son niveles relativos, no probabilidades absolutas ni categorías oficiales de NOAA.`,
     `<b>Supuestos lejanos:</b> <a href="https://www.spaceweather.gov/products/solar-cycle-progression">NOAA</a> sitúa el posible inicio del ciclo 26 entre 2029 y 2032 y todavía no lo pronostica. Este modelo fija un mínimo en ${D.ciclo26.min.slice(0, 4)} y un máximo en ${D.ciclo26.max.slice(0, 4)} ± ${coma(D.ciclo26.maxMargen)} años, con ${D.ciclo26.sn.bajo}–${D.ciclo26.sn.alto} manchas. No son fechas oficiales.`,
     `<b>No se usa:</b> el Bz y el viento solar (solo se conocen con 30–60 min de aviso) ni qué equinoccio domina según la polaridad del Sol, que en estos datos no se repite con regularidad.`,
     `<b>Límites:</b> el Kp es global y por tramos de 3 h. El modelo no está calibrado como pronóstico local; los meses de un mismo ciclo no son independientes. Los márgenes del ciclo 26 son escenarios, no intervalos de confianza. No se puede convertir una estimación mensual en éxito de una estancia corta.`,
@@ -1368,6 +1384,7 @@ function pintaTab() {
 function pinta() {
   C = calcula();
   cabecera(C);
+  pintaHorizonte();
   cifras(C);
   viajes(C);
   temporadas(C);
@@ -1384,6 +1401,7 @@ function pinta() {
     $("h-big").textContent = "Orientación estacional";
     $("h-sub").textContent = "Inténtalo de nuevo más tarde. Como orientación general, busca meses oscuros cerca de los equinoccios; no es un pronóstico de actividad.";
     $("ventanas").innerHTML = `<p class="vacio">Las ventanas calculadas no están disponibles. Recarga la página para volver a intentarlo.</p>`;
+    $("horizonte").innerHTML = `<p class="vacio">El horizonte del siguiente ciclo no está disponible sin los datos. Recarga la página para volver a intentarlo.</p>`;
     console.error(e);
     return;
   }

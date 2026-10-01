@@ -104,7 +104,9 @@ const calc = (nombre, modo = "vista") => {
 
 const def = vm.runInContext("({ lugar: S.lugar.nombre, modo: S.modo })", ctx);
 ok(def.lugar.startsWith("Abisko") && def.modo === "fuerte", "abre en Abisko con tormentas fuertes", `→ ${def.lugar}, ${def.modo}`);
-ok(vm.runInContext("S.escenario === false", ctx), "el ciclo 26 no se muestra por defecto");
+ok(vm.runInContext("S.escenario === true", ctx), "el siguiente ciclo se muestra por defecto como escenario");
+const horizonteSolar = vm.runInContext("horizonteSolar()", ctx);
+ok(horizonteSolar.añoOrientativo === 2035 && horizonteSolar.rango === "2035–2036", "el horizonte del próximo máximo parte de 2024 más unos 11 años");
 // La rejilla AACGM interpolada frente a los valores exactos de la calculadora de Dartmouth.
 let peorAacgm = 0, peorCiudad = "";
 for (const [n, c] of Object.entries(D.aacgm.ciudades)) {
@@ -246,13 +248,16 @@ for (const [nombre, modo] of [["Abisko", "fuerte"], ["Barcelona", "vista"], ["Ma
 }
 
 ctx.__l = lugar("Abisko");
-vm.runInContext("S.lugar = __l; S.modo = 'fuerte'; S.tab = 'historia'; S.escenario = false; pinta()", ctx);
+vm.runInContext("S.lugar = __l; S.modo = 'fuerte'; S.tab = 'historia'; S.escenario = true; pinta()", ctx);
 ok((nodos.get("ventanas").innerHTML.match(/<article /g) || []).length > 0 && !/\d+ %/.test(nodos.get("h-sub").innerHTML), "Abisko muestra rangos y no promete un porcentaje de éxito del viaje", `→ ${nodos.get("h-big").textContent}`);
-ok(!nodos.get("tb-mapa").innerHTML.includes("2035") && nodos.get("n-escenario").hidden, "el calendario inicial oculta el escenario lejano y su aviso");
+ok(nodos.get("h-big").textContent === "Hacia 2035–2036" && !nodos.get("h-big").textContent.includes("2027"), "la cabecera destaca el próximo entorno de máximo, no una oportunidad de 2027");
+ok(nodos.get("h-sub").innerHTML.includes("No es una fecha confirmada") && nodos.get("h-chip").textContent.includes("sin previsión oficial"), "el próximo máximo no se presenta como una predicción confirmada");
+ok((nodos.get("horizonte").innerHTML.match(/<article /g) || []).length === 3 && nodos.get("horizonte").innerHTML.includes("2029–2032"), "la vista principal distingue máximo reciente, transición y próximo máximo");
+ok(nodos.get("tb-mapa").innerHTML.includes("2035") && !nodos.get("n-escenario").hidden, "el calendario inicial muestra el siguiente ciclo junto a su incertidumbre");
+nodos.get("escenario").eventos.change({ target: { checked: false } });
+ok(!nodos.get("tb-mapa").innerHTML.includes("2035") && nodos.get("n-escenario").hidden, "desactivar el escenario vuelve al ciclo actual y oculta su aviso");
 nodos.get("escenario").eventos.change({ target: { checked: true } });
 ok(nodos.get("tb-mapa").innerHTML.includes("2035") && !nodos.get("n-escenario").hidden, "el selector del ciclo 26 amplía el calendario y muestra el aviso");
-nodos.get("escenario").eventos.change({ target: { checked: false } });
-ok(!nodos.get("tb-mapa").innerHTML.includes("2035"), "desactivar el escenario vuelve al ciclo actual");
 ok((nodos.get("temporadas").innerHTML.match(/<li /g) || []).length === 12, "la vista estacional tiene doce meses");
 ok(nodos.get("tb-tormentas").innerHTML.includes("Señal + oscuridad") && !nodos.get("tb-tormentas").innerHTML.includes("Dónde se vio"), "las tormentas no se presentan como avistamientos confirmados en Abisko");
 ok(nodos.get("tb-anos").innerHTML.includes("Kp nocturno") && !nodos.get("tb-anos").innerHTML.includes("Mejor noche"), "el historial usa el Kp nocturno, no promete el brillo de una noche");

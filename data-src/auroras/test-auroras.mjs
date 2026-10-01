@@ -102,6 +102,8 @@ const calc = (nombre, modo = "vista") => {
   return vm.runInContext(`S.lugar = __l; S.modo = ${JSON.stringify(modo)}; calcula()`, ctx);
 };
 
+const def = vm.runInContext("({ lugar: S.lugar.nombre, modo: S.modo })", ctx);
+ok(def.lugar.startsWith("Abisko") && def.modo === "fuerte", "abre en Abisko con tormentas fuertes", `→ ${def.lugar}, ${def.modo}`);
 // La rejilla AACGM interpolada frente a los valores exactos de la calculadora de Dartmouth.
 let peorAacgm = 0, peorCiudad = "";
 for (const [n, c] of Object.entries(D.aacgm.ciudades)) {

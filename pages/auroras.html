@@ -475,7 +475,9 @@ const luzLuna = (ms) => {
    Estado y cálculo
    ========================================================================= */
 let D, KP, N, DIA0, MAXDIA, AP_DIA, DSTDIA, DST_DESDE, FASE, MESES_H, CICLOS, AJUSTE;
-const S = { lugar: LUGARES[0], modo: "vista", kpManual: 21, verTormentas: 10, tab: "historia" };
+// Por defecto, Abisko y tormentas fuertes: allí cualquier noche oscura tiene aurora, y la
+// pregunta interesante es cuándo vuelven las potentes.
+const S = { lugar: LUGARES.find((l) => l.nombre.startsWith("Abisko")), modo: "fuerte", kpManual: 21, verTormentas: 10, tab: "historia" };
 let C = null; // resultados del último cálculo
 
 async function carga() {
@@ -1302,6 +1304,7 @@ function pintaModo(r) {
 function mandos() {
   const sel = $("lugar");
   sel.innerHTML = LUGARES.map((l, k) => `<option value="${k}">${esc(l.nombre)}</option>`).join("");
+  sel.value = String(LUGARES.indexOf(S.lugar));
   sel.addEventListener("change", () => { S.lugar = LUGARES[+sel.value]; pinta(); });
   $("geo").addEventListener("click", () => {
     if (!navigator.geolocation) return;

@@ -104,6 +104,7 @@ const calc = (nombre, modo = "vista") => {
 
 const def = vm.runInContext("({ lugar: S.lugar.nombre, modo: S.modo })", ctx);
 ok(def.lugar.startsWith("Abisko") && def.modo === "fuerte", "abre en Abisko con tormentas fuertes", `→ ${def.lugar}, ${def.modo}`);
+ok(vm.runInContext("S.escenario === false", ctx), "el ciclo 26 no se muestra por defecto");
 // La rejilla AACGM interpolada frente a los valores exactos de la calculadora de Dartmouth.
 let peorAacgm = 0, peorCiudad = "";
 for (const [n, c] of Object.entries(D.aacgm.ciudades)) {
@@ -155,6 +156,29 @@ ok(F.filter((o) => o.enC26).every((o) => o.lo <= o.p && o.p <= o.hi), "el rango 
 ok(tro.futuro.filter((o) => o.m === 5).every((o) => o.p === 0), "Tromsø: ningún junio futuro tiene aurora posible (sol de medianoche)");
 ok(bcn.año && bcn.año.p < osl.año.p, "próximo año: Barcelona menos probable que Oslo", `→ ${bcn.año.p.toFixed(2)} vs ${osl.año.p.toFixed(2)}`);
 
+const abisko = calc("Abisko", "fuerte");
+ok(abisko.futuro.filter((mes) => [5, 6].includes(mes.m)).every((mes) => mes.p === 0), "Abisko: junio y julio no ofrecen oscuridad suficiente");
+const mesViaje = (año, mes, señal, extra = {}) => ({ y: año, m: mes, ini: Date.UTC(año, mes, 1) / DIA, p: señal, n: 30, ciclos: 5, enC26: false, ...extra });
+ctx.__mesesViaje = [
+  mesViaje(2026, 8, 1), mesViaje(2026, 9, 0.65), mesViaje(2026, 10, 0.7), mesViaje(2026, 11, 0),
+  mesViaje(2027, 1, 0.68), mesViaje(2027, 2, 0.75), mesViaje(2027, 3, 0),
+  mesViaje(2027, 8, 0.99), mesViaje(2027, 9, 1),
+  mesViaje(2028, 1, 1, { n: 9 }), mesViaje(2028, 2, 1, { ciclos: 2 }),
+  mesViaje(2029, 9, 1), mesViaje(2029, 10, 1),
+  mesViaje(2035, 8, 1, { enC26: true }), mesViaje(2035, 9, 1, { enC26: true }),
+];
+const hoyViaje = diaNum("2026-10-01");
+const viajesPrueba = vm.runInContext(`ventanasViaje(__mesesViaje, ${hoyViaje})`, ctx);
+ok(viajesPrueba.length === 3 && viajesPrueba[0].meses[0].y === 2027 && viajesPrueba[0].meses[0].m === 8, "las ventanas se ordenan por señal, sin escoger escenarios lejanos");
+ok(viajesPrueba.every((ventana) => ventana.meses.length === 2 && ventana.meses[1].y * 12 + ventana.meses[1].m === ventana.meses[0].y * 12 + ventana.meses[0].m + 1), "cada ventana contiene dos meses consecutivos");
+ok(viajesPrueba.every((ventana) => ventana.meses.every((mes) => mes.ini >= hoyViaje && mes.y * 12 + mes.m < 2029 * 12 + 9 && mes.n >= 10 && mes.ciclos >= 3 && !mes.enC26)), "sin meses pasados, muestras insuficientes ni meses fuera de los 36 próximos");
+ok(viajesPrueba.every((ventana, indice) => viajesPrueba.slice(indice + 1).every((otra) => Math.abs(ventana.meses[0].ini - otra.meses[0].ini) > 120)), "las alternativas representan temporadas separadas");
+const viajesMesEmpezado = vm.runInContext(`ventanasViaje(__mesesViaje, ${diaNum("2026-10-15")})`, ctx);
+ok(viajesMesEmpezado.every((ventana) => ventana.meses.every((mes) => mes.ini >= diaNum("2026-10-15"))), "se excluye un mes ya empezado, no se trata como un mes completo futuro");
+ok(vm.runInContext("ventanasViaje([]).length === 0", ctx), "sin meses comparables no se inventa una ventana");
+ctx.__mesesAislados = [mesViaje(2027, 1, 0.9), mesViaje(2027, 2, 0)];
+ok(vm.runInContext(`ventanasViaje(__mesesAislados, ${hoyViaje}).length === 0`, ctx), "un pico aislado junto a un mes sin señal no se presenta como rango favorable");
+
 // Medianoche magnética de Tromsø: ~21:30 UT.
 const um = vm.runInContext(`(() => { const g = geomag(69.65, 18.96); let b = null;
   for (let k = 0; k < 144; k++) { const t = Date.UTC(2026, 9, 15) + k * 600e3, v = mlt(t, g.mlon), d = Math.min(v, 24 - v); if (!b || d < b.d) b = { d, h: k / 6 }; }
@@ -168,13 +192,21 @@ ok(lunas.length === 1 && lunas[0].startsWith("2024-04-08"), "luna nueva del 8-ab
 // No es un navegador: solo un DOM mínimo para que cualquier excepción del código
 // de pintado (variable mal escrita, dato que falta) salte aquí y no en la página.
 console.log("Pintado (DOM simulado)");
+const idsHtml = [...HTML.matchAll(/\bid="([^"]+)"/g)].map((coincidencia) => coincidencia[1]);
+const ids = new Set(idsHtml);
+ok(ids.size === idsHtml.length, "el HTML no tiene identificadores duplicados");
+ok(!ids.has("lugar") && !ids.has("geo") && !ids.has("modo"), "Abisko es el destino fijo, sin mandos de otras ciudades");
+ok(/<details class="detalle" id="detalle">/.test(HTML), "la evidencia ampliada empieza plegada");
+const fotoUrl = new URL("../../pages/data/abisko-aurora.jpg", import.meta.url);
+const foto = existsSync(fotoUrl) ? readFileSync(fotoUrl) : null;
+ok(foto && foto.length > 1000 && foto[0] === 0xff && foto[1] === 0xd8 && foto.at(-2) === 0xff && foto.at(-1) === 0xd9, "la foto local existe y es un JPEG, no una página de error");
 const nodo = () => {
   const n = {
-    children: [], style: {}, dataset: {}, attrs: {}, _html: "", textContent: "", value: "", clientWidth: 900, offsetWidth: 160,
+    children: [], style: {}, dataset: {}, attrs: {}, eventos: {}, _html: "", textContent: "", value: "", clientWidth: 900, offsetWidth: 160,
     classList: { add() {}, remove() {}, toggle() {} },
     setAttribute(k, v) { this.attrs[k] = String(v); }, getAttribute(k) { return this.attrs[k]; },
     appendChild(c) { this.children.push(c); return c; }, prepend(c) { this.children.unshift(c); },
-    addEventListener() {}, insertAdjacentHTML(_, h) { this._html += h; },
+    addEventListener(tipo, manejador) { this.eventos[tipo] = manejador; }, insertAdjacentHTML(_, h) { this._html += h; },
     querySelector() { return null; }, querySelectorAll() { return []; },
     getBoundingClientRect: () => ({ left: 0, top: 0, width: 900, height: 300 }),
   };
@@ -187,7 +219,10 @@ const nodo = () => {
 const nodos = new Map();
 const pestañas = ["historia", "porque", "pronto", "metodo"].map((k) => { const n = nodo(); n.id = `tab-${k}`; n.attrs["aria-controls"] = `p-${k}`; n.focus = () => {}; return n; });
 ctx.document = {
-  getElementById: (id) => (nodos.has(id) || nodos.set(id, nodo()), nodos.get(id)),
+  getElementById: (id) => {
+    if (!ids.has(id)) throw new Error(`Elemento ausente del HTML real: ${id}`);
+    return (nodos.has(id) || nodos.set(id, nodo()), nodos.get(id));
+  },
   createElementNS: nodo, createElement: nodo, documentElement: {},
   querySelectorAll: (sel) => (sel.includes("tab") ? pestañas : []),
 };
@@ -196,7 +231,7 @@ ctx.navigator = {};
 const salida27 = ["2026 Sep 28      98           5          2", "2026 Sep 29     100          18          5", "2026 Sep 30     105          45          7"].join("\n");
 vm.runInContext(`PRONTO = { filas: [], emitido: "prueba" };
   for (const l of ${JSON.stringify(salida27)}.split("\\n")) { const m = l.match(/^(\\d{4}) (\\w{3}) (\\d{2})\\s+(\\d+)\\s+(\\d+)\\s+(\\d+)/); PRONTO.filas.push({ d: Date.UTC(+m[1], 8, +m[3]) / DIA, ap: +m[5], kp: +m[6] }); }`, ctx);
-for (const [nombre, modo] of [["Barcelona", "vista"], ["Madrid", "alta"], ["Londres", "vista"], ["Tromsø", "vista"], ["Tromsø", "fuerte"], ["Oslo", "fuerte"], ["Ushuaia", "vista"], ["Hobart", "alta"]]) {
+for (const [nombre, modo] of [["Abisko", "fuerte"], ["Barcelona", "vista"], ["Madrid", "alta"], ["Londres", "vista"], ["Tromsø", "vista"], ["Tromsø", "fuerte"], ["Oslo", "fuerte"], ["Ushuaia", "vista"], ["Hobart", "alta"]]) {
   ctx.__l = lugar(nombre);
   try {
     // Todas las pestañas, una tras otra: cada una solo pinta lo suyo.
@@ -208,6 +243,51 @@ for (const [nombre, modo] of [["Barcelona", "vista"], ["Madrid", "alta"], ["Lond
   } catch (e) {
     ok(false, `${nombre} (${modo}): se pinta sin errores`, e.stack.split("\n").slice(0, 3).join(" | "));
   }
+}
+
+ctx.__l = lugar("Abisko");
+vm.runInContext("S.lugar = __l; S.modo = 'fuerte'; S.tab = 'historia'; S.escenario = false; pinta()", ctx);
+ok((nodos.get("ventanas").innerHTML.match(/<article /g) || []).length > 0 && !/\d+ %/.test(nodos.get("h-sub").innerHTML), "Abisko muestra rangos y no promete un porcentaje de éxito del viaje", `→ ${nodos.get("h-big").textContent}`);
+ok(!nodos.get("tb-mapa").innerHTML.includes("2035") && nodos.get("n-escenario").hidden, "el calendario inicial oculta el escenario lejano y su aviso");
+nodos.get("escenario").eventos.change({ target: { checked: true } });
+ok(nodos.get("tb-mapa").innerHTML.includes("2035") && !nodos.get("n-escenario").hidden, "el selector del ciclo 26 amplía el calendario y muestra el aviso");
+nodos.get("escenario").eventos.change({ target: { checked: false } });
+ok(!nodos.get("tb-mapa").innerHTML.includes("2035"), "desactivar el escenario vuelve al ciclo actual");
+ok((nodos.get("temporadas").innerHTML.match(/<li /g) || []).length === 12, "la vista estacional tiene doce meses");
+ok(nodos.get("tb-tormentas").innerHTML.includes("Señal + oscuridad") && !nodos.get("tb-tormentas").innerHTML.includes("Dónde se vio"), "las tormentas no se presentan como avistamientos confirmados en Abisko");
+ok(nodos.get("tb-anos").innerHTML.includes("Kp nocturno") && !nodos.get("tb-anos").innerHTML.includes("Mejor noche"), "el historial usa el Kp nocturno, no promete el brillo de una noche");
+ctx.__tipMovil = { w: 300, svg: { getBoundingClientRect: () => ({ width: 280 }) }, tip: { innerHTML: "", classList: { add() {} }, offsetWidth: 280, style: {} } };
+vm.runInContext("ponTip(__tipMovil, 'señal histórica', 280, 30)", ctx);
+ok(ctx.__tipMovil.tip.style.left === "0px", "un tooltip de ancho completo no rebasa el borde móvil");
+
+const peticiones = [];
+const arranqueCtx = vm.createContext({
+  console, Intl, Math, Date, Uint8Array, Float32Array, Int16Array, Map, Set, JSON,
+  document: ctx.document, getComputedStyle: ctx.getComputedStyle,
+  innerWidth: 900, addEventListener() {}, window: {},
+  fetch: async (url) => { peticiones.push(url); return { json: async () => D }; },
+});
+try {
+  await vm.runInContext(script, arranqueCtx);
+  ok(vm.runInContext("C.L.nombre.startsWith('Abisko') && C.T === 21", arranqueCtx), "el arranque completo calcula Abisko con Kp ≥ 7");
+  ok(peticiones.length === 1 && peticiones[0] === "data/auroras.json", "NOAA no se consulta antes de abrir el corto plazo");
+  arranqueCtx.fetch = async () => { throw new Error("sin conexión"); };
+  await vm.runInContext("cargaPronto()", arranqueCtx);
+  vm.runInContext("S.tab = 'pronto'; graficoPronto(C)", arranqueCtx);
+  ok(nodos.get("g-pronto").innerHTML.includes("No se ha podido cargar"), "un fallo de NOAA conserva la orientación histórica y ofrece su enlace");
+} catch (error) {
+  ok(false, "el arranque completo y el error de NOAA se gestionan", error.stack);
+}
+const errorCtx = vm.createContext({
+  ...arranqueCtx,
+  console: { ...console, error() {} },
+  fetch: async () => { throw new Error("datos no disponibles"); },
+});
+try {
+  await vm.runInContext(script, errorCtx);
+  ok(nodos.get("h-big").textContent === "Orientación estacional" && nodos.get("ventanas").innerHTML.includes("no están disponibles"), "si falla la carga no quedan recomendaciones ni estados de carga falsos");
+} catch (error) {
+  ok(false, "la carga fallida se gestiona sin excepción", error.message);
 }
 
 console.log(`\n${hechas - fallos}/${hechas} comprobaciones superadas`);

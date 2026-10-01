@@ -234,13 +234,15 @@ geomagnética elevada**, no como requisito para ver auroras ni como medida del
 brillo local. NOAA explica que bajo el óvalo pueden verse buenas auroras con
 Kp bajo: <https://www.spaceweather.gov/content/tips-viewing-aurora>.
 
-Las ventanas destacadas son pares de meses completos consecutivos dentro de
-los próximos 36 meses del ciclo 25, disponibles en el detalle de oportunidades
-del descenso actual, no como anuncio de un nuevo máximo solar. Cada mes necesita al menos 10 análogos de
-3 ciclos. Se ordenan por la media de las dos estimaciones mensuales y se eligen
-hasta tres alternativas cuyos inicios estén separados más de 120 días. Es un
+La recomendación de viaje indica **meses y año aproximados** del siguiente
+ciclo. Se comparan pares de meses completos consecutivos del escenario del
+ciclo 26 dentro del horizonte orientativo 2035–2036. Cada mes necesita al menos
+10 análogos de 3 ciclos. Se destaca el par con mayor media de las dos estimaciones
+mensuales, que ya combinan actividad histórica y oscuridad en Abisko. Es un
 criterio de comparación, **no una probabilidad de éxito de un viaje**. Los meses
-ya empezados se omiten, porque el modelo estima meses completos.
+ya empezados se omiten, porque el modelo estima meses completos. Sin muestra
+suficiente se mantiene solo el horizonte de años, sin inventar meses. No se
+presentan recomendaciones de viaje para el ciclo actual.
 
 El calendario usa niveles relativos al mejor mes futuro del horizonte completo,
 incluidos los supuestos del ciclo 26. La escala se mantiene al ocultar el escenario:
@@ -256,8 +258,8 @@ lo pronostica y sitúa su posible inicio entre 2029 y 2032:
 <https://www.spaceweather.gov/products/solar-cycle-progression> (consultado
 el 1 de octubre de 2026). El mínimo en 2030-12 del modelo no es una fecha oficial.
 
-La cabecera distingue el **siguiente entorno de máximo solar** de las ventanas
-de viaje cercanas. La referencia «hacia 2035–2036» toma el año del máximo
+La cabecera destaca una ventana mensual del **siguiente entorno de máximo solar**.
+La referencia «hacia 2035–2036» toma el año del máximo
 registrado (2024), suma 11 y muestra ese año y el siguiente. Es una orientación
 amplia basada en la duración típica, no una previsión oficial ni un intervalo
 de confianza: el ciclo puede adelantarse o retrasarse varios años. NOAA explica

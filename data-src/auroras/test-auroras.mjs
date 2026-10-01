@@ -170,16 +170,15 @@ ctx.__mesesViaje = [
   mesViaje(2035, 8, 1, { enC26: true }), mesViaje(2035, 9, 1, { enC26: true }),
 ];
 const hoyViaje = diaNum("2026-10-01");
-const viajesPrueba = vm.runInContext(`ventanasViaje(__mesesViaje, ${hoyViaje})`, ctx);
-ok(viajesPrueba.length === 3 && viajesPrueba[0].meses[0].y === 2027 && viajesPrueba[0].meses[0].m === 8, "las ventanas se ordenan por señal, sin escoger escenarios lejanos");
-ok(viajesPrueba.every((ventana) => ventana.meses.length === 2 && ventana.meses[1].y * 12 + ventana.meses[1].m === ventana.meses[0].y * 12 + ventana.meses[0].m + 1), "cada ventana contiene dos meses consecutivos");
-ok(viajesPrueba.every((ventana) => ventana.meses.every((mes) => mes.ini >= hoyViaje && mes.y * 12 + mes.m < 2029 * 12 + 9 && mes.n >= 10 && mes.ciclos >= 3 && !mes.enC26)), "sin meses pasados, muestras insuficientes ni meses fuera de los 36 próximos");
-ok(viajesPrueba.every((ventana, indice) => viajesPrueba.slice(indice + 1).every((otra) => Math.abs(ventana.meses[0].ini - otra.meses[0].ini) > 120)), "las alternativas representan temporadas separadas");
-const viajesMesEmpezado = vm.runInContext(`ventanasViaje(__mesesViaje, ${diaNum("2026-10-15")})`, ctx);
-ok(viajesMesEmpezado.every((ventana) => ventana.meses.every((mes) => mes.ini >= diaNum("2026-10-15"))), "se excluye un mes ya empezado, no se trata como un mes completo futuro");
-ok(vm.runInContext("ventanasViaje([]).length === 0", ctx), "sin meses comparables no se inventa una ventana");
-ctx.__mesesAislados = [mesViaje(2027, 1, 0.9), mesViaje(2027, 2, 0)];
-ok(vm.runInContext(`ventanasViaje(__mesesAislados, ${hoyViaje}).length === 0`, ctx), "un pico aislado junto a un mes sin señal no se presenta como rango favorable");
+const siguienteCicloPrueba = vm.runInContext(`ventanaSiguienteCiclo(__mesesViaje, ${hoyViaje})`, ctx);
+ok(siguienteCicloPrueba && siguienteCicloPrueba.meses.every((mes) => mes.y === 2035 && mes.enC26) && siguienteCicloPrueba.meses[0].m === 8 && siguienteCicloPrueba.meses[1].m === 9, "la recomendación del siguiente ciclo incluye meses y año, sin escoger el ciclo actual");
+ok(vm.runInContext("ventanaSiguienteCiclo([]) === null", ctx), "sin análogos del siguiente ciclo no se inventan meses recomendados");
+ok(siguienteCicloPrueba.meses[1].y * 12 + siguienteCicloPrueba.meses[1].m === siguienteCicloPrueba.meses[0].y * 12 + siguienteCicloPrueba.meses[0].m + 1, "la ventana del próximo ciclo contiene dos meses consecutivos");
+ctx.__mesesInsuficientes = [mesViaje(2035, 1, 0.9, { enC26: true, n: 9 }), mesViaje(2035, 2, 0.9, { enC26: true, ciclos: 2 })];
+ok(vm.runInContext(`ventanaSiguienteCiclo(__mesesInsuficientes, ${hoyViaje}) === null`, ctx), "sin muestra suficiente no se recomiendan meses del próximo ciclo");
+ctx.__mesesAislados = [mesViaje(2035, 1, 0.9, { enC26: true }), mesViaje(2035, 2, 0, { enC26: true })];
+ok(vm.runInContext(`ventanaSiguienteCiclo(__mesesAislados, ${hoyViaje}) === null`, ctx), "un pico aislado junto a un mes sin señal no se presenta como rango favorable");
+ok(vm.runInContext(`ventanaSiguienteCiclo(__mesesViaje, ${diaNum("2035-09-15")}) === null`, ctx), "un mes ya empezado no se trata como un mes completo del próximo viaje");
 
 // Medianoche magnética de Tromsø: ~21:30 UT.
 const um = vm.runInContext(`(() => { const g = geomag(69.65, 18.96); let b = null;
@@ -198,6 +197,7 @@ const idsHtml = [...HTML.matchAll(/\bid="([^"]+)"/g)].map((coincidencia) => coin
 const ids = new Set(idsHtml);
 ok(ids.size === idsHtml.length, "el HTML no tiene identificadores duplicados");
 ok(!ids.has("lugar") && !ids.has("geo") && !ids.has("modo"), "Abisko es el destino fijo, sin mandos de otras ciudades");
+ok(!ids.has("ventanas") && !HTML.includes("Viajar antes: oportunidades del ciclo actual"), "no hay apartado de oportunidades de viaje del ciclo actual");
 ok(/<details class="detalle" id="detalle">/.test(HTML), "la evidencia ampliada empieza plegada");
 const fotoUrl = new URL("../../pages/data/abisko-aurora.jpg", import.meta.url);
 const foto = existsSync(fotoUrl) ? readFileSync(fotoUrl) : null;
@@ -249,8 +249,10 @@ for (const [nombre, modo] of [["Abisko", "fuerte"], ["Barcelona", "vista"], ["Ma
 
 ctx.__l = lugar("Abisko");
 vm.runInContext("S.lugar = __l; S.modo = 'fuerte'; S.tab = 'historia'; S.escenario = true; pinta()", ctx);
-ok((nodos.get("ventanas").innerHTML.match(/<article /g) || []).length > 0 && !/\d+ %/.test(nodos.get("h-sub").innerHTML), "Abisko muestra rangos y no promete un porcentaje de éxito del viaje", `→ ${nodos.get("h-big").textContent}`);
-ok(nodos.get("h-big").textContent === "Hacia 2035–2036" && !nodos.get("h-big").textContent.includes("2027"), "la cabecera destaca el próximo entorno de máximo, no una oportunidad de 2027");
+ok((nodos.get("horizonte").innerHTML.match(/<article /g) || []).length > 0 && !/\d+ %/.test(nodos.get("h-sub").innerHTML), "Abisko muestra el siguiente ciclo y no promete un porcentaje de éxito del viaje", `→ ${nodos.get("h-big").textContent}`);
+const siguienteVentana = vm.runInContext("ventanaSiguienteCiclo(C.futuro)", ctx);
+ok(siguienteVentana && nodos.get("h-big").textContent === vm.runInContext("rangoViaje(ventanaSiguienteCiclo(C.futuro)) + ' (aprox.)'", ctx) && !nodos.get("h-big").textContent.includes("2027"), "la cabecera recomienda meses y año aproximados del siguiente ciclo", `→ ${nodos.get("h-big").textContent}`);
+ok(nodos.get("horizonte").innerHTML.includes(nodos.get("h-big").textContent), "la tarjeta principal y la cabecera muestran la misma ventana de viaje");
 ok(nodos.get("h-sub").innerHTML.includes("No es una fecha confirmada") && nodos.get("h-chip").textContent.includes("sin previsión oficial"), "el próximo máximo no se presenta como una predicción confirmada");
 ok((nodos.get("horizonte").innerHTML.match(/<article /g) || []).length === 3 && nodos.get("horizonte").innerHTML.includes("2029–2032"), "la vista principal distingue máximo reciente, transición y próximo máximo");
 ok(nodos.get("tb-mapa").innerHTML.includes("2035") && !nodos.get("n-escenario").hidden, "el calendario inicial muestra el siguiente ciclo junto a su incertidumbre");
@@ -290,7 +292,7 @@ const errorCtx = vm.createContext({
 });
 try {
   await vm.runInContext(script, errorCtx);
-  ok(nodos.get("h-big").textContent === "Orientación estacional" && nodos.get("ventanas").innerHTML.includes("no están disponibles"), "si falla la carga no quedan recomendaciones ni estados de carga falsos");
+  ok(nodos.get("h-big").textContent === "Orientación estacional" && nodos.get("horizonte").innerHTML.includes("no está disponible"), "si falla la carga no quedan recomendaciones ni estados de carga falsos");
 } catch (error) {
   ok(false, "la carga fallida se gestiona sin excepción", error.message);
 }

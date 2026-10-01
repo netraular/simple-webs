@@ -22,5 +22,9 @@
   "invertir-ya-o-esperar.html": {
     "title": "Invest Now or Wait for the Right Moment?",
     "description": "Lump sum versus spreading it over months, waiting for a dip, and a clairvoyant who buys every year at the cheapest month — tested against every month of the S&P 500 since 1934, plus developed-market equities. Waiting cash earns Treasury bills, and the page shows where the rule of thumb fails."
+  },
+  "auroras.html": {
+    "title": "When Can You See the Strongest Auroras?",
+    "description": "Every geomagnetic storm since 1932, which ones you could have seen from your own city, and the months of the coming years when they are most likely to return. Uses the solar cycle and how strong it is, the equinoxes, the Sun's 27-day rotation, hours of darkness and the Moon. Kp, Dst and sunspot data from GFZ, Kyoto, SILSO and NOAA, plus NOAA's live 27-day outlook."
   }
 }

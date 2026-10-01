@@ -9,6 +9,7 @@ into `../../pages/data/`, and keep their download cache in their own `_work/`
 |---|---|---|---|
 | [`mercados/`](mercados/) | `sp500-rendimientos.html`, `invertir-ya-o-esperar.html` | `mercados.json` | `node build-mercados.mjs` · `node test-mercados.mjs` |
 | [`donde-vivir-barcelona/`](donde-vivir-barcelona/) | `donde-vivir-barcelona.html` | `zonas*.json`, `rutas.json`, `iso-*.json`, `linies.json` and the pipeline inputs | ordered pipeline, see the root [`README.md`](../README.md#data-files) |
+| [`auroras/`](auroras/) | `auroras.html` | `auroras.json` | `node build-auroras.mjs` · `node test-auroras.mjs` |
 | [`comparador-paises/`](comparador-paises/) | `comparador-paises.html` | — (data lives inside the page) | `node test-comparador.mjs` |
 
 `fire-calculator.html` and `calculadora-estilo-vida.html` have no data pipeline.

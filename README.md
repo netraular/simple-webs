@@ -24,8 +24,9 @@ python3 -m http.server 8000
 ```
 
 Then open `http://localhost:8000/pages/my-page.html`. Serve from the root (not
-from `pages/`) so the relative `data/` fetches resolve. The landing page stays
-empty locally — its card list comes from nginx's `_list/` endpoint.
+from `pages/`) so the relative `data/` fetches resolve. The landing page lists
+the pages too: in production from nginx's `_list/` endpoint, locally from the
+server's directory index of `pages/`.
 
 ## Title & description
 

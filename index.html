@@ -93,6 +93,20 @@
       .replace(/\b\w/g, c => c.toUpperCase());
   }
 
+  // nginx's JSON listing in production; locally (`python3 -m http.server`) there
+  // is no /_list/, so fall back to the server's HTML index of pages/.
+  async function listPages() {
+    const res = await fetch('_list/', { cache: 'no-cache' });
+    if (res.ok) return res.json();
+    const dir = await fetch('pages/', { cache: 'no-cache' });
+    if (!dir.ok) throw new Error('listing ' + res.status + ', pages/ ' + dir.status);
+    const doc = new DOMParser().parseFromString(await dir.text(), 'text/html');
+    return [...doc.querySelectorAll('a[href]')]
+      .map(a => decodeURIComponent(a.getAttribute('href')))
+      .filter(name => !name.includes('/'))
+      .map(name => ({ name, type: 'file' }));
+  }
+
   try {
     // Optional per-page metadata (title/description).
     let meta = {};
@@ -104,9 +118,7 @@
     // Auto-discover pages from nginx's JSON directory listing. /_list/ maps to
     // the pages/ subfolder, so every entry is a publishable page (the landing
     // itself, webs.json and favicon.ico live at the repo root, out of the way).
-    const res = await fetch('_list/', { cache: 'no-cache' });
-    if (!res.ok) throw new Error('listing ' + res.status);
-    const entries = await res.json();
+    const entries = await listPages();
 
     const pages = entries
       .filter(e => e.type === 'file' && /\.html?$/i.test(e.name) && e.name.toLowerCase() !== 'index.html')

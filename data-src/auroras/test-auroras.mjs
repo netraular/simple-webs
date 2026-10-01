@@ -183,18 +183,26 @@ const nodo = () => {
   return n;
 };
 const nodos = new Map();
-ctx.document = { getElementById: (id) => (nodos.has(id) || nodos.set(id, nodo()), nodos.get(id)), createElementNS: nodo, createElement: nodo, documentElement: {} };
+const pestañas = ["historia", "porque", "pronto", "metodo"].map((k) => { const n = nodo(); n.id = `tab-${k}`; n.attrs["aria-controls"] = `p-${k}`; n.focus = () => {}; return n; });
+ctx.document = {
+  getElementById: (id) => (nodos.has(id) || nodos.set(id, nodo()), nodos.get(id)),
+  createElementNS: nodo, createElement: nodo, documentElement: {},
+  querySelectorAll: (sel) => (sel.includes("tab") ? pestañas : []),
+};
 ctx.getComputedStyle = () => ({ getPropertyValue: () => "#123456" });
 ctx.navigator = {};
 const salida27 = ["2026 Sep 28      98           5          2", "2026 Sep 29     100          18          5", "2026 Sep 30     105          45          7"].join("\n");
 vm.runInContext(`PRONTO = { filas: [], emitido: "prueba" };
   for (const l of ${JSON.stringify(salida27)}.split("\\n")) { const m = l.match(/^(\\d{4}) (\\w{3}) (\\d{2})\\s+(\\d+)\\s+(\\d+)\\s+(\\d+)/); PRONTO.filas.push({ d: Date.UTC(+m[1], 8, +m[3]) / DIA, ap: +m[5], kp: +m[6] }); }`, ctx);
-for (const [nombre, modo] of [["Barcelona", "vista"], ["Madrid", "alta"], ["Londres", "vista"], ["Tromsø", "vista"], ["Oslo", "manual"], ["Ushuaia", "vista"], ["Hobart", "alta"]]) {
+for (const [nombre, modo] of [["Barcelona", "vista"], ["Madrid", "alta"], ["Londres", "vista"], ["Tromsø", "vista"], ["Tromsø", "fuerte"], ["Oslo", "fuerte"], ["Ushuaia", "vista"], ["Hobart", "alta"]]) {
   ctx.__l = lugar(nombre);
   try {
-    vm.runInContext(`S.lugar = __l; S.modo = ${JSON.stringify(modo)}; S.kpManual = 21; mandos(); pinta();`, ctx);
-    const txt = nodos.get("answer").innerHTML + nodos.get("need").innerHTML + nodos.get("tiles").innerHTML;
-    ok(txt.length > 100, `${nombre} (${modo}): se pinta sin errores`, `→ «${nodos.get("answer").innerHTML.replace(/<[^>]+>/g, "").slice(0, 90)}…»`);
+    // Todas las pestañas, una tras otra: cada una solo pinta lo suyo.
+    vm.runInContext(`S.lugar = __l; S.modo = ${JSON.stringify(modo)}; S.kpManual = 21; mandos();
+      for (const t of ["historia", "porque", "pronto", "metodo"]) { S.tab = t; pinta(); }`, ctx);
+    const txt = nodos.get("stats").innerHTML + nodos.get("h-sub").innerHTML + nodos.get("metodo").innerHTML;
+    const titular = `${nodos.get("h-cap").textContent}: ${nodos.get("h-big").textContent} — ${nodos.get("h-sub").innerHTML.replace(/<[^>]+>/g, "")}`;
+    ok(txt.length > 100, `${nombre} (${modo}): se pinta sin errores`, `→ «${titular.slice(0, 120)}»`);
   } catch (e) {
     ok(false, `${nombre} (${modo}): se pinta sin errores`, e.stack.split("\n").slice(0, 3).join(" | "));
   }

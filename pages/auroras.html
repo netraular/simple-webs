@@ -3,274 +3,293 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>¿Cuándo se ven las auroras más potentes? · 95 años de tormentas geomagnéticas</title>
-<meta name="description" content="Cada tormenta geomagnética desde 1932, cuáles se habrían visto desde tu ciudad y en qué meses de los próximos años es más probable que se repitan: ciclo solar, equinoccios, recurrencia de 27 días, horas de noche y luna.">
-<meta name="theme-color" media="(prefers-color-scheme: light)" content="#eef1f0">
-<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0b1020">
+<title>Auroras · cuándo volverán las más potentes</title>
+<meta name="description" content="Cuándo es más probable ver una aurora potente desde tu ciudad en los próximos años, con 95 años de tormentas geomagnéticas detrás.">
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="#eef3f9">
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#060a17">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='88'>🌌</text></svg>">
 <style>
 /* ===========================================================================
-   ¿Cuándo se ven las auroras más potentes? — página autocontenida, sin librerías.
-   Lee pages/data/auroras.json (data-src/auroras/build-auroras.mjs) y, si
-   responde, la previsión a 27 días de NOAA SWPC directamente desde el navegador.
+   Auroras — página autocontenida, sin librerías.
+   Lee pages/data/auroras.json (data-src/auroras/build-auroras.mjs) y la
+   previsión a 27 días de NOAA SWPC, en directo desde el navegador.
 
-   Todo lo que depende del lugar (umbral de Kp, horas de noche, medianoche
-   magnética) se calcula aquí, en el navegador.
+   Estilo propio: cielo nocturno con estrellas y una cortina de aurora en la
+   cabecera, tipografía geométrica, etiquetas espaciadas en versalitas, paneles
+   de cristal. Claro = cielo polar de día, helado.
 
-   Colores de datos, validados contra estas superficies (claro y oscuro):
-   - verde aurora = noches con aurora posible / probabilidad;
-   - naranja = Sol (número de manchas);
-   - gris = referencia (Kp a cualquier hora, sin mirar si es de noche).
-   El verde no llega a 3:1 sobre la superficie clara: por eso cada gráfico
-   tiene su tabla y las barras importantes llevan etiqueta.
+   Colores de datos (validados contra el panel claro #ffffff y oscuro #0f1631):
+   - aurora (verde) = noches con aurora posible; rampa secuencial de un solo
+     tono para la probabilidad del mapa (oscuro: más brillo = más probable);
+   - sol (naranja) = manchas solares; gris = referencia.
+   El verde claro no llega a 3:1 sobre blanco: todo gráfico tiene tooltip y tabla.
    =========================================================================== */
 
 :root{
   color-scheme: light dark;
-  --plane:#eef1f0;  --surface:#fbfcfb;  --surface-2:#e3e8e6;
-  --ink:#0f1a17;    --ink-2:#44524d;    --muted-txt:#66736e;
-  --line:#c5cecb;   --grid:#e1e6e4;     --axis:#b5bfbb;
-  --focus:#2a78d6;
-  --aurora:#1baf7a; --sol:#eb6834;      --ref:#9aa5a1;
-  --aurora-wash:rgba(27,175,122,.14);   --sol-wash:rgba(235,104,52,.13);
+  --sky:#eef3f9;     --panel:#ffffff;    --panel-2:#e8eef7;
+  --ink:#0b1430;     --ink-2:#3b4766;    --muted:#66718c;
+  --line:#d6deec;    --grid:#e8edf5;     --axis:#b9c3d8;
+  --focus:#3a6df0;
+  --aurora:#1baf7a;  --sol:#eb6834;      --ref:#a3adc2;
+  --sol-wash:rgba(235,104,52,.14);
+  --q0:#eef1f6; --q1:#e3f4ec; --q2:#b5e5cf; --q3:#7fd0ad; --q4:#3fb486; --q5:#17916a; --q6:#0b6e50;
+  --curtain:linear-gradient(100deg, rgba(27,175,122,.0) 0%, rgba(27,175,122,.30) 30%, rgba(40,190,200,.22) 55%, rgba(120,90,220,.18) 80%, rgba(120,90,220,0) 100%);
+  --stars:none;
+  --font:"Avenir Next","Avenir","Montserrat","Century Gothic","Segoe UI",system-ui,sans-serif;
 }
 @media (prefers-color-scheme: dark){
   :root{
-    --plane:#0b1020;  --surface:#121a2e;  --surface-2:#1a2440;
-    --ink:#eef3f6;    --ink-2:#bcc7d3;    --muted-txt:#8d99a8;
-    --line:#2a3655;   --grid:#1f2943;     --axis:#34415f;
-    --focus:#3987e5;
-    --aurora:#199e70; --sol:#d95926;      --ref:#5f6b80;
-    --aurora-wash:rgba(25,158,112,.20);   --sol-wash:rgba(217,89,38,.18);
+    --sky:#060a17;     --panel:#0f1631;    --panel-2:#17204a;
+    --ink:#eef2ff;     --ink-2:#b9c2e0;    --muted:#8590b3;
+    --line:#222c55;    --grid:#1a2349;     --axis:#2f3a6a;
+    --focus:#6f9bff;
+    --aurora:#199e70;  --sol:#d95926;      --ref:#56608a;
+    --sol-wash:rgba(217,89,38,.20);
+    --q0:#141c3d; --q1:#173a33; --q2:#1b5745; --q3:#1f7a58; --q4:#26a06f; --q5:#52c993; --q6:#a6edc9;
+    --curtain:linear-gradient(100deg, rgba(25,158,112,0) 0%, rgba(38,200,130,.45) 28%, rgba(40,190,200,.30) 55%, rgba(140,100,240,.30) 82%, rgba(140,100,240,0) 100%);
+    --stars:
+      radial-gradient(1px 1px at 12% 22%, #fff9 50%, transparent 51%),
+      radial-gradient(1px 1px at 27% 68%, #fff7 50%, transparent 51%),
+      radial-gradient(1.5px 1.5px at 41% 14%, #fffa 50%, transparent 51%),
+      radial-gradient(1px 1px at 58% 41%, #fff6 50%, transparent 51%),
+      radial-gradient(1px 1px at 66% 9%, #fff8 50%, transparent 51%),
+      radial-gradient(1.5px 1.5px at 79% 57%, #fff9 50%, transparent 51%),
+      radial-gradient(1px 1px at 88% 26%, #fff7 50%, transparent 51%),
+      radial-gradient(1px 1px at 94% 74%, #fff6 50%, transparent 51%),
+      radial-gradient(1px 1px at 6% 81%, #fff5 50%, transparent 51%),
+      radial-gradient(1px 1px at 35% 38%, #fff5 50%, transparent 51%);
   }
 }
 
 *{box-sizing:border-box;margin:0;padding:0}
 html{-webkit-text-size-adjust:100%}
-body{
-  font-family:system-ui,-apple-system,"Segoe UI",sans-serif;
-  background:var(--plane); color:var(--ink); line-height:1.5;
-  -webkit-font-smoothing:antialiased;
-}
-@media (prefers-color-scheme: dark){
-  body{background:radial-gradient(1200px 500px at 70% -120px, rgba(25,158,112,.16), transparent 70%), var(--plane)}
-}
-.wrap{max-width:1120px;margin:0 auto;padding:0 20px}
+body{font-family:var(--font);background:var(--sky);color:var(--ink);line-height:1.45;-webkit-font-smoothing:antialiased}
 button,select{font:inherit;color:inherit}
 :focus-visible{outline:2px solid var(--focus);outline-offset:2px}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
-.num{font-variant-numeric:tabular-nums}
+.wrap{max-width:1040px;margin:0 auto;padding:0 20px}
+.cap{font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);font-weight:600}
 
-/* ---------- cabecera ---------- */
-header{padding:40px 0 10px}
-.eyebrow{font-size:.76rem;letter-spacing:.09em;text-transform:uppercase;color:var(--muted-txt);font-weight:600}
-h1{font-size:clamp(2rem,4.8vw,3.2rem);line-height:1.06;letter-spacing:-.02em;margin-top:8px;font-weight:750}
-.answer{font-size:clamp(1.05rem,2.1vw,1.3rem);margin-top:14px;color:var(--ink-2);max-width:62ch}
-.answer b{color:var(--ink)}
-
-/* ---------- mandos ---------- */
-.controls{
-  position:sticky;top:0;z-index:5;margin-top:22px;padding:12px 0;
-  display:flex;flex-wrap:wrap;gap:10px 24px;align-items:center;
-  background:color-mix(in srgb, var(--plane) 92%, transparent);backdrop-filter:blur(6px);
-  border-bottom:1px solid var(--line);
+/* ---------- cielo de cabecera ---------- */
+.cielo{position:relative;overflow:hidden;padding:26px 0 30px;background-image:var(--stars)}
+.cielo::before{
+  content:"";position:absolute;left:-10%;right:-10%;top:-60px;height:260px;
+  background:var(--curtain);filter:blur(34px);transform:skewY(-4deg);pointer-events:none;
+  animation:onda 14s ease-in-out infinite alternate;
 }
-.ctl{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.ctl > label,.ctl > span{font-size:.74rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted-txt);font-weight:600}
-select{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 10px;min-height:36px}
-.btn{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 12px;min-height:36px;cursor:pointer}
-.btn:hover{background:var(--surface-2)}
-.seg{display:inline-flex;border:1px solid var(--line);border-radius:999px;overflow:hidden;background:var(--surface)}
-.seg button{background:transparent;border:0;padding:6px 14px;min-height:36px;cursor:pointer;border-left:1px solid var(--line);font-size:.9rem}
-.seg button:first-child{border-left:0}
-.seg button[aria-pressed="true"]{background:var(--ink);color:var(--plane)}
-.need{margin-top:12px;color:var(--ink-2);font-size:.95rem;max-width:80ch}
-.need b{color:var(--ink)}
+@keyframes onda{from{transform:skewY(-4deg) translateX(-3%)}to{transform:skewY(-2deg) translateX(3%)}}
+@media (prefers-reduced-motion: reduce){.cielo::before{animation:none}}
+.cielo > .wrap{position:relative}
 
-/* ---------- tarjetas y secciones ---------- */
-section{margin-top:44px}
-h2{font-size:clamp(1.35rem,2.6vw,1.75rem);letter-spacing:-.01em;line-height:1.2}
-.lead{color:var(--ink-2);margin-top:6px;max-width:72ch}
-.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px 18px 14px;margin-top:16px}
-.card h3{font-size:1rem;font-weight:650}
-.card .sub{color:var(--muted-txt);font-size:.86rem;margin-top:2px}
-.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px}
-.grid2 > .card{margin-top:0}
-.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;margin-top:20px}
-.tile{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 16px}
-.tile .lbl{font-size:.8rem;color:var(--muted-txt)}
-.tile .val{font-size:1.9rem;font-weight:700;line-height:1.15;margin-top:4px}
-.tile .det{font-size:.84rem;color:var(--ink-2);margin-top:2px}
+.barra{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:center}
+.marca{font-weight:700;letter-spacing:.32em;font-size:.82rem;margin-right:auto}
+.lugar{display:flex;align-items:center;gap:6px}
+select{
+  appearance:none;-webkit-appearance:none;background:var(--panel);border:1px solid var(--line);border-radius:999px;
+  padding:7px 32px 7px 14px;min-height:38px;cursor:pointer;
+  background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),linear-gradient(135deg,var(--muted) 50%,transparent 50%);
+  background-position:calc(100% - 17px) 55%,calc(100% - 12px) 55%;background-size:5px 5px;background-repeat:no-repeat;
+}
+.icono{background:var(--panel);border:1px solid var(--line);border-radius:999px;width:38px;height:38px;cursor:pointer}
+.seg{display:inline-flex;background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:3px}
+.seg button{background:none;border:0;border-radius:999px;padding:6px 13px;min-height:32px;cursor:pointer;font-size:.86rem;color:var(--ink-2)}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--sky);font-weight:600}
+.seg button:disabled{opacity:.35;cursor:not-allowed}
+
+.hero{margin-top:34px}
+.hero .big{font-size:clamp(2.6rem,8vw,5rem);font-weight:650;line-height:1;letter-spacing:-.02em;margin-top:8px}
+.hero .sub{font-size:clamp(1rem,2vw,1.15rem);color:var(--ink-2);margin-top:12px;max-width:60ch}
+.hero .sub b{color:var(--ink)}
+.chip{display:inline-block;margin-top:14px;font-size:.8rem;color:var(--ink-2);border:1px solid var(--line);border-radius:999px;padding:4px 12px;background:color-mix(in srgb,var(--panel) 70%,transparent)}
+
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;margin-top:26px;background:var(--line);border:1px solid var(--line);border-radius:16px;overflow:hidden}
+.stat{background:var(--panel);padding:14px 16px}
+.stat .v{font-size:1.65rem;font-weight:650;line-height:1.15;margin-top:6px}
+.stat .d{font-size:.8rem;color:var(--muted);margin-top:2px}
+@media (max-width:640px){.stats{grid-template-columns:1fr}}
+
+/* ---------- paneles ---------- */
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:18px 18px 14px;margin-top:18px}
+.panel h2{font-size:1.05rem;font-weight:650}
+.panel .nota{font-size:.82rem;color:var(--muted);margin-top:4px}
+
+/* ---------- pestañas ---------- */
+.tabs{display:flex;gap:4px;margin-top:34px;border-bottom:1px solid var(--line);overflow-x:auto}
+.tabs button{background:none;border:0;border-bottom:2px solid transparent;padding:10px 14px;cursor:pointer;color:var(--muted);font-weight:600;font-size:.92rem;white-space:nowrap}
+.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--aurora)}
+[role="tabpanel"][hidden]{display:none}
+.factores{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px;margin-top:18px}
+.factores .panel{margin-top:0}
+.num{font-size:2.6rem;font-weight:650;line-height:1.05;margin-top:12px}
+.dos{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media (max-width:640px){.dos{grid-template-columns:1fr}}
 
 /* ---------- gráficos ---------- */
 .chart{position:relative;margin-top:10px}
 .chart svg{display:block;width:100%;height:auto;overflow:visible}
-.chart text{fill:var(--muted-txt);font-size:11px;font-variant-numeric:tabular-nums}
+.chart text{fill:var(--muted);font-size:11px;font-variant-numeric:tabular-nums;font-family:var(--font)}
 .chart text.lab{fill:var(--ink-2);font-size:11.5px}
-.chart text.lab b,.chart text.strong{fill:var(--ink);font-weight:600}
+.chart text.fuerte{fill:var(--ink);font-weight:650}
 .gl{stroke:var(--grid);stroke-width:1}
 .ax{stroke:var(--axis);stroke-width:1}
-.hit{fill:transparent;cursor:crosshair}
-.hit:focus{outline:none}
+.hit{fill:transparent}
 .bar{transition:opacity .12s}
-.bar:hover,.bar.on{opacity:.75}
-.legend{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:.84rem;color:var(--ink-2);margin-top:8px}
-.legend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px;vertical-align:-1px}
-.legend i.line{height:2px;width:16px;border-radius:2px;vertical-align:3px}
-.legend i.dash{height:0;width:16px;border-top:2px dashed var(--sol);border-radius:0;vertical-align:3px;background:none!important}
+.bar.on{opacity:.7}
+.celda{cursor:default;transition:stroke-width .1s}
+.celda:hover,.celda:focus{stroke:var(--ink);stroke-width:1.5;outline:none}
+.ley{display:flex;flex-wrap:wrap;align-items:center;gap:6px 16px;font-size:.8rem;color:var(--ink-2);margin-top:10px}
+.ley i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+.ley i.lin{height:2px;width:16px;vertical-align:3px}
+.escala{display:inline-flex;gap:2px;align-items:center}
+.escala span{display:inline-block;width:30px;height:10px;border-radius:2px}
+.escala small{font-size:.72rem;color:var(--muted);margin:0 4px}
 .tip{
-  position:absolute;pointer-events:none;opacity:0;z-index:4;
-  background:var(--surface);border:1px solid var(--line);border-radius:10px;
-  box-shadow:0 6px 22px rgba(0,0,0,.18);padding:8px 10px;font-size:.8rem;min-width:150px;max-width:280px;
-  transition:opacity .1s;
+  position:absolute;pointer-events:none;opacity:0;z-index:4;background:var(--panel);border:1px solid var(--line);
+  border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.25);padding:8px 11px;font-size:.8rem;min-width:160px;max-width:280px;transition:opacity .1s;
 }
 .tip.on{opacity:1}
-.tip .t{font-weight:650;color:var(--ink)}
+.tip .t{font-weight:650}
 .tip .row{display:flex;gap:12px;justify-content:space-between;align-items:center;margin-top:3px;color:var(--ink-2)}
 .tip .row b{color:var(--ink);font-variant-numeric:tabular-nums}
 .tip .row i{display:inline-block;width:12px;height:2px;border-radius:2px;margin-right:6px;vertical-align:3px}
-.tip .foot{margin-top:5px;color:var(--muted-txt);font-size:.74rem}
+.tip .foot{margin-top:5px;color:var(--muted);font-size:.74rem}
 
 /* ---------- tablas ---------- */
-details.tbl{margin-top:10px}
-details.tbl summary{cursor:pointer;color:var(--ink-2);font-size:.86rem}
-.tablewrap{overflow-x:auto;margin-top:8px}
-table{border-collapse:collapse;width:100%;font-size:.86rem}
+details.tabla{margin-top:10px}
+details.tabla summary{cursor:pointer;color:var(--muted);font-size:.8rem}
+.tw{overflow-x:auto;margin-top:6px}
+table{border-collapse:collapse;width:100%;font-size:.84rem}
 th,td{padding:6px 8px;border-bottom:1px solid var(--grid);text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
 th:first-child,td:first-child{text-align:left}
-thead th{color:var(--muted-txt);font-weight:600;font-size:.78rem;text-transform:uppercase;letter-spacing:.04em}
-thead th button{background:none;border:0;cursor:pointer;color:inherit;font:inherit;text-transform:inherit;letter-spacing:inherit;padding:0}
-thead th button[aria-sort]::after{content:" ▼"}
-td.si{color:var(--ink);font-weight:650}
-td.si::before{content:"● ";color:var(--aurora)}
-td.no{color:var(--muted-txt)}
+thead th{color:var(--muted);font-weight:600;font-size:.7rem;text-transform:uppercase;letter-spacing:.1em}
+td.si{font-weight:650}
+td.si::before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--aurora);margin-right:6px}
+td.no{color:var(--muted)}
+td.donde{text-align:left;white-space:normal;min-width:18ch;color:var(--ink-2)}
+.btn{background:none;border:1px solid var(--line);border-radius:999px;padding:6px 14px;cursor:pointer;margin-top:10px;font-size:.84rem}
 
-/* ---------- ventanas futuras ---------- */
-.windows{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin-top:14px}
-.win{border:1px solid var(--line);border-left:4px solid var(--aurora);border-radius:10px;padding:12px 14px;background:var(--surface)}
-.win.flojo{border-left-color:var(--ref)}
-.win .when{font-weight:700;font-size:1.05rem}
-.win .p{font-size:.9rem;color:var(--ink-2);margin-top:2px}
-.win .moons{font-size:.82rem;color:var(--muted-txt);margin-top:6px}
-
-ul.facts{margin:10px 0 0 18px;color:var(--ink-2)}
-ul.facts li{margin-top:6px}
-ul.facts b{color:var(--ink)}
-.note{font-size:.84rem;color:var(--muted-txt);margin-top:10px;max-width:80ch}
-footer{margin:56px 0 40px;padding-top:18px;border-top:1px solid var(--line);color:var(--muted-txt);font-size:.84rem}
-footer p{margin-top:8px;max-width:90ch}
-footer a,.note a,.lead a{color:inherit}
-.estado{color:var(--muted-txt);font-style:italic}
+ul.metodo{margin:8px 0 0 18px;color:var(--ink-2);font-size:.9rem}
+ul.metodo li{margin-top:7px}
+ul.metodo b{color:var(--ink)}
+.vacio{color:var(--muted);font-style:italic;padding:20px 0}
+footer{margin:40px 0 34px;color:var(--muted);font-size:.78rem}
+footer a{color:inherit}
 </style>
 </head>
 <body>
-<div class="wrap">
-
-<header>
-  <div class="eyebrow">Auroras · tormentas geomagnéticas 1932–2026</div>
-  <h1>¿Cuándo se ven las auroras más potentes?</h1>
-  <p class="answer" id="answer">Cargando 95 años de datos…</p>
-
-  <div class="controls" role="group" aria-label="Lugar e intensidad">
-    <div class="ctl">
-      <label for="lugar">Desde</label>
-      <select id="lugar"></select>
-      <button class="btn" id="geo" type="button">📍 Mi ubicación</button>
+<header class="cielo">
+  <div class="wrap">
+    <div class="barra">
+      <div class="marca">AURORAS</div>
+      <div class="lugar">
+        <label class="sr" for="lugar">Lugar</label>
+        <select id="lugar"></select>
+        <button class="icono" id="geo" type="button" title="Usar mi ubicación" aria-label="Usar mi ubicación">📍</button>
+      </div>
+      <div class="seg" id="modo" role="group" aria-label="Qué aurora quieres ver"></div>
     </div>
-    <div class="ctl">
-      <span id="umbral-lbl">Quiero verla</span>
-      <div class="seg" id="modo" role="group" aria-labelledby="umbral-lbl"></div>
-      <select id="kpman" aria-label="Umbral de Kp manual"></select>
+
+    <div class="hero" aria-live="polite">
+      <div class="cap" id="h-cap">Cargando…</div>
+      <div class="big" id="h-big">&nbsp;</div>
+      <p class="sub" id="h-sub"></p>
+      <span class="chip" id="h-chip"></span>
     </div>
+
+    <div class="stats" id="stats"></div>
   </div>
-  <p class="need" id="need"></p>
 </header>
 
-<div class="tiles" id="tiles" aria-live="polite"></div>
+<main class="wrap">
+  <section class="panel" aria-labelledby="t-mapa">
+    <h2 id="t-mapa">Probabilidad de al menos una noche, mes a mes</h2>
+    <p class="nota" id="n-mapa"></p>
+    <div class="chart" id="g-mapa"></div>
+    <div class="ley" id="ley-mapa"></div>
+    <details class="tabla"><summary>Tabla</summary><div class="tw" id="tb-mapa"></div></details>
+  </section>
 
-<section id="historia">
-  <h2>Cuándo fueron las mejores noches</h2>
-  <p class="lead">El Sol marca el ritmo. Cada barra es un año: cuántas noches hubo actividad suficiente para ver la aurora desde el lugar elegido, de noche cerrada.</p>
-  <div class="card">
-    <h3>Número de manchas solares</h3>
-    <div class="sub">Media suavizada a 13 meses (SILSO) y previsión de NOAA hasta el final del ciclo 25</div>
-    <div class="chart" id="g-sol"></div>
-    <div class="legend" id="lg-sol"></div>
-    <h3 style="margin-top:18px" id="t-anos">Noches con aurora posible, por año</h3>
-    <div class="sub" id="s-anos"></div>
-    <div class="chart" id="g-anos"></div>
-    <details class="tbl"><summary>Ver tabla por año</summary><div class="tablewrap" id="tb-anos"></div></details>
+  <div class="tabs" role="tablist" aria-label="Detalle">
+    <button role="tab" id="tab-historia" aria-controls="p-historia" aria-selected="true">Historia</button>
+    <button role="tab" id="tab-porque" aria-controls="p-porque" aria-selected="false" tabindex="-1">Por qué</button>
+    <button role="tab" id="tab-pronto" aria-controls="p-pronto" aria-selected="false" tabindex="-1">Próximas 4 semanas</button>
+    <button role="tab" id="tab-metodo" aria-controls="p-metodo" aria-selected="false" tabindex="-1">Método</button>
   </div>
 
-  <div class="card">
-    <h3>Las tormentas más fuertes desde 1932</h3>
-    <div class="sub">Episodios con Kp ≥ 7 (G3). Ordena por Ap (energía del día, desde 1932) o por Dst (intensidad de la tormenta, desde 1957). El Kp se queda en 9 y no distingue entre una tormenta enorme y una histórica; el Dst sí.</div>
-    <div class="tablewrap" id="tb-tormentas"></div>
-    <button class="btn" id="mas-tormentas" type="button" style="margin-top:10px">Ver 50</button>
-    <p class="note"><b>Antes de 1932</b>, sin Kp: 1–2 sep 1859, el evento Carrington (Dst ≈ −950 nT, aurora hasta 17° de latitud magnética, también vista en España) · 4 feb 1872 (Dst ≤ −834; Bombay) · 25 sep 1909 (−595) · 13–16 may 1921 (≈ −907; Samoa). Ninguna tormenta desde 1957 se ha acercado a esas cifras: el récord medido es −589, en marzo de 1989.</p>
-  </div>
-</section>
-
-<section id="variables">
-  <h2>Qué hace que una noche sea buena</h2>
-  <p class="lead">Las variables que se pueden conocer con antelación, medidas con los datos desde 1932. Las que solo se conocen con 30–60 minutos de aviso (Bz, viento solar) no sirven para planificar con meses.</p>
-  <div class="grid2" style="margin-top:16px">
-    <div class="card">
-      <h3>1 · La fase del ciclo solar</h3>
-      <div class="sub" id="s-fase"></div>
-      <div class="chart" id="g-fase"></div>
-      <details class="tbl"><summary>Ver tabla</summary><div class="tablewrap" id="tb-fase"></div></details>
+  <section role="tabpanel" id="p-historia" aria-labelledby="tab-historia">
+    <div class="panel">
+      <h2 id="t-anos">Noches con aurora, cada año</h2>
+      <p class="nota">El Sol marca el ritmo: arriba, sus manchas; abajo, las noches con aurora posible.</p>
+      <div class="chart" id="g-sol"></div>
+      <div class="chart" id="g-anos"></div>
+      <div class="ley" id="ley-anos"></div>
+      <details class="tabla"><summary>Tabla</summary><div class="tw" id="tb-anos"></div></details>
     </div>
-    <div class="card">
-      <h3>2 · La época del año</h3>
-      <div class="sub" id="s-mes"></div>
-      <div class="chart" id="g-mes"></div>
-      <div class="legend" id="lg-mes"></div>
-      <details class="tbl"><summary>Ver tabla</summary><div class="tablewrap" id="tb-mes"></div></details>
+    <div class="panel">
+      <h2>Las mayores tormentas desde 1932</h2>
+      <p class="nota">Por energía del día (Ap). El Dst mide la fuerza real cuando el Kp ya está en 9.</p>
+      <div class="tw" id="tb-tormentas"></div>
+      <button class="btn" id="mas" type="button">Ver más</button>
+      <p class="nota" style="margin-top:10px">Antes de 1932: Carrington (1859, Dst ≈ −950, vista también en España), 1872, 1909 y 1921. Ninguna desde 1957 se les acerca: el récord medido es −589 nT (1989).</p>
     </div>
-  </div>
-  <div class="tiles" id="tiles-var"></div>
-  <div class="card">
-    <h3>5 · La fuerza de cada ciclo</h3>
-    <div class="sub" id="s-ciclos"></div>
-    <div class="tablewrap" id="tb-ciclos"></div>
-  </div>
-  <details class="card">
-    <summary style="cursor:pointer"><h3 style="display:inline">Lo que no se usa para predecir, y por qué</h3></summary>
-    <ul class="facts" id="no-usado"></ul>
-  </details>
-</section>
+  </section>
 
-<section id="futuro">
-  <h2>Cuándo es más probable que se repita</h2>
-  <p class="lead" id="l-futuro"></p>
-  <div class="card">
-    <h3>Probabilidad de al menos una noche con aurora, mes a mes</h3>
-    <div class="sub" id="s-futuro"></div>
-    <div class="chart" id="g-futuro"></div>
-    <div class="legend" id="lg-futuro"></div>
-    <details class="tbl"><summary>Ver tabla por mes</summary><div class="tablewrap" id="tb-futuro"></div></details>
-  </div>
-  <h3 style="margin-top:22px">Las mejores ventanas</h3>
-  <div class="windows" id="ventanas"></div>
-  <p class="note" id="n-ventanas"></p>
-</section>
+  <section role="tabpanel" id="p-porque" aria-labelledby="tab-porque" hidden>
+    <div class="factores">
+      <div class="panel">
+        <div class="cap">1 · Fase del ciclo solar</div>
+        <h2 id="t-fase"></h2>
+        <div class="chart" id="g-fase"></div>
+        <details class="tabla"><summary>Tabla</summary><div class="tw" id="tb-fase"></div></details>
+      </div>
+      <div class="panel">
+        <div class="cap">2 · Época del año</div>
+        <h2 id="t-mes"></h2>
+        <div class="chart" id="g-mes"></div>
+        <details class="tabla"><summary>Tabla</summary><div class="tw" id="tb-mes"></div></details>
+      </div>
+      <div class="panel">
+        <div class="cap">3 · Fuerza del ciclo</div>
+        <h2 id="t-ciclos"></h2>
+        <div class="chart" id="g-ciclos"></div>
+        <details class="tabla"><summary>Tabla</summary><div class="tw" id="tb-ciclos"></div></details>
+      </div>
+      <div class="panel dos">
+        <div>
+          <div class="cap">4 · La hora</div>
+          <div class="num" id="v-hora"></div>
+          <p class="nota" id="n-hora"></p>
+        </div>
+        <div>
+          <div class="cap">5 · Cada 27 días</div>
+          <div class="num" id="v-rec"></div>
+          <p class="nota" id="n-rec"></p>
+        </div>
+      </div>
+    </div>
+  </section>
 
-<section id="pronto">
-  <h2>Las próximas 4 semanas</h2>
-  <p class="lead">Previsión de 27 días de NOAA SWPC, cargada en directo. Se basa sobre todo en la recurrencia de 27 días: los agujeros coronales que vuelven a mirar a la Tierra. No ve llegar las eyecciones de masa coronal: esas se anuncian con 1–3 días.</p>
-  <div class="card">
-    <div class="chart" id="g-pronto"><p class="estado">Cargando previsión de NOAA…</p></div>
-    <div class="legend" id="lg-pronto"></div>
-  </div>
-</section>
+  <section role="tabpanel" id="p-pronto" aria-labelledby="tab-pronto" hidden>
+    <div class="panel">
+      <h2>Kp máximo previsto por NOAA</h2>
+      <p class="nota">Ve venir los agujeros coronales que vuelven cada 27 días, no las eyecciones de masa coronal: esas se avisan con 1–3 días.</p>
+      <div class="chart" id="g-pronto"><p class="vacio">Cargando previsión de NOAA…</p></div>
+      <div class="ley" id="ley-pronto"></div>
+    </div>
+  </section>
 
-<footer>
-  <p><b>Datos.</b> Kp de cada 3 horas desde 1932: GFZ Potsdam (CC BY 4.0). Dst horario desde 1957: World Data Center for Geomagnetism, Kyoto. Manchas solares: SILSO, Observatorio Real de Bélgica. Previsión del ciclo 25 y de 27 días: NOAA Space Weather Prediction Center. <span id="f-fechas"></span></p>
-  <p><b>Cómo se calcula.</b> Una noche cuenta como “aurora posible” si en algún tramo de 3 horas con el Sol más de 12° bajo el horizonte el Kp alcanzó el umbral del lugar. El umbral sale de la latitud geomagnética (dipolo centrado, polo de 2025) y de la regla de NOAA que relaciona el Kp con hasta dónde baja el óvalo auroral. La probabilidad futura de un mes es la fracción de “meses análogos” del pasado (mismo momento del ciclo ±1 año, mismo mes ±1) que tuvieron al menos una noche así, aplicando las horas de oscuridad del mes futuro. No se mira el tiempo: las nubes deciden el resto.</p>
-  <p><b>Límites.</b> El Kp es global y por tramos de 3 horas: una subtormenta de 20 minutos puede quedar diluida, y en latitudes altas la aurora depende más de lo que pasa encima que del Kp. Las fechas del ciclo 26 son un supuesto, no un dato. Las auroras se ven más en foto que a simple vista: con el móvil se captan tormentas que a ojo apenas son un resplandor.</p>
-</footer>
-</div>
+  <section role="tabpanel" id="p-metodo" aria-labelledby="tab-metodo" hidden>
+    <div class="panel">
+      <ul class="metodo" id="metodo"></ul>
+    </div>
+  </section>
+
+  <footer>
+    Kp: GFZ Potsdam (CC BY 4.0) · Dst: WDC Kyoto · Manchas: SILSO · Previsiones: NOAA SWPC · Latitud magnética: AACGM-v2 (Dartmouth).
+    <span id="f-fechas"></span>
+  </footer>
+</main>
 
 <script>
 "use strict";
@@ -456,7 +475,7 @@ const luzLuna = (ms) => {
    Estado y cálculo
    ========================================================================= */
 let D, KP, N, DIA0, MAXDIA, AP_DIA, DSTDIA, DST_DESDE, FASE, MESES_H, CICLOS, AJUSTE;
-const S = { lugar: LUGARES[0], modo: "vista", kpManual: 21, verTormentas: 20, ordenTormentas: "ap" };
+const S = { lugar: LUGARES[0], modo: "vista", kpManual: 21, verTormentas: 10, tab: "historia" };
 let C = null; // resultados del último cálculo
 
 async function carga() {
@@ -564,7 +583,11 @@ function diaAño(d) {
  * ser Kp ≥ 9− y además un Dst lo bastante negativo (ver DST_BORDE).
  */
 function umbralDe(mlat, modo) {
-  if (modo === "manual") return { t: S.kpManual, dst: null };
+  if (modo === "manual") return { t: S.kpManual, dst: null }; // solo lo usan las pruebas
+  if (modo === "fuerte") { // "tormenta fuerte": lo que pida el lugar, y como mínimo una G3 (Kp 7)
+    const u = umbralDe(mlat, "vista");
+    return u.t === null || u.dst !== null ? u : { t: Math.max(u.t, 21), dst: null };
+  }
   const curva = modo === "alta" ? KP_BORDE : KP_VISTA;
   const t = kpPara(mlat, curva);
   if (t !== null) return { t, dst: null };
@@ -879,64 +902,172 @@ const css = (v) => getComputedStyle(document.documentElement).getPropertyValue(v
 
 /* ------------------------------------------- manchas solares (1932–2038) */
 const X_A = 1932, X_B = 2039;
-function graficoSol() {
-  const host = $("g-sol");
-  const g = marco(host, { h: 170, titulo: "Número de manchas solares 1932–2038" });
-  const x = (yr) => g.x0 + ((yr - X_A) / (X_B - X_A)) * (g.x1 - g.x0);
-  const y = (v) => g.y1 - (v / 300) * (g.y1 - g.y0);
-  ejeY(g, [0, 100, 200, 300], y, (v) => v);
-  ejeXAños(g, X_A, X_B, x);
-  const sm = D.snSuave, desde = +sm.desde.slice(0, 4) + (+sm.desde.slice(5, 7) - 1) / 12;
-  const pts = sm.v.map((v, k) => [desde + k / 12 + 1 / 24, v]);
-  // ciclo 26: franja del máximo supuesto
-  const c26 = D.ciclo26, mx = +c26.max.slice(0, 4) + (+c26.max.slice(5, 7) - 0.5) / 12;
-  g.add(el("rect", { x: x(mx - c26.maxMargen), y: g.y0, width: x(mx + c26.maxMargen) - x(mx - c26.maxMargen), height: g.y1 - g.y0, fill: css("--sol-wash") }));
-  g.add(el("text", { x: x(mx), y: g.y0 + 12, "text-anchor": "middle", class: "lab" })).textContent = "máx. ciclo 26 (supuesto)";
-  // previsión NOAA: banda + línea discontinua
-  const pr = D.prediccion.map((p) => [+p.mes.slice(0, 4) + (+p.mes.slice(5, 7) - 0.5) / 12, p.sn, p.bajo, p.alto]);
-  const banda = pr.map((p) => `${x(p[0])},${y(p[3])}`).join(" ") + " " + pr.slice().reverse().map((p) => `${x(p[0])},${y(p[2])}`).join(" ");
-  g.add(el("polygon", { points: banda, fill: css("--sol-wash") }));
-  g.add(el("polyline", { points: pr.map((p) => `${x(p[0])},${y(p[1])}`).join(" "), fill: "none", stroke: css("--sol"), "stroke-width": 2, "stroke-dasharray": "5 4" }));
-  g.add(el("polyline", { points: pts.map((p) => `${x(p[0]).toFixed(1)},${y(p[1]).toFixed(1)}`).join(" "), fill: "none", stroke: css("--sol"), "stroke-width": 2, "stroke-linejoin": "round" }));
-  // número de ciclo sobre cada máximo
-  for (const c of D.ciclos) {
-    const cx = +c.max.slice(0, 4) + (+c.max.slice(5, 7) - 0.5) / 12;
-    if (cx < X_A) continue;
-    g.add(el("text", { x: x(cx), y: y(c.snMax) - 6, "text-anchor": "middle", class: "lab" })).textContent = `${c.n}`;
+const coma = (v, d = 1) => v.toFixed(d).replace(".", ",");
+
+/* =========================================================================
+   Vista general: cabecera, cifras y mapa del futuro
+   ========================================================================= */
+
+/** Rachas de meses seguidos por encima del 60 % del mejor mes; cada una es una "ventana". */
+function ventanasDe(F) {
+  const max = Math.max(0, ...F.map((o) => o.p));
+  if (!max) return [];
+  const out = [];
+  let cur = null;
+  for (const o of F) {
+    if (o.p >= 0.6 * max) { if (!cur) out.push((cur = [])); cur.push(o); } else cur = null;
   }
-  // cruceta
-  const todos = [...pts.map((p) => ({ t: p[0], v: p[1], pred: false })), ...pr.filter((p) => p[0] > pts.at(-1)[0]).map((p) => ({ t: p[0], v: p[1], lo: p[2], hi: p[3], pred: true }))];
-  const linea = g.add(el("line", { y1: g.y0, y2: g.y1, class: "gl", "stroke-width": 1.5, opacity: 0 }));
-  const dot = g.add(el("circle", { r: 4.5, fill: css("--sol"), stroke: css("--surface"), "stroke-width": 2, opacity: 0 }));
-  const hit = g.add(el("rect", { x: g.x0, y: g.y0, width: g.x1 - g.x0, height: g.y1 - g.y0, class: "hit" }));
-  const mueve = (ev) => {
-    const rr = g.svg.getBoundingClientRect(), t = X_A + (((ev.clientX - rr.left) / rr.width) * g.w - g.x0) / (g.x1 - g.x0) * (X_B - X_A);
-    let best = null, dmin = Infinity;
-    for (const p of todos) { const d = Math.abs(p.t - t); if (d < dmin) { dmin = d; best = p; } }
-    if (!best || dmin > 0.5) { linea.setAttribute("opacity", 0); dot.setAttribute("opacity", 0); quitaTip(g); return; }
-    const X = x(best.t);
-    linea.setAttribute("x1", X); linea.setAttribute("x2", X); linea.setAttribute("opacity", 1);
-    dot.setAttribute("cx", X); dot.setAttribute("cy", y(best.v)); dot.setAttribute("opacity", 1);
-    const yy = Math.floor(best.t), mm = Math.floor((best.t - yy) * 12);
-    ponTip(g, tipHtml(mesTxt(yy, mm), [[best.v.toFixed(0), best.pred ? "previsión NOAA" : "manchas (suavizado)", css("--sol")], ...(best.pred ? [[`${best.lo.toFixed(0)}–${best.hi.toFixed(0)}`, "margen"]] : [])]), X, g.y0);
-  };
-  hit.addEventListener("pointermove", mueve);
-  hit.addEventListener("pointerdown", mueve);
-  hit.addEventListener("pointerleave", () => { linea.setAttribute("opacity", 0); dot.setAttribute("opacity", 0); quitaTip(g); });
-  $("lg-sol").innerHTML =
-    `<span><i class="line" style="background:var(--sol)"></i>Manchas, media suavizada · el número es el ciclo</span>` +
-    `<span><i class="dash"></i>Previsión NOAA (banda: margen)</span>` +
-    `<span><i style="background:var(--sol-wash)"></i>Máximo del ciclo 26: ${D.ciclo26.max.slice(0, 4)} ± ${String(D.ciclo26.maxMargen).replace(".", ",")} años (supuesto)</span>`;
+  return out.map((m) => ({ meses: m, media: m.reduce((s, o) => s + o.p, 0) / m.length, pico: m.reduce((a, o) => (o.p > a.p ? o : a)) }));
+}
+const cuando = (v) => {
+  const a = v.meses[0], b = v.meses.at(-1);
+  return a === b ? `${MESES[a.m]} ${a.y}` : a.y === b.y ? `${MESES[a.m]} – ${MESES[b.m]} ${a.y}` : `${MESES[a.m]} ${a.y} – ${MESES[b.m]} ${b.y}`;
+};
+const saturado = (F) => F.length && F.filter((o) => o.p > 0.95).length > F.length / 2;
+
+function cabecera(r) {
+  const L = r.L, F = r.futuro, dir = L.lat >= 0 ? "norte" : "sur";
+  let cap, big, sub;
+  if (r.T === null) {
+    cap = `Desde ${L.nombre}`;
+    big = "No llega";
+    sub = `Ni en las mayores tormentas medidas. Para verla hay que ir más al ${dir}.`;
+  } else if (saturado(F)) {
+    const meses = [...new Set(F.filter((o) => o.p > 0.95).map((o) => o.m))].sort((a, b) => a - b);
+    cap = `Desde ${L.nombre}`;
+    big = "Casi cada noche oscura";
+    // La temporada es el arco de meses fuera del hueco sin noche (el verano); vale para los dos hemisferios.
+    const hueco = [...Array(12).keys()].filter((m) => !meses.includes(m));
+    const dentro = (m) => hueco.includes((m + 12) % 12);
+    const ini = hueco.length ? (hueco.find((m) => !dentro(m + 1)) + 1) % 12 : 0;
+    const fin = hueco.length ? (hueco.find((m) => !dentro(m - 1)) + 11) % 12 : 11;
+    sub = `De <b>${MESES_L[ini]}</b> a <b>${MESES_L[fin]}</b>, si está despejado. Para buscar las más potentes, elige <b>Tormenta fuerte</b>.`;
+  } else {
+    const vs = ventanasDe(F);
+    const mejor = vs.reduce((a, v) => (v.pico.p > a.pico.p ? v : a), vs[0]);
+    const otras = vs.filter((v) => v !== mejor).sort((a, b) => b.media - a.media).slice(0, 2).sort((a, b) => a.meses[0].ini - b.meses[0].ini);
+    cap = `Mejor momento desde ${L.nombre}`;
+    big = mejor ? cuando(mejor) : "—";
+    sub = mejor
+      ? `Hasta un <b>${pct(mejor.pico.p)}</b> de ver al menos una noche ese mes.` + (otras.length ? ` Después: <b>${otras.map(cuando).join("</b> y <b>")}</b>.` : "")
+      : "";
+    const pobre = F.filter((o) => o.p <= 0.15 * (mejor ? mejor.pico.p : 0));
+    const yMin = fechaDia(C26().min).getUTCFullYear();
+    if (pobre.some((o) => o.y === yMin)) sub += ` Alrededor de ${yMin}, casi nada.`;
+  }
+  $("h-cap").textContent = cap;
+  $("h-big").textContent = big;
+  $("h-sub").innerHTML = sub;
+  $("h-chip").textContent = r.T === null ? "Sin umbral alcanzable" : `Hace falta ${r.Ttxt}${r.Dn !== null ? " · datos desde 1957" : gTxt(r.T) ? ` (${gTxt(r.T)})` : ""}`;
+  document.title = `Auroras desde ${L.nombre} · ${big}`;
 }
 
-/* --------------------------------------------- noches por año (alineado) */
+function cifras(r) {
+  const años = (N - r.desde) / 365.25;
+  const a0 = fechaDia(DIA0 + r.desde).getUTCFullYear();
+  const ult = r.ultima >= 0 ? fmtDia(DIA0 + r.ultima) : "—";
+  const pa = r.año;
+  const porAño = r.total / años;
+  $("stats").innerHTML =
+    `<div class="stat"><div class="cap">Noches desde ${a0}</div><div class="v">${nf.format(r.total)}</div><div class="d">${porAño >= 1 ? `${coma(porAño, porAño < 10 ? 1 : 0)} al año` : `una cada ${Math.round(1 / porAño)} años`}</div></div>` +
+    `<div class="stat"><div class="cap">La última</div><div class="v">${esc(ult)}</div><div class="d">${r.ultima >= 0 ? `Kp ${kpTxt(r.maxOsc[r.ultima])} de noche` : "ninguna"}</div></div>` +
+    `<div class="stat"><div class="cap">Próximos 12 meses</div><div class="v">${pa ? pct(pa.p) : "—"}</div><div class="d">de al menos una noche</div></div>`;
+}
+
+/** 7 clases absolutas de probabilidad: 0 | <3 % | 3–10 | 10–25 | 25–50 | 50–80 | ≥80 %. */
+const CORTES = [0.03, 0.10, 0.25, 0.50, 0.80];
+const clase = (p) => (p <= 0 ? 0 : 1 + CORTES.filter((c) => p >= c).length);
+const ETIQ = ["0", "<3 %", "3–10 %", "10–25 %", "25–50 %", "50–80 %", "≥80 %"];
+
+function mapaFuturo(r) {
+  const host = $("g-mapa"), F = r.futuro;
+  if (!F.length) {
+    host.innerHTML = `<p class="vacio">Desde aquí no se ve ni en las tormentas más extremas: no hay nada que predecir.</p>`;
+    $("ley-mapa").textContent = $("tb-mapa").textContent = $("n-mapa").textContent = "";
+    return;
+  }
+  const años = [...new Set(F.map((o) => o.y))];
+  const ancho = Math.max(300, host.clientWidth || 900);
+  const anotar = ancho >= 620;
+  const ml = 42, mr = anotar ? 150 : 6, mt = 20;
+  const cw = (ancho - ml - mr) / 12, ch = Math.max(20, Math.min(30, cw * 0.55));
+  const g = marco(host, { h: mt + años.length * ch + 4, ml, mr, mt, mb: 4, titulo: "Probabilidad mensual de al menos una noche con aurora" });
+  for (let m = 0; m < 12; m++) g.add(el("text", { x: ml + (m + 0.5) * cw, y: mt - 7, "text-anchor": "middle" })).textContent = MESES[m];
+  años.forEach((y, k) => g.add(el("text", { x: ml - 8, y: mt + (k + 0.5) * ch + 4, "text-anchor": "end" })).textContent = String(y));
+
+  const mejores = new Set([...F].sort((a, b) => b.p - a.p).slice(0, 3).filter((o) => o.p > 0));
+  for (const o of F) {
+    const x = ml + o.m * cw, y = mt + (o.y - años[0]) * ch, q = clase(o.p);
+    const c = g.add(el("rect", { x: x + 1, y: y + 1, width: cw - 2, height: ch - 2, rx: 4, style: `fill:var(--q${q})`, class: "celda", tabindex: "0" }));
+    const lunas = lunasNuevas(o.ini * DIA, (o.ini + o.len) * DIA).map((t) => fmtDia(t / DIA, false));
+    const filas = [[pct(o.p), "al menos una noche"], [`${o.ok} de ${o.n}`, `meses parecidos del pasado (${o.ciclos} ciclos)`]];
+    if (o.enC26) filas.push([`${pct(o.lo)}–${pct(o.hi)}`, "según cómo sea el ciclo 26"]);
+    const html = tipHtml(`${MESES_L[o.m]} ${o.y}`, filas, `🌑 ${lunas.join(", ")}`);
+    const show = () => ponTip(g, html, x + cw / 2, y + ch);
+    c.addEventListener("pointerenter", show);
+    c.addEventListener("focus", show);
+    c.addEventListener("pointerleave", () => quitaTip(g));
+    c.addEventListener("blur", () => quitaTip(g));
+    c.setAttribute("aria-label", `${MESES_L[o.m]} ${o.y}: ${pct(o.p)}`);
+    if (mejores.has(o) && cw > 34) {
+      g.add(el("text", { x: x + cw / 2, y: y + ch / 2 + 4, "text-anchor": "middle", class: "fuerte", style: `fill:${q >= 5 ? "var(--panel)" : "var(--ink)"};pointer-events:none` })).textContent = pct(o.p).replace(" ", "");
+    }
+  }
+  // Contexto a la derecha: dónde estamos en el ciclo.
+  if (anotar) {
+    const fila = (y, txt) => {
+      const k = años.indexOf(y);
+      if (k < 0) return;
+      g.add(el("text", { x: ancho - mr + 10, y: mt + (k + 0.5) * ch + 4, class: "lab" })).textContent = txt;
+    };
+    const c26 = D.ciclo26;
+    fila(años[0], "← ahora, ciclo 25 bajando");
+    fila(+c26.min.slice(0, 4), "← mínimo solar");
+    fila(+c26.max.slice(0, 4), "← máx. ciclo 26 (supuesto)");
+  }
+  $("ley-mapa").innerHTML = `<span class="escala">${ETIQ.map((t, q) => `<span style="background:var(--q${q})" title="${t}"></span>`).join("")}</span>` +
+    `<span>${ETIQ[1]} → ${ETIQ[6]}</span>`;
+  $("n-mapa").textContent = `Meses del pasado en el mismo punto del ciclo solar y la misma época, con las noches de ${r.L.nombre}. Desde ${D.ciclo26.min.slice(0, 4)}, según un supuesto del ciclo 26.`;
+  tabla($("tb-mapa"), ["Mes", "Probabilidad", "Meses parecidos con noche", "Rango (ciclo 26)"],
+    F.map((o) => [`${MESES_L[o.m]} ${o.y}`, pct(o.p), `${o.ok}/${o.n}`, o.enC26 ? `${pct(o.lo)}–${pct(o.hi)}` : "—"]), "Probabilidad mensual futura");
+}
+
+/* =========================================================================
+   Historia
+   ========================================================================= */
+function graficoSol() {
+  const host = $("g-sol");
+  const g = marco(host, { h: 120, mb: 6, titulo: "Número de manchas solares, 1932–2038" });
+  const x = (yr) => g.x0 + ((yr - X_A) / (X_B - X_A)) * (g.x1 - g.x0);
+  const y = (v) => g.y1 - (v / 300) * (g.y1 - g.y0);
+  ejeY(g, [0, 150, 300], y, (v) => v);
+  const sm = D.snSuave, desde = +sm.desde.slice(0, 4) + (+sm.desde.slice(5, 7) - 1) / 12;
+  const pts = sm.v.map((v, k) => [desde + k / 12 + 1 / 24, v]);
+  const pr = D.prediccion.map((p) => [+p.mes.slice(0, 4) + (+p.mes.slice(5, 7) - 0.5) / 12, p.sn, p.bajo, p.alto]);
+  const c26 = D.ciclo26, mx = +c26.max.slice(0, 4) + (+c26.max.slice(5, 7) - 0.5) / 12;
+  g.add(el("rect", { x: x(mx - c26.maxMargen), y: y(c26.sn.alto), width: x(mx + c26.maxMargen) - x(mx - c26.maxMargen), height: y(c26.sn.bajo) - y(c26.sn.alto), rx: 4, fill: css("--sol-wash") }));
+  g.add(el("text", { x: x(mx), y: y(c26.sn.alto) - 5, "text-anchor": "middle", class: "lab" })).textContent = "26?";
+  g.add(el("polyline", { points: pr.map((p) => `${x(p[0])},${y(p[1])}`).join(" "), fill: "none", stroke: css("--sol"), "stroke-width": 2, "stroke-dasharray": "4 4" }));
+  g.add(el("polyline", { points: pts.map((p) => `${x(p[0]).toFixed(1)},${y(p[1]).toFixed(1)}`).join(" "), fill: "none", stroke: css("--sol"), "stroke-width": 2, "stroke-linejoin": "round" }));
+  for (const c of D.ciclos) {
+    const cx = +c.max.slice(0, 4) + (+c.max.slice(5, 7) - 0.5) / 12;
+    if (cx >= X_A) g.add(el("text", { x: x(cx), y: y(c.snMax) - 6, "text-anchor": "middle", class: "lab" })).textContent = c.n;
+  }
+  // Hover: el valor del mes más cercano.
+  const todos = [...pts.map((p) => ({ t: p[0], v: p[1] })), ...pr.filter((p) => p[0] > pts.at(-1)[0]).map((p) => ({ t: p[0], v: p[1], pred: true }))];
+  zonaDensa(g, todos.filter((_, k) => k % 3 === 0).map((p) => {
+    const yy = Math.floor(p.t), mm = Math.min(11, Math.floor((p.t - yy) * 12));
+    return { cx: x(p.t), bar: { classList: { add() {}, remove() {} } }, html: tipHtml(mesTxt(yy, mm), [[p.v.toFixed(0), p.pred ? "previsión NOAA" : "manchas (media 13 meses)", css("--sol")]]) };
+  }));
+}
+
 function graficoAños(r) {
   const host = $("g-anos");
-  const g = marco(host, { h: 190, titulo: "Noches con aurora posible por año" });
+  const g = marco(host, { h: 170, mt: 8, titulo: "Noches con aurora posible por año" });
   const x = (yr) => g.x0 + ((yr - X_A) / (X_B - X_A)) * (g.x1 - g.x0);
   const vmax = Math.max(1, ...r.años.map((a) => a.n));
-  const y = (v) => g.y1 - (v / (vmax * 1.12)) * (g.y1 - g.y0);
-  ejeY(g, ticks(0, vmax * 1.12, 4).filter((v) => Number.isInteger(v)), y, (v) => nf.format(v));
+  const y = (v) => g.y1 - (v / (vmax * 1.15)) * (g.y1 - g.y0);
+  ejeY(g, ticks(0, vmax * 1.15, 3).filter(Number.isInteger), y, (v) => nf.format(v));
   ejeXAños(g, X_A, X_B, x);
   const w = Math.max(1, Math.min(24, x(1) - x(0) - 2));
   const top = [...r.años].sort((a, b) => b.n - a.n).slice(0, 3).filter((a) => a.n > 0).map((a) => a.y);
@@ -949,299 +1080,139 @@ function graficoAños(r) {
     if (a.sinDato) continue;
     const bx = x(a.y) + (x(a.y + 1) - x(a.y) - w) / 2;
     const b = barra(g, bx, w, y(a.n), g.y1, "", css("--aurora"));
-    const filas = [[nf.format(a.n), "noches con aurora posible aquí", css("--aurora")], [nf.format(a.dias), `días con ${r.Ttxt} (cualquier hora)`]];
-    const pie = a.mejor >= 0 ? `La mejor: ${fmtDia(DIA0 + a.mejor)} (Kp ${kpTxt(MAXDIA[a.mejor])}, Ap ${Math.round(AP_DIA[a.mejor])})` : "";
-    items.push({ cx: bx + w / 2, bar: b, html: tipHtml(String(a.y), filas, pie) });
-    if (top.includes(a.y)) g.add(el("text", { x: bx + w / 2, y: y(a.n) - 5, "text-anchor": "middle", class: "lab" })).textContent = String(a.y);
-  }
-  g.add(el("text", { x: g.x1, y: g.y0 + 4, "text-anchor": "end", class: "lab" })).textContent = "futuro: ver abajo →";
-  zonaDensa(g, items);
-  const cab = ["Año", "Noches aquí", `Días con ${r.Ttxt}`, "Mejor noche"];
-  tabla($("tb-anos"), cab, r.años.filter((a) => !a.sinDato).reverse().map((a) => [a.y, nf.format(a.n), nf.format(a.dias), a.mejor >= 0 ? `${fmtDia(DIA0 + a.mejor)} · Kp ${kpTxt(MAXDIA[a.mejor])}` : "—"]), "Noches con aurora posible por año");
-}
-
-/* --------------------------------------------------- fase del ciclo */
-function graficoFase(r) {
-  const host = $("g-fase");
-  const g = marco(host, { h: 200, mb: 34, titulo: "Noches con aurora posible según los años desde el máximo solar" });
-  const bins = r.fase, b0 = bins[0].b, b1 = bins.at(-1).b + 1;
-  const x = (b) => g.x0 + ((b - b0) / (b1 - b0)) * (g.x1 - g.x0);
-  const vmax = Math.max(0.1, ...bins.map((o) => o.porAño));
-  const y = (v) => g.y1 - (v / (vmax * 1.15)) * (g.y1 - g.y0);
-  ejeY(g, ticks(0, vmax * 1.15, 4), y, (v) => String(v).replace(".", ","));
-  g.add(el("line", { x1: g.x0, x2: g.x1, y1: g.y1, y2: g.y1, class: "ax" }));
-  const ahora = faseFut(HOY());
-  const w = Math.min(24, x(1) - x(0) - 4);
-  for (const o of bins) {
-    const bx = x(o.b) + (x(o.b + 1) - x(o.b) - w) / 2;
-    const esAhora = ahora >= o.b && ahora < o.b + 1;
-    const b = barra(g, bx, w, y(o.porAño), g.y1, "", esAhora ? css("--aurora") : css("--ref"));
-    zona(g, bx, w, tipHtml(`${o.b >= 0 ? "+" : ""}${o.b} a ${o.b + 1 >= 0 ? "+" : ""}${o.b + 1} años del máximo`, [[o.porAño.toFixed(1).replace(".", ","), "noches al año (media)", esAhora ? css("--aurora") : css("--ref")]], esAhora ? `Aquí estamos ahora (${MESES[fechaDia(HOY()).getUTCMonth()]}. ${fechaDia(HOY()).getUTCFullYear()})` : `${Math.round(o.dias / 365.25)} años de datos en este tramo`), (on) => b.classList.toggle("on", on));
-    if (esAhora) g.add(el("text", { x: bx + w / 2, y: y(o.porAño) - 6, "text-anchor": "middle", class: "lab strong" })).textContent = "ahora";
-  }
-  for (let t = b0; t <= b1; t += 2) {
-    g.add(el("text", { x: x(t), y: g.y1 + 15, "text-anchor": "middle" })).textContent = t === 0 ? "máx." : `${t > 0 ? "+" : ""}${t}`;
-  }
-  g.add(el("text", { x: (g.x0 + g.x1) / 2, y: g.y1 + 30, "text-anchor": "middle" })).textContent = "años desde el máximo de manchas";
-  const mejor = [...bins].sort((a, b) => b.porAño - a.porAño)[0];
-  $("s-fase").textContent = `Noches al año con aurora posible, de media. El mejor tramo es de ${mejor.b >= 0 ? "+" : ""}${mejor.b} a +${mejor.b + 1} años tras el máximo: las grandes tormentas llegan sobre todo después del pico de manchas.`;
-  tabla($("tb-fase"), ["Años desde el máximo", "Noches al año", "Años de datos"], bins.map((o) => [`${o.b >= 0 ? "+" : ""}${o.b} a ${o.b + 1 >= 0 ? "+" : ""}${o.b + 1}`, o.porAño.toFixed(2).replace(".", ","), Math.round(o.dias / 365.25)]), "Noches por fase del ciclo");
-}
-
-/* --------------------------------------------------- época del año */
-function graficoMes(r) {
-  const host = $("g-mes");
-  const g = marco(host, { h: 200, titulo: "Noches con aurora posible por mes del año" });
-  const vmax = Math.max(0.05, ...r.mes.map((o) => Math.max(o.noches, o.kp)));
-  const y = (v) => g.y1 - (v / (vmax * 1.15)) * (g.y1 - g.y0);
-  ejeY(g, ticks(0, vmax * 1.15, 4), y, (v) => String(v).replace(".", ","));
-  g.add(el("line", { x1: g.x0, x2: g.x1, y1: g.y1, y2: g.y1, class: "ax" }));
-  const slot = (g.x1 - g.x0) / 12, w = Math.min(14, (slot - 8) / 2);
-  r.mes.forEach((o, m) => {
-    const cx = g.x0 + slot * m + slot / 2;
-    const b1 = barra(g, cx - w - 1, w, y(o.kp), g.y1, "", css("--ref"));
-    const b2 = barra(g, cx + 1, w, y(o.noches), g.y1, "", css("--aurora"));
-    zona(g, cx - w - 1, 2 * w + 2, tipHtml(MESES_L[m], [[o.noches.toFixed(2).replace(".", ","), "noches con aurora posible aquí", css("--aurora")], [o.kp.toFixed(2).replace(".", ","), `días con ${r.Ttxt}`, css("--ref")]], `Media por mes, ${fechaDia(DIA0 + r.desde).getUTCFullYear()}–${fechaDia(DIA0 + N - 1).getUTCFullYear()}`), (on) => { b1.classList.toggle("on", on); b2.classList.toggle("on", on); });
-    g.add(el("text", { x: cx, y: g.y1 + 16, "text-anchor": "middle" })).textContent = MESES[m];
-  });
-  const eqx = (r.mes[2].kp + r.mes[3].kp + r.mes[8].kp + r.mes[9].kp) / 4, sol = (r.mes[5].kp + r.mes[6].kp + r.mes[11].kp + r.mes[0].kp) / 4;
-  $("s-mes").textContent = `Alrededor de los equinoccios (mar–abr, sep–oct) hay ${sol > 0 ? `${(eqx / sol).toFixed(1).replace(".", ",")} veces` : "muchas"} más tormentas que cerca de los solsticios: el campo magnético de la Tierra se acopla mejor con el del Sol (efecto Russell-McPherron). Además, la noche tiene que ser oscura en tu latitud.`;
-  $("lg-mes").innerHTML = `<span><i style="background:var(--ref)"></i>Días con ${esc(r.Ttxt)} a cualquier hora</span><span><i style="background:var(--aurora)"></i>Noches con aurora posible aquí (de noche cerrada)</span>`;
-  tabla($("tb-mes"), ["Mes", "Noches aquí / mes", `Días con ${r.Ttxt} / mes`], r.mes.map((o) => [MESES_L[o.m], o.noches.toFixed(2).replace(".", ","), o.kp.toFixed(2).replace(".", ",")]), "Noches por mes del año");
-}
-
-/* --------------------------------------------------- futuro mes a mes */
-function graficoFuturo(r) {
-  const host = $("g-futuro");
-  const F = r.futuro;
-  if (!F.length) { host.innerHTML = `<p class="estado">Desde aquí no se ve la aurora ni en las tormentas más extremas registradas: no hay nada que predecir.</p>`; $("tb-futuro").textContent = ""; return; }
-  const g = marco(host, { h: 230, titulo: "Probabilidad mensual de al menos una noche con aurora, 2026–2038" });
-  const a = F[0].y + F[0].m / 12, b = 2039;
-  const x = (t) => g.x0 + ((t - a) / (b - a)) * (g.x1 - g.x0);
-  const vmax = Math.max(0.02, ...F.map((o) => o.hi ?? o.p));
-  const ytop = Math.min(1, ticks(0, vmax * 1.1, 4).at(-1) || 1);
-  const y = (v) => g.y1 - (v / ytop) * (g.y1 - g.y0);
-  ejeY(g, ticks(0, ytop, 4), y, (v) => `${Math.round(v * 100)} %`);
-  ejeXAños(g, Math.ceil(a), b, x);
-  const c26 = C26().min, xc = x(fechaDia(c26).getUTCFullYear() + fechaDia(c26).getUTCMonth() / 12);
-  g.add(el("line", { x1: xc, x2: xc, y1: g.y0, y2: g.y1, class: "ax" }));
-  g.add(el("text", { x: xc + 4, y: g.y0 + 10, class: "lab" })).textContent = "ciclo 26 →";
-  g.add(el("text", { x: xc - 4, y: g.y0 + 10, class: "lab", "text-anchor": "end" })).textContent = "← ciclo 25";
-  const slot = (g.x1 - g.x0) / (F.length + 0.5), w = Math.max(1.5, Math.min(10, slot - 2));
-  // Etiqueta los 3 mejores meses que disten al menos 4 meses entre sí, para que no se pisen.
-  const best = new Set(), idx = (o) => o.y * 12 + o.m;
-  for (const o of [...F].sort((p, q) => q.p - p.p)) {
-    if (best.size >= 3 || o.p <= 0) break;
-    if ([...best].every((b) => Math.abs(idx(b) - idx(o)) >= 4)) best.add(o);
-  }
-  const items = [];
-  for (const o of F) {
-    const bx = x(o.y + o.m / 12) + (slot - w) / 2;
-    const bar = barra(g, bx, w, y(o.p), g.y1, "", css("--aurora"));
-    if (o.enC26) bar.setAttribute("fill-opacity", ".55");
-    if (o.enC26 && o.hi > o.lo) {
-      const cx = bx + w / 2;
-      g.add(el("line", { x1: cx, x2: cx, y1: y(o.hi), y2: y(o.lo), stroke: css("--ink-2"), "stroke-width": 1, opacity: .55 }));
-    }
-    const filas = [[pct(o.p), "al menos una noche", css("--aurora")], [`${o.ok} de ${o.n}`, `meses parecidos (${o.ciclos} ciclos)`], [pct(o.pBase), "sin corregir por la fuerza del ciclo"]];
-    if (o.enC26) filas.push([`${pct(o.lo)}–${pct(o.hi)}`, "rango del supuesto del ciclo 26"]);
-    const lunas = lunasNuevas(o.ini * DIA, (o.ini + o.len) * DIA).map((t) => fmtDia(t / DIA, false));
-    items.push({ cx: bx + w / 2, bar, html: tipHtml(`${MESES_L[o.m]} ${o.y}`, filas, `Fase: ${o.fase >= 0 ? "+" : ""}${o.fase.toFixed(1).replace(".", ",")} años del máximo · luna nueva ${lunas.join(", ")}`) });
-    if (best.has(o)) g.add(el("text", { x: bx + w / 2, y: y(o.p) - 6, "text-anchor": "middle", class: "lab" })).textContent = MESES[o.m];
+    const pie = a.mejor >= 0 ? `La mejor: ${fmtDia(DIA0 + a.mejor)}, Kp ${kpTxt(MAXDIA[a.mejor])}` : "";
+    items.push({ cx: bx + w / 2, bar: b, html: tipHtml(String(a.y), [[nf.format(a.n), "noches con aurora posible", css("--aurora")]], pie) });
+    if (top.includes(a.y)) g.add(el("text", { x: bx + w / 2, y: y(a.n) - 5, "text-anchor": "middle", class: "lab" })).textContent = a.y;
   }
   zonaDensa(g, items);
-  $("lg-futuro").innerHTML =
-    `<span><i style="background:var(--aurora)"></i>Ciclo 25: fase conocida</span>` +
-    `<span><i style="background:var(--aurora);opacity:.55"></i>Ciclo 26: según el supuesto; la raya marca el rango</span>`;
-  tabla($("tb-futuro"), ["Mes", "Probabilidad", "Sin corregir", "Meses parecidos con noche", "Rango (ciclo 26)"], F.map((o) => [`${MESES_L[o.m]} ${o.y}`, pct(o.p), pct(o.pBase), `${o.ok}/${o.n} (${o.ciclos} ciclos)`, o.enC26 ? `${pct(o.lo)}–${pct(o.hi)}` : "—"]), "Probabilidad mensual futura");
-  const saturado = F.filter((o) => o.p > 0.95).length > F.length / 2;
-  if (saturado) $("lg-futuro").insertAdjacentHTML("beforeend", `<span><b>Casi cualquier mes con noches oscuras sirve desde aquí.</b> Para buscar las más potentes, sube el umbral arriba (por ejemplo, Kp ≥ 6).</span>`);
+  $("t-anos").textContent = `Noches con aurora desde ${r.L.nombre}, cada año`;
+  $("ley-anos").innerHTML = `<span><i class="lin" style="background:var(--sol)"></i>Manchas solares (número = ciclo; discontinuo: previsión NOAA)</span><span><i style="background:var(--aurora)"></i>Noches con aurora posible aquí</span>`;
+  tabla($("tb-anos"), ["Año", "Noches", "Mejor noche"], r.años.filter((a) => !a.sinDato).reverse().map((a) => [a.y, nf.format(a.n), a.mejor >= 0 ? `${fmtDia(DIA0 + a.mejor)} · Kp ${kpTxt(MAXDIA[a.mejor])}` : "—"]), "Noches por año");
 }
 
-/* --------------------------------------------- ventanas futuras */
-function ventanas(r) {
-  const F = r.futuro, host = $("ventanas");
-  host.textContent = "";
-  if (!F.length) { $("n-ventanas").textContent = ""; return; }
-  const max = Math.max(...F.map((o) => o.p));
-  if (max === 0) { host.innerHTML = `<p class="estado">En ningún mes análogo del pasado hubo una noche así.</p>`; return; }
-  // Rachas de meses seguidos por encima del 60 % del mejor mes.
-  const corte = 0.6 * max, rachas = [];
-  let cur = null;
-  for (const o of F) {
-    if (o.p >= corte) { if (!cur) rachas.push((cur = [])); cur.push(o); } else cur = null;
-  }
-  const top = rachas.map((rr) => ({ meses: rr, media: rr.reduce((s, o) => s + o.p, 0) / rr.length, pico: rr.reduce((p, o) => (o.p > p.p ? o : p)) }))
-    .sort((p, q) => q.media - p.media).slice(0, 5).sort((p, q) => p.meses[0].ini - q.meses[0].ini);
-  for (const v of top) {
-    const a = v.meses[0], b = v.meses.at(-1);
-    const cuando = a === b ? `${MESES_L[a.m]} ${a.y}` : a.y === b.y ? `${MESES[a.m]}–${MESES[b.m]} ${a.y}` : `${MESES[a.m]} ${a.y} – ${MESES[b.m]} ${b.y}`;
-    const lunas = lunasNuevas(a.ini * DIA, (b.ini + b.len) * DIA).map((t) => fmtDia(t / DIA, false));
-    const div = document.createElement("div");
-    div.className = "win" + (v.meses.some((o) => o.enC26) ? " flojo" : "");
-    div.innerHTML = `<div class="when">${esc(cuando)}</div>` +
-      `<div class="p">${pct(v.pico.p)} en ${esc(MESES_L[v.pico.m])}. En el pasado: ${v.pico.ok} de ${v.pico.n} meses parecidos (de ${v.pico.ciclos} ciclos) tuvieron al menos una noche${Math.abs(v.pico.k - 1) > 0.05 ? `; ${v.pico.k < 1 ? "rebajado" : "subido"} porque el ciclo ${v.pico.enC26 ? "26 se prevé" : "25 es"} ${v.pico.k < 1 ? "más flojo" : "más fuerte"} que la media` : ""}.</div>` +
-      `<div class="moons">🌑 Luna nueva: ${esc(lunas.slice(0, 6).join(" · "))}${lunas.length > 6 ? "…" : ""}</div>` +
-      (v.meses.some((o) => o.enC26) ? `<div class="moons">Depende de cuándo llegue el máximo del ciclo 26.</div>` : "");
-    host.appendChild(div);
-  }
-  // Peor tramo: la racha más larga por debajo del 15 % del mejor mes.
-  let peor = [], run = [];
-  for (const o of F) { if (o.p <= 0.15 * max) { run.push(o); if (run.length > peor.length) peor = run.slice(); } else run = []; }
-  $("n-ventanas").textContent = peor.length >= 6
-    ? `El tramo más pobre: de ${MESES_L[peor[0].m]} de ${peor[0].y} a ${MESES_L[peor.at(-1).m]} de ${peor.at(-1).y}, alrededor del mínimo solar. Si no puedes esperar, la alternativa es viajar más al norte. Las fechas de luna nueva importan sobre todo para auroras débiles: una tormenta fuerte se ve aunque haya luna.`
-    : "Las fechas de luna nueva importan sobre todo para auroras débiles: una tormenta fuerte se ve aunque haya luna.";
-}
-
-/* --------------------------------------------- tabla de tormentas */
 /** Dónde se vio, para los episodios documentados (fuentes en auroras.SOURCES.md). */
 const NOTAS = [
-  ["1938-01-25", "En toda España, en plena Guerra Civil; también Sicilia, Gibraltar y Portugal"],
+  ["1938-01-25", "Toda España, en plena Guerra Civil"],
   ["1989-03-13", "Texas y Florida"],
-  ["2003-10-29", "Texas y países del Mediterráneo"],
-  ["2024-05-10", "Toda la península y Gran Canaria; Yucatán, Jamaica"],
-  ["2024-10-10", "Gran Canaria y Pirineo aragonés; Puerto Rico"],
+  ["2003-10-29", "Texas y el Mediterráneo"],
+  ["2024-05-10", "Toda la península y Canarias"],
+  ["2024-10-10", "Pirineo aragonés y Canarias"],
   ["2025-11-12", "Centro de México"],
-  ["2026-01-19", "También en España; Alabama, Arizona, California"],
+  ["2026-01-19", "También en España"],
 ];
 const notaDe = (e) => (NOTAS.find(([f]) => { const d = diaDe(f) - DIA0; return d >= e.i && d <= e.j; }) || [])[1] || "";
 function tablaTormentas(r) {
-  const host = $("tb-tormentas");
-  const ev = [...r.tormentas];
-  if (S.ordenTormentas === "dst") ev.sort((a, b) => (a.dst ?? 0) - (b.dst ?? 0) || b.ap - a.ap);
-  else ev.sort((a, b) => b.ap - a.ap || b.kp - a.kp);
-  const filas = ev.slice(0, S.verTormentas);
-  const vis = (e) => (r.T === null ? ["No", "no"] : e.vis ? ["Sí", "si"] : e.dia ? ["De día", "no"] : ["No", "no"]);
-  const fecha = (e) => e.i === e.j ? fmtDia(DIA0 + e.i) : (() => {
+  const ev = [...r.tormentas].sort((a, b) => b.ap - a.ap || b.kp - a.kp).slice(0, S.verTormentas);
+  const fecha = (e) => {
+    if (e.i === e.j) return fmtDia(DIA0 + e.i);
     const a = fechaDia(DIA0 + e.i), b = fechaDia(DIA0 + e.j);
-    return a.getUTCMonth() === b.getUTCMonth() ? `${a.getUTCDate()}–${b.getUTCDate()} ${MESES[b.getUTCMonth()]} ${b.getUTCFullYear()}` : `${fmtDia(DIA0 + e.i, a.getUTCFullYear() !== b.getUTCFullYear())} – ${fmtDia(DIA0 + e.j)}`;
-  })();
-  const dstTxt = (e) => (e.dst !== null ? `${nf.format(e.dst)} nT` : e.conDst ? "> −100" : "sin dato");
-  host.innerHTML = `<table><caption class="sr">Tormentas geomagnéticas más fuertes desde 1932</caption><thead><tr>` +
-    `<th scope="col">#</th><th scope="col" style="text-align:left">Fecha</th><th scope="col">Kp máx.</th>` +
-    `<th scope="col"><button type="button" data-o="ap" ${S.ordenTormentas === "ap" ? 'aria-sort="descending"' : ""}>Ap del día</button></th>` +
-    `<th scope="col"><button type="button" data-o="dst" ${S.ordenTormentas === "dst" ? 'aria-sort="ascending"' : ""}>Dst mín.</button></th>` +
-    `<th scope="col">¿Visible desde ${esc(r.L.nombre)}?</th><th scope="col" style="text-align:left">Dónde se vio</th></tr></thead><tbody>` +
-    filas.map((e, k) => {
-      const [vt, vc] = vis(e);
-      return `<tr><td>${k + 1}</td><td style="text-align:left">${esc(fecha(e))}</td><td>${kpTxt(e.kp)} <span style="color:var(--muted-txt)">${gTxt(e.kp)}</span></td><td>${Math.round(e.ap)}</td><td>${esc(dstTxt(e))}</td><td class="${vc}">${vt}</td><td style="text-align:left;white-space:normal;min-width:16ch;color:var(--ink-2)">${esc(notaDe(e))}</td></tr>`;
+    return a.getUTCMonth() === b.getUTCMonth() ? `${a.getUTCDate()}–${b.getUTCDate()} ${MESES[b.getUTCMonth()]} ${b.getUTCFullYear()}` : `${fmtDia(DIA0 + e.i, false)} – ${fmtDia(DIA0 + e.j)}`;
+  };
+  $("tb-tormentas").innerHTML = `<table><caption class="sr">Mayores tormentas geomagnéticas desde 1932</caption><thead><tr>` +
+    `<th scope="col">Fecha</th><th scope="col">Kp</th><th scope="col">Dst</th><th scope="col">¿Desde ${esc(r.L.nombre)}?</th><th scope="col" style="text-align:left">Dónde se vio</th></tr></thead><tbody>` +
+    ev.map((e) => {
+      const vis = r.T !== null && e.vis;
+      return `<tr><td>${esc(fecha(e))}</td><td>${kpTxt(e.kp)}</td><td>${e.dst !== null ? nf.format(e.dst) : e.conDst ? "> −100" : "—"}</td>` +
+        `<td class="${vis ? "si" : "no"}">${vis ? "Sí" : "No"}</td><td class="donde">${esc(notaDe(e))}</td></tr>`;
     }).join("") + `</tbody></table>`;
-  host.querySelectorAll("button[data-o]").forEach((b) => b.addEventListener("click", () => { S.ordenTormentas = b.dataset.o; tablaTormentas(C); }));
-  $("mas-tormentas").textContent = S.verTormentas === 20 ? "Ver 50" : "Ver 20";
+  $("mas").textContent = S.verTormentas === 10 ? "Ver 30" : "Ver 10";
 }
 
-function tabla(host, cab, filas, caption) {
-  host.innerHTML =
-    `<table><caption class="sr">${esc(caption)}</caption>` +
-    `<thead><tr>${cab.map((c) => `<th scope="col">${esc(c)}</th>`).join("")}</tr></thead>` +
-    `<tbody>${filas.map((f) => `<tr>${f.map((c, i) => (i === 0 ? `<th scope="row" style="font-weight:600;text-align:left">${esc(c)}</th>` : `<td>${esc(c)}</td>`)).join("")}</tr>`).join("")}</tbody></table>`;
-}
-
-/* --------------------------------------------- tablas y textos */
-function tablaCiclos(r) {
-  const filas = [];
-  for (const c of CICLOS) {
-    const ini = Math.max(0, c.ini - DIA0), fin = c.fin ? Math.min(N, c.fin - DIA0) : N;
-    if (fin <= 0) continue;
-    let n = 0, mejor = ini;
-    for (let i = ini; i < fin; i++) { n += r.opp[i]; if (AP_DIA[i] > AP_DIA[mejor]) mejor = i; }
-    const años = (fin - ini) / 365.25;
-    const sinDato = fin <= r.desde, parcial = !sinDato && ini < r.desde;
-    filas.push([
-      `${c.n}${c.ini < DIA0 ? " (desde 1932)" : ""}${c.fin ? "" : " (en curso)"}`,
-      `${fechaDia(c.ini).getUTCFullYear()}–${c.fin ? fechaDia(c.fin).getUTCFullYear() : "…"}`,
-      nf.format(Math.round(c.snMax)),
-      (() => { let k = 0; for (let i = ini; i < fin; i++) if (MAXDIA[i] >= 21) k++; return (k / años).toFixed(1).replace(".", ","); })(),
-      sinDato ? "sin Dst" : `${nf.format(n)}${parcial ? " (desde 1957)" : ""}`,
-      sinDato || parcial ? "—" : (n / años).toFixed(1).replace(".", ","),
-      `${fmtDia(DIA0 + mejor)} · Kp ${kpTxt(MAXDIA[mejor])}`,
-    ]);
+/* =========================================================================
+   Por qué
+   ========================================================================= */
+function graficoFase(r) {
+  const host = $("g-fase"), bins = r.fase, b0 = bins[0].b, b1 = bins.at(-1).b + 1;
+  const g = marco(host, { h: 170, mb: 32, ml: 34, titulo: "Noches al año según los años desde el máximo solar" });
+  const x = (b) => g.x0 + ((b - b0) / (b1 - b0)) * (g.x1 - g.x0);
+  const vmax = Math.max(0.1, ...bins.map((o) => o.porAño));
+  const y = (v) => g.y1 - (v / (vmax * 1.15)) * (g.y1 - g.y0);
+  ejeY(g, ticks(0, vmax * 1.15, 3), y, (v) => String(v).replace(".", ","));
+  g.add(el("line", { x1: g.x0, x2: g.x1, y1: g.y1, y2: g.y1, class: "ax" }));
+  const ahora = faseFut(HOY()), w = Math.min(22, x(1) - x(0) - 4);
+  for (const o of bins) {
+    const bx = x(o.b) + (x(o.b + 1) - x(o.b) - w) / 2, esAhora = ahora >= o.b && ahora < o.b + 1;
+    const b = barra(g, bx, w, y(o.porAño), g.y1, "", esAhora ? css("--aurora") : css("--ref"));
+    zona(g, bx, w, tipHtml(`${o.b >= 0 ? "+" : ""}${o.b} a ${o.b + 1 >= 0 ? "+" : ""}${o.b + 1} años`, [[coma(o.porAño), "noches al año"]], esAhora ? "Aquí estamos" : ""), (on) => b.classList.toggle("on", on));
+    if (esAhora) g.add(el("text", { x: bx + w / 2, y: y(o.porAño) - 6, "text-anchor": "middle", class: "fuerte" })).textContent = "ahora";
   }
-  tabla($("tb-ciclos"), ["Ciclo", "Años", "Máx. manchas", "Días Kp ≥ 7 / año", "Noches aquí", "Por año", "Mayor tormenta (Ap)"], filas, "Noches con aurora posible por ciclo solar");
-  const A = AJUSTE, c24 = A.pts.find((p) => p.n === 24), resto = A.pts.filter((p) => p.n !== 24);
-  $("s-ciclos").textContent = `Cuantas más manchas, más tormentas: entre los ciclos completos, los días con Kp ≥ 7 siguen al máximo de manchas con una correlación de ${A.r.toFixed(2).replace(".", ",")}. ` +
-    (c24 ? `El 24, el más flojo en un siglo (${Math.round(c24.sn)} manchas), tuvo ${c24.dias} días con Kp ≥ 7; los demás, entre ${Math.min(...resto.map((p) => p.dias))} y ${Math.max(...resto.map((p) => p.dias))}. ` : "") +
-    `Las previsiones del 26 (${D.ciclo26.sn.bajo}–${D.ciclo26.sn.alto} manchas) lo acercan más al 24 que a la media, y por eso el pronóstico lo corrige.`;
+  for (let t = b0; t <= b1; t += 2) g.add(el("text", { x: x(t), y: g.y1 + 14, "text-anchor": "middle" })).textContent = t === 0 ? "máx." : `${t > 0 ? "+" : ""}${t}`;
+  g.add(el("text", { x: (g.x0 + g.x1) / 2, y: g.y1 + 28, "text-anchor": "middle" })).textContent = "años desde el máximo de manchas";
+  const mejor = [...bins].sort((a, b) => b.porAño - a.porAño)[0];
+  $("t-fase").textContent = `Lo mejor llega ${mejor.b > 0 ? `${mejor.b}–${mejor.b + 1} años después` : "alrededor"} del máximo`;
+  tabla($("tb-fase"), ["Años desde el máximo", "Noches al año"], bins.map((o) => [`${o.b >= 0 ? "+" : ""}${o.b} a ${o.b + 1 >= 0 ? "+" : ""}${o.b + 1}`, coma(o.porAño, 2)]), "Noches por fase del ciclo");
 }
 
-function tilesVariables(r) {
-  const L = r.L, g = r.g;
-  // Medianoche magnética para hoy+30 días, en la hora del reloj del lugar.
-  const dia = HOY() * DIA;
+function graficoMes(r) {
+  const host = $("g-mes");
+  const g = marco(host, { h: 170, ml: 34, titulo: "Noches con aurora posible por mes del año" });
+  const vmax = Math.max(0.05, ...r.mes.map((o) => o.noches));
+  const y = (v) => g.y1 - (v / (vmax * 1.15)) * (g.y1 - g.y0);
+  ejeY(g, ticks(0, vmax * 1.15, 3), y, (v) => String(v).replace(".", ","));
+  g.add(el("line", { x1: g.x0, x2: g.x1, y1: g.y1, y2: g.y1, class: "ax" }));
+  const slot = (g.x1 - g.x0) / 12, w = Math.min(20, slot - 6);
+  const eqx = [2, 3, 8, 9];
+  r.mes.forEach((o, m) => {
+    const cx = g.x0 + slot * (m + 0.5);
+    const b = barra(g, cx - w / 2, w, y(o.noches), g.y1, "", eqx.includes(m) ? css("--aurora") : css("--ref"));
+    zona(g, cx - w / 2, w, tipHtml(MESES_L[m], [[coma(o.noches, 2), "noches al mes, de media"]]), (on) => b.classList.toggle("on", on));
+    g.add(el("text", { x: cx, y: g.y1 + 16, "text-anchor": "middle" })).textContent = MESES[m][0].toUpperCase();
+  });
+  // El efecto equinoccial se mide con días de tormenta, sin la oscuridad, que lo taparía.
+  const k = (ms) => ms.reduce((s, m) => s + r.mes[m].kp, 0) / ms.length;
+  const ratio = k([5, 6, 11, 0]) > 0 ? k(eqx) / k([5, 6, 11, 0]) : null;
+  $("t-mes").textContent = ratio && ratio > 1.15 ? `Los equinoccios traen ×${coma(ratio)} tormentas que los solsticios` : "Manda la oscuridad: hacen falta noches largas";
+  tabla($("tb-mes"), ["Mes", "Noches al mes"], r.mes.map((o) => [MESES_L[o.m], coma(o.noches, 2)]), "Noches por mes del año");
+}
+
+function graficoCiclos(r) {
+  const host = $("g-ciclos"), A = AJUSTE;
+  const filas = CICLOS.filter((c) => c.ini >= DIA0).map((c) => {
+    const fin = c.fin ? c.fin - DIA0 : N;
+    let k = 0;
+    for (let i = c.ini - DIA0; i < fin; i++) if (MAXDIA[i] >= 21) k++;
+    return { n: c.n, sn: c.snMax, porAño: (k / (fin - (c.ini - DIA0))) * 365.25, abierto: !c.fin };
+  });
+  const c26 = D.ciclo26.sn;
+  filas.push({ n: 26, sn: c26.central, porAño: A.tasa(c26.central), lo: A.tasa(c26.bajo), hi: A.tasa(c26.alto), previsto: true });
+  const g = marco(host, { h: 170, ml: 34, mb: 30, titulo: "Días con Kp ≥ 7 al año en cada ciclo solar" });
+  const vmax = Math.max(...filas.map((f) => f.hi ?? f.porAño));
+  const y = (v) => g.y1 - (v / (vmax * 1.1)) * (g.y1 - g.y0);
+  ejeY(g, ticks(0, vmax * 1.1, 3), y, (v) => v);
+  g.add(el("line", { x1: g.x0, x2: g.x1, y1: g.y1, y2: g.y1, class: "ax" }));
+  const slot = (g.x1 - g.x0) / filas.length, w = Math.min(22, slot - 6);
+  filas.forEach((f, k) => {
+    const cx = g.x0 + slot * (k + 0.5);
+    const b = barra(g, cx - w / 2, w, y(f.porAño), g.y1, "", f.previsto ? css("--sol-wash") : f.abierto ? css("--aurora") : css("--ref"));
+    if (f.previsto) {
+      b.setAttribute("stroke", css("--sol")); b.setAttribute("stroke-dasharray", "3 3");
+      g.add(el("line", { x1: cx, x2: cx, y1: y(f.hi), y2: y(f.lo), stroke: css("--ink-2"), "stroke-width": 1.5 }));
+    }
+    zona(g, cx - w / 2, w, tipHtml(`Ciclo ${f.n}${f.previsto ? " (previsto)" : f.abierto ? " (en curso)" : ""}`, [[coma(f.porAño), "días con Kp ≥ 7 al año"], [nf.format(Math.round(f.sn)), "máximo de manchas"]], f.previsto ? `Rango: ${coma(f.lo)}–${coma(f.hi)}` : ""), (on) => b.classList.toggle("on", on));
+    g.add(el("text", { x: cx, y: g.y1 + 14, "text-anchor": "middle", class: f.abierto || f.previsto ? "fuerte" : "" })).textContent = f.n;
+  });
+  g.add(el("text", { x: (g.x0 + g.x1) / 2, y: g.y1 + 28, "text-anchor": "middle" })).textContent = "ciclo solar";
+  $("t-ciclos").textContent = `Más manchas, más tormentas; el 26 se prevé flojo`;
+  tabla($("tb-ciclos"), ["Ciclo", "Máx. manchas", "Días Kp ≥ 7 / año"], filas.map((f) => [`${f.n}${f.previsto ? " (previsto)" : f.abierto ? " (en curso)" : ""}`, nf.format(Math.round(f.sn)), f.previsto ? `${coma(f.porAño)} (${coma(f.lo)}–${coma(f.hi)})` : coma(f.porAño)]), "Tormentas por ciclo solar");
+}
+
+function horaYRecurrencia(r) {
+  const L = r.L, dia = HOY() * DIA;
   let mejor = null;
   for (let k = 0; k < 24 * 6; k++) {
-    const t = dia + k * 600e3, v = mlt(t, g.mlon);
-    const d = Math.min(v, 24 - v);
+    const t = dia + k * 600e3, v = mlt(t, r.g.mlon), d = Math.min(v, 24 - v);
     if (!mejor || d < mejor.d) mejor = { d, t };
   }
   const hora = new Intl.DateTimeFormat("es-ES", { hour: "2-digit", minute: "2-digit", timeZone: L.tz || undefined }).format(new Date(Math.round(mejor.t / 900e3) * 900e3));
-  const rec = r.rec;
-  $("tiles-var").innerHTML =
-    `<div class="tile"><div class="lbl">3 · La hora de la noche</div><div class="val">≈ ${esc(hora)}</div><div class="det">Medianoche magnética en ${esc(L.nombre)} (hora local). La actividad suele subir 1–2 h antes y seguir hasta 1–2 h después.</div></div>` +
-    `<div class="tile"><div class="lbl">4 · La rotación del Sol (27 días)</div><div class="val">×${rec.lift.toFixed(1).replace(".", ",")}</div><div class="det">Tras una noche ${rec.propio ? "buena aquí" : "con Kp ≥ 6"}, la probabilidad de otra 26–28 días después sube de ${pct(rec.base)} a ${pct(rec.p27)}: el mismo agujero coronal vuelve a mirar a la Tierra.${rec.propio ? "" : " (Con tu umbral hay pocos casos para medirlo.)"}</div></div>` +
-    `<div class="tile"><div class="lbl">6 · La Luna y las nubes</div><div class="val">🌑 ☁️</div><div class="det">Sin efecto en la actividad, mucho en lo que ves. La Luna se conoce con años de antelación (abajo, en cada ventana); las nubes, solo con días.</div></div>`;
-  // Lo que no se usa: Hale (primavera frente a otoño por época de polaridad), con números.
-  const ep = [];
-  for (let k = 0; k < CICLOS.length; k++) {
-    const a = CICLOS[k].max, b = k + 1 < CICLOS.length ? CICLOS[k + 1].max : DIA0 + N;
-    let sp = 0, au = 0;
-    for (let d = Math.max(a, DIA0); d < b && d - DIA0 < N; d++) {
-      if (MAXDIA[d - DIA0] < 18) continue;
-      const m = fechaDia(d).getUTCMonth();
-      if (m === 2 || m === 3) sp++;
-      if (m === 8 || m === 9) au++;
-    }
-    if (sp + au >= 8) ep.push(`${fechaDia(a).getUTCFullYear()}–${fechaDia(b).getUTCFullYear()}: ${sp > au ? "primavera" : "otoño"} (${sp}/${au})`);
-  }
-  $("no-usado").innerHTML =
-    `<li><b>Qué equinoccio es mejor.</b> Se ha propuesto que, según la polaridad del Sol (ciclo de Hale, 22 años), domina la primavera o el otoño. En los datos no se repite con regularidad: días con Kp ≥ 6 en mar–abr frente a sep–oct, de máximo a máximo: ${esc(ep.join(" · "))}. Por eso las dos épocas cuentan igual.</li>` +
-    `<li><b>El Bz y el viento solar.</b> Son lo que más decide, pero solo se miden cuando el viento solar pasa por el punto L1, 30–60 minutos antes de llegar. Sirven para salir esa noche, no para planificar.</li>` +
-    `<li><b>Las eyecciones de masa coronal concretas.</b> Las grandes tormentas vienen de ellas y se ven salir del Sol con 1–3 días de antelación, pero no con meses. Lo que sí se sabe es en qué fase del ciclo abundan.</li>` +
-    `<li><b>Las predicciones del ciclo 26 como dato.</b> Se usan, pero como supuesto con rango: van de ${D.ciclo26.sn.bajo} a ${D.ciclo26.sn.alto} manchas y de 2034 a 2036 para el máximo, y alguna se sale de ahí (hay quien prevé un ciclo de ~50). Un ciclo flojo no impide las grandes tormentas: el 24 aún dio noches de Kp 8.</li>`;
+  $("v-hora").textContent = `≈ ${hora}`;
+  $("n-hora").textContent = `Medianoche magnética en ${L.nombre}. Lo más intenso suele caer 1–2 h a cada lado.`;
+  $("v-rec").textContent = `×${coma(r.rec.lift)}`;
+  $("n-rec").textContent = `Tras una noche ${r.rec.propio ? "buena" : "de tormenta"}, vuelve a mirar 26–28 días después: el mismo agujero del Sol vuelve a apuntarnos.`;
 }
 
-function textos(r) {
-  const L = r.L, g = r.g, T = r.T;
-  const lat = `${Math.abs(g.mlat).toFixed(0)}° ${g.mlat >= 0 ? "N" : "S"}`;
-  const dir = L.lat >= 0 ? "norte" : "sur";
-  const uv = r.uVista, ua = r.uAlta;
-  const vista = uv.t === null ? "ni en las tormentas más extremas registradas"
-    : uv.dst !== null ? `solo en tormentas extremas: Kp 9 y un Dst de ${nf.format(uv.dst)} nT o menos`
-    : `con Kp ≥ ${kpTxt(uv.t)}${gTxt(uv.t) ? ` (${gTxt(uv.t)})` : ""}`;
-  const alta = ua.t === null ? "no llega ni en las tormentas más extremas" : ua.dst !== null ? `necesitaría Kp 9 y Dst ≤ ${nf.format(ua.dst)} nT` : `necesita Kp ≥ ${kpTxt(ua.t)}`;
-  $("need").innerHTML = `Desde <b>${esc(L.nombre)}</b> (latitud geomagnética ${lat}) la aurora asoma por el horizonte ${dir} <b>${vista}</b>; en lo alto del cielo ${alta}.` +
-    (S.modo === "manual" ? ` Ahora cuentas con <b>${esc(r.Ttxt)}</b>.` : "") +
-    (uv.t !== null && uv.t >= 24 ? " A esa distancia suele ser un resplandor rojizo bajo, más claro en foto que a simple vista." : "") +
-    (r.Dn !== null ? " El Dst se mide desde 1957: las cuentas de este lugar empiezan ahí." : "");
-  const años = (N - r.desde) / 365.25;
-  const a0 = fechaDia(DIA0 + r.desde).getUTCFullYear(), a1 = fechaDia(DIA0 + N - 1).getUTCFullYear();
-  const prox = r.futuro.length ? [...r.futuro].sort((a, b) => b.p - a.p)[0] : null;
-  const ult = r.ultima >= 0 ? fmtDia(DIA0 + r.ultima) : null;
-  // Respuesta principal
-  let ans;
-  if (T === null) ans = `Desde <b>${esc(L.nombre)}</b> no se llega a ver ni en las tormentas más extremas registradas: tendrías que viajar hacia el ${dir}.`;
-  else if (r.total / años > 60) ans = `Desde <b>${esc(L.nombre)}</b> hay aurora posible casi cualquier noche oscura y despejada (${nf.format(Math.round(r.total / años))} al año de media). Las <b>más potentes</b> llegan en los 1–3 años posteriores al máximo solar, cerca de los equinoccios: <b>ahora mismo estamos en esa fase</b>.`;
-  else ans = `Desde <b>${esc(L.nombre)}</b> ha habido <b>${nf.format(r.total)} noches</b> con aurora posible desde ${a0}${ult ? `, la última el <b>${ult}</b>` : ""}. Se concentran en los 1–3 años posteriores al máximo solar y cerca de los equinoccios.` +
-    (prox && prox.p > 0 ? ` <b>La mejor ventana a la vista: ${MESES_L[prox.m]} de ${prox.y}</b>.` : "");
-  $("answer").innerHTML = ans;
-  // Tiles principales
-  const mejorAño = [...r.años].sort((a, b) => b.n - a.n)[0];
-  const pa = r.año;
-  $("tiles").innerHTML =
-    `<div class="tile"><div class="lbl">Noches con aurora posible, ${a0}–${a1}</div><div class="val">${nf.format(r.total)}</div><div class="det">${(r.total / años).toFixed(r.total / años < 10 ? 1 : 0).replace(".", ",")} al año de media, de noche cerrada</div></div>` +
-    `<div class="tile"><div class="lbl">La última</div><div class="val">${ult ? esc(ult) : "—"}</div><div class="det">${r.ultima >= 0 ? `Kp ${kpTxt(r.maxOsc[r.ultima])} en horas de noche` : `En ${Math.round(años)} años, ninguna`}</div></div>` +
-    `<div class="tile"><div class="lbl">El mejor año</div><div class="val">${mejorAño && mejorAño.n ? mejorAño.y : "—"}</div><div class="det">${mejorAño && mejorAño.n ? `${nf.format(mejorAño.n)} noches` : ""}</div></div>` +
-    `<div class="tile"><div class="lbl">Próximos 12 meses</div><div class="val">${pa ? pct(pa.p) : "—"}</div><div class="det">${pa ? `de al menos una noche. En el pasado pasó en ${pa.ok} de ${pa.n} años parecidos (de ${pa.ciclos} ciclos); corregido porque el ciclo 25 es ${pa.k < 1 ? "más flojo" : "más fuerte"} que la media` : "Desde aquí no se ve ni en las tormentas extremas"}</div></div>`;
-  $("t-anos").textContent = `Noches con aurora posible desde ${L.nombre}, por año`;
-  $("s-anos").textContent = T === null ? "Desde aquí no llega a verse ni en las tormentas más extremas." : `${r.Ttxt} en algún tramo de 3 horas con el Sol más de 12° bajo el horizonte. Pasa el ratón por una barra para ver la mejor noche del año.`;
-  const hoyF = r.futuro[0];
-  $("l-futuro").textContent = T === null ? "" : `Con las mismas reglas, aplicadas a los próximos años. Para cada mes se buscan los meses del pasado en el mismo punto del ciclo solar (±1 año) y en la misma época (±1 mes), y se cuenta en cuántos hubo al menos una noche con ${r.Ttxt} a oscuras en ${L.nombre}.${r.Dn !== null ? " Solo cuentan los meses desde 1957, que es desde cuando hay Dst." : ""}`;
-  const c26 = D.ciclo26;
-  $("s-futuro").textContent = hoyF ? `Desde ${MESES_L[hoyF.m]} de ${hoyF.y}. El ciclo 25 acaba hacia ${c26.min.slice(0, 4)} (NOAA). Del 26 se supone el máximo en ${c26.max.slice(0, 4)} ± ${String(c26.maxMargen).replace(".", ",")} años, con ${c26.sn.central} manchas (previsiones: ${c26.sn.bajo}–${c26.sn.alto}). Como un ciclo flojo trae menos tormentas, cada mes se corrige por la fuerza de su ciclo.` : "";
-  $("f-fechas").textContent = `Kp hasta el ${fmtDia(diaDe(D.meta.kp.hasta))}; datos generados el ${fmtDia(diaDe(D.meta.generado))}.`;
-}
-
-/* --------------------------------------------- próximas 4 semanas (NOAA) */
+/* =========================================================================
+   Próximas 4 semanas (NOAA, en directo)
+   ========================================================================= */
 let PRONTO = null;
 async function cargaPronto() {
   try {
@@ -1263,90 +1234,135 @@ async function cargaPronto() {
 function graficoPronto(r) {
   const host = $("g-pronto");
   if (!PRONTO) return;
-  if (PRONTO.error) { host.innerHTML = `<p class="estado">No se ha podido cargar la previsión de NOAA. Puedes verla en <a href="https://www.swpc.noaa.gov/products/27-day-outlook-107-cm-radio-flux-and-geomagnetic-indices">swpc.noaa.gov</a>.</p>`; $("lg-pronto").textContent = ""; return; }
+  if (PRONTO.error) {
+    host.innerHTML = `<p class="vacio">No se ha podido cargar. Está en <a href="https://www.swpc.noaa.gov/products/27-day-outlook-107-cm-radio-flux-and-geomagnetic-indices">swpc.noaa.gov</a>.</p>`;
+    $("ley-pronto").textContent = "";
+    return;
+  }
   const F = PRONTO.filas;
   const g = marco(host, { h: 190, mb: 40, titulo: "Kp máximo previsto por NOAA para los próximos 27 días" });
   const y = (v) => g.y1 - (v / 9) * (g.y1 - g.y0);
-  ejeY(g, [0, 3, 5, 7, 9], y, (v) => `Kp ${v}`);
+  ejeY(g, [0, 3, 6, 9], y, (v) => `Kp ${v}`);
   g.add(el("line", { x1: g.x0, x2: g.x1, y1: g.y1, y2: g.y1, class: "ax" }));
-  if (r.T !== null && r.T <= 27) {
+  const umbralVisible = r.T !== null && r.Dn === null;
+  if (umbralVisible) {
     g.add(el("line", { x1: g.x0, x2: g.x1, y1: y(r.T / 3), y2: y(r.T / 3), stroke: css("--aurora"), "stroke-width": 1.5 }));
-    g.add(el("text", { x: g.x1, y: y(r.T / 3) - 5, "text-anchor": "end", class: "lab" })).textContent = `umbral de ${r.L.nombre}: ${r.Dn !== null ? "Kp 9 y Dst extremo (NOAA no prevé Dst)" : `Kp ${kpTxt(r.T)}`}`;
+    g.add(el("text", { x: g.x1, y: y(r.T / 3) - 5, "text-anchor": "end", class: "lab" })).textContent = `umbral de ${r.L.nombre}`;
   }
   const slot = (g.x1 - g.x0) / F.length, w = Math.min(18, slot - 3);
   F.forEach((f, k) => {
-    const bx = g.x0 + slot * k + (slot - w) / 2;
-    const ok = r.T !== null && r.Dn === null && f.kp * 3 >= r.T;
+    const bx = g.x0 + slot * k + (slot - w) / 2, ok = umbralVisible && f.kp * 3 >= r.T;
     const b = barra(g, bx, w, y(f.kp), g.y1, "", ok ? css("--aurora") : css("--ref"));
-    const luz = luzLuna(f.d * DIA + DIA);
-    const fd = fechaDia(f.d);
-    zona(g, bx, w, tipHtml(`${fd.getUTCDate()} ${MESES_L[fd.getUTCMonth()]}`, [[`Kp ${f.kp}`, "máximo previsto", ok ? css("--aurora") : css("--ref")], [String(f.ap), "Ap previsto"], [pct(luz), "Luna iluminada (medianoche)"]], ok ? "Alcanza el umbral de este lugar" : ""), (on) => b.classList.toggle("on", on));
+    const luz = luzLuna(f.d * DIA + DIA), fd = fechaDia(f.d);
+    zona(g, bx, w, tipHtml(`${fd.getUTCDate()} ${MESES_L[fd.getUTCMonth()]}`, [[`Kp ${f.kp}`, "máximo previsto"], [pct(luz), "Luna iluminada"]], ok ? "Llega al umbral de aquí" : ""), (on) => b.classList.toggle("on", on));
     if (fd.getUTCDay() === 1 || k === 0) g.add(el("text", { x: bx + w / 2, y: g.y1 + 15, "text-anchor": "middle" })).textContent = `${fd.getUTCDate()} ${MESES[fd.getUTCMonth()]}`;
     g.add(el("text", { x: bx + w / 2, y: g.y1 + 31, "text-anchor": "middle" })).textContent = luz < 0.1 ? "●" : luz > 0.9 ? "○" : "";
   });
-  $("lg-pronto").innerHTML = `<span><i style="background:var(--aurora)"></i>Días que llegan al umbral de ${esc(r.L.nombre)}</span><span><i style="background:var(--ref)"></i>Días por debajo</span><span>● luna nueva · ○ luna llena</span><span>Emitido: ${esc(PRONTO.emitido)}</span>`;
+  $("ley-pronto").innerHTML = `<span><i style="background:var(--aurora)"></i>Llega al umbral de ${esc(r.L.nombre)}</span><span><i style="background:var(--ref)"></i>No llega</span><span>● luna nueva · ○ llena</span>` +
+    (r.Dn !== null ? `<span>Aquí hace falta una tormenta extrema; NOAA no prevé su fuerza con semanas.</span>` : "");
+}
+
+/* =========================================================================
+   Método (plegado en su pestaña)
+   ========================================================================= */
+function metodo(r) {
+  $("metodo").innerHTML = [
+    `<b>Noche con aurora posible:</b> algún tramo de 3 h con el Sol a más de 12° bajo el horizonte y el Kp por encima del umbral del lugar.`,
+    `<b>Umbral:</b> latitud geomagnética AACGM y reglas de NOAA (borde del óvalo 66° − 2° por punto de Kp). Donde no basta un Kp 9, se exige además un Dst (Yokoyama 1998), calibrado con los avistamientos en España de 2024 y 2026.`,
+    `<b>Probabilidad futura:</b> fracción de meses del pasado en la misma fase del ciclo (±1 año) y época (±1 mes) con al menos una noche así, corregida por la fuerza prevista del ciclo.`,
+    `<b>Supuestos:</b> el ciclo 25 acaba hacia ${D.ciclo26.min.slice(0, 4)} (NOAA); el máximo del 26, en ${D.ciclo26.max.slice(0, 4)} ± ${coma(D.ciclo26.maxMargen)} años con ${D.ciclo26.sn.bajo}–${D.ciclo26.sn.alto} manchas.`,
+    `<b>No se usa:</b> el Bz y el viento solar (solo se conocen con 30–60 min de aviso) ni qué equinoccio domina según la polaridad del Sol, que en estos datos no se repite con regularidad.`,
+    `<b>Límites:</b> el Kp es global y por tramos de 3 h. Las nubes deciden el resto. En latitudes bajas la aurora es un resplandor rojo, más claro en foto que a simple vista.`,
+    `Fuentes y cálculos, en <code>data-src/auroras/auroras.SOURCES.md</code>.`,
+  ].map((t) => `<li>${t}</li>`).join("");
+  $("f-fechas").textContent = `Kp hasta el ${fmtDia(diaDe(D.meta.kp.hasta))}.`;
+}
+
+function tabla(host, cab, filas, caption) {
+  host.innerHTML =
+    `<table><caption class="sr">${esc(caption)}</caption>` +
+    `<thead><tr>${cab.map((c) => `<th scope="col">${esc(c)}</th>`).join("")}</tr></thead>` +
+    `<tbody>${filas.map((f) => `<tr>${f.map((c, i) => (i === 0 ? `<th scope="row" style="font-weight:600;text-align:left">${esc(c)}</th>` : `<td>${esc(c)}</td>`)).join("")}</tr>`).join("")}</tbody></table>`;
 }
 
 /* =========================================================================
    Mandos
    ========================================================================= */
+const corto = (u) => (u.t === null ? "" : u.dst !== null ? "" : u.t === 0 ? "" : ` · Kp ${kpTxt(u.t)}`);
+function pintaModo(r) {
+  const fuerte = umbralDe(r.g.mlat, "fuerte");
+  const ops = [
+    ["vista", "Asomando", r.uVista],
+    ["alta", "En lo alto", r.uAlta],
+    ["fuerte", "Tormenta fuerte", fuerte],
+  ];
+  $("modo").innerHTML = ops.map(([k, t, u]) => `<button type="button" data-k="${k}" aria-pressed="${S.modo === k}" ${u.t === null ? "disabled" : ""} title="${esc(umbralTxt(u))}">${esc(t)}<span class="sr">${esc(corto(u))}</span></button>`).join("");
+  $("modo").querySelectorAll("button").forEach((b) => b.addEventListener("click", () => { S.modo = b.dataset.k; pinta(); }));
+}
 function mandos() {
   const sel = $("lugar");
   sel.innerHTML = LUGARES.map((l, k) => `<option value="${k}">${esc(l.nombre)}</option>`).join("");
   sel.addEventListener("change", () => { S.lugar = LUGARES[+sel.value]; pinta(); });
   $("geo").addEventListener("click", () => {
     if (!navigator.geolocation) return;
-    $("geo").textContent = "📍 Buscando…";
+    $("geo").textContent = "…";
     navigator.geolocation.getCurrentPosition((p) => {
       const l = { nombre: "tu ubicación", lat: p.coords.latitude, lon: p.coords.longitude, tz: Intl.DateTimeFormat().resolvedOptions().timeZone };
       let o = sel.querySelector('option[value="geo"]');
       if (!o) { o = document.createElement("option"); o.value = "geo"; sel.prepend(o); }
-      o.textContent = `Mi ubicación (${l.lat.toFixed(1)}°, ${l.lon.toFixed(1)}°)`;
+      o.textContent = "Mi ubicación";
       sel.value = "geo";
       S.lugar = l;
-      $("geo").textContent = "📍 Mi ubicación";
+      $("geo").textContent = "📍";
       pinta();
-    }, () => { $("geo").textContent = "📍 Sin permiso"; }, { timeout: 10000 });
+    }, () => { $("geo").textContent = "📍"; }, { timeout: 10000 });
   });
-  const km = $("kpman");
-  km.innerHTML = `<option value="">Otro umbral…</option>` +
-    [9, 12, 15, 18, 21, 24, 26, 27].map((t) => `<option value="${t}">Kp ≥ ${kpTxt(t)}${gTxt(t) ? ` · ${gTxt(t)}` : ""}</option>`).join("");
-  km.addEventListener("change", () => { if (km.value === "") return; S.modo = "manual"; S.kpManual = +km.value; pinta(); });
-  $("mas-tormentas").addEventListener("click", () => { S.verTormentas = S.verTormentas === 20 ? 50 : 20; tablaTormentas(C); });
+  $("mas").addEventListener("click", () => { S.verTormentas = S.verTormentas === 10 ? 30 : 10; tablaTormentas(C); });
+  // Pestañas: clic y flechas.
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  const abre = (t, foco) => {
+    for (const x of tabs) {
+      const on = x === t;
+      x.setAttribute("aria-selected", on);
+      x.tabIndex = on ? 0 : -1;
+      $(x.getAttribute("aria-controls")).hidden = !on;
+    }
+    if (foco) t.focus();
+    S.tab = t.id.slice(4);
+    pintaTab();
+  };
+  tabs.forEach((t, k) => {
+    t.addEventListener("click", () => abre(t));
+    t.addEventListener("keydown", (ev) => {
+      const d = ev.key === "ArrowRight" ? 1 : ev.key === "ArrowLeft" ? -1 : 0;
+      if (d) { abre(tabs[(k + d + tabs.length) % tabs.length], true); ev.preventDefault(); }
+    });
+  });
 }
-const corto = (u) => (u.dst !== null ? `Kp 9 + Dst ${nf.format(u.dst)}` : u.t === 0 ? "cualquier Kp" : `Kp ${kpTxt(u.t)}`);
-function pintaModo(r) {
-  const host = $("modo");
-  const ops = [
-    ["vista", `En el horizonte${r.uVista.t !== null ? ` · ${corto(r.uVista)}` : ""}`, r.uVista.t === null],
-    ["alta", `Alta en el cielo${r.uAlta.t !== null ? ` · ${corto(r.uAlta)}` : ""}`, r.uAlta.t === null],
-  ];
-  host.innerHTML = ops.map(([k, t, dis]) => `<button type="button" data-k="${k}" aria-pressed="${S.modo === k}" ${dis ? "disabled" : ""}>${esc(t)}</button>`).join("");
-  host.querySelectorAll("button").forEach((b) => b.addEventListener("click", () => { S.modo = b.dataset.k; pinta(); }));
-  $("kpman").value = S.modo === "manual" ? String(S.kpManual) : "";
+
+/** Solo se pinta la pestaña visible: los gráficos necesitan su ancho real. */
+function pintaTab() {
+  if (!C) return;
+  if (S.tab === "historia") { graficoSol(); graficoAños(C); tablaTormentas(C); }
+  if (S.tab === "porque") { graficoFase(C); graficoMes(C); graficoCiclos(C); horaYRecurrencia(C); }
+  if (S.tab === "pronto") graficoPronto(C);
+  if (S.tab === "metodo") metodo(C);
 }
 
 function pinta() {
   C = calcula();
   pintaModo(C);
-  textos(C);
-  graficoSol();
-  graficoAños(C);
-  tablaTormentas(C);
-  graficoFase(C);
-  graficoMes(C);
-  tilesVariables(C);
-  tablaCiclos(C);
-  graficoFuturo(C);
-  ventanas(C);
-  graficoPronto(C);
+  cabecera(C);
+  cifras(C);
+  mapaFuturo(C);
+  pintaTab();
 }
 
 (async () => {
   try {
     await carga();
   } catch (e) {
-    $("answer").textContent = "No se han podido cargar los datos (data/auroras.json).";
+    $("h-cap").textContent = "No se han podido cargar los datos.";
     throw e;
   }
   mandos();

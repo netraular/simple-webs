@@ -1,0 +1,204 @@
+/**
+ * Comprobaciones sobre `pages/data/auroras.json` y sobre el cálculo de
+ * `pages/auroras.html`.
+ *
+ *   1. Datos: estructura, y contraste con cifras publicadas (fechas de los
+ *      máximos solares de SILSO, tormentas históricas, Dst de marzo de 1989) y
+ *      con la columna Ap del propio GFZ, que la página recalcula desde el Kp.
+ *   2. Página: se ejecuta su <script> en Node, sin DOM, y se piden los cálculos
+ *      para varias ciudades. Lo que se comprueba es física, no "lo que salía
+ *      hoy": más al norte hay más noches, en junio no hay noche en Tromsø, la
+ *      medianoche magnética de Escandinavia cae hacia las 21–22 UT…
+ *
+ * Uso:  node test-auroras.mjs
+ */
+import { readFileSync, existsSync } from "node:fs";
+import vm from "node:vm";
+
+const D = JSON.parse(readFileSync(new URL("../../pages/data/auroras.json", import.meta.url), "utf8"));
+const HTML = readFileSync(new URL("../../pages/auroras.html", import.meta.url), "utf8");
+
+let fallos = 0, hechas = 0;
+const ok = (cond, texto, detalle = "") => {
+  hechas++;
+  if (!cond) fallos++;
+  console.log(`  ${cond ? "✓" : "✗"} ${texto}${detalle ? `  ${detalle}` : ""}`);
+};
+
+const DIA = 86400e3;
+const diaNum = (s) => Date.UTC(+s.slice(0, 4), +s.slice(5, 7) - 1, +s.slice(8, 10)) / DIA;
+const i0 = diaNum(D.meta.kp.desde);
+const kpDia = (iso) => {
+  const i = diaNum(iso) - i0;
+  return Math.max(...[...D.kp.slice(i * 8, i * 8 + 8)].map((c) => c.charCodeAt(0) - 48));
+};
+
+/* ------------------------------------------------------------- datos */
+console.log("Datos");
+const nDias = diaNum(D.meta.kp.hasta) - i0 + 1;
+ok(D.kp.length === nDias * 8, "8 tramos de Kp por día, sin huecos", `${nDias} días`);
+ok(/^[0-K]+$/.test(D.kp), "todos los Kp entre 0 y 9o (tercios 0…27)");
+ok(D.meta.kp.desde === "1932-01-01", "el Kp empieza el 1 de enero de 1932");
+
+// Tormentas conocidas (Kp definitivo del GFZ).
+ok(kpDia("1989-03-13") === 27, "13-mar-1989 llega a Kp 9o");
+ok(kpDia("2003-10-29") === 27 && kpDia("2003-10-30") === 27, "29 y 30-oct-2003 (Halloween) llegan a Kp 9o");
+ok(kpDia("2024-05-11") === 27, "11-may-2024 (Gannon) llega a Kp 9o");
+ok(kpDia("1859-09-02".replace("1859", "1932")) < 27, "un día cualquiera de 1932 no es una tormenta extrema");
+ok(D.dst["1989-03-14"] === -589, "Dst mínimo de marzo de 1989: −589 nT (Kyoto)", `→ ${D.dst["1989-03-14"]}`);
+ok(D.dst["2003-11-20"] === -422, "Dst del 20-nov-2003: −422 nT", `→ ${D.dst["2003-11-20"]}`);
+ok(Object.values(D.dst).every((v) => v <= D.meta.dst.umbral), `solo viajan días con Dst ≤ ${D.meta.dst.umbral}`);
+
+// Máximos de ciclo frente a la tabla oficial de SILSO.
+const SILSO = { 19: "1958-03", 20: "1968-11", 21: "1979-12", 22: "1989-11", 23: "2001-11", 24: "2014-04", 25: "2024-10" };
+for (const [n, mes] of Object.entries(SILSO)) {
+  const c = D.ciclos.find((x) => x.n === +n);
+  ok(c && c.max === mes, `máximo del ciclo ${n} en ${mes} (SILSO)`, c ? `→ ${c.max}, ${c.snMax}` : "→ falta");
+}
+ok(D.ciclos.at(-1).n === 25 && D.ciclos.at(-1).fin === null, "el ciclo 25 sigue abierto");
+const meses = D.prediccion.map((p) => p.mes);
+ok(meses.every((m, k) => k === 0 || diaNum(`${m}-01`) > diaNum(`${meses[k - 1]}-01`)), "la previsión de NOAA va en meses crecientes");
+ok(D.prediccion.every((p) => p.bajo <= p.sn && p.sn <= p.alto), "la previsión cae dentro de su propio margen");
+ok(D.ciclo26.fuente && D.ciclo26.fuente !== "PENDIENTE", "los supuestos del ciclo 26 llevan fuente");
+
+// Ap recalculado desde el Kp frente a la columna Ap del GFZ.
+const crudo = new URL("_work/kp-gfz.txt", import.meta.url);
+if (existsSync(crudo)) {
+  const AP = [0, 2, 3, 4, 5, 6, 7, 9, 12, 15, 18, 22, 27, 32, 39, 48, 56, 67, 80, 94, 111, 132, 154, 179, 207, 236, 300, 400];
+  let peor = 0, k = 0;
+  for (const l of readFileSync(crudo, "utf8").split("\n")) {
+    if (!l.trim() || l.startsWith("#")) continue;
+    const c = l.trim().split(/\s+/);
+    let s = 0;
+    for (let j = 0; j < 8; j++) s += AP[D.kp.charCodeAt(k * 8 + j) - 48];
+    peor = Math.max(peor, Math.abs(Math.round(s / 8) - +c[23]));
+    k++;
+  }
+  ok(peor <= 1, "el Ap que la página calcula desde el Kp coincide con el del GFZ (±1 por redondeo)", `→ peor ${peor}`);
+} else console.log("  · sin _work/kp-gfz.txt: se salta el contraste del Ap");
+
+/* ------------------------------------------------- lógica de la página */
+console.log("Página");
+const script = HTML.slice(HTML.lastIndexOf("<script>") + 8, HTML.lastIndexOf("</script>"));
+const arranque = script.lastIndexOf("(async () => {");
+ok(arranque > 0, "el script de la página tiene su arranque al final");
+const ctx = vm.createContext({
+  console, Intl, Math, Date, Uint8Array, Float32Array, Map, Set, JSON,
+  fetch: async () => ({ json: async () => D }),
+  document: {}, getComputedStyle: () => ({ getPropertyValue: () => "" }),
+});
+try {
+  new vm.Script(script); // sintaxis de todo el script, arranque incluido
+  vm.runInContext(script.slice(0, arranque), ctx);
+  ok(true, "el JavaScript de la página compila");
+} catch (e) {
+  ok(false, "el JavaScript de la página compila", e.message);
+  process.exit(1);
+}
+await vm.runInContext("carga()", ctx);
+const lugar = (nombre) => vm.runInContext(`LUGARES.find((l) => l.nombre.startsWith(${JSON.stringify(nombre)}))`, ctx);
+const calc = (nombre, modo = "vista") => {
+  ctx.__l = lugar(nombre);
+  return vm.runInContext(`S.lugar = __l; S.modo = ${JSON.stringify(modo)}; calcula()`, ctx);
+};
+
+// La rejilla AACGM interpolada frente a los valores exactos de la calculadora de Dartmouth.
+let peorAacgm = 0, peorCiudad = "";
+for (const [n, c] of Object.entries(D.aacgm.ciudades)) {
+  const e = Math.abs(vm.runInContext(`latAacgm(${c.lat}, ${c.lon})`, ctx) - c.mlat);
+  if (e > peorAacgm) { peorAacgm = e; peorCiudad = n; }
+}
+ok(peorAacgm < 0.5, "la rejilla AACGM interpolada se separa < 0,5° del valor exacto", `→ peor ${peorAacgm.toFixed(2)}° (${peorCiudad})`);
+const mlatBcn = vm.runInContext("latAacgm(41.39, 2.17)", ctx);
+ok(Math.abs(mlatBcn - 34.9) < 0.5, "Barcelona está a ~35° de latitud AACGM", `→ ${mlatBcn.toFixed(1)}°`);
+
+const bcn = calc("Barcelona"), bil = calc("Bilbao"), osl = calc("Oslo"), edi = calc("Edimburgo"), par = calc("París"), tro = calc("Tromsø");
+ok(bcn.uVista.t === 26 && bcn.uVista.dst <= -250 && bcn.uVista.dst >= -350,
+  "desde Barcelona hace falta Kp 9− y un Dst de unos −300 nT", `→ ${JSON.stringify(bcn.uVista)}`);
+ok(bcn.uAlta.t === null, "desde Barcelona no llega a lo alto del cielo ni en las mayores tormentas medidas");
+ok(tro.uVista.t === 0, "en Tromsø basta cualquier Kp");
+ok(osl.uVista.t >= 9 && osl.uVista.t <= 12 && osl.uVista.dst === null, "en Oslo basta Kp 3–4", `→ tercios ${osl.uVista.t}`);
+ok(edi.uVista.t >= 15 && edi.uVista.t <= 18, "en Edimburgo hace falta Kp 5–6", `→ tercios ${edi.uVista.t}`);
+ok(par.uVista.t >= 24 && par.uVista.t <= 26, "en París hace falta Kp 8–9−", `→ tercios ${par.uVista.t}`);
+ok(tro.total > osl.total && osl.total > edi.total && edi.total > par.total && par.total > bcn.total,
+  "más al norte, más noches con aurora posible",
+  `→ Tromsø ${tro.total}, Oslo ${osl.total}, Edimburgo ${edi.total}, París ${par.total}, Barcelona ${bcn.total}`);
+const nocheDe = (r, iso) => r.opp[diaNum(iso) - i0] === 1;
+ok(nocheDe(bcn, "2024-05-10") || nocheDe(bcn, "2024-05-11"), "Barcelona: la noche del 10-11 de mayo de 2024 cuenta");
+ok(nocheDe(bcn, "1989-03-13"), "Barcelona: la noche del 13 de marzo de 1989 cuenta");
+ok(!nocheDe(bcn, "2024-06-15"), "Barcelona: una noche tranquila no cuenta");
+ok(nocheDe(bil, "2026-01-19") || nocheDe(bil, "2026-01-20"), "Bilbao: enero de 2026 (Dst −236) cuenta, como se vio en el norte de España");
+ok(!nocheDe(bcn, "2026-01-19") && !nocheDe(bcn, "2026-01-20"), "Barcelona: enero de 2026 no llega (Dst −236 se queda corto)");
+ok(bcn.desde === diaNum("1957-01-01") - i0 && bcn.años.filter((a) => a.sinDato).length === 25, "Barcelona: sin Dst antes de 1957, esos 25 años salen sin dato");
+ok(tro.mes[5].noches === 0, "Tromsø: en junio no hay noche cerrada, ninguna noche cuenta", `→ ${tro.mes[5].noches}`);
+ok(tro.mes[11].noches > 20, "Tromsø: en diciembre casi todas las noches cuentan", `→ ${tro.mes[11].noches.toFixed(1)}`);
+
+// Patrones geomagnéticos: con un umbral fijo de Kp 6, que la oscuridad no domine.
+ctx.__l = lugar("Oslo");
+const o6 = vm.runInContext("S.lugar = __l; S.modo = 'manual'; S.kpManual = 18; calcula()", ctx);
+// Fase: el mejor tramo está a partir del máximo, no en el mínimo.
+const mejorFase = [...o6.fase].sort((a, b) => b.porAño - a.porAño)[0].b;
+ok(mejorFase >= -1 && mejorFase <= 3, "Oslo, Kp ≥ 6: el mejor tramo del ciclo está entre el máximo y 3 años después", `→ ${mejorFase}`);
+const mes = (r, m) => r.mes[m].kp;
+ok((mes(o6, 2) + mes(o6, 8)) / 2 > 1.3 * (mes(o6, 5) + mes(o6, 11)) / 2, "equinoccios con más tormentas que solsticios");
+ok(o6.rec.lift > 1.2, "recurrencia de 27 días por encima de la base local", `→ ×${o6.rec.lift.toFixed(2)}`);
+
+// Futuro.
+const F = o6.futuro;
+ok(F.length > 100 && F.every((o) => o.p >= 0 && o.p <= 1 && o.n >= 10), "Oslo, Kp ≥ 6: meses futuros con probabilidad válida y ≥10 análogos", `→ ${F.length} meses, mín. ${Math.min(...F.map((o) => o.n))} análogos`);
+const media = (a, b) => { const s = F.filter((o) => o.y * 12 + o.m >= a && o.y * 12 + o.m <= b); return s.reduce((x, o) => x + o.p, 0) / s.length; };
+const pronto = media(2026 * 12 + 9, 2028 * 12 + 2), minimo = media(2030 * 12, 2032 * 12 + 11);
+ok(pronto > 1.5 * minimo, "Oslo, Kp ≥ 6: 2026–2028 más probable que el mínimo de 2030–2032", `→ ${pronto.toFixed(2)} vs ${minimo.toFixed(2)}`);
+ok(F.filter((o) => o.enC26).every((o) => o.lo <= o.p && o.p <= o.hi), "el rango del ciclo 26 contiene la estimación central");
+ok(tro.futuro.filter((o) => o.m === 5).every((o) => o.p === 0), "Tromsø: ningún junio futuro tiene aurora posible (sol de medianoche)");
+ok(bcn.año && bcn.año.p < osl.año.p, "próximo año: Barcelona menos probable que Oslo", `→ ${bcn.año.p.toFixed(2)} vs ${osl.año.p.toFixed(2)}`);
+
+// Medianoche magnética de Tromsø: ~21:30 UT.
+const um = vm.runInContext(`(() => { const g = geomag(69.65, 18.96); let b = null;
+  for (let k = 0; k < 144; k++) { const t = Date.UTC(2026, 9, 15) + k * 600e3, v = mlt(t, g.mlon), d = Math.min(v, 24 - v); if (!b || d < b.d) b = { d, h: k / 6 }; }
+  return b.h; })()`, ctx);
+ok(um > 20.5 && um < 22.5, "medianoche magnética de Tromsø hacia las 21–22 UT", `→ ${um.toFixed(2)} UT`);
+
+const lunas = vm.runInContext("lunasNuevas(Date.UTC(2024, 3, 1), Date.UTC(2024, 3, 30)).map((t) => new Date(t).toISOString())", ctx);
+ok(lunas.length === 1 && lunas[0].startsWith("2024-04-08"), "luna nueva del 8-abr-2024 (el eclipse total)", `→ ${lunas[0]}`);
+
+/* ------------------------------------------- pintado con un DOM simulado */
+// No es un navegador: solo un DOM mínimo para que cualquier excepción del código
+// de pintado (variable mal escrita, dato que falta) salte aquí y no en la página.
+console.log("Pintado (DOM simulado)");
+const nodo = () => {
+  const n = {
+    children: [], style: {}, dataset: {}, attrs: {}, _html: "", textContent: "", value: "", clientWidth: 900, offsetWidth: 160,
+    classList: { add() {}, remove() {}, toggle() {} },
+    setAttribute(k, v) { this.attrs[k] = String(v); }, getAttribute(k) { return this.attrs[k]; },
+    appendChild(c) { this.children.push(c); return c; }, prepend(c) { this.children.unshift(c); },
+    addEventListener() {}, insertAdjacentHTML(_, h) { this._html += h; },
+    querySelector() { return null; }, querySelectorAll() { return []; },
+    getBoundingClientRect: () => ({ left: 0, top: 0, width: 900, height: 300 }),
+  };
+  Object.defineProperty(n, "innerHTML", {
+    get() { return this._html; },
+    set(h) { if (/undefined|NaN/.test(h)) throw new Error(`HTML con undefined/NaN: ${h.match(/.{0,60}(undefined|NaN).{0,40}/)[0]}`); this._html = h; },
+  });
+  return n;
+};
+const nodos = new Map();
+ctx.document = { getElementById: (id) => (nodos.has(id) || nodos.set(id, nodo()), nodos.get(id)), createElementNS: nodo, createElement: nodo, documentElement: {} };
+ctx.getComputedStyle = () => ({ getPropertyValue: () => "#123456" });
+ctx.navigator = {};
+const salida27 = ["2026 Sep 28      98           5          2", "2026 Sep 29     100          18          5", "2026 Sep 30     105          45          7"].join("\n");
+vm.runInContext(`PRONTO = { filas: [], emitido: "prueba" };
+  for (const l of ${JSON.stringify(salida27)}.split("\\n")) { const m = l.match(/^(\\d{4}) (\\w{3}) (\\d{2})\\s+(\\d+)\\s+(\\d+)\\s+(\\d+)/); PRONTO.filas.push({ d: Date.UTC(+m[1], 8, +m[3]) / DIA, ap: +m[5], kp: +m[6] }); }`, ctx);
+for (const [nombre, modo] of [["Barcelona", "vista"], ["Madrid", "alta"], ["Londres", "vista"], ["Tromsø", "vista"], ["Oslo", "manual"], ["Ushuaia", "vista"], ["Hobart", "alta"]]) {
+  ctx.__l = lugar(nombre);
+  try {
+    vm.runInContext(`S.lugar = __l; S.modo = ${JSON.stringify(modo)}; S.kpManual = 21; mandos(); pinta();`, ctx);
+    const txt = nodos.get("answer").innerHTML + nodos.get("need").innerHTML + nodos.get("tiles").innerHTML;
+    ok(txt.length > 100, `${nombre} (${modo}): se pinta sin errores`, `→ «${nodos.get("answer").innerHTML.replace(/<[^>]+>/g, "").slice(0, 90)}…»`);
+  } catch (e) {
+    ok(false, `${nombre} (${modo}): se pinta sin errores`, e.stack.split("\n").slice(0, 3).join(" | "));
+  }
+}
+
+console.log(`\n${hechas - fallos}/${hechas} comprobaciones superadas`);
+process.exit(fallos ? 1 : 0);

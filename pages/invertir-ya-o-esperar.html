@@ -1,0 +1,977 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>¿Invertir ya o esperar al mejor momento? · 90 años de datos</title>
+<meta name="description" content="Invertir todo de golpe, repartirlo en varios meses, esperar a una caída o acertar cada año el mínimo: las cuatro estrategias contrastadas mes a mes con el S&P 500 desde 1934 y la bolsa mundial desarrollada.">
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="#f9f9f7">
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0d0d0d">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='88'>⏱️</text></svg>">
+<style>
+/* ===========================================================================
+   ¿Invertir ya o esperar? — página autocontenida, sin librerías.
+   Reutiliza pages/data/mercados.json (el mismo de sp500-rendimientos.html) y
+   su paleta validada para daltonismo.
+
+   Colores:
+   - Polaridad (quién gana): par divergente azul↔rojo. En TODOS los gráficos de
+     esta página, arriba y en azul es "invertir ya ganó"; abajo y en rojo,
+     "esperar (o repartir) ganó". La convención no cambia de un gráfico a otro.
+   - Identidad (qué inversor es): tres ranuras categóricas validadas juntas
+     (verde, azul, naranja, también en oscuro). El efectivo no es una serie
+     sino la referencia: gris discontinuo. El inversor "mes a mes" no tiene
+     línea propia: la paleta no da un cuarto tono que se distinga del azul en
+     modo oscuro, y su curva va pegada a la de "en cuanto cobra". Está en las
+     barras y en la tabla.
+   =========================================================================== */
+
+:root{
+  color-scheme: light dark;
+  --plane:#f9f9f7;  --surface:#fcfcfb;  --surface-2:#f2f1ee;
+  --ink:#0b0b0b;    --ink-2:#52514e;    --muted:#898781;
+  --grid:#e1e0d9;   --axis:#c3c2b7;     --hairline:rgba(11,11,11,.10);
+  --focus:#2a78d6;  --muted-txt:#6e6c67; --btn-on:#256abf;
+
+  --series-1:#2a78d6;  --series-2:#eb6834;  --series-3:#1baf7a;
+  --pos:#2a78d6;  --neg:#e34948;  --ref:#898781;
+
+  --est-perfecto:var(--series-3);
+  --est-ya:var(--series-1);
+  --est-peor:var(--series-2);
+}
+@media (prefers-color-scheme: dark){
+  :root:where(:not([data-theme="light"])){
+    --plane:#0d0d0d;  --surface:#1a1a19;  --surface-2:#232321;
+    --ink:#ffffff;    --ink-2:#c3c2b7;    --muted:#898781;
+    --grid:#2c2c2a;   --axis:#383835;     --hairline:rgba(255,255,255,.10);
+    --focus:#3987e5;  --muted-txt:#9d9b95;
+    --series-1:#3987e5; --series-2:#d95926; --series-3:#199e70;
+    --pos:#3987e5; --neg:#e66767;
+  }
+}
+:root[data-theme="dark"]{
+  --plane:#0d0d0d;  --surface:#1a1a19;  --surface-2:#232321;
+  --ink:#ffffff;    --ink-2:#c3c2b7;    --muted:#898781;
+  --grid:#2c2c2a;   --axis:#383835;     --hairline:rgba(255,255,255,.10);
+  --focus:#3987e5;  --muted-txt:#9d9b95;
+  --series-1:#3987e5; --series-2:#d95926; --series-3:#199e70;
+  --pos:#3987e5; --neg:#e66767;
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+body{
+  font-family:system-ui,-apple-system,"Segoe UI",sans-serif;
+  background:var(--plane); color:var(--ink); line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:1180px;margin:0 auto;padding:0 20px}
+
+/* ---------- cabecera ---------- */
+header{padding:56px 0 6px}
+.eyebrow{font-size:.72rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted-txt)}
+h1{font-size:clamp(2rem,4.6vw,3.2rem);font-weight:700;letter-spacing:-.02em;line-height:1.07;margin:14px 0 0;max-width:20ch}
+.lede{margin:18px 0 0;max-width:66ch;color:var(--ink-2);font-size:1.03rem}
+.lede + .lede{margin-top:10px}
+.stamp{margin:18px 0 0;font-size:.78rem;color:var(--muted-txt)}
+
+/* ---------- barra de opciones ---------- */
+.filters{
+  position:sticky; top:0; z-index:40;
+  background:color-mix(in srgb,var(--plane) 92%,transparent);
+  backdrop-filter:blur(8px);
+  border-bottom:1px solid var(--hairline);
+  margin-top:26px; padding:12px 0;
+}
+.filters-inner{display:flex;flex-wrap:wrap;gap:12px 22px;align-items:flex-end}
+.field{display:flex;flex-direction:column;gap:5px;min-width:0}
+.field > span.lbl{font-size:.7rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--muted-txt)}
+button:focus-visible,summary:focus-visible,rect:focus-visible,path:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.btn{
+  font:inherit;font-size:.85rem;font-weight:600;background:var(--surface);color:var(--ink);
+  border:1px solid var(--axis);border-radius:6px;padding:8px 13px;cursor:pointer;min-height:36px;
+}
+.btn:hover:not(:disabled){border-color:var(--ink-2)}
+.btn[aria-pressed=true]{background:var(--btn-on);border-color:var(--btn-on);color:#fff}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn-sm{padding:6px 10px;font-size:.8rem;min-height:32px}
+.btn-group{display:flex;gap:6px;flex-wrap:wrap}
+.hint{font-size:.76rem;color:var(--muted-txt);max-width:40ch}
+
+/* ---------- secciones y tarjetas ---------- */
+main{padding:26px 0 40px}
+section{margin-bottom:34px;scroll-margin-top:80px}
+.sec-head{margin:44px 0 16px}
+.sec-head h2{font-size:1.45rem;font-weight:700;letter-spacing:-.02em;max-width:30ch}
+.sec-head p{margin-top:9px;font-size:.95rem;color:var(--ink-2);max-width:72ch}
+.card{
+  background:var(--surface);border:1px solid var(--hairline);border-radius:12px;
+  padding:20px 20px 16px;margin-bottom:16px;
+}
+.card > h3{font-size:1rem;font-weight:700;letter-spacing:-.01em}
+.card > .sub{margin-top:5px;font-size:.84rem;color:var(--ink-2);max-width:78ch}
+.card-head{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:flex-start;justify-content:space-between}
+.card-head .sub{margin-top:5px;font-size:.84rem;color:var(--ink-2);max-width:62ch}
+.card-head h3{font-size:1rem;font-weight:700;letter-spacing:-.01em}
+
+/* ---------- tiles ---------- */
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;margin-bottom:16px}
+.tile{background:var(--surface);border:1px solid var(--hairline);border-radius:12px;padding:15px 16px}
+.tile .k{font-size:.69rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--muted-txt)}
+.tile .v{font-size:1.9rem;font-weight:700;letter-spacing:-.02em;margin-top:6px;line-height:1.1;font-variant-numeric:tabular-nums}
+.tile .s{font-size:.78rem;color:var(--ink-2);margin-top:5px}
+
+.verdict{
+  background:var(--surface-2);border:1px solid var(--hairline);border-radius:12px;
+  padding:18px 20px;margin-bottom:16px;font-size:1rem;color:var(--ink);max-width:none;
+}
+.verdict p + p{margin-top:8px}
+.verdict .small{font-size:.86rem;color:var(--ink-2)}
+
+/* ---------- gráficos ---------- */
+.chart{position:relative;margin-top:14px}
+.chart svg{display:block;width:100%;height:auto;overflow:visible}
+.chart .gl{stroke:var(--grid);stroke-width:1}
+.chart .ax{stroke:var(--axis);stroke-width:1}
+.chart text{fill:var(--muted-txt);font-size:11px;font-variant-numeric:tabular-nums}
+.chart text.lbl{fill:var(--ink-2);font-size:12px;font-weight:600}
+.chart text.val{fill:var(--ink);font-size:12px;font-weight:700}
+.chart text.lbl-out{fill:var(--ink);font-size:11.5px;font-weight:700;
+  paint-order:stroke;stroke:var(--surface);stroke-width:3.5;stroke-linejoin:round}
+.chart .ln{fill:none;stroke-width:2;stroke-linejoin:round;stroke-linecap:round}
+.chart .ln-ref{fill:none;stroke:var(--ref);stroke-width:2;stroke-dasharray:5 4}
+.chart .hit{fill:transparent;cursor:crosshair}
+.chart .dot{stroke:var(--surface);stroke-width:2}
+.tip{
+  position:absolute;pointer-events:none;z-index:20;opacity:0;transition:opacity .09s;
+  background:var(--surface);border:1px solid var(--axis);border-radius:8px;
+  padding:8px 10px;font-size:.78rem;box-shadow:0 8px 22px -12px rgba(0,0,0,.5);
+  min-width:150px;
+}
+.tip.on{opacity:1}
+.tip b{font-size:.82rem}
+.tip .row{display:flex;gap:12px;justify-content:space-between;align-items:center;margin-top:3px}
+.tip .row span{color:var(--ink-2)}
+.tip .row b{font-variant-numeric:tabular-nums;font-weight:700}
+.tip .foot{margin-top:5px;color:var(--ink-2);font-size:.74rem;max-width:30ch}
+.dot-inline{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;flex:none}
+
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;margin-top:12px;font-size:.8rem;color:var(--ink-2)}
+.legend .it{display:flex;align-items:center}
+.legend .key{display:inline-block;width:14px;height:3px;border-radius:2px;margin-right:7px}
+.legend .key.dash{background:none;border-top:2px dashed var(--ref);height:0}
+.legend .key.sq{width:11px;height:11px;border-radius:3px}
+
+/* ---------- tabla ---------- */
+details.tbl{margin-top:14px;border-top:1px solid var(--hairline);padding-top:10px}
+details.tbl > summary{
+  font-size:.79rem;color:var(--muted-txt);cursor:pointer;list-style:none;
+  display:flex;align-items:center;gap:6px;font-weight:600;
+}
+details.tbl > summary::-webkit-details-marker{display:none}
+details.tbl > summary::before{content:"▸";font-size:.7rem}
+details.tbl[open] > summary::before{content:"▾"}
+.table-scroll{overflow-x:auto;margin-top:10px;max-height:380px;-webkit-overflow-scrolling:touch}
+table{border-collapse:collapse;width:100%;font-size:.83rem;font-variant-numeric:tabular-nums}
+th,td{padding:7px 10px;text-align:right;white-space:nowrap;border-bottom:1px solid var(--hairline)}
+th:first-child,td:first-child{text-align:left;position:sticky;left:0;background:var(--surface)}
+thead th{
+  position:sticky;top:0;background:var(--surface);z-index:2;
+  font-size:.68rem;letter-spacing:.05em;text-transform:uppercase;color:var(--muted-txt);
+  border-bottom:1px solid var(--axis);
+}
+thead th:first-child{z-index:3}
+td.na{color:var(--muted-txt)}
+td.neg{color:var(--neg)}
+
+.note{
+  margin-top:14px;padding:11px 14px;border-left:3px solid var(--axis);
+  background:var(--surface-2);border-radius:0 8px 8px 0;font-size:.82rem;color:var(--ink-2);
+}
+.note b{color:var(--ink)}
+.prose{max-width:72ch;font-size:.95rem;color:var(--ink-2)}
+.prose p{margin-top:12px}
+.prose p:first-child{margin-top:0}
+.prose h3{font-size:.98rem;font-weight:700;color:var(--ink);margin-top:22px}
+.prose ul{margin:10px 0 0 18px}
+.prose li{margin-top:7px}
+.prose a{color:var(--focus)}
+.prose b{color:var(--ink)}
+.prose code{font-size:.85em;background:var(--surface-2);padding:1px 5px;border-radius:4px}
+
+footer{border-top:1px solid var(--hairline);padding:26px 0 60px;font-size:.8rem;color:var(--muted-txt)}
+footer a{color:var(--muted-txt)}
+.state{padding:60px 20px;text-align:center;color:var(--muted-txt)}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <span class="eyebrow">Datos reales · mes a mes desde 1934</span>
+    <h1>¿Invertir ya o esperar al mejor momento?</h1>
+    <p class="lede">El consejo de siempre es que, si tienes el dinero, lo metas en el índice cuanto antes en
+      vez de esperar a que baje. Aquí se pone a prueba contra cada mes de la historia: invertir de golpe,
+      repartirlo, esperar una caída, y hasta un adivino que acierta cada año el mes más barato.</p>
+    <p class="lede">Respuesta corta: <b>es verdad casi siempre, pero no siempre</b>. Y cuando falla, falla
+      justo en el peor momento para el ánimo.</p>
+    <p class="stamp" id="stamp">Cargando datos…</p>
+  </header>
+</div>
+
+<div class="filters">
+  <div class="wrap filters-inner">
+    <div class="field">
+      <span class="lbl" id="lbl-ind">Índice</span>
+      <div class="btn-group" role="group" aria-labelledby="lbl-ind" id="op-ind"></div>
+    </div>
+    <div class="field">
+      <span class="lbl" id="lbl-h">Plazo</span>
+      <div class="btn-group" role="group" aria-labelledby="lbl-h" id="op-h"></div>
+    </div>
+    <p class="hint">Gobiernan toda la página. El dinero que espera cobra el interés de las letras del
+      Tesoro a 3 meses, no un 0 %.</p>
+  </div>
+</div>
+
+<div class="wrap">
+<main id="app" hidden>
+
+  <!-- ====================== 1 · el titular ====================== -->
+  <section id="titular">
+    <div class="verdict" id="veredicto"></div>
+    <div class="tiles" id="tiles"></div>
+  </section>
+
+  <!-- ====================== 2 · golpe vs repartir ====================== -->
+  <div class="sec-head">
+    <h2>Todo de golpe contra repartirlo en varios meses</h2>
+    <p>Tienes una cantidad (una herencia, un bonus, la venta de un piso). Opción A: la inviertes entera hoy.
+      Opción B: la vas metiendo a partes iguales durante unos meses, y lo que aún no has metido cobra el
+      interés del efectivo. Comparamos las dos al final del plazo, para cada mes de inicio posible.</p>
+  </div>
+  <section>
+    <div class="card">
+      <div class="card-head">
+        <div>
+          <h3 id="t-dca">Ventaja de invertir todo de golpe</h3>
+          <p class="sub" id="s-dca"></p>
+        </div>
+        <div class="field">
+          <span class="lbl" id="lbl-rep">Repartir en</span>
+          <div class="btn-group" role="group" aria-labelledby="lbl-rep" id="op-rep"></div>
+        </div>
+      </div>
+      <div class="tiles" id="tiles-dca" style="margin-top:14px;margin-bottom:0"></div>
+      <div class="chart" id="g-dca"></div>
+      <div class="legend" id="l-dca"></div>
+      <details class="tbl"><summary>Ver como tabla, por década de inicio</summary>
+        <div class="table-scroll" id="tb-dca"></div></details>
+    </div>
+  </section>
+
+  <!-- ====================== 3 · los cinco inversores ====================== -->
+  <div class="sec-head">
+    <h2>El adivino perfecto, el gafe y el que no se decide</h2>
+    <p>Ahora el dinero llega poco a poco, como un sueldo: 1.000&nbsp;$ cada enero. Cinco personas reciben
+      lo mismo durante el plazo y solo se diferencian en <i>cuándo</i> lo invierten dentro de cada año.
+      Es la versión con 90 años de datos del estudio clásico de Charles Schwab.</p>
+  </div>
+  <section>
+    <div class="card">
+      <h3 id="t-cinco">Cuánto acaba teniendo cada uno</h3>
+      <p class="sub" id="s-cinco"></p>
+      <div class="chart" id="g-cinco"></div>
+      <div class="note" id="n-cinco"></div>
+    </div>
+    <div class="card">
+      <h3>Según el año en que empezaron</h3>
+      <p class="sub" id="s-cinco-t"></p>
+      <div class="chart" id="g-cinco-t"></div>
+      <div class="legend" id="l-cinco-t"></div>
+      <details class="tbl"><summary>Ver como tabla, los cinco inversores por año de inicio</summary>
+        <div class="table-scroll" id="tb-cinco"></div></details>
+    </div>
+  </section>
+
+  <!-- ====================== 4 · esperar a una caída ====================== -->
+  <div class="sec-head">
+    <h2>«Espero a que baje un poco»</h2>
+    <p>La estrategia que más se oye: tener el dinero preparado y entrar cuando el índice caiga un tanto
+      por ciento por debajo del nivel de hoy. Mientras no cae, el dinero está en letras del Tesoro. Si la
+      caída no llega en todo el plazo, nunca se invierte.</p>
+  </div>
+  <section>
+    <div class="card">
+      <div class="card-head">
+        <div>
+          <h3 id="t-caida">Ventaja de invertir ya frente a esperar la caída</h3>
+          <p class="sub" id="s-caida"></p>
+        </div>
+        <div class="field">
+          <span class="lbl" id="lbl-caida">Esperar una caída de</span>
+          <div class="btn-group" role="group" aria-labelledby="lbl-caida" id="op-caida"></div>
+        </div>
+      </div>
+      <div class="tiles" id="tiles-caida" style="margin-top:14px;margin-bottom:0"></div>
+      <div class="chart" id="g-caida"></div>
+      <div class="legend" id="l-caida"></div>
+      <details class="tbl"><summary>Ver como tabla, todas las caídas</summary>
+        <div class="table-scroll" id="tb-caida"></div></details>
+    </div>
+  </section>
+
+  <!-- ====================== 5 · por qué ====================== -->
+  <div class="sec-head">
+    <h2>Por qué pasa, y cuándo no hacerle caso</h2>
+  </div>
+  <section>
+    <div class="card prose" id="prosa"></div>
+    <div class="card prose" id="metodo"></div>
+  </section>
+
+</main>
+</div>
+
+<div class="wrap">
+<div class="state" id="cargando">Cargando datos…</div>
+<div class="state" id="error" hidden></div>
+
+<footer>
+  <p>Fuentes: Robert Shiller (Yale), S&amp;P Dow Jones Indices, FRED (letras del Tesoro <code>TB3MS</code>)
+    y Yahoo Finance (ETF <code>URTH</code> y <code>EFA</code>). Mismos datos que
+    <a href="sp500-rendimientos.html">¿De verdad el S&amp;P 500 renta un 10&nbsp;%?</a></p>
+  <p style="margin-top:8px">Página estática, sin seguimiento ni peticiones a terceros · No es
+    asesoramiento financiero · <a href="/">webs.raular.com</a></p>
+</footer>
+</div>
+
+<script type="module">
+/* ===========================================================================
+   Núcleo: carga, estado y utilidades.
+   =========================================================================== */
+
+const $ = (s, r = document) => r.querySelector(s);
+
+const nf = (d = 1) => new Intl.NumberFormat("es-ES", { minimumFractionDigits: d, maximumFractionDigits: d });
+const pct  = (x, d = 0) => (x == null || !isFinite(x) ? "—" : `${x < 0 ? "−" : ""}${nf(d).format(Math.abs(x * 100))} %`);
+const pctS = (x, d = 1) => (x == null || !isFinite(x) ? "—" : `${x >= 0 ? "+" : "−"}${nf(d).format(Math.abs(x * 100))} %`);
+const dinero = (x) => (x == null || !isFinite(x) ? "—" :
+  `${new Intl.NumberFormat("es-ES", { maximumFractionDigits: 0 }).format(Math.round(x))} $`);
+const MESES = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
+const mesLargo = (k) => `${MESES[+k.slice(5, 7) - 1]} de ${k.slice(0, 4)}`;
+const esc = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;");
+
+let D;
+try {
+  D = await (await fetch("data/mercados.json", { cache: "no-cache" })).json();
+} catch (e) {
+  $("#cargando").hidden = true;
+  const err = $("#error");
+  err.hidden = false;
+  err.innerHTML = `No se han podido cargar los datos (<code>data/mercados.json</code>).<br>
+    Si has abierto el archivo con doble clic, el navegador bloquea la lectura por CORS:
+    sírvelo por HTTP o ábrelo en <a href="https://webs.raular.com/pages/invertir-ya-o-esperar.html">webs.raular.com</a>.`;
+  throw e;
+}
+const M = D.meses;
+const N = M.length;
+const CASH = D.series.letras3m.v;
+
+/**
+ * Índices que se pueden elegir. Todos con dividendos reinvertidos: sin ellos,
+ * esperar en efectivo (que sí cobra su interés) saldría favorecido sin motivo.
+ * El MSCI ACWI no está en los datos; el MSCI World solo existe aquí como ETF
+ * desde 2012, así que admite pocos plazos.
+ */
+const INDICES = [
+  { id: "sp500_tr",   nombre: "S&P 500",           largo: "el S&P 500" },
+  { id: "mundo_exus", nombre: "MSCI EAFE (sin EE. UU.)", largo: "el MSCI EAFE (desarrollados sin EE. UU.)" },
+  { id: "mundo",      nombre: "MSCI World",        largo: "el MSCI World" },
+];
+const PLAZOS = [5, 10, 20];
+const REPARTOS = [3, 6, 12, 24, 36];
+const CAIDAS = [0.05, 0.1, 0.2, 0.3];
+const APORTE = 1000;
+
+const S = { ind: "sp500_tr", h: 10, rep: 12, caida: 0.1 };
+
+/** Meses [a, b] en que hay a la vez dato del índice y del efectivo. */
+function rango(id) {
+  const v = D.series[id].v;
+  let a = 0, b = N - 1;
+  while (a < N && (v[a] == null || CASH[a] == null)) a++;
+  while (b > a && (v[b] == null || CASH[b] == null)) b--;
+  return [a, b];
+}
+const growth = (v, k) => v[k + 1] / v[k];
+const mediana = (xs) => {
+  if (!xs.length) return null;
+  const s = [...xs].sort((p, q) => p - q), m = s.length >> 1;
+  return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2;
+};
+const cuota = (xs, f) => xs.length ? xs.filter(f).length / xs.length : null;
+
+/* ===========================================================================
+   Las tres simulaciones. Todas en nominal y en la moneda del índice: se
+   comparan estrategias entre sí con el mismo dinero, así que la inflación
+   divide a las dos por igual y no cambia quién gana.
+   =========================================================================== */
+
+/**
+ * Todo de golpe frente a repartir en `n` meses, medido `H` meses después de
+ * empezar. El tramo aún no invertido cobra las letras del Tesoro.
+ * Devuelve un punto por mes de inicio: { i, golpe, rep, v } con v = golpe/rep − 1.
+ */
+function golpeVsReparto(id, n, H) {
+  const P = D.series[id].v, [a, b] = rango(id), out = [];
+  for (let t = a; t + H <= b; t++) {
+    const golpe = P[t + H] / P[t];
+    let cash = 1, part = 0;
+    for (let k = t; k < t + H; k++) {
+      if (k < t + n) { part += (1 / n) / P[k]; cash -= 1 / n; }
+      cash *= growth(CASH, k);
+    }
+    const rep = part * P[t + H] + Math.max(0, cash);
+    out.push({ i: t, golpe, rep, v: golpe / rep - 1 });
+  }
+  return out;
+}
+
+/**
+ * Los cinco inversores: APORTE cada enero durante Y años, y se mira el
+ * resultado el enero siguiente a la última aportación. Cada uno decide
+ * cuándo invertir dentro del año; lo que espera, cobra las letras.
+ * Ojo: los precios de Shiller son medias mensuales, no cierres diarios, así
+ * que el "perfecto" acierta el mes más barato, no el día más barato.
+ */
+const ESTRATEGIAS = [
+  { id: "perfecto", nombre: "El adivino perfecto", sub: "compra cada año en el mes más barato", color: "var(--est-perfecto)" },
+  { id: "ya",       nombre: "En cuanto cobra",     sub: "invierte el mismo mes que recibe el dinero", color: "var(--est-ya)" },
+  { id: "mensual",  nombre: "Mes a mes",           sub: "lo reparte en 12 partes, una al mes", color: null },
+  { id: "peor",     nombre: "El gafe",             sub: "compra cada año en el mes más caro", color: "var(--est-peor)" },
+  { id: "efectivo", nombre: "El que no se decide", sub: "lo deja todo en letras del Tesoro", color: "var(--ref)" },
+];
+function cincoInversores(id, Y) {
+  const P = D.series[id].v, [a, b] = rango(id);
+  const eneros = [];
+  for (let i = a; i <= b; i++) if (M[i].endsWith("-01")) eneros.push(i);
+  const out = [];
+  for (let s = 0; s + Y < eneros.length; s++) {
+    const fin = eneros[s + Y], val = {};
+    for (const { id: est } of ESTRATEGIAS) {
+      let part = 0, cash = 0;
+      for (let y = 0; y < Y; y++) {
+        const e = eneros[s + y];
+        const meses = Array.from({ length: 12 }, (_, k) => e + k);
+        const compra = est === "ya" ? e
+          : est === "perfecto" ? meses.reduce((p, q) => (P[q] < P[p] ? q : p))
+          : est === "peor" ? meses.reduce((p, q) => (P[q] > P[p] ? q : p))
+          : null;
+        let c = APORTE;
+        for (let k = e; k < fin; k++) {
+          if (est === "mensual" && k < e + 12) { part += (APORTE / 12) / P[k]; c -= APORTE / 12; }
+          else if (k === compra) { part += c / P[k]; c = 0; }
+          c *= growth(CASH, k);
+        }
+        cash += Math.max(0, c);
+      }
+      val[est] = part * P[fin] + cash;
+    }
+    out.push({ i: eneros[s], fin, aportado: APORTE * Y, ...val });
+  }
+  return out;
+}
+
+/**
+ * Esperar a que el índice caiga `x` por debajo del nivel del mes en que se
+ * tiene el dinero; mientras, letras. Si no cae en H meses, nunca invierte.
+ * v = invertir ya / esperar − 1 (positivo: invertir ya ganó).
+ */
+function esperarCaida(id, x, H) {
+  const P = D.series[id].v, [a, b] = rango(id), out = [];
+  for (let t = a; t + H <= b; t++) {
+    let cash = 1, entra = null;
+    for (let k = t; k < t + H; k++) {
+      if (P[k] <= P[t] * (1 - x)) { entra = k; break; }
+      cash *= growth(CASH, k);
+    }
+    const espera = entra == null ? cash : (cash / P[entra]) * P[t + H];
+    const ya = P[t + H] / P[t];
+    out.push({ i: t, ya, espera, entra, v: ya / espera - 1 });
+  }
+  return out;
+}
+
+/* ===========================================================================
+   Dibujo: SVG a mano, una unidad = un píxel CSS del contenedor.
+   =========================================================================== */
+
+const NS = "http://www.w3.org/2000/svg";
+const el = (t, a = {}) => {
+  const n = document.createElementNS(NS, t);
+  for (const [k, v] of Object.entries(a)) if (v != null) n.setAttribute(k, v);
+  return n;
+};
+
+function marco(host, { h = 300, ml = 56, mr = 18, mt = 14, mb = 30, titulo = "" } = {}) {
+  const w = Math.max(320, Math.round(host.clientWidth || 960));
+  host.textContent = "";
+  const svg = el("svg", { viewBox: `0 0 ${w} ${h}`, role: "group" });
+  if (titulo) svg.appendChild(el("title")).textContent = titulo;
+  host.appendChild(svg);
+  const tip = document.createElement("div");
+  tip.className = "tip";
+  tip.setAttribute("role", "status");
+  tip.setAttribute("aria-live", "polite");
+  host.appendChild(tip);
+  return { svg, tip, w, h, x0: ml, x1: w - mr, y0: mt, y1: h - mb, add: (n) => (svg.appendChild(n), n) };
+}
+
+function ticksLineal(min, max, n = 5) {
+  const bruto = (max - min) / n || 1;
+  const mag = Math.pow(10, Math.floor(Math.log10(bruto)));
+  const paso = [1, 2, 2.5, 5, 10].map((m) => m * mag).find((p) => p >= bruto) || mag * 10;
+  const out = [];
+  for (let v = Math.ceil(min / paso) * paso; v <= max + 1e-9; v += paso) out.push(+v.toFixed(10));
+  return out;
+}
+function ejeY(g, vals, y, fmt, cero = null) {
+  for (const v of vals) {
+    g.add(el("line", { x1: g.x0, x2: g.x1, y1: y(v), y2: y(v), class: v === cero ? "ax" : "gl" }));
+    g.add(el("text", { x: g.x0 - 8, y: y(v) + 4, "text-anchor": "end" })).textContent = fmt(v);
+  }
+}
+function ejeXAños(g, a, b, x) {
+  const años = (b - a) / 12;
+  const max = Math.max(3, Math.floor((g.x1 - g.x0) / 70));
+  const paso = [1, 2, 5, 10, 20].find((p) => años / p <= max) || 25;
+  g.add(el("line", { x1: g.x0, x2: g.x1, y1: g.y1, y2: g.y1, class: "ax" }));
+  const ya = +M[a].slice(0, 4), yb = +M[b].slice(0, 4);
+  for (let yr = Math.ceil(ya / paso) * paso; yr <= yb; yr += paso) {
+    const i = M.indexOf(`${yr}-01`);
+    if (i < a || i > b) continue;
+    g.add(el("line", { x1: x(i), x2: x(i), y1: g.y1, y2: g.y1 + 4, class: "ax" }));
+    g.add(el("text", { x: x(i), y: g.y1 + 17, "text-anchor": "middle" })).textContent = String(yr);
+  }
+}
+
+/**
+ * Cruceta genérica: `pts` = [{ x, html, dots: [{ y, color }] }]. Un único
+ * rectángulo captura ratón y dedo en toda la altura; las flechas la mueven
+ * con teclado (Mayús+flecha salta un año).
+ */
+function cruceta(g, pts, titulo, saltoMayus = 12) {
+  const linea = g.add(el("line", { y1: g.y0, y2: g.y1, class: "gl", "stroke-width": 1.5, opacity: 0 }));
+  const nd = Math.max(0, ...pts.map((p) => p.dots.length));
+  const dots = Array.from({ length: nd }, () => g.add(el("circle", { r: 4.5, class: "dot", opacity: 0 })));
+  const hit = g.add(el("rect", {
+    x: g.x0, y: g.y0, width: g.x1 - g.x0, height: g.y1 - g.y0, class: "hit",
+    tabindex: "0", role: "application", "aria-label": `${titulo}. Usa las flechas para recorrerlo.`,
+  }));
+  let cur = null;
+  const pinta = (k) => {
+    cur = k;
+    const p = pts[k];
+    linea.setAttribute("x1", p.x); linea.setAttribute("x2", p.x); linea.setAttribute("opacity", 1);
+    dots.forEach((d, j) => {
+      const q = p.dots[j];
+      if (!q) { d.setAttribute("opacity", 0); return; }
+      d.setAttribute("cx", p.x); d.setAttribute("cy", q.y); d.setAttribute("fill", q.color); d.setAttribute("opacity", 1);
+    });
+    g.tip.innerHTML = p.html;
+    g.tip.classList.add("on");
+    const r = g.svg.getBoundingClientRect(), escala = r.width / g.w, izq = p.x * escala;
+    const ancho = g.tip.offsetWidth;
+    g.tip.style.left = `${izq + 14 + ancho > r.width ? Math.max(4, izq - 14 - ancho) : izq + 14}px`;
+    g.tip.style.top = `${Math.max(4, g.y0 * escala + 6)}px`;
+  };
+  const apaga = () => {
+    linea.setAttribute("opacity", 0);
+    dots.forEach((d) => d.setAttribute("opacity", 0));
+    g.tip.classList.remove("on");
+  };
+  const desde = (ev) => {
+    const r = g.svg.getBoundingClientRect(), vx = ((ev.clientX - r.left) / r.width) * g.w;
+    let mejor = 0, dmin = Infinity;
+    pts.forEach((p, k) => { const d = Math.abs(p.x - vx); if (d < dmin) { dmin = d; mejor = k; } });
+    pinta(mejor);
+  };
+  hit.addEventListener("pointermove", desde);
+  hit.addEventListener("pointerdown", desde);
+  hit.addEventListener("pointerleave", apaga);
+  hit.addEventListener("blur", apaga);
+  hit.addEventListener("focus", () => pinta(cur ?? pts.length - 1));
+  hit.addEventListener("keydown", (ev) => {
+    const paso = ev.shiftKey ? saltoMayus : 1;
+    if (ev.key === "ArrowRight") { pinta(Math.min(pts.length - 1, (cur ?? 0) + paso)); ev.preventDefault(); }
+    if (ev.key === "ArrowLeft")  { pinta(Math.max(0, (cur ?? pts.length - 1) - paso)); ev.preventDefault(); }
+    if (ev.key === "Escape") apaga();
+  });
+}
+
+function leyenda(host, items) {
+  host.innerHTML = items.map((it) => {
+    const k = it.dash ? `<i class="key dash"></i>` : it.sq ? `<i class="key sq" style="background:${it.color}"></i>`
+      : `<i class="key" style="background:${it.color}"></i>`;
+    return `<span class="it">${k}${esc(it.nombre)}</span>`;
+  }).join("");
+}
+
+function tabla(host, cab, filas, caption) {
+  host.innerHTML =
+    `<table><caption class="sr">${esc(caption)}</caption>` +
+    `<thead><tr>${cab.map((c) => `<th scope="col">${esc(c)}</th>`).join("")}</tr></thead>` +
+    `<tbody>${filas.map((f) => `<tr>${f.map((c, i) => i === 0
+      ? `<th scope="row" style="font-weight:600">${c}</th>`
+      : `<td class="${String(c).startsWith("−") ? "neg" : c === "—" ? "na" : ""}">${c}</td>`).join("")}</tr>`).join("")}</tbody></table>`;
+}
+
+/**
+ * Gráfico divergente a lo largo del tiempo: un valor por mes de inicio, área
+ * azul por encima del cero ("invertir ya ganó") y roja por debajo.
+ */
+function divergente(host, pts, { titulo, arriba, abajo, tip }) {
+  const g = marco(host, { h: 300, titulo });
+  const a = pts[0].i, b = pts[pts.length - 1].i;
+  const vs = pts.map((p) => p.v);
+  let lo = Math.min(0, ...vs), hi = Math.max(0, ...vs);
+  const pad = (hi - lo) * 0.06 || 0.01; lo -= pad; hi += pad;
+  const x = (i) => g.x0 + ((i - a) / Math.max(1, b - a)) * (g.x1 - g.x0);
+  const y = (v) => g.y1 - ((v - lo) / (hi - lo)) * (g.y1 - g.y0);
+  ejeY(g, ticksLineal(lo, hi, 5), y, (v) => pctS(v, 0), 0);
+  ejeXAños(g, a, b, x);
+  for (const [signo, color] of [[1, "var(--pos)"], [-1, "var(--neg)"]]) {
+    let d = `M${x(a).toFixed(1)} ${y(0).toFixed(1)}`;
+    for (const p of pts) d += `L${x(p.i).toFixed(1)} ${y(signo > 0 ? Math.max(0, p.v) : Math.min(0, p.v)).toFixed(1)}`;
+    d += `L${x(b).toFixed(1)} ${y(0).toFixed(1)}Z`;
+    g.add(el("path", { d, fill: color, opacity: 0.85 }));
+  }
+  g.add(el("line", { x1: g.x0, x2: g.x1, y1: y(0), y2: y(0), class: "ax" }));
+  if (hi > 0) g.add(el("text", { x: g.x0 + 8, y: g.y0 + 14, class: "lbl-out" })).textContent = `↑ ${arriba}`;
+  if (lo < 0) g.add(el("text", { x: g.x0 + 8, y: g.y1 - 8, class: "lbl-out" })).textContent = `↓ ${abajo}`;
+  cruceta(g, pts.map((p) => ({
+    x: x(p.i), html: tip(p),
+    dots: [{ y: y(p.v), color: p.v >= 0 ? "var(--pos)" : "var(--neg)" }],
+  })), titulo);
+}
+
+/** Barras horizontales: una fila por inversor, valor rotulado al final. */
+function barrasH(host, items, { titulo, ref }) {
+  const fila = 46, ml = Math.min(190, Math.round((host.clientWidth || 600) * 0.34));
+  const g = marco(host, { h: items.length * fila + 34, ml, mr: 90, mt: 6, mb: 26, titulo });
+  const max = Math.max(...items.map((it) => it.v), ref || 0);
+  const x = (v) => g.x0 + (v / max) * (g.x1 - g.x0);
+  for (const v of ticksLineal(0, max, 4)) {
+    g.add(el("line", { x1: x(v), x2: x(v), y1: g.y0, y2: g.y1, class: v === 0 ? "ax" : "gl" }));
+    g.add(el("text", { x: x(v), y: g.y1 + 16, "text-anchor": "middle" })).textContent =
+      new Intl.NumberFormat("es-ES", { notation: "compact", maximumFractionDigits: 1 }).format(v);
+  }
+  if (ref) {
+    g.add(el("line", { x1: x(ref), x2: x(ref), y1: g.y0, y2: g.y1, class: "ln-ref" }));
+  }
+  items.forEach((it, k) => {
+    const yc = g.y0 + k * fila + fila / 2, hb = 20, x1 = x(it.v), r = Math.min(4, x1 - g.x0);
+    const t = el("text", { x: g.x0 - 10, y: yc - 2, "text-anchor": "end", class: "lbl" });
+    t.textContent = it.nombre; g.add(t);
+    const s = el("text", { x: g.x0 - 10, y: yc + 12, "text-anchor": "end" });
+    s.textContent = it.corto; g.add(s);
+    // Extremo de dato redondeado; el que toca la base, recto.
+    const top = yc - hb / 2, bot = yc + hb / 2;
+    const d = `M${g.x0} ${top}H${x1 - r}Q${x1} ${top} ${x1} ${top + r}V${bot - r}Q${x1} ${bot} ${x1 - r} ${bot}H${g.x0}Z`;
+    const bar = g.add(el("path", { d, fill: it.color, tabindex: "0", role: "img", "aria-label": `${it.nombre}: ${dinero(it.v)}` }));
+    g.add(el("text", { x: x1 + 8, y: yc + 4, class: "val" })).textContent = dinero(it.v);
+    const on = () => {
+      g.tip.innerHTML = it.html; g.tip.classList.add("on");
+      const R = g.svg.getBoundingClientRect(), B = bar.getBoundingClientRect();
+      g.tip.style.left = `${Math.min(Math.max(B.right - R.left - g.tip.offsetWidth / 2, 4), R.width - g.tip.offsetWidth - 4)}px`;
+      g.tip.style.top = `${Math.max(2, B.top - R.top - g.tip.offsetHeight - 8)}px`;
+    };
+    const off = () => g.tip.classList.remove("on");
+    for (const ev of ["pointerenter", "pointerdown", "focus"]) bar.addEventListener(ev, on);
+    for (const ev of ["pointerleave", "blur"]) bar.addEventListener(ev, off);
+  });
+}
+
+/** Líneas por año de inicio, con etiqueta directa al final de cada una. */
+function lineasAño(host, filas, series, { titulo }) {
+  const g = marco(host, { h: 300, mr: 128, titulo });
+  const a = filas[0].i, b = filas[filas.length - 1].i;
+  const vals = filas.flatMap((f) => series.map((s) => s.f(f)));
+  const hi = Math.max(...vals) * 1.05;
+  const x = (i) => g.x0 + ((i - a) / Math.max(1, b - a)) * (g.x1 - g.x0);
+  const y = (v) => g.y1 - (v / hi) * (g.y1 - g.y0);
+  ejeY(g, ticksLineal(0, hi, 5), y, (v) => `×${nf(v < 10 ? 1 : 0).format(v)}`, 0);
+  ejeXAños(g, a, b, x);
+  for (const s of series) {
+    const d = filas.map((f, k) => `${k ? "L" : "M"}${x(f.i).toFixed(1)} ${y(s.f(f)).toFixed(1)}`).join("");
+    g.add(el("path", { d, class: s.ref ? "ln-ref" : "ln", stroke: s.ref ? null : s.color }));
+    if (filas.length === 1) g.add(el("circle", { cx: x(a), cy: y(s.f(filas[0])), r: 4, fill: s.color }));
+  }
+  // Etiquetas al final, separadas al menos 14 px para que no se pisen.
+  const last = filas[filas.length - 1];
+  const et = series.map((s) => ({ s, y: y(s.f(last)) })).sort((p, q) => p.y - q.y);
+  for (let k = 1; k < et.length; k++) et[k].y = Math.max(et[k].y, et[k - 1].y + 14);
+  for (const e of et) g.add(el("text", { x: g.x1 + 8, y: e.y + 4, class: "lbl-out" })).textContent = e.s.nombre;
+  cruceta(g, filas.map((f) => ({
+    x: x(f.i),
+    html: `<b>Empezando en ${M[f.i].slice(0, 4)}</b>` +
+      `<div class="foot">Aportado: ${dinero(f.aportado)} · resultado en enero de ${M[f.fin].slice(0, 4)}</div>` +
+      ESTRATEGIAS.map((e) => `<div class="row"><span>${e.color ? `<i class="dot-inline" style="background:${e.color}"></i>` : ""}${esc(e.nombre)}</span><b>${dinero(f[e.id])}</b></div>`).join(""),
+    dots: series.map((s) => ({ y: y(s.f(f)), color: s.color })),
+  })), titulo, 5);
+}
+
+/* ===========================================================================
+   Secciones
+   =========================================================================== */
+
+const IND = () => INDICES.find((i) => i.id === S.ind);
+const plural = (n, uno, varios) => `${n} ${n === 1 ? uno : varios}`;
+
+/** ¿Hay datos suficientes para este índice y plazo? (al menos 3 inicios en las tres pruebas) */
+function cabe(id, h) {
+  const [a, b] = rango(id);
+  return b - a - h * 12 >= 36 && cincoInversores(id, h).length >= 3;
+}
+
+function tile(k, v, s) { return `<div class="tile"><div class="k">${k}</div><div class="v">${v}</div><div class="s">${s}</div></div>`; }
+
+function pintar() {
+  const id = S.ind, H = S.h * 12, ind = IND();
+  const [a, b] = rango(id);
+
+  /* ---------- 2 · golpe vs repartir ---------- */
+  const g12 = golpeVsReparto(id, 12, H);
+  const gv = S.rep === 12 ? g12 : golpeVsReparto(id, S.rep, H);
+  const gana = cuota(gv, (p) => p.v > 0);
+  $("#s-dca").textContent =
+    `Cada punto es un mes de inicio entre ${mesLargo(M[gv[0].i])} y ${mesLargo(M[gv[gv.length - 1].i])}: ` +
+    `cuánto más (o menos) tienes a los ${S.h} años por haberlo metido todo el primer día en vez de repartirlo ` +
+    `en ${S.rep} meses. ${ind.largo[0].toUpperCase() + ind.largo.slice(1)}, con dividendos.`;
+  const peores = [...gv].sort((p, q) => p.v - q.v);
+  $("#tiles-dca").innerHTML =
+    tile("Todo de golpe gana", pct(gana), `en ${plural(gv.length, "mes de inicio", "meses de inicio")}`) +
+    tile("Ventaja típica", pctS(mediana(gv.map((p) => p.v))), `mediana, sobre el total a ${S.h} años`) +
+    tile("Lo peor que salió", pctS(peores[0].v), `empezando en ${mesLargo(M[peores[0].i])}`) +
+    tile("Lo mejor que salió", pctS(peores[peores.length - 1].v), `empezando en ${mesLargo(M[peores[peores.length - 1].i])}`);
+  divergente($("#g-dca"), gv, {
+    titulo: `Ventaja de invertir de golpe frente a repartir en ${S.rep} meses, a ${S.h} años, por mes de inicio`,
+    arriba: "gana todo de golpe", abajo: `gana repartir en ${S.rep} meses`,
+    tip: (p) => `<b>Empiezas en ${mesLargo(M[p.i])}</b>` +
+      `<div class="row"><span>Todo de golpe</span><b>${dinero(10000 * p.golpe)}</b></div>` +
+      `<div class="row"><span>Repartido en ${S.rep} meses</span><b>${dinero(10000 * p.rep)}</b></div>` +
+      `<div class="row"><span>Diferencia</span><b>${pctS(p.v)}</b></div>` +
+      `<div class="foot">Con 10.000 $ al principio, mirado ${S.h} años después.</div>`,
+  });
+  leyenda($("#l-dca"), [
+    { nombre: "Invertir todo de golpe acabó con más", color: "var(--pos)", sq: true },
+    { nombre: `Repartir en ${S.rep} meses acabó con más`, color: "var(--neg)", sq: true },
+  ]);
+  const décadas = new Map();
+  for (const p of gv) {
+    const d = Math.floor(+M[p.i].slice(0, 4) / 10) * 10;
+    if (!décadas.has(d)) décadas.set(d, []);
+    décadas.get(d).push(p.v);
+  }
+  tabla($("#tb-dca"), ["Década de inicio", "Meses", "Gana de golpe", "Mediana", "Peor", "Mejor"],
+    [...décadas].map(([d, vs]) => [`${d}s`, vs.length, pct(cuota(vs, (v) => v > 0)), pctS(mediana(vs)),
+      pctS(Math.min(...vs)), pctS(Math.max(...vs))]),
+    "Todo de golpe frente a repartir, por década de inicio");
+
+  /* ---------- 3 · los cinco inversores ---------- */
+  const cinco = cincoInversores(id, S.h);
+  const med = Object.fromEntries(ESTRATEGIAS.map((e) => [e.id, mediana(cinco.map((f) => f[e.id]))]));
+  const aportado = APORTE * S.h;
+  $("#s-cinco").textContent =
+    `Mediana de ${plural(cinco.length, "periodo", "periodos")} de ${S.h} años, el primero empezando en ` +
+    `${M[cinco[0].i].slice(0, 4)} y el último en ${M[cinco[cinco.length - 1].i].slice(0, 4)}. ` +
+    `Cada uno aportó ${dinero(aportado)} en total (la línea discontinua).`;
+  barrasH($("#g-cinco"), ESTRATEGIAS.map((e) => ({
+    nombre: e.nombre, corto: e.sub, v: med[e.id],
+    color: e.id === "efectivo" ? "var(--ref)" : "var(--series-1)",
+    html: `<b>${esc(e.nombre)}</b><div class="foot">${esc(e.sub)}</div>` +
+      `<div class="row"><span>Mediana</span><b>${dinero(med[e.id])}</b></div>` +
+      `<div class="row"><span>Frente a «en cuanto cobra»</span><b>${pctS(med[e.id] / med.ya - 1)}</b></div>`,
+  })), { titulo: `Valor final mediano de los cinco inversores a ${S.h} años`, ref: aportado });
+  const ventajaPerfecto = mediana(cinco.map((f) => f.perfecto / f.ya - 1));
+  const gafeGana = cuota(cinco, (f) => f.peor > f.efectivo);
+  const yaGanaMensual = cuota(cinco, (f) => f.ya > f.mensual);
+  $("#n-cinco").innerHTML =
+    `Acertar cada año el mes más barato (algo que nadie sabe hacer) solo da un <b>${pctS(ventajaPerfecto)}</b> más que ` +
+    `invertir en cuanto llega el dinero. Y el gafe, que compra siempre en el peor mes del año, ` +
+    `<b>acaba por delante del que espera en efectivo en el ${pct(gafeGana)}</b> de los periodos. ` +
+    `Invertir de inmediato supera a repartirlo mes a mes en el ${pct(yaGanaMensual)}.`;
+
+  $("#s-cinco-t").textContent =
+    `Lo que acaba teniendo cada uno, como múltiplo de lo aportado, según el año en que empezó. ` +
+    `Las líneas de los que invierten van casi pegadas; la que se separa es la del que espera.`;
+  lineasAño($("#g-cinco-t"), cinco, [
+    { nombre: "Adivino perfecto", color: "var(--est-perfecto)", f: (f) => f.perfecto / f.aportado },
+    { nombre: "En cuanto cobra", color: "var(--est-ya)", f: (f) => f.ya / f.aportado },
+    { nombre: "El gafe", color: "var(--est-peor)", f: (f) => f.peor / f.aportado },
+    { nombre: "No se decide", color: "var(--ref)", ref: true, f: (f) => f.efectivo / f.aportado },
+  ], { titulo: `Múltiplo final de lo aportado por año de inicio, a ${S.h} años` });
+  leyenda($("#l-cinco-t"), [
+    { nombre: "El adivino perfecto", color: "var(--est-perfecto)" },
+    { nombre: "En cuanto cobra", color: "var(--est-ya)" },
+    { nombre: "El gafe", color: "var(--est-peor)" },
+    { nombre: "El que no se decide (efectivo)", dash: true },
+  ]);
+  tabla($("#tb-cinco"), ["Inicio", "Aportado", ...ESTRATEGIAS.map((e) => e.nombre)],
+    cinco.map((f) => [M[f.i].slice(0, 4), dinero(f.aportado), ...ESTRATEGIAS.map((e) => dinero(f[e.id]))]),
+    "Valor final de los cinco inversores por año de inicio");
+
+  /* ---------- 4 · esperar una caída ---------- */
+  const todas = CAIDAS.map((x) => ({ x, pts: esperarCaida(id, x, H) }));
+  const cv = todas.find((c) => c.x === S.caida).pts;
+  const nunca = cuota(cv, (p) => p.entra == null);
+  const conEntrada = cv.filter((p) => p.entra != null);
+  $("#s-caida").textContent =
+    `Para cada mes de inicio: cuánto más tienes a los ${S.h} años por invertir ese mismo mes en vez de ` +
+    `esperar a una caída del ${pct(S.caida)}. Por encima del cero, invertir ya ganó. Si la caída llega, esperar ` +
+    `gana siempre (compras más barato que hoy); invertir ya solo gana porque muchas veces no llega.`;
+  $("#tiles-caida").innerHTML =
+    tile("Invertir ya gana", pct(cuota(cv, (p) => p.v > 0)), `de ${plural(cv.length, "mes de inicio", "meses de inicio")}`) +
+    tile("La caída nunca llegó", pct(nunca), `en ${S.h} años: el dinero se quedó en efectivo`) +
+    tile("Cuando llegó, esperar ganó", conEntrada.length ? pctS(-mediana(conEntrada.map((p) => p.v))) : "—",
+      "mediana: compraste más barato, siempre") +
+    tile("Cuando no llegó, esperar perdió", cv.length > conEntrada.length
+      ? pctS(-mediana(cv.filter((p) => p.entra == null).map((p) => p.v))) : "—", "mediana: años enteros en efectivo");
+  divergente($("#g-caida"), cv, {
+    titulo: `Ventaja de invertir ya frente a esperar una caída del ${pct(S.caida)}, a ${S.h} años`,
+    arriba: "gana invertir ya", abajo: "gana esperar la caída",
+    tip: (p) => `<b>Tienes el dinero en ${mesLargo(M[p.i])}</b>` +
+      `<div class="row"><span>Invertir ya</span><b>${dinero(10000 * p.ya)}</b></div>` +
+      `<div class="row"><span>Esperar la caída</span><b>${dinero(10000 * p.espera)}</b></div>` +
+      `<div class="row"><span>Diferencia</span><b>${pctS(p.v)}</b></div>` +
+      `<div class="foot">${p.entra == null ? `La caída no llegó: ${S.h} años en efectivo.`
+        : `Entró en ${mesLargo(M[p.entra])}, tras ${plural(p.entra - p.i, "mes", "meses")} esperando.`}</div>`,
+  });
+  leyenda($("#l-caida"), [
+    { nombre: "Invertir ya acabó con más", color: "var(--pos)", sq: true },
+    { nombre: "Esperar la caída acabó con más", color: "var(--neg)", sq: true },
+  ]);
+  tabla($("#tb-caida"), ["Esperar una caída de", "Invertir ya gana", "La caída no llegó", "Ventaja mediana de no esperar", "Espera mediana"],
+    todas.map(({ x, pts }) => {
+      const e = pts.filter((p) => p.entra != null);
+      return [pct(x), pct(cuota(pts, (p) => p.v > 0)), pct(cuota(pts, (p) => p.entra == null)),
+        pctS(mediana(pts.map((p) => p.v))), e.length ? `${nf(0).format(mediana(e.map((p) => p.entra - p.i)))} meses` : "—"];
+    }), `Esperar una caída frente a invertir ya, a ${S.h} años`);
+
+  /* ---------- 1 · veredicto y tiles de cabecera ---------- */
+  const caida10 = todas.find((c) => c.x === 0.1).pts;
+  $("#veredicto").innerHTML =
+    `<p>Con ${ind.largo} y a ${S.h} años, <b>invertir todo de golpe ganó a repartirlo en 12 meses en el ${pct(cuota(g12, (p) => p.v > 0))}
+    de los casos</b>, y esperar a una caída del 10&nbsp;% perdió contra invertir ya en el ${pct(cuota(caida10, (p) => p.v > 0))}.</p>
+    <p class="small">El motivo es simple: la bolsa sube más de lo que paga el efectivo la mayoría de los meses, y cada mes
+    esperando se pierde esa diferencia. Repartir solo gana cuando justo después viene una caída fuerte, y eso
+    no se sabe de antemano.</p>` +
+    (cuota(caida10, (p) => p.v > 0) < 0.5 ? `<p class="small"><b>Ojo con este índice:</b> aquí esperar a la caída salió
+    mejor la mayoría de las veces. Son ${Math.round((b - a) / 12)} años de historia en los que la bolsa pasó mucho
+    tiempo sin subir, y cuando el mercado no sube, esperar no cuesta. Con los 90 años del S&amp;P 500 sale al revés:
+    lo que este índice enseña es que la regla es una media, no una garantía.</p>` : "");
+  $("#tiles").innerHTML =
+    tile("De golpe gana a repartir en 12 meses", pct(cuota(g12, (p) => p.v > 0)), `de los meses de inicio, a ${S.h} años`) +
+    tile("Lo que da ser adivino", pctS(ventajaPerfecto), "más que invertir en cuanto se cobra (mediana)") +
+    tile("El gafe gana al que espera", pct(gafeGana), "de los periodos, comprando siempre en el peor mes") +
+    tile("Esperar una caída del 10 % pierde", pct(cuota(caida10, (p) => p.v > 0)), `de las veces; en el ${pct(cuota(caida10, (p) => p.entra == null))} ni siquiera llega`);
+
+  $("#stamp").innerHTML =
+    `${esc(ind.nombre)} con dividendos, de <b>${mesLargo(M[a])}</b> a <b>${mesLargo(M[b])}</b> · ` +
+    `${new Intl.NumberFormat("es-ES").format(b - a + 1)} meses · datos generados el ${D.meta.generado}`;
+}
+
+/* ---------- textos fijos (con las cifras del EAFE a 10 años, que no dependen de los mandos) ---------- */
+const EAFE = {
+  golpe: cuota(golpeVsReparto("mundo_exus", 12, 120), (p) => p.v > 0),
+  caida: cuota(esperarCaida("mundo_exus", 0.1, 120), (p) => p.v > 0),
+};
+$("#prosa").innerHTML = `
+  <h3 style="margin-top:0">La razón de fondo</h3>
+  <p>A largo plazo la bolsa ha rentado bastante más que el efectivo: el S&amp;P 500 en torno a un 10&nbsp;% nominal
+    anual y las letras del Tesoro un 3–4&nbsp;%. Esperar es apostar a que los próximos meses serán peores que esa
+    media. A veces lo son, pero en la mayoría de los meses no, y el coste de equivocarse se acumula.
+    Por eso el adivino perfecto saca tan poco: incluso comprando cada año en el mes más barato, la ganancia
+    es pequeña comparada con la de simplemente estar dentro del mercado más tiempo.</p>
+  <h3>¿Y el MSCI World o el MSCI ACWI?</h3>
+  <p>El principio no depende del índice: vale para cualquier activo cuya rentabilidad esperada supere a la del
+    efectivo. Lo que sí cambia es cuánta historia hay para comprobarlo. Aquí el MSCI World solo existe desde 2012
+    (a través del ETF <code>URTH</code>) y el MSCI ACWI no está en los datos. El MSCI EAFE, la bolsa desarrollada
+    fuera de EE.&nbsp;UU., llega a 2001 y es la prueba más interesante, porque pasó más de una década casi plano.
+    A 10 años, invertir de golpe siguió ganando a repartirlo en 12 meses en el ${pct(EAFE.golpe)} de los casos,
+    pero <b>esperar a una caída del 10&nbsp;% salió mejor en el ${pct(1 - EAFE.caida)}</b>: cuando la bolsa no sube,
+    esperar no cuesta. Cambia de índice en la barra de arriba para verlo.</p>
+  <h3>Cuándo tiene sentido repartir igualmente</h3>
+  <ul>
+    <li><b>Si caer un 30&nbsp;% al mes siguiente te haría vender.</b> Repartir pierde en promedio, pero
+      reduce el arrepentimiento del peor caso. Una estrategia algo peor que mantienes es mejor que una
+      óptima que abandonas en pánico.</li>
+    <li><b>Si el dinero llega con el sueldo.</b> Aportar cada mes no es "repartir": es invertir cada euro en cuanto
+      lo tienes, que es exactamente lo que recomienda el dato.</li>
+    <li><b>Si la cantidad es enorme comparada con tu patrimonio.</b> Repartir en 3–6 meses cuesta poco
+      (mira la diferencia entre 3 y 36 meses arriba) y suaviza la exposición a un mal mes concreto.</li>
+  </ul>
+  <p>Lo que los datos del S&amp;P 500 no apoyan es esperar a que "baje": cuando la caída llega, comprar en ella
+    gana siempre, pero dos de cada tres veces no llega en años, y mientras tanto el índice se aleja.</p>`;
+
+$("#metodo").innerHTML = `
+  <h3 style="margin-top:0">Cómo está hecho</h3>
+  <ul>
+    <li><b>Datos:</b> los mismos de <a href="sp500-rendimientos.html">la página del S&amp;P 500</a>
+      (<code>pages/data/mercados.json</code>). El S&amp;P 500 con dividendos reinvertidos es la serie de Shiller
+      hasta 2023 enlazada con el índice oficial de rentabilidad total; el MSCI World y el EAFE son los ETF
+      <code>URTH</code> y <code>EFA</code> con dividendos.</li>
+    <li><b>Efectivo:</b> el dinero que espera cobra las letras del Tesoro de EE.&nbsp;UU. a 3 meses (FRED
+      <code>TB3MS</code>). Esa serie empieza en 1934, y por eso la página también: dejarlo al 0&nbsp;% antes de esa
+      fecha inclinaría la balanza a favor de invertir ya.</li>
+    <li><b>Precios mensuales:</b> los de Shiller son la media de los cierres diarios de cada mes. El adivino perfecto
+      acierta el mes más barato, no el día; con datos diarios su ventaja sería algo mayor, pero el estudio de Schwab,
+      hecho con mínimos diarios, llega a la misma ordenación.</li>
+    <li><b>Nominal y sin costes:</b> comparamos estrategias entre sí con el mismo dinero, así que la inflación afecta
+      a todas igual y no cambia quién gana. No se restan comisiones ni impuestos.</li>
+    <li><b>Ventanas solapadas:</b> cada mes de inicio es un caso, y dos meses seguidos comparten casi toda la
+      historia. Los porcentajes describen el pasado; no son probabilidades independientes del futuro.</li>
+    <li><b>En dólares:</b> todo en la moneda del índice. Para un inversor en euros el tipo de cambio añade
+      ruido, pero lo añade a todas las estrategias por igual.</li>
+  </ul>`;
+
+/* ===========================================================================
+   Controles y arranque
+   =========================================================================== */
+
+function botones(host, opciones, actual, etiqueta, onPick, desactivado = () => false) {
+  host.innerHTML = "";
+  for (const o of opciones) {
+    const btn = document.createElement("button");
+    btn.className = "btn btn-sm";
+    btn.textContent = etiqueta(o);
+    btn.setAttribute("aria-pressed", String(o === actual));
+    btn.disabled = desactivado(o);
+    if (btn.disabled) btn.title = "No hay historia suficiente en este índice para ese plazo";
+    btn.addEventListener("click", () => onPick(o));
+    host.appendChild(btn);
+  }
+}
+function sincroniza() {
+  if (!cabe(S.ind, S.h)) S.h = [...PLAZOS].reverse().find((h) => cabe(S.ind, h)) || PLAZOS[0];
+  botones($("#op-ind"), INDICES.map((i) => i.id), S.ind, (id) => INDICES.find((i) => i.id === id).nombre,
+    (id) => { S.ind = id; sincroniza(); });
+  botones($("#op-h"), PLAZOS, S.h, (h) => `${h} años`, (h) => { S.h = h; sincroniza(); }, (h) => !cabe(S.ind, h));
+  botones($("#op-rep"), REPARTOS, S.rep, (n) => `${n} meses`, (n) => { S.rep = n; sincroniza(); });
+  botones($("#op-caida"), CAIDAS, S.caida, (x) => pct(x), (x) => { S.caida = x; sincroniza(); });
+  pintar();
+}
+
+$("#cargando").hidden = true;
+$("#app").hidden = false;
+sincroniza();
+
+let redibujo;
+addEventListener("resize", () => { clearTimeout(redibujo); redibujo = setTimeout(pintar, 180); });
+</script>
+</body>
+</html>

@@ -12,7 +12,7 @@ webs.json    optional title & description per page
 favicon.ico  default tab icon
 pages/       the published pages — one .html each
 pages/data/  data files a page fetches at runtime
-data-src/    scripts + raw sources that generate pages/data/
+data-src/    scripts + raw sources that generate pages/data/, one folder per web
 ```
 
 ## Preview locally
@@ -39,12 +39,13 @@ Optional, keyed by filename in `webs.json`; falls back to the filename:
 ## Data files
 
 Pages that need data fetch it from `pages/data/`. Regenerate it with the scripts
-in `data-src/`: `build-*.mjs` hit the public APIs and write into `pages/data/`,
-`test-*.mjs` check the result. Sources are documented in the `*.SOURCES.md`
-files next to them.
+in `data-src/`, grouped in one folder per web (see [`data-src/README.md`](data-src/README.md)):
+`build-*` hit the public APIs and write into `pages/data/`, `test-*` check the
+result. Sources are documented in the `*.SOURCES.md` files next to them, and
+each folder keeps its own download cache in `_work/` (git-ignored).
 
 ```sh
-cd data-src
+cd data-src/mercados
 node build-mercados.mjs   # --fresh re-downloads instead of using the cache
 node test-mercados.mjs
 ```
@@ -76,7 +77,7 @@ coverage caveats visible, while secondary indicators are collapsible. `test-capa
 also checks candidate search, sorting and whole-page JavaScript syntax.
 
 ```sh
-cd data-src
+cd data-src/donde-vivir-barcelona
 python3 fetch-transit.py         # ~1.150 routing queries, ~1 h
 python3 fetch-isocronas.py       # 165 one-to-all queries, ~6 min
 node fetch-linies.mjs            # OpenStreetMap; needs transit.json to pick the buses
@@ -101,7 +102,7 @@ node test-capas.mjs              # the page's own layer code, run against the da
 of a station it can't read off the tags by finding the nearest rail stop in
 `linies.json`. `fetch-serveis.mjs` and the nine `build_*` steps in the middle are
 independent of each other and of the routing ones — each writes its own
-`data-src/*.json` and `build-transport.mjs` picks up whatever is there, warning
+`data-src/donde-vivir-barcelona/*.json` and `build-transport.mjs` picks up whatever is there, warning
 about what is missing.
 
 The five neighbourhood-service measures come from OpenStreetMap because no official

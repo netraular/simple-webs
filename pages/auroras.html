@@ -3,224 +3,212 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Auroras · cuándo volverán las más potentes</title>
-<meta name="description" content="Cuándo es más probable ver una aurora potente desde tu ciudad en los próximos años, con 95 años de tormentas geomagnéticas detrás.">
-<meta name="theme-color" media="(prefers-color-scheme: light)" content="#eef3f9">
-<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#060a17">
+<title>Abisko · cuándo viajar para ver auroras</title>
+<meta name="description" content="Ventanas orientativas para buscar auroras intensas en Abisko: actividad geomagnética histórica, ciclo solar y meses oscuros. Sin promesas de una noche concreta.">
+<meta name="theme-color" content="#f5f7f6">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='88'>🌌</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-/* ===========================================================================
-   Auroras — página autocontenida, sin librerías.
-   Lee pages/data/auroras.json (data-src/auroras/build-auroras.mjs) y la
-   previsión a 27 días de NOAA SWPC, en directo desde el navegador.
-
-   Estilo propio: cielo nocturno con estrellas y una cortina de aurora en la
-   cabecera, tipografía geométrica, etiquetas espaciadas en versalitas, paneles
-   de cristal. Claro = cielo polar de día, helado.
-
-   Colores de datos (validados contra el panel claro #ffffff y oscuro #0f1631):
-   - aurora (verde) = noches con aurora posible; rampa secuencial de un solo
-     tono para la probabilidad del mapa (oscuro: más brillo = más probable);
-   - sol (naranja) = manchas solares; gris = referencia.
-   El verde claro no llega a 3:1 sobre blanco: todo gráfico tiene tooltip y tabla.
-   =========================================================================== */
-
 :root{
-  color-scheme: light dark;
-  --sky:#eef3f9;     --panel:#ffffff;    --panel-2:#e8eef7;
-  --ink:#0b1430;     --ink-2:#3b4766;    --muted:#66718c;
-  --line:#d6deec;    --grid:#e8edf5;     --axis:#b9c3d8;
-  --focus:#3a6df0;
-  --aurora:#1baf7a;  --sol:#eb6834;      --ref:#a3adc2;
-  --sol-wash:rgba(235,104,52,.14);
-  --q0:#eef1f6; --q1:#e3f4ec; --q2:#b5e5cf; --q3:#7fd0ad; --q4:#3fb486; --q5:#17916a; --q6:#0b6e50;
-  --curtain:linear-gradient(100deg, rgba(27,175,122,.0) 0%, rgba(27,175,122,.30) 30%, rgba(40,190,200,.22) 55%, rgba(120,90,220,.18) 80%, rgba(120,90,220,0) 100%);
-  --stars:none;
-  --font:"Avenir Next","Avenir","Montserrat","Century Gothic","Segoe UI",system-ui,sans-serif;
+  color-scheme:light;
+  --sky:#f5f7f6; --panel:#ffffff; --panel-2:#eaf0ed;
+  --ink:#202c2b; --ink-2:#455654; --muted:#63716f;
+  --line:#d7dfdb; --grid:#e7ece9; --axis:#bdc9c3; --focus:#176fa3;
+  --aurora:#237a56; --sol:#bd622e; --ref:#a7b6b0; --sol-wash:#f6e7dd;
+  --q0:#e6ebe8; --q1:#d2e8dc; --q2:#97c6ac; --q3:#72af90; --q4:#489170; --q5:#307c5a; --q6:#235f44;
+  --font:"DM Sans","Trebuchet MS",sans-serif;
+  --display:"Manrope","Trebuchet MS",sans-serif;
 }
-@media (prefers-color-scheme: dark){
-  :root{
-    --sky:#060a17;     --panel:#0f1631;    --panel-2:#17204a;
-    --ink:#eef2ff;     --ink-2:#b9c2e0;    --muted:#8590b3;
-    --line:#222c55;    --grid:#1a2349;     --axis:#2f3a6a;
-    --focus:#6f9bff;
-    --aurora:#199e70;  --sol:#d95926;      --ref:#56608a;
-    --sol-wash:rgba(217,89,38,.20);
-    --q0:#141c3d; --q1:#173a33; --q2:#1b5745; --q3:#1f7a58; --q4:#26a06f; --q5:#52c993; --q6:#a6edc9;
-    --curtain:linear-gradient(100deg, rgba(25,158,112,0) 0%, rgba(38,200,130,.45) 28%, rgba(40,190,200,.30) 55%, rgba(140,100,240,.30) 82%, rgba(140,100,240,0) 100%);
-    --stars:
-      radial-gradient(1px 1px at 12% 22%, #fff9 50%, transparent 51%),
-      radial-gradient(1px 1px at 27% 68%, #fff7 50%, transparent 51%),
-      radial-gradient(1.5px 1.5px at 41% 14%, #fffa 50%, transparent 51%),
-      radial-gradient(1px 1px at 58% 41%, #fff6 50%, transparent 51%),
-      radial-gradient(1px 1px at 66% 9%, #fff8 50%, transparent 51%),
-      radial-gradient(1.5px 1.5px at 79% 57%, #fff9 50%, transparent 51%),
-      radial-gradient(1px 1px at 88% 26%, #fff7 50%, transparent 51%),
-      radial-gradient(1px 1px at 94% 74%, #fff6 50%, transparent 51%),
-      radial-gradient(1px 1px at 6% 81%, #fff5 50%, transparent 51%),
-      radial-gradient(1px 1px at 35% 38%, #fff5 50%, transparent 51%);
-  }
-}
-
 *{box-sizing:border-box;margin:0;padding:0}
-html{-webkit-text-size-adjust:100%}
-body{font-family:var(--font);background:var(--sky);color:var(--ink);line-height:1.45;-webkit-font-smoothing:antialiased}
-button,select{font:inherit;color:inherit}
-:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+body{font-family:var(--font);background:var(--sky);color:var(--ink);line-height:1.6;letter-spacing:0;-webkit-font-smoothing:antialiased}
+button,input{font:inherit;color:inherit}
+a{color:var(--aurora);text-underline-offset:4px}
+button,summary,input{touch-action:manipulation}
+:focus-visible{outline:2px solid var(--focus);outline-offset:4px}
+[hidden]{display:none!important}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
-.wrap{max-width:1040px;margin:0 auto;padding:0 20px}
-.cap{font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);font-weight:600}
-
-/* ---------- cielo de cabecera ---------- */
-.cielo{position:relative;overflow:hidden;padding:26px 0 30px;background-image:var(--stars)}
-.cielo::before{
-  content:"";position:absolute;left:-10%;right:-10%;top:-60px;height:260px;
-  background:var(--curtain);filter:blur(34px);transform:skewY(-4deg);pointer-events:none;
-  animation:onda 14s ease-in-out infinite alternate;
-}
-@keyframes onda{from{transform:skewY(-4deg) translateX(-3%)}to{transform:skewY(-2deg) translateX(3%)}}
-@media (prefers-reduced-motion: reduce){.cielo::before{animation:none}}
-.cielo > .wrap{position:relative}
-
-.barra{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:center}
-.marca{font-weight:700;letter-spacing:.32em;font-size:.82rem;margin-right:auto}
-.lugar{display:flex;align-items:center;gap:6px}
-select{
-  appearance:none;-webkit-appearance:none;background:var(--panel);border:1px solid var(--line);border-radius:999px;
-  padding:7px 32px 7px 14px;min-height:38px;cursor:pointer;
-  background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),linear-gradient(135deg,var(--muted) 50%,transparent 50%);
-  background-position:calc(100% - 17px) 55%,calc(100% - 12px) 55%;background-size:5px 5px;background-repeat:no-repeat;
-}
-.icono{background:var(--panel);border:1px solid var(--line);border-radius:999px;width:38px;height:38px;cursor:pointer}
-.seg{display:inline-flex;background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:3px}
-.seg button{background:none;border:0;border-radius:999px;padding:6px 13px;min-height:32px;cursor:pointer;font-size:.86rem;color:var(--ink-2)}
-.seg button[aria-pressed="true"]{background:var(--ink);color:var(--sky);font-weight:600}
-.seg button:disabled{opacity:.35;cursor:not-allowed}
-
-.hero{margin-top:34px}
-.hero .big{font-size:clamp(2.6rem,8vw,5rem);font-weight:650;line-height:1;letter-spacing:-.02em;margin-top:8px}
-.hero .sub{font-size:clamp(1rem,2vw,1.15rem);color:var(--ink-2);margin-top:12px;max-width:60ch}
-.hero .sub b{color:var(--ink)}
-.chip{display:inline-block;margin-top:14px;font-size:.8rem;color:var(--ink-2);border:1px solid var(--line);border-radius:999px;padding:4px 12px;background:color-mix(in srgb,var(--panel) 70%,transparent)}
-
-.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;margin-top:26px;background:var(--line);border:1px solid var(--line);border-radius:16px;overflow:hidden}
-.stat{background:var(--panel);padding:14px 16px}
-.stat .v{font-size:1.65rem;font-weight:650;line-height:1.15;margin-top:6px}
-.stat .d{font-size:.8rem;color:var(--muted);margin-top:2px}
-@media (max-width:640px){.stats{grid-template-columns:1fr}}
-
-/* ---------- paneles ---------- */
-.panel{background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:18px 18px 14px;margin-top:18px}
-.panel h2{font-size:1.05rem;font-weight:650}
-.panel .nota{font-size:.82rem;color:var(--muted);margin-top:4px}
-
-/* ---------- pestañas ---------- */
-.tabs{display:flex;gap:4px;margin-top:34px;border-bottom:1px solid var(--line);overflow-x:auto}
-.tabs button{background:none;border:0;border-bottom:2px solid transparent;padding:10px 14px;cursor:pointer;color:var(--muted);font-weight:600;font-size:.92rem;white-space:nowrap}
+.wrap{width:100%;max-width:1080px;margin:0 auto;padding:0 28px}
+.cap{font-size:.72rem;text-transform:uppercase;color:var(--muted);font-weight:700}
+h1,h2,h3,.big,.v,.num{font-family:var(--display);letter-spacing:0}
+h2{font-size:1.65rem;line-height:1.3;font-weight:700}
+.nota{font-size:.87rem;color:var(--muted);margin-top:10px;max-width:85ch}
+.cielo{position:relative;isolation:isolate;background:#172a27;color:#fff}
+.foto{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 52%;z-index:-2}
+.cielo::after{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(90deg,rgba(8,19,18,.8),rgba(8,19,18,.16) 85%)}
+.barra{display:flex;justify-content:space-between;align-items:center;gap:16px;min-height:76px;border-bottom:1px solid #ffffff40}
+.marca{font-family:var(--display);font-size:.9rem;font-weight:700;color:#fff;text-decoration:none}
+.coordenadas{color:#d5e6df;font-size:.78rem;text-align:right}
+.hero{padding:45px 0 38px;max-width:650px;animation:entrada .6s ease-out both}
+.hero h1{font-size:4.75rem;font-weight:600;line-height:1.05;margin:9px 0 12px}
+.hero .cap{color:#cee8da}
+.hero .intro{font-size:1.05rem;color:#eef5f1;max-width:42ch}
+.hero .recomendacion{margin-top:26px;border-left:2px solid #a6e5b5;padding-left:18px}
+.hero .big{font-size:1.85rem;font-weight:600;line-height:1.3;margin-top:6px;overflow-wrap:anywhere;min-height:2.5rem}
+.hero .sub{font-size:.88rem;color:#e3ebe6;margin-top:8px;max-width:60ch}
+.chip{display:block;font-size:.73rem;color:#d2e0d8;margin-top:15px}
+.credito{font-size:.64rem;color:#d2ded6;padding-bottom:12px}
+.credito a{color:inherit}
+.bloque{padding:38px 0;border-bottom:1px solid var(--line)}
+.encabezado{display:flex;justify-content:space-between;align-items:baseline;gap:16px;flex-wrap:wrap;margin-bottom:19px}
+.encabezado .cap{color:var(--aurora)}
+.ventanas{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.ventana{border:1px solid var(--line);background:var(--panel);border-radius:6px;padding:20px;min-width:0}
+.ventana.principal{border-color:#73a88b;background:#e8f2eb;border-top:3px solid var(--aurora);padding-top:18px}
+.ventana .puesto{display:flex;justify-content:space-between;gap:10px;font-size:.74rem;color:var(--muted)}
+.principal .puesto{color:#27553d}
+.ventana h3{font-size:1.38rem;font-weight:600;line-height:1.3;margin:19px 0 13px;overflow-wrap:anywhere}
+.ventana h3 span{display:block;font-size:1rem;font-weight:500;color:var(--muted);margin-top:4px}
+.ventana p{font-size:.83rem;color:var(--ink-2)}
+.ventana .base{border-top:1px solid var(--line);margin-top:16px;padding-top:12px;font-size:.73rem;color:var(--muted)}
+.advertencia{border-left:3px solid #bf8850;padding:0 0 0 16px;margin-top:23px;color:var(--ink-2);font-size:.87rem;max-width:90ch}
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:22px;margin-top:28px}
+.stat{padding-top:17px;border-top:1px solid var(--line);min-width:0}
+.stat .v{font-size:1.3rem;font-weight:600;margin-top:4px}
+.stat .d{font-size:.76rem;color:var(--muted);margin-top:3px}
+.check{display:flex;align-items:center;gap:10px;font-size:.83rem;color:var(--ink-2);margin-top:18px;cursor:pointer;min-height:40px}
+.check input{width:17px;height:17px;accent-color:var(--aurora);flex-shrink:0}
+.estacional{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.4fr);gap:40px;margin-top:20px}
+.estacional h3{font-size:1.12rem;margin-bottom:12px}
+.estacional p{font-size:.9rem;color:var(--ink-2)}
+.meses{list-style:none;display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:6px;align-items:end}
+.meses li{text-align:center;font-size:.7rem;color:var(--muted);min-width:0}
+.meses .pista{height:110px;display:flex;align-items:end;background:var(--panel-2);border-radius:3px;margin-bottom:8px}
+.meses .nivel{display:block;width:100%;background:var(--ref);border-radius:3px}
+.meses .equinoccio .nivel{background:var(--aurora)}
+.consejos{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:28px;margin-top:28px}
+.consejos h3{font-size:.92rem;margin-bottom:6px}
+.consejos p{font-size:.84rem;color:var(--muted)}
+.detalle{padding:24px 0;border-bottom:1px solid var(--line)}
+.detalle>summary{font-family:var(--display);font-size:1.12rem;font-weight:600;cursor:pointer;padding:8px 0}
+.panel{padding:24px 0;border-bottom:1px solid var(--line);min-width:0}
+.panel:last-child{border-bottom:0}
+.panel h2{font-size:1.06rem}
+.tabs{display:flex;gap:12px;margin-top:16px;border-bottom:1px solid var(--line);overflow-x:auto}
+.tabs button{background:none;border:0;border-bottom:2px solid transparent;min-height:44px;padding:10px 4px;cursor:pointer;color:var(--muted);font-weight:600;font-size:.85rem;white-space:nowrap}
 .tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--aurora)}
-[role="tabpanel"][hidden]{display:none}
-.factores{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px;margin-top:18px}
-.factores .panel{margin-top:0}
-.num{font-size:2.6rem;font-weight:650;line-height:1.05;margin-top:12px}
-.dos{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-@media (max-width:640px){.dos{grid-template-columns:1fr}}
-
-/* ---------- gráficos ---------- */
+.factores{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 28px}
+.num{font-size:2rem;font-weight:600;line-height:1.1;margin-top:12px}
+.dos{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
 .chart{position:relative;margin-top:10px}
 .chart svg{display:block;width:100%;height:auto;overflow:visible}
 .chart text{fill:var(--muted);font-size:11px;font-variant-numeric:tabular-nums;font-family:var(--font)}
 .chart text.lab{fill:var(--ink-2);font-size:11.5px}
-.chart text.fuerte{fill:var(--ink);font-weight:650}
+.chart text.fuerte{fill:var(--ink);font-weight:700}
 .gl{stroke:var(--grid);stroke-width:1}
 .ax{stroke:var(--axis);stroke-width:1}
 .hit{fill:transparent}
-.bar{transition:opacity .12s}
-.bar.on{opacity:.7}
+.bar.on{opacity:.65}
 .celda{cursor:default;transition:stroke-width .1s}
 .celda:hover,.celda:focus{stroke:var(--ink);stroke-width:1.5;outline:none}
-.ley{display:flex;flex-wrap:wrap;align-items:center;gap:6px 16px;font-size:.8rem;color:var(--ink-2);margin-top:10px}
-.ley i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+.ley{display:flex;flex-wrap:wrap;align-items:center;gap:8px 18px;font-size:.76rem;color:var(--ink-2);margin-top:12px}
+.ley i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;vertical-align:-1px}
 .ley i.lin{height:2px;width:16px;vertical-align:3px}
-.escala{display:inline-flex;gap:2px;align-items:center}
-.escala span{display:inline-block;width:30px;height:10px;border-radius:2px}
-.escala small{font-size:.72rem;color:var(--muted);margin:0 4px}
-.tip{
-  position:absolute;pointer-events:none;opacity:0;z-index:4;background:var(--panel);border:1px solid var(--line);
-  border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.25);padding:8px 11px;font-size:.8rem;min-width:160px;max-width:280px;transition:opacity .1s;
-}
+.tip{position:absolute;pointer-events:none;opacity:0;z-index:4;background:var(--panel);border:1px solid var(--line);border-radius:6px;box-shadow:0 5px 18px #202c2b18;padding:10px 12px;font-size:.76rem;max-width:min(280px,100%);transition:opacity .1s}
 .tip.on{opacity:1}
-.tip .t{font-weight:650}
-.tip .row{display:flex;gap:12px;justify-content:space-between;align-items:center;margin-top:3px;color:var(--ink-2)}
+.tip .t{font-weight:700}
+.tip .row{display:flex;gap:12px;justify-content:space-between;align-items:center;margin-top:4px;color:var(--ink-2)}
 .tip .row b{color:var(--ink);font-variant-numeric:tabular-nums}
 .tip .row i{display:inline-block;width:12px;height:2px;border-radius:2px;margin-right:6px;vertical-align:3px}
-.tip .foot{margin-top:5px;color:var(--muted);font-size:.74rem}
-
-/* ---------- tablas ---------- */
-details.tabla{margin-top:10px}
-details.tabla summary{cursor:pointer;color:var(--muted);font-size:.8rem}
-.tw{overflow-x:auto;margin-top:6px}
+.tip .foot{margin-top:6px;color:var(--muted);font-size:.72rem}
+details.tabla{margin-top:17px}
+details.tabla summary{cursor:pointer;color:var(--ink-2);font-size:.82rem;padding:6px 0}
+.tw{overflow-x:auto;margin-top:8px}
 table{border-collapse:collapse;width:100%;font-size:.84rem}
-th,td{padding:6px 8px;border-bottom:1px solid var(--grid);text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+th,td{padding:8px;border-bottom:1px solid var(--grid);text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
 th:first-child,td:first-child{text-align:left}
-thead th{color:var(--muted);font-weight:600;font-size:.7rem;text-transform:uppercase;letter-spacing:.1em}
-td.si{font-weight:650}
-td.si::before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--aurora);margin-right:6px}
+thead th{color:var(--muted);font-weight:600;font-size:.7rem;text-transform:uppercase}
+td.si{font-weight:700}
 td.no{color:var(--muted)}
-td.donde{text-align:left;white-space:normal;min-width:18ch;color:var(--ink-2)}
-.btn{background:none;border:1px solid var(--line);border-radius:999px;padding:6px 14px;cursor:pointer;margin-top:10px;font-size:.84rem}
-
-ul.metodo{margin:8px 0 0 18px;color:var(--ink-2);font-size:.9rem}
-ul.metodo li{margin-top:7px}
-ul.metodo b{color:var(--ink)}
+td.donde{text-align:left;white-space:normal;min-width:18ch}
+.btn{background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:8px 14px;cursor:pointer;margin-top:12px;font-size:.84rem}
+ul.metodo{margin:8px 0 0 18px;color:var(--ink-2);font-size:.87rem}
+ul.metodo li{margin-top:12px}
 .vacio{color:var(--muted);font-style:italic;padding:20px 0}
-footer{margin:40px 0 34px;color:var(--muted);font-size:.78rem}
-footer a{color:inherit}
+footer{padding:26px 0 32px;color:var(--muted);font-size:.72rem}
+footer p+p{margin-top:8px}
+@keyframes entrada{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@media (max-width:700px){
+  .wrap{padding:0 20px}.barra{min-height:62px}.hero{padding:30px 0 26px}.hero h1{font-size:3.75rem}
+  .hero .big{font-size:1.5rem}.hero .intro{font-size:.95rem}.coordenadas{font-size:.7rem}
+  .ventanas{grid-template-columns:1fr}.ventana{padding:18px}.ventana h3{margin:12px 0;font-size:1.25rem}
+  .ventana h3 span{display:inline;margin-left:8px}.ventana .base{margin-top:12px;padding-top:10px}
+  .stats{gap:14px}.stat .v{font-size:1rem}.stat .cap{font-size:.62rem}.stat .d{font-size:.68rem}
+  .estacional{grid-template-columns:1fr;gap:24px}.consejos{grid-template-columns:1fr;gap:16px}
+  .factores{grid-template-columns:1fr}.bloque{padding:28px 0}h2{font-size:1.4rem}.meses{gap:4px}
+}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}.hero{animation:none}}
 </style>
 </head>
 <body>
 <header class="cielo">
+  <img class="foto" src="data/abisko-aurora.jpg" width="1920" height="1116" alt="Cortinas de aurora verde sobre el lago y las montañas de Abisko" fetchpriority="high">
   <div class="wrap">
     <div class="barra">
-      <div class="marca">AURORAS</div>
-      <div class="lugar">
-        <label class="sr" for="lugar">Lugar</label>
-        <select id="lugar"></select>
-        <button class="icono" id="geo" type="button" title="Usar mi ubicación" aria-label="Usar mi ubicación">📍</button>
-      </div>
-      <div class="seg" id="modo" role="group" aria-label="Qué aurora quieres ver"></div>
+      <a class="marca" href="../index.html">AURORAS / ABISKO</a>
+      <span class="coordenadas">Laponia sueca<br>68,35° N · 18,83° E</span>
     </div>
-
-    <div class="hero" aria-live="polite">
-      <div class="cap" id="h-cap">Cargando…</div>
-      <div class="big" id="h-big">&nbsp;</div>
-      <p class="sub" id="h-sub"></p>
+    <div class="hero">
+      <p class="cap">Bajo el óvalo auroral</p>
+      <h1>Abisko</h1>
+      <p class="intro">Cuándo viajar para buscar un cielo<br>con más actividad.</p>
+      <div class="recomendacion" aria-live="polite" aria-atomic="true">
+        <p class="cap" id="h-cap">Comparando temporadas…</p>
+        <div class="big" id="h-big">Septiembre–marzo</div>
+        <p class="sub" id="h-sub">Los meses oscuros son el punto de partida. La actividad del Sol ayuda a elegir la temporada, no una noche exacta.</p>
+      </div>
       <span class="chip" id="h-chip"></span>
     </div>
-
-    <div class="stats" id="stats"></div>
+    <p class="credito">Foto: Lawrence Hislop / GRID-Arendal, vía US Embassy Sweden · <a href="https://commons.wikimedia.org/wiki/File:Northern_Lights_in_Abisko_(10739428626).jpg">Wikimedia Commons</a> · <a href="https://creativecommons.org/licenses/by/2.0/">CC BY 2.0</a> · encuadre adaptado</p>
   </div>
 </header>
 
 <main class="wrap">
-  <section class="panel" aria-labelledby="t-mapa">
-    <h2 id="t-mapa">Probabilidad de al menos una noche, mes a mes</h2>
+  <section class="bloque" aria-labelledby="t-viaje">
+    <div class="encabezado"><h2 id="t-viaje">Cuándo viajar</h2><span class="cap">Próximos 3 años · ciclo actual</span></div>
+    <div class="ventanas" id="ventanas"><p class="vacio">Calculando ventanas a partir del historial…</p></div>
+    <p class="advertencia"><b>Una temporada favorable no garantiza una aurora intensa.</b> En Abisko puedes ver auroras con Kp bajo. Aquí buscamos señales de actividad elevada; las nubes, la oscuridad y la actividad local decidirán lo que veas.</p>
+    <div class="stats" id="stats"></div>
+  </section>
+
+  <section class="bloque" aria-labelledby="t-mapa">
+    <div class="encabezado"><h2 id="t-mapa">El horizonte de los próximos años</h2><span class="cap">Actividad + oscuridad</span></div>
     <p class="nota" id="n-mapa"></p>
     <div class="chart" id="g-mapa"></div>
     <div class="ley" id="ley-mapa"></div>
-    <details class="tabla"><summary>Tabla</summary><div class="tw" id="tb-mapa"></div></details>
+    <label class="check"><input type="checkbox" id="escenario"> Incluir escenario lejano del ciclo 26</label>
+    <p class="advertencia" id="n-escenario" hidden>El ciclo 26 todavía no tiene una previsión oficial de NOAA. Sus fechas y fuerza son supuestos: las celdas de borde discontinuo son escenarios, no fechas para reservar un viaje.</p>
+    <details class="tabla"><summary>Estimaciones del modelo y muestra histórica</summary><p class="nota">Cada porcentaje se refiere a un mes completo con al menos una noche que combine Kp ≥ 7 y oscuridad. No es la probabilidad de ver una aurora durante un viaje, ni un intervalo de confianza.</p><div class="tw" id="tb-mapa"></div></details>
   </section>
 
+  <section class="bloque" aria-labelledby="t-temporada">
+    <div class="encabezado"><h2 id="t-temporada">La estación también importa</h2><span class="cap">Patrón histórico</span></div>
+    <div class="estacional">
+      <div><h3>Equinoccios con noches oscuras</h3><p>Marzo y septiembre, y los meses vecinos, suelen concentrar más actividad geomagnética. En Abisko hay que combinar esa señal con la oscuridad: el verano no es una buena apuesta.</p></div>
+      <div><ol class="meses" id="temporadas" aria-label="Media histórica de noches con Kp elevado y oscuridad, por mes"></ol><p class="nota">Noches con Kp ≥ 7 y oscuridad, de media por mes. Verde: meses cercanos a los equinoccios. No incluye nubosidad.</p></div>
+    </div>
+    <div class="consejos">
+      <div><h3>El ciclo solar</h3><p id="ciclo-resumen">La fase del ciclo ayuda a comparar temporadas, no a localizar tormentas concretas.</p></div>
+      <div><h3>Varias noches de margen</h3><p>Una estancia de varias noches permite esperar claros y actividad. Ningún porcentaje mensual sustituye la previsión de nubes.</p></div>
+      <div><h3>Cuando se acerque el viaje</h3><p>Consulta la <a href="https://www.spaceweather.gov/communities/aurora-dashboard-experimental">actividad de NOAA</a> y la <a href="https://www.smhi.se/en/weather">meteorología de SMHI</a>. Las tormentas concretas se anticipan a corto plazo.</p></div>
+    </div>
+  </section>
+
+  <details class="detalle" id="detalle">
+    <summary>La evidencia, el método y el corto plazo</summary>
   <div class="tabs" role="tablist" aria-label="Detalle">
-    <button role="tab" id="tab-historia" aria-controls="p-historia" aria-selected="true">Historia</button>
-    <button role="tab" id="tab-porque" aria-controls="p-porque" aria-selected="false" tabindex="-1">Por qué</button>
-    <button role="tab" id="tab-pronto" aria-controls="p-pronto" aria-selected="false" tabindex="-1">Próximas 4 semanas</button>
-    <button role="tab" id="tab-metodo" aria-controls="p-metodo" aria-selected="false" tabindex="-1">Método</button>
+    <button type="button" role="tab" id="tab-historia" aria-controls="p-historia" aria-selected="true">Historia</button>
+    <button type="button" role="tab" id="tab-porque" aria-controls="p-porque" aria-selected="false" tabindex="-1">Patrones</button>
+    <button type="button" role="tab" id="tab-pronto" aria-controls="p-pronto" aria-selected="false" tabindex="-1">27 días</button>
+    <button type="button" role="tab" id="tab-metodo" aria-controls="p-metodo" aria-selected="false" tabindex="-1">Método</button>
   </div>
 
   <section role="tabpanel" id="p-historia" aria-labelledby="tab-historia">
     <div class="panel">
       <h2 id="t-anos">Noches con aurora, cada año</h2>
-      <p class="nota">El Sol marca el ritmo: arriba, sus manchas; abajo, las noches con aurora posible.</p>
+      <p class="nota">Arriba, manchas solares; abajo, noches con Kp ≥ 7 y oscuridad en Abisko. Son coincidencias calculadas, no avistamientos registrados.</p>
       <div class="chart" id="g-sol"></div>
       <div class="chart" id="g-anos"></div>
       <div class="ley" id="ley-anos"></div>
@@ -228,10 +216,9 @@ footer a{color:inherit}
     </div>
     <div class="panel">
       <h2>Las mayores tormentas desde 1932</h2>
-      <p class="nota">Por energía del día (Ap). El Dst mide la fuerza real cuando el Kp ya está en 9.</p>
+      <p class="nota">Ordenadas por Ap diario. Dst añade información sobre la perturbación geomagnética, no sobre el brillo local de una aurora.</p>
       <div class="tw" id="tb-tormentas"></div>
       <button class="btn" id="mas" type="button">Ver más</button>
-      <p class="nota" style="margin-top:10px">Antes de 1932: Carrington (1859, Dst ≈ −950, vista también en España), 1872, 1909 y 1921. Ninguna desde 1957 se les acerca: el récord medido es −589 nT (1989).</p>
     </div>
   </section>
 
@@ -284,12 +271,14 @@ footer a{color:inherit}
       <ul class="metodo" id="metodo"></ul>
     </div>
   </section>
+  </details>
 
   <footer>
-    Kp: GFZ Potsdam (CC BY 4.0) · Dst: WDC Kyoto · Manchas: SILSO · Previsiones: NOAA SWPC · Latitud magnética: AACGM-v2 (Dartmouth).
-    <span id="f-fechas"></span>
+    <p><a href="https://kp.gfz.de/">GFZ Potsdam</a> · <a href="https://wdc.kugi.kyoto-u.ac.jp/">WDC Kyoto</a> · <a href="https://www.sidc.be/SILSO/">SILSO</a> · <a href="https://www.spaceweather.gov/products/solar-cycle-progression">NOAA SWPC</a> · AACGM-v2. <span id="f-fechas"></span></p>
+    <p>Orientación histórica, no pronóstico de visibilidad. <a href="../data-src/auroras/auroras.SOURCES.md">Fuentes y supuestos</a>.</p>
   </footer>
 </main>
+<noscript><p class="wrap advertencia">Activa JavaScript para calcular las ventanas de viaje. Como orientación general, busca meses oscuros cerca de los equinoccios; las nubes y la actividad local no se pueden prever con años de antelación.</p></noscript>
 
 <script>
 "use strict";
@@ -475,9 +464,7 @@ const luzLuna = (ms) => {
    Estado y cálculo
    ========================================================================= */
 let D, KP, N, DIA0, MAXDIA, AP_DIA, DSTDIA, DST_DESDE, FASE, MESES_H, CICLOS, AJUSTE;
-// Por defecto, Abisko y tormentas fuertes: allí cualquier noche oscura tiene aurora, y la
-// pregunta interesante es cuándo vuelven las potentes.
-const S = { lugar: LUGARES.find((l) => l.nombre.startsWith("Abisko")), modo: "fuerte", kpManual: 21, verTormentas: 10, tab: "historia" };
+const S = { lugar: LUGARES.find((l) => l.nombre.startsWith("Abisko")), modo: "fuerte", kpManual: 21, verTormentas: 10, tab: "historia", escenario: false };
 let C = null; // resultados del último cálculo
 
 async function carga() {
@@ -858,7 +845,8 @@ function ponTip(g, html, xSvg, ySvg) {
   g.tip.classList.add("on");
   const r = g.svg.getBoundingClientRect(), k = r.width / g.w;
   const izq = xSvg * k, ancho = g.tip.offsetWidth;
-  g.tip.style.left = `${izq + 14 + ancho > r.width ? Math.max(4, izq - 14 - ancho) : izq + 14}px`;
+  const propuesta = izq + 14 + ancho > r.width ? izq - 14 - ancho : izq + 14;
+  g.tip.style.left = `${Math.max(0, Math.min(r.width - ancho, propuesta))}px`;
   g.tip.style.top = `${Math.max(0, ySvg * k - 10)}px`;
 }
 const quitaTip = (g) => g.tip.classList.remove("on");
@@ -927,10 +915,68 @@ const cuando = (v) => {
 };
 const saturado = (F) => F.length && F.filter((o) => o.p > 0.95).length > F.length / 2;
 
+function ventanasViaje(F, hoy = HOY()) {
+  const fecha = fechaDia(hoy);
+  const mesActual = fecha.getUTCFullYear() * 12 + fecha.getUTCMonth();
+  const proximos = F.filter((o) => !o.enC26 && o.ini >= hoy && o.y * 12 + o.m < mesActual + 36 && o.n >= 10 && o.ciclos >= 3);
+  const candidatas = [];
+  for (let i = 0; i < proximos.length - 1; i++) {
+    const a = proximos[i], b = proximos[i + 1];
+    if (b.y * 12 + b.m !== a.y * 12 + a.m + 1 || a.p <= 0 || b.p <= 0) continue;
+    candidatas.push({ meses: [a, b], media: (a.p + b.p) / 2, pico: a.p >= b.p ? a : b });
+  }
+  candidatas.sort((a, b) => b.media - a.media || a.meses[0].ini - b.meses[0].ini);
+  const elegidas = [];
+  for (const v of candidatas) {
+    if (elegidas.every((otra) => Math.abs(v.meses[0].ini - otra.meses[0].ini) > 120)) elegidas.push(v);
+    if (elegidas.length === 3) break;
+  }
+  return elegidas;
+}
+
+function rangoViaje(v) {
+  const inicio = v.meses[0], fin = v.meses.at(-1);
+  return inicio.y === fin.y ? `${MESES_L[inicio.m]} – ${MESES_L[fin.m]} ${inicio.y}` : cuando(v);
+}
+
+function viajes(r) {
+  const ventanas = ventanasViaje(r.futuro);
+  $("ventanas").innerHTML = ventanas.length ? ventanas.map((v, indice) => {
+    const inicio = v.meses[0], fin = v.meses.at(-1);
+    const muestra = v.meses.map((o) => o.n), ciclos = v.meses.map((o) => o.ciclos);
+    const rango = (valores) => Math.min(...valores) === Math.max(...valores) ? String(valores[0]) : `${Math.min(...valores)}–${Math.max(...valores)}`;
+    const meses = inicio.y === fin.y ? `${MESES_L[inicio.m]} – ${MESES_L[fin.m]}` : cuando(v);
+    const motivo = [inicio.m, fin.m].some((mes) => [2, 3, 8, 9].includes(mes))
+      ? "Cerca de un equinoccio, con oscuridad suficiente y una fase solar comparable al historial."
+      : "Oscuridad suficiente y una señal de actividad favorable en meses históricos similares.";
+    return `<article class="ventana${indice === 0 ? " principal" : ""}"><div class="puesto"><span>${indice === 0 ? "Señal orientativa más alta" : "Alternativa"}</span><span>0${indice + 1}</span></div>` +
+      `<h3>${esc(meses)}${inicio.y === fin.y ? `<span>${inicio.y}</span>` : ""}</h3><p>${motivo}</p>` +
+      `<p class="base">${rango(muestra)} meses análogos por mes · ${rango(ciclos)} ciclos</p></article>`;
+  }).join("") : `<p class="vacio">No hay pares de meses próximos del ciclo actual con muestra suficiente. El patrón estacional sigue siendo útil, pero no permite elegir un rango concreto.</p>`;
+}
+
+function temporadas(r) {
+  const maximo = Math.max(0.01, ...r.mes.map((mes) => mes.noches));
+  $("temporadas").innerHTML = r.mes.map((mes, indice) =>
+    `<li class="${[2, 3, 8, 9].includes(indice) ? "equinoccio" : ""}" title="${MESES_L[indice]}: ${coma(mes.noches, 2)} noches al mes" aria-label="${MESES_L[indice]}: ${coma(mes.noches, 2)} noches con señal al mes">` +
+    `<div class="pista" aria-hidden="true"><span class="nivel" style="height:${Math.round(mes.noches / maximo * 100)}%"></span></div>${MESES[indice]}</li>`
+  ).join("");
+  const maximoSolar = CICLOS.at(-1);
+  const fechaMaximo = fechaDia(maximoSolar.max);
+  $("ciclo-resumen").textContent = `El máximo registrado del ciclo ${maximoSolar.n} fue en ${MESES_L[fechaMaximo.getUTCMonth()]} de ${fechaMaximo.getUTCFullYear()}. El historial suele favorecer el entorno del máximo y parte del descenso, pero no todos los años se comportan igual.`;
+}
+
 function cabecera(r) {
   const L = r.L, F = r.futuro, dir = L.lat >= 0 ? "norte" : "sur";
   let cap, big, sub;
-  if (r.T === null) {
+  if (L.nombre.startsWith("Abisko") && S.modo === "fuerte") {
+    const viajes = ventanasViaje(F);
+    cap = "Ventana destacada por el historial";
+    big = viajes.length ? rangoViaje(viajes[0]) : "Sin ventana próxima comparable";
+    sub = viajes.length
+      ? "Un rango con <b>actividad geomagnética elevada en meses históricos similares</b>. Orienta el viaje, no predice una tormenta ni garantiza una aurora intensa."
+      : "Busca los meses oscuros alrededor de los equinoccios. No hay una ventana próxima del ciclo actual que el modelo pueda comparar.";
+  } else if (r.T === null) {
     cap = `Desde ${L.nombre}`;
     big = "No llega";
     sub = `Ni en las mayores tormentas medidas. Para verla hay que ir más al ${dir}.`;
@@ -960,60 +1006,56 @@ function cabecera(r) {
   $("h-cap").textContent = cap;
   $("h-big").textContent = big;
   $("h-sub").innerHTML = sub;
-  $("h-chip").textContent = r.T === null ? "Sin umbral alcanzable" : `Hace falta ${r.Ttxt}${r.Dn !== null ? " · datos desde 1957" : gTxt(r.T) ? ` (${gTxt(r.T)})` : ""}`;
-  document.title = `Auroras desde ${L.nombre} · ${big}`;
+  $("h-chip").textContent = L.nombre.startsWith("Abisko") && S.modo === "fuerte" ? "Referencia histórica: Kp ≥ 7 · no mide el brillo local" : r.T === null ? "Sin umbral alcanzable" : `Hace falta ${r.Ttxt}${r.Dn !== null ? " · datos desde 1957" : gTxt(r.T) ? ` (${gTxt(r.T)})` : ""}`;
+  document.title = L.nombre.startsWith("Abisko") ? "Abisko · cuándo viajar para ver auroras" : `Auroras desde ${L.nombre} · ${big}`;
 }
 
 function cifras(r) {
-  const años = (N - r.desde) / 365.25;
   const a0 = fechaDia(DIA0 + r.desde).getUTCFullYear();
-  const ult = r.ultima >= 0 ? fmtDia(DIA0 + r.ultima) : "—";
-  const pa = r.año;
-  const porAño = r.total / años;
+  const hasta = fechaDia(DIA0 + N - 1).getUTCFullYear();
+  const maximo = fechaDia(CICLOS.at(-1).max);
   $("stats").innerHTML =
-    `<div class="stat"><div class="cap">Noches desde ${a0}</div><div class="v">${nf.format(r.total)}</div><div class="d">${porAño >= 1 ? `${coma(porAño, porAño < 10 ? 1 : 0)} al año` : `una cada ${Math.round(1 / porAño)} años`}</div></div>` +
-    `<div class="stat"><div class="cap">La última</div><div class="v">${esc(ult)}</div><div class="d">${r.ultima >= 0 ? `Kp ${kpTxt(r.maxOsc[r.ultima])} de noche` : "ninguna"}</div></div>` +
-    `<div class="stat"><div class="cap">Próximos 12 meses</div><div class="v">${pa ? pct(pa.p) : "—"}</div><div class="d">de al menos una noche</div></div>`;
+    `<div class="stat"><div class="cap">Historial analizado</div><div class="v">${a0}–${hasta}</div><div class="d">Actividad geomagnética de GFZ</div></div>` +
+    `<div class="stat"><div class="cap">Máximo del ciclo 25</div><div class="v">${MESES[maximo.getUTCMonth()]} ${maximo.getUTCFullYear()}</div><div class="d">Manchas solares de SILSO</div></div>` +
+    `<div class="stat"><div class="cap">Señal de referencia</div><div class="v">Kp ≥ 7</div><div class="d">Actividad alta, no brillo local</div></div>`;
 }
 
-/** 7 clases absolutas de probabilidad: 0 | <3 % | 3–10 | 10–25 | 25–50 | 50–80 | ≥80 %. */
-const CORTES = [0.03, 0.10, 0.25, 0.50, 0.80];
-const clase = (p) => (p <= 0 ? 0 : 1 + CORTES.filter((c) => p >= c).length);
-const ETIQ = ["0", "<3 %", "3–10 %", "10–25 %", "25–50 %", "50–80 %", "≥80 %"];
+const SENAL = ["Sin coincidencias", "Menor", "Intermedia", "Alta", "Más alta"];
+const TONOS = [0, 1, 2, 4, 6];
+const clase = (p, maximo) => p <= 0 ? 0 : p < 0.3 * maximo ? 1 : p < 0.6 * maximo ? 2 : p < 0.8 * maximo ? 3 : 4;
 
 function mapaFuturo(r) {
-  const host = $("g-mapa"), F = r.futuro;
+  const host = $("g-mapa"), F = r.futuro.filter((o) => o.ini >= HOY() && (S.escenario || !o.enC26));
+  $("n-escenario").hidden = !S.escenario;
   if (!F.length) {
-    host.innerHTML = `<p class="vacio">Desde aquí no se ve ni en las tormentas más extremas: no hay nada que predecir.</p>`;
+    host.innerHTML = `<p class="vacio">No quedan meses completos comparables del ciclo actual. El escenario del ciclo 26 es opcional y no sustituye una previsión oficial.</p>`;
     $("ley-mapa").textContent = $("tb-mapa").textContent = $("n-mapa").textContent = "";
     return;
   }
   const años = [...new Set(F.map((o) => o.y))];
+  const referencia = r.futuro.filter((o) => !o.enC26 && o.ini >= HOY());
+  const maximo = Math.max(0.001, ...(referencia.length ? referencia : F).map((o) => o.p));
   const ancho = Math.max(300, host.clientWidth || 900);
   const anotar = ancho >= 620;
   const ml = 42, mr = anotar ? 150 : 6, mt = 20;
   const cw = (ancho - ml - mr) / 12, ch = Math.max(20, Math.min(30, cw * 0.55));
-  const g = marco(host, { h: mt + años.length * ch + 4, ml, mr, mt, mb: 4, titulo: "Probabilidad mensual de al menos una noche con aurora" });
+  const g = marco(host, { h: mt + años.length * ch + 4, ml, mr, mt, mb: 4, titulo: "Señal histórica relativa de Kp elevado coincidiendo con oscuridad" });
   for (let m = 0; m < 12; m++) g.add(el("text", { x: ml + (m + 0.5) * cw, y: mt - 7, "text-anchor": "middle" })).textContent = MESES[m];
   años.forEach((y, k) => g.add(el("text", { x: ml - 8, y: mt + (k + 0.5) * ch + 4, "text-anchor": "end" })).textContent = String(y));
 
-  const mejores = new Set([...F].sort((a, b) => b.p - a.p).slice(0, 3).filter((o) => o.p > 0));
   for (const o of F) {
-    const x = ml + o.m * cw, y = mt + (o.y - años[0]) * ch, q = clase(o.p);
-    const c = g.add(el("rect", { x: x + 1, y: y + 1, width: cw - 2, height: ch - 2, rx: 4, style: `fill:var(--q${q})`, class: "celda", tabindex: "0" }));
-    const lunas = lunasNuevas(o.ini * DIA, (o.ini + o.len) * DIA).map((t) => fmtDia(t / DIA, false));
-    const filas = [[pct(o.p), "al menos una noche"], [`${o.ok} de ${o.n}`, `meses parecidos del pasado (${o.ciclos} ciclos)`]];
+    const x = ml + o.m * cw, y = mt + (o.y - años[0]) * ch, q = clase(o.p, maximo);
+    const c = g.add(el("rect", { x: x + 2, y: y + 2, width: cw - 4, height: ch - 4, rx: 2, style: `fill:var(--q${TONOS[q]})`, class: "celda", tabindex: "0", ...(o.enC26 ? { stroke: css("--ink-2"), "stroke-dasharray": "3 2" } : {}) }));
+    const filas = [[SENAL[q], "señal relativa"], [pct(o.p), "estimación para el mes completo"], [`${o.ok} de ${o.n}`, `meses análogos (${o.ciclos} ciclos)`]];
     if (o.enC26) filas.push([`${pct(o.lo)}–${pct(o.hi)}`, "según cómo sea el ciclo 26"]);
-    const html = tipHtml(`${MESES_L[o.m]} ${o.y}`, filas, `🌑 ${lunas.join(", ")}`);
+    const html = tipHtml(`${MESES_L[o.m]} ${o.y}`, filas, "Kp elevado + oscuridad. Sin nubes ni brillo local.");
     const show = () => ponTip(g, html, x + cw / 2, y + ch);
     c.addEventListener("pointerenter", show);
+    c.addEventListener("pointerdown", show);
     c.addEventListener("focus", show);
     c.addEventListener("pointerleave", () => quitaTip(g));
     c.addEventListener("blur", () => quitaTip(g));
-    c.setAttribute("aria-label", `${MESES_L[o.m]} ${o.y}: ${pct(o.p)}`);
-    if (mejores.has(o) && cw > 34) {
-      g.add(el("text", { x: x + cw / 2, y: y + ch / 2 + 4, "text-anchor": "middle", class: "fuerte", style: `fill:${q >= 5 ? "var(--panel)" : "var(--ink)"};pointer-events:none` })).textContent = pct(o.p).replace(" ", "");
-    }
+    c.setAttribute("aria-label", `${MESES_L[o.m]} ${o.y}: señal ${SENAL[q].toLowerCase()}, estimación de mes completo ${pct(o.p)}${o.enC26 ? ", escenario supuesto" : ""}`);
   }
   // Contexto a la derecha: dónde estamos en el ciclo.
   if (anotar) {
@@ -1023,15 +1065,14 @@ function mapaFuturo(r) {
       g.add(el("text", { x: ancho - mr + 10, y: mt + (k + 0.5) * ch + 4, class: "lab" })).textContent = txt;
     };
     const c26 = D.ciclo26;
-    fila(años[0], "← ahora, ciclo 25 bajando");
-    fila(+c26.min.slice(0, 4), "← mínimo solar");
-    fila(+c26.max.slice(0, 4), "← máx. ciclo 26 (supuesto)");
+    fila(años[0], F[0].enC26 ? "escenario del ciclo 26" : "ciclo 25, descenso");
+    fila(+c26.min.slice(0, 4), "mínimo (supuesto)");
+    fila(+c26.max.slice(0, 4), "máximo (supuesto)");
   }
-  $("ley-mapa").innerHTML = `<span class="escala">${ETIQ.map((t, q) => `<span style="background:var(--q${q})" title="${t}"></span>`).join("")}</span>` +
-    `<span>${ETIQ[1]} → ${ETIQ[6]}</span>`;
-  $("n-mapa").textContent = `Meses del pasado en el mismo punto del ciclo solar y la misma época, con las noches de ${r.L.nombre}. Desde ${D.ciclo26.min.slice(0, 4)}, según un supuesto del ciclo 26.`;
-  tabla($("tb-mapa"), ["Mes", "Probabilidad", "Meses parecidos con noche", "Rango (ciclo 26)"],
-    F.map((o) => [`${MESES_L[o.m]} ${o.y}`, pct(o.p), `${o.ok}/${o.n}`, o.enC26 ? `${pct(o.lo)}–${pct(o.hi)}` : "—"]), "Probabilidad mensual futura");
+  $("ley-mapa").innerHTML = SENAL.map((texto, indice) => `<span><i style="background:var(--q${TONOS[indice]})"></i>${texto}</span>`).join("");
+  $("n-mapa").textContent = `Señal relativa al mejor mes ${referencia.length ? "del ciclo actual" : "del escenario"}: combina meses históricos de fase solar similar con la oscuridad de Abisko. No predice visibilidad. Los meses pasados o empezados se omiten.`;
+  tabla($("tb-mapa"), ["Mes", "Estimación mensual", "Meses con señal / análogos", "Ciclos", "Rango de escenarios (26)"],
+    F.map((o) => [`${MESES_L[o.m]} ${o.y}`, pct(o.p), `${o.ok}/${o.n}`, o.ciclos, o.enC26 ? `${pct(o.lo)}–${pct(o.hi)}` : "—"]), "Estimaciones mensuales del modelo histórico, no probabilidades de éxito del viaje");
 }
 
 /* =========================================================================
@@ -1065,7 +1106,7 @@ function graficoSol() {
 
 function graficoAños(r) {
   const host = $("g-anos");
-  const g = marco(host, { h: 170, mt: 8, titulo: "Noches con aurora posible por año" });
+  const g = marco(host, { h: 170, mt: 8, titulo: "Noches con señal geomagnética y oscuridad por año" });
   const x = (yr) => g.x0 + ((yr - X_A) / (X_B - X_A)) * (g.x1 - g.x0);
   const vmax = Math.max(1, ...r.años.map((a) => a.n));
   const y = (v) => g.y1 - (v / (vmax * 1.15)) * (g.y1 - g.y0);
@@ -1082,27 +1123,16 @@ function graficoAños(r) {
     if (a.sinDato) continue;
     const bx = x(a.y) + (x(a.y + 1) - x(a.y) - w) / 2;
     const b = barra(g, bx, w, y(a.n), g.y1, "", css("--aurora"));
-    const pie = a.mejor >= 0 ? `La mejor: ${fmtDia(DIA0 + a.mejor)}, Kp ${kpTxt(MAXDIA[a.mejor])}` : "";
-    items.push({ cx: bx + w / 2, bar: b, html: tipHtml(String(a.y), [[nf.format(a.n), "noches con aurora posible", css("--aurora")]], pie) });
+    const pie = a.mejor >= 0 ? `Mayor Ap diario: ${fmtDia(DIA0 + a.mejor)}, Kp nocturno ${kpTxt(r.maxOsc[a.mejor])}` : "";
+    items.push({ cx: bx + w / 2, bar: b, html: tipHtml(String(a.y), [[nf.format(a.n), "noches con señal y oscuridad", css("--aurora")]], pie) });
     if (top.includes(a.y)) g.add(el("text", { x: bx + w / 2, y: y(a.n) - 5, "text-anchor": "middle", class: "lab" })).textContent = a.y;
   }
   zonaDensa(g, items);
-  $("t-anos").textContent = `Noches con aurora desde ${r.L.nombre}, cada año`;
-  $("ley-anos").innerHTML = `<span><i class="lin" style="background:var(--sol)"></i>Manchas solares (número = ciclo; discontinuo: previsión NOAA)</span><span><i style="background:var(--aurora)"></i>Noches con aurora posible aquí</span>`;
-  tabla($("tb-anos"), ["Año", "Noches", "Mejor noche"], r.años.filter((a) => !a.sinDato).reverse().map((a) => [a.y, nf.format(a.n), a.mejor >= 0 ? `${fmtDia(DIA0 + a.mejor)} · Kp ${kpTxt(MAXDIA[a.mejor])}` : "—"]), "Noches por año");
+  $("t-anos").textContent = `Señal geomagnética y oscuridad en ${r.L.nombre}, por año`;
+  $("ley-anos").innerHTML = `<span><i class="lin" style="background:var(--sol)"></i>Manchas solares (número = ciclo; discontinuo: previsión NOAA)</span><span><i style="background:var(--aurora)"></i>Noches con señal y oscuridad</span>`;
+  tabla($("tb-anos"), ["Año", "Noches con señal", "Noche del mayor Ap diario"], r.años.filter((a) => !a.sinDato).reverse().map((a) => [a.y, nf.format(a.n), a.mejor >= 0 ? `${fmtDia(DIA0 + a.mejor)} · Kp nocturno ${kpTxt(r.maxOsc[a.mejor])}` : "—"]), "Coincidencias de actividad y oscuridad por año, no avistamientos");
 }
 
-/** Dónde se vio, para los episodios documentados (fuentes en auroras.SOURCES.md). */
-const NOTAS = [
-  ["1938-01-25", "Toda España, en plena Guerra Civil"],
-  ["1989-03-13", "Texas y Florida"],
-  ["2003-10-29", "Texas y el Mediterráneo"],
-  ["2024-05-10", "Toda la península y Canarias"],
-  ["2024-10-10", "Pirineo aragonés y Canarias"],
-  ["2025-11-12", "Centro de México"],
-  ["2026-01-19", "También en España"],
-];
-const notaDe = (e) => (NOTAS.find(([f]) => { const d = diaDe(f) - DIA0; return d >= e.i && d <= e.j; }) || [])[1] || "";
 function tablaTormentas(r) {
   const ev = [...r.tormentas].sort((a, b) => b.ap - a.ap || b.kp - a.kp).slice(0, S.verTormentas);
   const fecha = (e) => {
@@ -1111,11 +1141,11 @@ function tablaTormentas(r) {
     return a.getUTCMonth() === b.getUTCMonth() ? `${a.getUTCDate()}–${b.getUTCDate()} ${MESES[b.getUTCMonth()]} ${b.getUTCFullYear()}` : `${fmtDia(DIA0 + e.i, false)} – ${fmtDia(DIA0 + e.j)}`;
   };
   $("tb-tormentas").innerHTML = `<table><caption class="sr">Mayores tormentas geomagnéticas desde 1932</caption><thead><tr>` +
-    `<th scope="col">Fecha</th><th scope="col">Kp</th><th scope="col">Dst</th><th scope="col">¿Desde ${esc(r.L.nombre)}?</th><th scope="col" style="text-align:left">Dónde se vio</th></tr></thead><tbody>` +
+    `<th scope="col">Fecha</th><th scope="col">Kp</th><th scope="col">Ap diario</th><th scope="col">Dst (nT)</th><th scope="col">Señal + oscuridad</th></tr></thead><tbody>` +
     ev.map((e) => {
-      const vis = r.T !== null && e.vis;
-      return `<tr><td>${esc(fecha(e))}</td><td>${kpTxt(e.kp)}</td><td>${e.dst !== null ? nf.format(e.dst) : e.conDst ? "> −100" : "—"}</td>` +
-        `<td class="${vis ? "si" : "no"}">${vis ? "Sí" : "No"}</td><td class="donde">${esc(notaDe(e))}</td></tr>`;
+      const coincide = r.T !== null && e.vis;
+      return `<tr><td>${esc(fecha(e))}</td><td>${kpTxt(e.kp)}</td><td>${coma(e.ap, 0)}</td><td>${e.dst !== null ? nf.format(e.dst) : e.conDst ? "> −100" : "—"}</td>` +
+        `<td class="${coincide ? "si" : "no"}">${coincide ? "Coincide" : "Sin coincidencia"}</td></tr>`;
     }).join("") + `</tbody></table>`;
   $("mas").textContent = S.verTormentas === 10 ? "Ver 30" : "Ver 10";
 }
@@ -1141,13 +1171,13 @@ function graficoFase(r) {
   for (let t = b0; t <= b1; t += 2) g.add(el("text", { x: x(t), y: g.y1 + 14, "text-anchor": "middle" })).textContent = t === 0 ? "máx." : `${t > 0 ? "+" : ""}${t}`;
   g.add(el("text", { x: (g.x0 + g.x1) / 2, y: g.y1 + 28, "text-anchor": "middle" })).textContent = "años desde el máximo de manchas";
   const mejor = [...bins].sort((a, b) => b.porAño - a.porAño)[0];
-  $("t-fase").textContent = `Lo mejor llega ${mejor.b > 0 ? `${mejor.b}–${mejor.b + 1} años después` : "alrededor"} del máximo`;
+  $("t-fase").textContent = `Mayor media histórica: ${mejor.b >= 0 ? `${mejor.b}–${mejor.b + 1} años tras el máximo` : `${Math.abs(mejor.b + 1)}–${Math.abs(mejor.b)} años antes del máximo`}`;
   tabla($("tb-fase"), ["Años desde el máximo", "Noches al año"], bins.map((o) => [`${o.b >= 0 ? "+" : ""}${o.b} a ${o.b + 1 >= 0 ? "+" : ""}${o.b + 1}`, coma(o.porAño, 2)]), "Noches por fase del ciclo");
 }
 
 function graficoMes(r) {
   const host = $("g-mes");
-  const g = marco(host, { h: 170, ml: 34, titulo: "Noches con aurora posible por mes del año" });
+  const g = marco(host, { h: 170, ml: 34, titulo: "Noches con señal geomagnética y oscuridad por mes del año" });
   const vmax = Math.max(0.05, ...r.mes.map((o) => o.noches));
   const y = (v) => g.y1 - (v / (vmax * 1.15)) * (g.y1 - g.y0);
   ejeY(g, ticks(0, vmax * 1.15, 3), y, (v) => String(v).replace(".", ","));
@@ -1190,7 +1220,7 @@ function graficoCiclos(r) {
       b.setAttribute("stroke", css("--sol")); b.setAttribute("stroke-dasharray", "3 3");
       g.add(el("line", { x1: cx, x2: cx, y1: y(f.hi), y2: y(f.lo), stroke: css("--ink-2"), "stroke-width": 1.5 }));
     }
-    zona(g, cx - w / 2, w, tipHtml(`Ciclo ${f.n}${f.previsto ? " (previsto)" : f.abierto ? " (en curso)" : ""}`, [[coma(f.porAño), "días con Kp ≥ 7 al año"], [nf.format(Math.round(f.sn)), "máximo de manchas"]], f.previsto ? `Rango: ${coma(f.lo)}–${coma(f.hi)}` : ""), (on) => b.classList.toggle("on", on));
+    zona(g, cx - w / 2, w, tipHtml(`Ciclo ${f.n}${f.previsto ? " (escenario)" : f.abierto ? " (en curso)" : ""}`, [[coma(f.porAño), "días con Kp ≥ 7 al año"], [nf.format(Math.round(f.sn)), "máximo de manchas"]], f.previsto ? `Rango de supuestos: ${coma(f.lo)}–${coma(f.hi)}` : ""), (on) => b.classList.toggle("on", on));
     g.add(el("text", { x: cx, y: g.y1 + 14, "text-anchor": "middle", class: f.abierto || f.previsto ? "fuerte" : "" })).textContent = f.n;
   });
   g.add(el("text", { x: (g.x0 + g.x1) / 2, y: g.y1 + 28, "text-anchor": "middle" })).textContent = "ciclo solar";
@@ -1216,7 +1246,10 @@ function horaYRecurrencia(r) {
    Próximas 4 semanas (NOAA, en directo)
    ========================================================================= */
 let PRONTO = null;
+let cargandoPronto = false;
 async function cargaPronto() {
+  if (cargandoPronto) return;
+  cargandoPronto = true;
   try {
     const txt = await (await fetch("https://services.swpc.noaa.gov/text/27-day-outlook.txt", { cache: "no-store" })).text();
     const filas = [];
@@ -1231,7 +1264,8 @@ async function cargaPronto() {
   } catch (e) {
     PRONTO = { error: true };
   }
-  if (C) graficoPronto(C);
+  cargandoPronto = false;
+  if (C && S.tab === "pronto") graficoPronto(C);
 }
 function graficoPronto(r) {
   const host = $("g-pronto");
@@ -1249,18 +1283,18 @@ function graficoPronto(r) {
   const umbralVisible = r.T !== null && r.Dn === null;
   if (umbralVisible) {
     g.add(el("line", { x1: g.x0, x2: g.x1, y1: y(r.T / 3), y2: y(r.T / 3), stroke: css("--aurora"), "stroke-width": 1.5 }));
-    g.add(el("text", { x: g.x1, y: y(r.T / 3) - 5, "text-anchor": "end", class: "lab" })).textContent = `umbral de ${r.L.nombre}`;
+    g.add(el("text", { x: g.x1, y: y(r.T / 3) - 5, "text-anchor": "end", class: "lab" })).textContent = "referencia de actividad alta";
   }
   const slot = (g.x1 - g.x0) / F.length, w = Math.min(18, slot - 3);
   F.forEach((f, k) => {
     const bx = g.x0 + slot * k + (slot - w) / 2, ok = umbralVisible && f.kp * 3 >= r.T;
     const b = barra(g, bx, w, y(f.kp), g.y1, "", ok ? css("--aurora") : css("--ref"));
     const luz = luzLuna(f.d * DIA + DIA), fd = fechaDia(f.d);
-    zona(g, bx, w, tipHtml(`${fd.getUTCDate()} ${MESES_L[fd.getUTCMonth()]}`, [[`Kp ${f.kp}`, "máximo previsto"], [pct(luz), "Luna iluminada"]], ok ? "Llega al umbral de aquí" : ""), (on) => b.classList.toggle("on", on));
+    zona(g, bx, w, tipHtml(`${fd.getUTCDate()} ${MESES_L[fd.getUTCMonth()]}`, [[`Kp ${f.kp}`, "máximo previsto"], [pct(luz), "Luna iluminada"]], ok ? "Supera la referencia de actividad alta; no garantiza aurora local." : "Puede haber auroras en Abisko también con Kp bajo."), (on) => b.classList.toggle("on", on));
     if (fd.getUTCDay() === 1 || k === 0) g.add(el("text", { x: bx + w / 2, y: g.y1 + 15, "text-anchor": "middle" })).textContent = `${fd.getUTCDate()} ${MESES[fd.getUTCMonth()]}`;
     g.add(el("text", { x: bx + w / 2, y: g.y1 + 31, "text-anchor": "middle" })).textContent = luz < 0.1 ? "●" : luz > 0.9 ? "○" : "";
   });
-  $("ley-pronto").innerHTML = `<span><i style="background:var(--aurora)"></i>Llega al umbral de ${esc(r.L.nombre)}</span><span><i style="background:var(--ref)"></i>No llega</span><span>● luna nueva · ○ llena</span>` +
+  $("ley-pronto").innerHTML = `<span><i style="background:var(--aurora)"></i>Supera la referencia de actividad alta</span><span><i style="background:var(--ref)"></i>Por debajo de la referencia, no ausencia de auroras</span><span>● luna nueva · ○ llena</span><span>Emitido: ${esc(PRONTO.emitido)}</span>` +
     (r.Dn !== null ? `<span>Aquí hace falta una tormenta extrema; NOAA no prevé su fuerza con semanas.</span>` : "");
 }
 
@@ -1269,13 +1303,15 @@ function graficoPronto(r) {
    ========================================================================= */
 function metodo(r) {
   $("metodo").innerHTML = [
-    `<b>Noche con aurora posible:</b> algún tramo de 3 h con el Sol a más de 12° bajo el horizonte y el Kp por encima del umbral del lugar.`,
-    `<b>Umbral:</b> latitud geomagnética AACGM y reglas de NOAA (borde del óvalo 66° − 2° por punto de Kp). Donde no basta un Kp 9, se exige además un Dst (Yokoyama 1998), calibrado con los avistamientos en España de 2024 y 2026.`,
-    `<b>Probabilidad futura:</b> fracción de meses del pasado en la misma fase del ciclo (±1 año) y época (±1 mes) con al menos una noche así, corregida por la fuerza prevista del ciclo.`,
-    `<b>Supuestos:</b> el ciclo 25 acaba hacia ${D.ciclo26.min.slice(0, 4)} (NOAA); el máximo del 26, en ${D.ciclo26.max.slice(0, 4)} ± ${coma(D.ciclo26.maxMargen)} años con ${D.ciclo26.sn.bajo}–${D.ciclo26.sn.alto} manchas.`,
+    `<b>Señal de actividad:</b> algún tramo de 3 h con Kp ≥ 7 (G3 o superior) y el Sol a más de 12° bajo el horizonte en Abisko. Es una referencia conservadora para buscar actividad elevada, no el mínimo necesario para ver auroras ni una medida de brillo. No son avistamientos registrados.`,
+    `<b>Estimación mensual:</b> fracción de meses del pasado en la misma fase del ciclo (±1 año) y época (±1 mes) con al menos una noche así, corregida por la fuerza del ciclo mediante un ajuste empírico sobre ciclos completos. Se aplica la oscuridad de Abisko, pero no la nubosidad.`,
+    `<b>Ventanas de viaje:</b> pares de meses completos consecutivos, ordenados por la media de sus estimaciones mensuales. Solo se consideran los próximos 36 meses del ciclo actual, con al menos 10 análogos y 3 ciclos por mes; las alternativas se separan más de 120 días. Esa media sirve para comparar, no es la probabilidad de un viaje de dos meses.`,
+    `<b>Colores:</b> sin coincidencias, menos del 30 %, 30–60 %, 60–80 % y al menos el 80 % de la señal del mejor mes del ciclo actual. Son niveles relativos, no probabilidades absolutas ni categorías oficiales de NOAA.`,
+    `<b>Supuestos lejanos:</b> <a href="https://www.spaceweather.gov/products/solar-cycle-progression">NOAA</a> sitúa el posible inicio del ciclo 26 entre 2029 y 2032 y todavía no lo pronostica. Este modelo fija un mínimo en ${D.ciclo26.min.slice(0, 4)} y un máximo en ${D.ciclo26.max.slice(0, 4)} ± ${coma(D.ciclo26.maxMargen)} años, con ${D.ciclo26.sn.bajo}–${D.ciclo26.sn.alto} manchas. No son fechas oficiales.`,
     `<b>No se usa:</b> el Bz y el viento solar (solo se conocen con 30–60 min de aviso) ni qué equinoccio domina según la polaridad del Sol, que en estos datos no se repite con regularidad.`,
-    `<b>Límites:</b> el Kp es global y por tramos de 3 h. Las nubes deciden el resto. En latitudes bajas la aurora es un resplandor rojo, más claro en foto que a simple vista.`,
-    `Fuentes y cálculos, en <code>data-src/auroras/auroras.SOURCES.md</code>.`,
+    `<b>Límites:</b> el Kp es global y por tramos de 3 h. El modelo no está calibrado como pronóstico local; los meses de un mismo ciclo no son independientes. Los márgenes del ciclo 26 son escenarios, no intervalos de confianza. No se puede convertir una estimación mensual en éxito de una estancia corta.`,
+    `<b>Abisko:</b> <a href="https://www.spaceweather.gov/content/tips-viewing-aurora">NOAA recuerda</a> que bajo el óvalo pueden verse buenas auroras con actividad baja. Una fase solar menos favorable no significa que Abisko deje de ser un buen destino.`,
+    `Datos, cálculos y bibliografía: <a href="../data-src/auroras/auroras.SOURCES.md">fuentes y supuestos</a>.`,
   ].map((t) => `<li>${t}</li>`).join("");
   $("f-fechas").textContent = `Kp hasta el ${fmtDia(diaDe(D.meta.kp.hasta))}.`;
 }
@@ -1290,36 +1326,12 @@ function tabla(host, cab, filas, caption) {
 /* =========================================================================
    Mandos
    ========================================================================= */
-const corto = (u) => (u.t === null ? "" : u.dst !== null ? "" : u.t === 0 ? "" : ` · Kp ${kpTxt(u.t)}`);
-function pintaModo(r) {
-  const fuerte = umbralDe(r.g.mlat, "fuerte");
-  const ops = [
-    ["vista", "Asomando", r.uVista],
-    ["alta", "En lo alto", r.uAlta],
-    ["fuerte", "Tormenta fuerte", fuerte],
-  ];
-  $("modo").innerHTML = ops.map(([k, t, u]) => `<button type="button" data-k="${k}" aria-pressed="${S.modo === k}" ${u.t === null ? "disabled" : ""} title="${esc(umbralTxt(u))}">${esc(t)}<span class="sr">${esc(corto(u))}</span></button>`).join("");
-  $("modo").querySelectorAll("button").forEach((b) => b.addEventListener("click", () => { S.modo = b.dataset.k; pinta(); }));
-}
 function mandos() {
-  const sel = $("lugar");
-  sel.innerHTML = LUGARES.map((l, k) => `<option value="${k}">${esc(l.nombre)}</option>`).join("");
-  sel.value = String(LUGARES.indexOf(S.lugar));
-  sel.addEventListener("change", () => { S.lugar = LUGARES[+sel.value]; pinta(); });
-  $("geo").addEventListener("click", () => {
-    if (!navigator.geolocation) return;
-    $("geo").textContent = "…";
-    navigator.geolocation.getCurrentPosition((p) => {
-      const l = { nombre: "tu ubicación", lat: p.coords.latitude, lon: p.coords.longitude, tz: Intl.DateTimeFormat().resolvedOptions().timeZone };
-      let o = sel.querySelector('option[value="geo"]');
-      if (!o) { o = document.createElement("option"); o.value = "geo"; sel.prepend(o); }
-      o.textContent = "Mi ubicación";
-      sel.value = "geo";
-      S.lugar = l;
-      $("geo").textContent = "📍";
-      pinta();
-    }, () => { $("geo").textContent = "📍"; }, { timeout: 10000 });
+  $("escenario").addEventListener("change", (evento) => {
+    S.escenario = evento.target.checked;
+    mapaFuturo(C);
   });
+  $("detalle").addEventListener("toggle", () => { if ($("detalle").open) pintaTab(); });
   $("mas").addEventListener("click", () => { S.verTormentas = S.verTormentas === 10 ? 30 : 10; tablaTormentas(C); });
   // Pestañas: clic y flechas.
   const tabs = [...document.querySelectorAll('[role="tab"]')];
@@ -1339,6 +1351,7 @@ function mandos() {
     t.addEventListener("keydown", (ev) => {
       const d = ev.key === "ArrowRight" ? 1 : ev.key === "ArrowLeft" ? -1 : 0;
       if (d) { abre(tabs[(k + d + tabs.length) % tabs.length], true); ev.preventDefault(); }
+      if (ev.key === "Home" || ev.key === "End") { abre(tabs[ev.key === "Home" ? 0 : tabs.length - 1], true); ev.preventDefault(); }
     });
   });
 }
@@ -1348,16 +1361,18 @@ function pintaTab() {
   if (!C) return;
   if (S.tab === "historia") { graficoSol(); graficoAños(C); tablaTormentas(C); }
   if (S.tab === "porque") { graficoFase(C); graficoMes(C); graficoCiclos(C); horaYRecurrencia(C); }
-  if (S.tab === "pronto") graficoPronto(C);
+  if (S.tab === "pronto") { if (PRONTO) graficoPronto(C); else cargaPronto(); }
   if (S.tab === "metodo") metodo(C);
 }
 
 function pinta() {
   C = calcula();
-  pintaModo(C);
   cabecera(C);
   cifras(C);
+  viajes(C);
+  temporadas(C);
   mapaFuturo(C);
+  metodo(C);
   pintaTab();
 }
 
@@ -1366,11 +1381,14 @@ function pinta() {
     await carga();
   } catch (e) {
     $("h-cap").textContent = "No se han podido cargar los datos.";
-    throw e;
+    $("h-big").textContent = "Orientación estacional";
+    $("h-sub").textContent = "Inténtalo de nuevo más tarde. Como orientación general, busca meses oscuros cerca de los equinoccios; no es un pronóstico de actividad.";
+    $("ventanas").innerHTML = `<p class="vacio">Las ventanas calculadas no están disponibles. Recarga la página para volver a intentarlo.</p>`;
+    console.error(e);
+    return;
   }
   mandos();
   pinta();
-  cargaPronto();
   let ancho = innerWidth;
   addEventListener("resize", () => {
     if (Math.abs(innerWidth - ancho) < 40) return;
@@ -1378,7 +1396,6 @@ function pinta() {
     clearTimeout(window.__rz);
     window.__rz = setTimeout(pinta, 150);
   });
-  matchMedia("(prefers-color-scheme: dark)").addEventListener("change", pinta);
 })();
 </script>
 </body>

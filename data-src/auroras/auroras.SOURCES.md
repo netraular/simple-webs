@@ -226,3 +226,40 @@ Física de fondo: Russell & McPherron 1973 (doi:10.1029/JA078i001p00092) para lo
 equinoccios; Watari 2024 (doi:10.1186/s40623-024-02087-4) y Chapman et al. 2020
 (doi:10.1029/2020GL087795) para que las tormentas intensas abunden en la primera
 mitad del descenso del ciclo y apenas lleguen cerca del mínimo.
+
+## Presentación centrada en Abisko
+
+La página fija Abisko y Kp ≥ 7 como **referencia conservadora de actividad
+geomagnética elevada**, no como requisito para ver auroras ni como medida del
+brillo local. NOAA explica que bajo el óvalo pueden verse buenas auroras con
+Kp bajo: <https://www.spaceweather.gov/content/tips-viewing-aurora>.
+
+Las ventanas destacadas son pares de meses completos consecutivos dentro de
+los próximos 36 meses del ciclo 25. Cada mes necesita al menos 10 análogos de
+3 ciclos. Se ordenan por la media de las dos estimaciones mensuales y se eligen
+hasta tres alternativas cuyos inicios estén separados más de 120 días. Es un
+criterio de comparación, **no una probabilidad de éxito de un viaje**. Los meses
+ya empezados se omiten, porque el modelo estima meses completos.
+
+El calendario usa niveles relativos al mejor mes futuro del ciclo actual:
+sin coincidencias, <30 %, 30–60 %, 60–80 % y ≥80 % de su señal. Los porcentajes
+absolutos y la muestra siguen disponibles en la tabla de detalle. No incluye
+nubes ni intensidad local y no está calibrado como pronóstico de visibilidad.
+Los análogos de un mismo ciclo no son observaciones independientes.
+
+El ciclo 26 solo aparece si se activa su escenario. El rango muestra sensibilidad
+a los supuestos, no un intervalo de confianza. NOAA confirma que todavía no
+lo pronostica y sitúa su posible inicio entre 2029 y 2032:
+<https://www.spaceweather.gov/products/solar-cycle-progression> (consultado
+el 1 de octubre de 2026). El mínimo en 2030-12 del modelo no es una fecha oficial.
+
+### Fotografía
+
+`pages/data/abisko-aurora.jpg`: **Northern Lights in Abisko**, Lawrence Hislop /
+GRID-Arendal, publicada por US Embassy Sweden. Wikimedia Commons verifica la
+licencia **CC BY 2.0**. La página acredita autor, publicación, fuente, licencia
+y encuadre adaptado. Copia local del JPEG original (1920 × 1116):
+
+- Archivo y licencia: <https://commons.wikimedia.org/wiki/File:Northern_Lights_in_Abisko_(10739428626).jpg>
+- Original: <https://upload.wikimedia.org/wikipedia/commons/9/94/Northern_Lights_in_Abisko_%2810739428626%29.jpg>
+- Licencia: <https://creativecommons.org/licenses/by/2.0/>

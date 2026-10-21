@@ -23,6 +23,10 @@
     "title": "Invest Now or Wait for the Right Moment?",
     "description": "Lump sum versus spreading it over months, waiting for a dip, and a clairvoyant who buys every year at the cheapest month — tested against every month of the S&P 500 since 1934, plus developed-market equities. Waiting cash earns Treasury bills, and the page shows where the rule of thumb fails."
   },
+  "gpus-cex.html": {
+    "title": "GPUs CeX · Rendimiento por euro",
+    "description": "Compara 102 ofertas de tarjetas gráficas de segunda mano en CeX España por rendimiento PassMark por euro, con filtros de presupuesto y memoria, comparación de hasta tres GPU y fuentes fechadas. Benchmark sintético, no FPS en juegos."
+  },
   "auroras.html": {
     "title": "Abisko · Cuándo viajar para ver auroras",
     "description": "Meses y año orientativos para buscar auroras en Abisko durante el siguiente ciclo solar, dentro del horizonte aproximado de 2035–2036. Combina historial geomagnético y oscuridad, con límites claros: es un escenario, no una fecha confirmada ni una garantía de auroras intensas. Datos de GFZ, Kyoto, SILSO y NOAA."

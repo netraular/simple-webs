@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Tarjetas gráficas de segunda mano en CeX España, ordenadas por rendimiento PassMark por euro, con precios y fuentes fechados.">
+<title>GPUs CeX · Rendimiento por euro</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&amp;family=IBM+Plex+Sans:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f3f5f4;--paper:#fff;--ink:#202824;--muted:#58665f;--line:#d6dfd9;--green:#17684b;--soft:#e6f1ea;--red:#a93838;--gold:#8c6414}
+*{box-sizing:border-box;letter-spacing:0} [hidden]{display:none!important}
+body{margin:0;color:var(--ink);background:linear-gradient(180deg,#e9eeeb,transparent 260px),var(--bg);font:14px/1.5 "IBM Plex Sans",sans-serif}
+main{max-width:1220px;margin:auto;padding:28px 28px 48px} a{color:var(--green);text-underline-offset:3px}
+header{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap;border-bottom:2px solid var(--ink);padding-bottom:16px}
+h1,h2,p{margin:0} h1{font:600 38px/1.05 "Barlow Condensed",sans-serif} h1 span{color:var(--green)} h2{font:600 24px/1.15 "Barlow Condensed",sans-serif}
+.meta,.note,small{color:var(--muted);font-size:12px} .meta{margin-top:10px}.note{margin-top:12px;max-width:900px}
+.filters{display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1.4fr;gap:12px;margin:24px 0 14px}
+label.field{display:flex;flex-direction:column;gap:6px;color:var(--muted);font-size:12px;min-width:0}
+input,select,button{font:inherit;color:var(--ink)} input:not([type=checkbox]),select{min-height:44px;min-width:0;width:100%;border:1px solid #a6b5ac;border-radius:4px;background:var(--paper);padding:9px 10px}
+input[type=checkbox]{width:18px;height:18px;accent-color:var(--green);flex-shrink:0} button{min-height:44px;cursor:pointer} :focus-visible{outline:3px solid var(--gold);outline-offset:3px}
+.options{display:flex;gap:12px 24px;flex-wrap:wrap;align-items:center;padding-bottom:18px;border-bottom:1px solid var(--line)}.check{display:flex;gap:7px;align-items:center;font-size:13px}
+.results-head{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:10px;margin:22px 0 12px}.count{color:var(--muted);font-size:13px}
+.winner{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px 24px;padding:16px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin-bottom:20px}
+.winner strong{font:600 24px/1.2 "Barlow Condensed",sans-serif;overflow-wrap:anywhere}.winner .ratio{text-align:right;color:var(--green)}.winner small{display:block;margin-top:5px}.winner a{text-decoration:none}
+.table-wrap{overflow:auto;background:var(--paper);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums}th,td{text-align:right;padding:12px 14px;border-bottom:1px solid var(--line);vertical-align:middle}th{font-size:11px;color:var(--muted);font-weight:500;background:#eef2ef;white-space:nowrap}th:nth-child(2),td:nth-child(2){text-align:left}td:first-child,th:first-child{width:42px;padding-right:0;text-align:center}tbody tr:last-child td{border-bottom:0}tbody tr:hover{background:#f6f9f7}
+.product{display:flex;align-items:center;gap:12px;min-width:240px}.product img{width:58px;height:44px;object-fit:contain;flex:0 0 58px}.product strong{font-size:14px;font-weight:500;display:block;overflow-wrap:anywhere}.product a{text-decoration:none}.product small{display:block;max-width:390px;font-size:11px;margin-top:3px}.price{font-weight:600;white-space:nowrap}.value{min-width:122px;color:var(--green);font-weight:600}.bar{height:3px;background:#e5ece7;margin-top:5px;overflow:hidden}.bar span{display:block;height:100%;background:var(--green)}.badge{font-size:10px;color:var(--green);display:block}.warning{color:var(--gold)}
+.message{padding:24px 0;color:var(--muted)}.error{color:var(--red)}.comparison{margin:26px 0}.comparison h2{margin-bottom:12px}.comparison table{table-layout:fixed}.comparison th,.comparison td{overflow-wrap:anywhere;white-space:normal;text-align:left}.comparison th{width:24%}.comparison td{font-size:13px}.compare-title{display:flex;justify-content:space-between;align-items:center;gap:12px}.clear{border:0;background:transparent;color:var(--muted);font-size:13px;text-decoration:underline;text-underline-offset:3px}
+details{margin-top:28px;border-top:1px solid var(--line);padding-top:14px;font-size:13px}summary{cursor:pointer;font-weight:500;min-height:32px}details p{margin-top:12px;max-width:900px}.links{display:flex;gap:10px 20px;flex-wrap:wrap}footer{margin-top:24px;font-size:11px;color:var(--muted)}
+@media(max-width:800px){.filters{grid-template-columns:1fr 1fr}.search{grid-column:1/-1}main{padding:20px 16px 32px}h1{font-size:32px}.product img{display:none}th,td{padding:10px}.table-wrap table{min-width:680px}.comparison .table-wrap table{min-width:560px}}
+@media(max-width:380px){.winner{grid-template-columns:1fr}.winner .ratio{text-align:left}.filters{gap:10px}.options{gap:8px}}
+</style>
+</head>
+<body>
+<main>
+<header><h1>GPUs <span>CeX</span></h1><span>Segunda mano · España</span></header>
+<p class="meta" id="snapshot">Cargando catálogo y puntuaciones…</p>
+<section class="filters" id="filters" aria-label="Filtros de tarjetas gráficas">
+<label class="field search">Modelo o ensamblador<input type="search" id="search" placeholder="RTX 3070, Radeon, MSI…"></label>
+<label class="field">Presupuesto máximo (€)<input type="number" id="budget" min="0" step="any" placeholder="Sin límite"></label>
+<label class="field">Memoria mínima<select id="vram"><option value="0">Cualquiera</option><option value="4">4 GB</option><option value="6">6 GB</option><option value="8">8 GB</option><option value="12">12 GB</option><option value="16">16 GB</option></select></label>
+<label class="field">G3D Mark mínimo<input type="number" id="minimum" min="0" step="1" placeholder="Sin mínimo"></label>
+<label class="field">Ordenar por<select id="sort"><option value="value">Rendimiento / €</option><option value="score">Más rendimiento</option><option value="price">Menor precio</option></select></label>
+</section>
+<div class="options"><label class="check"><input type="checkbox" id="group" checked>Solo la oferta más barata de cada GPU y memoria</label><label class="check"><input type="checkbox" id="frontier">Sin alternativas más baratas e igual de rápidas</label></div>
+<p class="note">G3D Mark es un benchmark sintético, no FPS en juegos. Una buena ratio no garantiza compatibilidad, soporte de drivers ni buen rendimiento en juegos actuales. Precios sin envío; stock y precio final por confirmar en CeX.</p>
+<section aria-labelledby="rankingTitle">
+<div class="results-head"><h2 id="rankingTitle">Rendimiento por euro</h2><span id="count" class="count" aria-live="polite"></span></div>
+<div id="winner" class="winner" hidden></div>
+<p id="status" class="message" role="status">Cargando datos…</p>
+<div id="table" class="table-wrap" hidden><table><thead><tr><th scope="col">Comparar</th><th scope="col">Tarjeta gráfica</th><th scope="col">CeX</th><th scope="col">Memoria</th><th scope="col">G3D Mark</th><th scope="col">Puntos / €</th></tr></thead><tbody id="rows"></tbody></table></div>
+</section>
+<section id="comparison" class="comparison" hidden aria-labelledby="comparisonTitle"><div class="compare-title"><h2 id="comparisonTitle">Cara a cara <small id="selectedCount"></small></h2><button type="button" class="clear" id="clear">Quitar selección</button></div><div class="table-wrap"><table id="comparisonTable"></table></div><p class="note">Puntuación de la familia de GPU, no una medición de esta unidad usada. El overclock y la refrigeración del ensamblador pueden cambiar el resultado.</p></section>
+<details><summary>Fuentes, cálculo y límites</summary>
+<p><strong>Relación rendimiento/precio = G3D Mark ÷ precio de venta CeX en euros.</strong> Más puntos por euro es mejor dentro de este benchmark. No se utilizan precios de recompra, vales ni valoraciones de clientes. Las ofertas se conservan por separado; al agrupar se elige la más barata de la misma GPU y capacidad de memoria.</p>
+<p>PassMark agrega pruebas de usuarios con equipos diferentes. Sus puntuaciones cambian con las muestras y no equivalen a una comparativa controlada de juegos. No miden por separado ray tracing, escalado, generación de fotogramas, IA o edición de vídeo. La puntuación puede agrupar capacidades de memoria o revisiones; la tabla lo indica. Las variantes ambiguas y las GPU externas no reciben una puntuación de sobremesa por aproximación.</p>
+<p>Una alternativa domina a otra si cuesta igual o menos y obtiene igual o más puntuación, con al menos una mejora estricta. Esa comparación solo considera precio y G3D Mark, no memoria, consumo ni otras prestaciones. Una tarjeta antigua de 2 GB puede ganar por euro y ser inadecuada para un juego moderno. Comprueba requisitos del juego, fuente de alimentación, conectores, dimensiones, drivers y estado de la unidad.</p>
+<p id="coverage"></p><p>La fecha corresponde a la captura, no a una consulta en tiempo real. El catálogo puede cambiar durante la descarga. La presencia en el listado no garantiza envío a domicilio ni stock en tu tienda. El envío no se suma porque depende del pedido.</p>
+<p class="links"><a href="https://es.webuy.com/search/?categoryIds=887&amp;categoryName=tarjetas-graficas-pci-e" target="_blank" rel="noopener noreferrer">Catálogo CeX</a><a href="https://www.videocardbenchmark.net/GPU_mega_page.html" target="_blank" rel="noopener noreferrer">PassMark: puntuaciones</a><a href="https://www.videocardbenchmark.net/gpu_test_info.html" target="_blank" rel="noopener noreferrer">PassMark: metodología</a></p>
+</details>
+<footer>Comparativa independiente. Sin afiliación con CeX ni PassMark.</footer>
+<noscript>Activa JavaScript para consultar la comparativa.</noscript>
+</main>
+<script>
+"use strict";
+function rankOffers(offers, settings = {}) {
+  const {query = '', budget = Infinity, vram = 0, minimum = 0, group = true, frontier = false, sort = 'value'} = settings;
+  if (![budget, vram, minimum].every(value => typeof value === 'number' && value >= 0 && !Number.isNaN(value))) throw new RangeError('Filtros numéricos no válidos');
+  const terms = query.toLowerCase().trim().split(/\s+/);
+  let rows = offers.filter(offer => offer.price <= budget && (offer.vram ?? 0) >= vram && (!minimum || (offer.score ?? 0) >= minimum) && terms.every(term => offer.name.toLowerCase().includes(term))).map(offer => ({...offer, value: offer.score ? offer.score / offer.price : null}));
+  if (group) {
+    const cheapest = new Map();
+    for (const row of rows) {
+      const key = row.gpuKey || row.id;
+      if (!cheapest.has(key) || row.price < cheapest.get(key).price) cheapest.set(key, row);
+    }
+    rows = [...cheapest.values()];
+  }
+  rows = rows.map(row => ({...row, dominated: row.score !== null && rows.some(other => other.score !== null && other.price <= row.price && other.score >= row.score && (other.price < row.price || other.score > row.score))}));
+  if (frontier) rows = rows.filter(row => row.score !== null && !row.dominated);
+  return rows.sort((first, second) => {
+    if (sort === 'price') return first.price - second.price || (second.score ?? 0) - (first.score ?? 0) || first.id.localeCompare(second.id);
+    const field = sort === 'score' ? 'score' : 'value';
+    return (second[field] ?? -1) - (first[field] ?? -1) || first.price - second.price || first.id.localeCompare(second.id);
+  });
+}
+const ui = Object.fromEntries(['snapshot','filters','search','budget','vram','minimum','sort','group','frontier','rankingTitle','count','winner','status','table','rows','comparison','comparisonTable','selectedCount','clear','coverage'].map(id => [id, document.getElementById(id)]));
+const euros = new Intl.NumberFormat('es-ES', {style:'currency', currency:'EUR', maximumFractionDigits:2});
+const number = new Intl.NumberFormat('es-ES', {maximumFractionDigits:1});
+const escapeHTML = value => String(value).replace(/[&<>"']/g, character => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[character]));
+const productURL = offer => `https://es.webuy.com/product-detail?id=${encodeURIComponent(offer.id)}`;
+let offers = [];
+const selected = new Set();
+function renderComparison() {
+  const items = offers.filter(offer => selected.has(offer.id));
+  ui.comparison.hidden = items.length === 0;
+  ui.selectedCount.textContent = `${items.length} / 3`;
+  const fields = [
+    ['GPU', offer => escapeHTML(offer.name)],
+    ['Precio CeX', offer => euros.format(offer.price)],
+    ['G3D Mark', offer => offer.score === null ? 'Sin referencia' : number.format(offer.score)],
+    ['Puntos / €', offer => offer.score === null ? '—' : number.format(offer.score / offer.price)],
+    ['Memoria', offer => offer.vram === null ? 'No indicada' : `${number.format(offer.vram)} GB`],
+    ['Referencia', offer => escapeHTML(offer.benchmarkName || offer.matchNote)],
+    ['Oferta', offer => `<a href="${productURL(offer)}" target="_blank" rel="noopener noreferrer">Ver en CeX</a>`]
+  ];
+  ui.comparisonTable.innerHTML = `<tbody>${fields.map(([label, format]) => `<tr><th scope="row">${label}</th>${items.map(offer => `<td>${format(offer)}</td>`).join('')}</tr>`).join('')}</tbody>`;
+}
+function render() {
+  if (!offers.length) return;
+  const budget = ui.budget.value === '' ? Infinity : ui.budget.valueAsNumber;
+  const minimum = ui.minimum.value === '' ? 0 : ui.minimum.valueAsNumber;
+  if (budget < 0 || minimum < 0 || Number.isNaN(budget) || Number.isNaN(minimum)) {
+    ui.status.textContent = 'Introduce un presupuesto y una puntuación válidos, iguales o mayores que cero.';
+    ui.status.hidden = false; ui.table.hidden = true; ui.winner.hidden = true; ui.count.textContent = ''; return;
+  }
+  const rows = rankOffers(offers, {query:ui.search.value, budget, vram:Number(ui.vram.value), minimum, group:ui.group.checked, frontier:ui.frontier.checked, sort:ui.sort.value});
+  ui.count.textContent = `${rows.length} ofertas · ${rows.filter(row => row.score !== null).length} con benchmark`;
+  ui.rankingTitle.textContent = {value:'Rendimiento por euro', score:'Mayor rendimiento', price:'Menor precio'}[ui.sort.value];
+  const best = [...rows].filter(row => row.value !== null).sort((first, second) => second.value - first.value || first.price - second.price)[0];
+  ui.winner.hidden = !best;
+  if (best) ui.winner.innerHTML = `<div><small>MEJOR RATIO CON ESTOS FILTROS</small><a href="${productURL(best)}" target="_blank" rel="noopener noreferrer"><strong>${escapeHTML(best.name)}</strong></a><small>${euros.format(best.price)} · ${number.format(best.score)} puntos G3D Mark</small></div><div class="ratio"><strong>${number.format(best.value)}</strong><small>puntos por euro</small></div>`;
+  const maximum = Math.max(1, ...rows.map(row => row.value ?? 0));
+  ui.rows.innerHTML = rows.map(row => `<tr><td><input type="checkbox" data-id="${escapeHTML(row.id)}" aria-label="Comparar ${escapeHTML(row.name)}" ${selected.has(row.id) ? 'checked' : ''} ${selected.size >= 3 && !selected.has(row.id) ? 'disabled' : ''}></td><td><div class="product">${row.image ? `<img src="${escapeHTML(row.image)}" alt="" loading="lazy" width="58" height="44">` : ''}<div><a href="${productURL(row)}" target="_blank" rel="noopener noreferrer"><strong>${escapeHTML(row.name)}</strong></a><small>${escapeHTML(row.matchNote)}</small></div></div></td><td class="price">${euros.format(row.price)}</td><td>${row.vram === null ? '—' : `${number.format(row.vram)} GB`}</td><td>${row.score === null ? '<span class="warning">Sin referencia</span>' : `<a href="${escapeHTML(row.benchmarkUrl)}" target="_blank" rel="noopener noreferrer">${number.format(row.score)}</a>`}</td><td class="value">${row.value === null ? '—' : `${number.format(row.value)}<div class="bar" aria-hidden="true"><span style="width:${row.value / maximum * 100}%"></span></div>${!row.dominated ? '<span class="badge">No dominada por precio / puntos</span>' : ''}`}</td></tr>`).join('');
+  ui.table.hidden = rows.length === 0; ui.status.hidden = rows.length > 0;
+  ui.status.textContent = 'No hay ofertas con estos filtros.';
+  renderComparison();
+}
+async function load() {
+  try {
+    const response = await fetch('data/gpus-cex.json');
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const data = await response.json();
+    if (!Array.isArray(data.offers) || !data.offers.length || !data.offers.every(offer => typeof offer.id === 'string' && typeof offer.name === 'string' && Number.isFinite(offer.price) && offer.price > 0 && (offer.score === null || Number.isFinite(offer.score) && offer.score > 0) && (offer.vram === null || Number.isFinite(offer.vram) && offer.vram > 0) && typeof offer.matchNote === 'string' && (!offer.image || /^https:\/\/es\.static\.webuy\.com\//.test(offer.image)) && (offer.score === null || /^https:\/\/www\.videocardbenchmark\.net\//.test(offer.benchmarkUrl)))) throw new Error('Formato de datos no válido');
+    const date = new Date(data.capturedAt);
+    if (!Number.isFinite(date.getTime())) throw new Error('Fecha no válida');
+    offers = data.offers;
+    ui.snapshot.textContent = `Precios: ${date.toLocaleString('es-ES', {timeZone:'Europe/Madrid'})} (hora peninsular) · PassMark: ${data.benchmarkCheckedAt} · ${offers.length} ofertas · EUR`;
+    ui.coverage.textContent = `${offers.filter(offer => offer.score !== null).length} de ${offers.length} ofertas tienen una referencia de rendimiento. Las restantes aparecen sin ratio y no compiten por la mejor relación precio/rendimiento. ${data.catalogueNote}`;
+    render();
+  } catch (error) {
+    ui.snapshot.textContent = 'Catálogo no disponible'; ui.status.hidden = false; ui.status.classList.add('error');
+    ui.status.textContent = 'No se han podido cargar los datos. Recarga la página para volver a intentarlo.';
+  }
+}
+ui.filters.addEventListener('input', render);
+ui.filters.addEventListener('change', render);
+ui.group.addEventListener('change', render);
+ui.frontier.addEventListener('change', render);
+ui.rows.addEventListener('change', event => {
+  const id = event.target.dataset.id;
+  if (!offers.some(offer => offer.id === id)) return;
+  if (selected.has(id)) selected.delete(id); else if (selected.size < 3) selected.add(id);
+  render();
+});
+ui.clear.addEventListener('click', () => {selected.clear(); render();});
+load();
+</script>
+</body>
+</html>

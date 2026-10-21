@@ -11,6 +11,7 @@ into `../../pages/data/`, and keep their download cache in their own `_work/`
 | [`donde-vivir-barcelona/`](donde-vivir-barcelona/) | `donde-vivir-barcelona.html` | `zonas*.json`, `rutas.json`, `iso-*.json`, `linies.json` and the pipeline inputs | ordered pipeline, see the root [`README.md`](../README.md#data-files) |
 | [`auroras/`](auroras/) | `auroras.html` | `auroras.json` | `node build-auroras.mjs` · `node test-auroras.mjs` |
 | [`comparador-paises/`](comparador-paises/) | `comparador-paises.html` | — (data lives inside the page) | `node test-comparador.mjs` |
+| [`gpus-cex/`](gpus-cex/) | `gpus-cex.html` | `gpus-cex.json` | `node build-gpus.mjs` · `node test-gpus.mjs` (offline snapshot rebuild, not a live refresh) |
 
 `fire-calculator.html` and `calculadora-estilo-vida.html` have no data pipeline.
 

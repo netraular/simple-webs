@@ -156,7 +156,7 @@ async function load() {
     const date = new Date(data.capturedAt);
     if (!Number.isFinite(date.getTime())) throw new Error('Fecha no válida');
     offers = data.offers;
-    ui.snapshot.textContent = `Precios: ${date.toLocaleString('es-ES', {timeZone:'Europe/Madrid'})} (hora peninsular) · PassMark: ${data.benchmarkCheckedAt} · ${offers.length} ofertas · EUR`;
+    ui.snapshot.textContent = `Precios: ${date.toLocaleString('es-ES', {timeZone:'Europe/Madrid'})} (hora peninsular) · PassMark: ${data.benchmarkCheckedAt} · ${offers.length} ofertas · ${offers.filter(offer => offer.image).length} fotos de catálogo · EUR`;
     ui.coverage.textContent = `${offers.filter(offer => offer.score !== null).length} de ${offers.length} ofertas tienen una referencia de rendimiento. Las restantes aparecen sin ratio y no compiten por la mejor relación precio/rendimiento. ${data.catalogueNote}`;
     render();
   } catch (error) {

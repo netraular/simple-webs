@@ -48,6 +48,8 @@ for (const [name, expected] of [
 ]) assert.equal(identifyGPU(name), expected);
 const snapshot = JSON.parse(readFileSync(new URL('cex-snapshot.json', import.meta.url), 'utf8'));
 const benchmarks = JSON.parse(readFileSync(new URL('benchmarks.json', import.meta.url), 'utf8'));
+assert.equal(Object.keys(snapshot.images).length, 98, 'Verified remote-photo coverage in this capture');
+assert.ok(Number.isFinite(Date.parse(snapshot.imagesCheckedAt)));
 const imageFixture = {...snapshot, offers:snapshot.offers.slice(0,3), images:{}};
 const checkedImages = await checkImageHeaders(imageFixture, async (url, options) => {
   assert.equal(options.method, 'HEAD');
@@ -139,6 +141,7 @@ elements.gridView.listeners.click();
 assert.equal(elements.table.hidden, true);
 assert.equal(elements.cards.hidden, false);
 assert.match(elements.snapshot.textContent, /102 ofertas/);
+assert.match(elements.snapshot.textContent, /98 fotos de catálogo/);
 assert.match(elements.winner.innerHTML, /R9 290/);
 assert.match(elements.coverage.textContent, /87 de 102/);
 elements.group.checked = false;

@@ -11,9 +11,21 @@
 - Prices are the EUR **sale prices**, not CeX cash or voucher purchase offers.
   The out-of-stock toggle was left off. Listing inclusion is not a verification
   of home delivery or individual shop inventory. No stock quantity is inferred.
-- The two product photos in the snapshot were read from their product pages.
-  They are generic catalogue illustrations, not photographs of individual units.
-  No image URL is guessed for other offers.
+- The initial two product-photo URLs were read from their product pages. The
+  optional `--check-images` step checks the corresponding CeX CDN path for each
+  offer ID with **HTTP HEAD only** and records a URL only after an HTTP success
+  and an `image/*` content type. Redirects outside the CeX CDN are rejected.
+  `imagesCheckedAt` is separate from the price-capture timestamp. The current
+  snapshot has **98 verified remote-photo URLs for 102 offers**.
+- Photos remain on `es.static.webuy.com`; neither the checker nor the build
+  downloads or saves image bodies. The browser fetches them directly with lazy
+  loading, asynchronous decoding and no referrer. They are catalogue illustrations,
+  not photographs of individual used units. HEAD checks availability and content
+  type, not the visual contents; future removal or hotlink blocking remains possible.
+- Cards, the alternative table view, the leading offer and the three-GPU comparison
+  share the same remote URLs. Fixed photo areas retain their dimensions on failure;
+  absent or failed images display `Sin imagen`. Failed URLs are remembered for the
+  page session so changing filters does not repeatedly request broken images.
 - The GTX 1070 and MSI RTX 5050 product pages additionally confirmed 120 EUR
   and 225 EUR, respectively, and online stock at capture time. That observation
   is not extrapolated to the other offers or exposed as live inventory.
@@ -69,9 +81,23 @@ node data-src/gpus-cex/build-gpus.mjs
 node data-src/gpus-cex/test-gpus.mjs
 ```
 
-These commands rebuild and test the **recorded snapshot offline**. They do not
-claim to download current prices. `capturedAt` and `benchmarkCheckedAt` come
-from the source captures, never from the rebuild time. `generatedAt` is separate.
+To recheck remote-photo URLs without downloading any image files:
+
+```sh
+node data-src/gpus-cex/build-gpus.mjs --check-images
+node data-src/gpus-cex/test-gpus.mjs
+```
+
+This checks up to four URLs concurrently, rejects HTML/error responses, updates
+only photo metadata in the source snapshot and rebuilds the published data. If no
+image verifies, it aborts without overwriting the source capture. Review the photo
+coverage assertion if the available images change. It does not refresh prices or
+performance scores.
+
+The default build without `--check-images` and its tests operate on the **recorded
+snapshot offline**. Neither mode downloads current prices. `capturedAt` and
+`benchmarkCheckedAt` come from the source captures, never from the rebuild time.
+`generatedAt` is separate.
 
 To refresh, re-read all CeX result pages with the same filters, record their
 total count, prices, names, IDs and capture time in `cex-snapshot.json`; update

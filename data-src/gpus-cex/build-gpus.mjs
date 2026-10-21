@@ -12,6 +12,25 @@ export function identifyGPU(name) {
   return amd ? `${amd[1].toUpperCase()} ${amd[2]}${amd[3] ? amd[3].toUpperCase() === 'XT' ? ' XT' : 'X' : ''}` : null;
 }
 
+export async function checkImageHeaders(snapshot, fetchImage = fetch) {
+  const images = {};
+  for (let offset = 0; offset < snapshot.offers.length; offset += 4) {
+    await Promise.all(snapshot.offers.slice(offset, offset + 4).map(async ([id]) => {
+      assert.ok(/^[A-Z0-9]+$/.test(id));
+      const url = snapshot.images?.[id] || `https://es.static.webuy.com/product_images/Inform%C3%A1tica/Tarjetas%20Graficas%20-%20PCi-E/${encodeURIComponent(id)}_l.jpg`;
+      assert.equal(new URL(url).origin, 'https://es.static.webuy.com');
+      try {
+        const response = await fetchImage(url, {method:'HEAD', signal:AbortSignal.timeout(12000)});
+        if (response.ok && /^image\//i.test(response.headers.get('content-type') || '') && new URL(response.url || url).origin === 'https://es.static.webuy.com') images[id] = url;
+      } catch (error) {
+        console.warn(`Image header check failed: ${id}`);
+      }
+    }));
+  }
+  assert.ok(Object.keys(images).length, 'No remote images verified; source capture unchanged');
+  return {...snapshot, imagesCheckedAt:new Date().toISOString(), images:Object.fromEntries(snapshot.offers.filter(([id]) => images[id]).map(([id]) => [id, images[id]]))};
+}
+
 export function buildCatalogue(snapshot, benchmarks) {
   assert.equal(snapshot.offers.length, snapshot.totalResults, 'Incomplete CeX capture');
   assert.ok(Number.isFinite(Date.parse(snapshot.capturedAt)));
@@ -40,7 +59,13 @@ export function buildCatalogue(snapshot, benchmarks) {
 }
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === fileURLToPath(new URL(process.argv[1], `file://${process.cwd()}/`))) {
-  const snapshot = JSON.parse(readFileSync(new URL('cex-snapshot.json', import.meta.url), 'utf8'));
+  const snapshotURL = new URL('cex-snapshot.json', import.meta.url);
+  let snapshot = JSON.parse(readFileSync(snapshotURL, 'utf8'));
+  if (process.argv.includes('--check-images')) {
+    snapshot = await checkImageHeaders(snapshot);
+    writeFileSync(snapshotURL, JSON.stringify(snapshot, null, 2) + '\n');
+    console.log(`${Object.keys(snapshot.images).length} remote images verified using HEAD; no image bodies downloaded`);
+  }
   const benchmarks = JSON.parse(readFileSync(new URL('benchmarks.json', import.meta.url), 'utf8'));
   const data = buildCatalogue(snapshot, benchmarks);
   const destination = new URL('../../pages/data/gpus-cex.json', import.meta.url);

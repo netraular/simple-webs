@@ -1,7 +1,7 @@
 import {readFileSync, existsSync} from 'node:fs';
 import assert from 'node:assert/strict';
 import vm from 'node:vm';
-import {buildCatalogue, identifyGPU} from './build-gpus.mjs';
+import {buildCatalogue, identifyGPU, checkImageHeaders} from './build-gpus.mjs';
 
 const html = readFileSync(new URL('../../pages/gpus-cex.html', import.meta.url), 'utf8');
 const script = html.match(/<script>([\s\S]*?)<\/script>/)?.[1];
@@ -36,7 +36,7 @@ for (const tag of ['html','head','body','style','script']) {
   assert.equal((html.match(new RegExp(`<${tag}(?:\\s[^>]*)?>`, 'g')) || []).length, 1, `single ${tag}`);
   assert.equal((html.match(new RegExp(`</${tag}>`, 'g')) || []).length, 1);
 }
-const idsInHTML = [...html.matchAll(/\bid="([^"]+)"/g)].map(match => match[1]);
+const idsInHTML = [...html.replace(/<script>[\s\S]*?<\/script>/, '').matchAll(/\bid="([^"]+)"/g)].map(match => match[1]);
 assert.equal(new Set(idsInHTML).size, idsInHTML.length);
 for (const [name, expected] of [
   ['RTX 3060 Ti Ventus 8GB', 'RTX 3060 Ti'], ['GTX 1660 Super 6GB', 'GTX 1660 SUPER'],
@@ -48,6 +48,18 @@ for (const [name, expected] of [
 ]) assert.equal(identifyGPU(name), expected);
 const snapshot = JSON.parse(readFileSync(new URL('cex-snapshot.json', import.meta.url), 'utf8'));
 const benchmarks = JSON.parse(readFileSync(new URL('benchmarks.json', import.meta.url), 'utf8'));
+const imageFixture = {...snapshot, offers:snapshot.offers.slice(0,3), images:{}};
+const checkedImages = await checkImageHeaders(imageFixture, async (url, options) => {
+  assert.equal(options.method, 'HEAD');
+  assert.equal(new URL(url).hostname, 'es.static.webuy.com');
+  const first = url.includes(imageFixture.offers[0][0]);
+  const second = url.includes(imageFixture.offers[1][0]);
+  return {ok:!second, url, headers:{get:() => first ? 'image/jpeg' : 'text/html'}};
+});
+assert.deepEqual(Object.keys(checkedImages.images), [imageFixture.offers[0][0]]);
+assert.equal(checkedImages.capturedAt, snapshot.capturedAt);
+assert.ok(Number.isFinite(Date.parse(checkedImages.imagesCheckedAt)));
+await assert.rejects(() => checkImageHeaders(imageFixture, async () => ({ok:false, headers:{get:() => 'text/html'}})));
 const rebuilt = buildCatalogue(snapshot, benchmarks);
 assert.equal(rebuilt.offers.length, 102);
 assert.equal(rebuilt.offers.filter(offer => offer.score !== null).length, 87);
@@ -87,16 +99,18 @@ const data = JSON.parse(readFileSync(dataURL, 'utf8'));
 }
 
 function element(id) {
-  return {id, value:'', checked:false, hidden:false, innerHTML:'', textContent:'', listeners:{},
+  return {id, value:'', checked:false, hidden:false, innerHTML:'', textContent:'', listeners:{}, attributes:{},
     get valueAsNumber(){return this.value === '' ? NaN : Number(this.value);},
     addEventListener(type, listener){this.listeners[type] = listener;},
+    setAttribute(name, value){this.attributes[name] = value;},
     classList:{add(){}}
   };
 }
 async function page(response = {ok:true, json:async () => data}) {
   const elements = Object.fromEntries(idsInHTML.map(id => [id, element(id)]));
   elements.vram.value = '0'; elements.sort.value = 'value'; elements.group.checked = true;
-  const document = {getElementById(id){assert.ok(elements[id], `DOM ID ${id}`); return elements[id];}};
+  const document = {listeners:{}, getElementById(id){assert.ok(elements[id], `DOM ID ${id}`); return elements[id];}, addEventListener(type, listener){this.listeners[type] = listener;}};
+  elements.document = document;
   const context = vm.createContext({document, Intl, fetch:async url => {
     assert.equal(url, 'data/gpus-cex.json');
     if (response instanceof Error) throw response;
@@ -109,7 +123,21 @@ async function page(response = {ok:true, json:async () => data}) {
 const elements = await page();
 const visibleCount = () => (elements.rows.innerHTML.match(/<tr>/g) || []).length;
 assert.equal(elements.status.hidden, true);
+assert.equal(elements.table.hidden, true);
+assert.equal(elements.cards.hidden, false);
+assert.equal(elements.gridView.attributes['aria-pressed'], 'true');
+assert.equal(elements.tableView.attributes['aria-pressed'], 'false');
+assert.equal((elements.cards.innerHTML.match(/class="gpu-card"/g) || []).length, visibleCount());
+assert.match(elements.cards.innerHTML, /class="gpu-image"/);
+assert.match(elements.cards.innerHTML, /loading="lazy"/);
+assert.match(elements.cards.innerHTML, /performance-bar/);
+elements.tableView.listeners.click();
 assert.equal(elements.table.hidden, false);
+assert.equal(elements.cards.hidden, true);
+assert.equal(elements.tableView.attributes['aria-pressed'], 'true');
+elements.gridView.listeners.click();
+assert.equal(elements.table.hidden, true);
+assert.equal(elements.cards.hidden, false);
 assert.match(elements.snapshot.textContent, /102 ofertas/);
 assert.match(elements.winner.innerHTML, /R9 290/);
 assert.match(elements.coverage.textContent, /87 de 102/);
@@ -122,6 +150,7 @@ assert.ok(visibleCount() > 0 && visibleCount() < 102);
 elements.budget.value = '0';
 elements.filters.listeners.input();
 assert.equal(elements.table.hidden, true);
+assert.equal(elements.cards.hidden, true);
 assert.equal(elements.winner.hidden, true);
 assert.equal(elements.status.hidden, false);
 elements.budget.value = '-1';
@@ -131,10 +160,14 @@ elements.budget.value = ''; elements.search.value = ''; elements.minimum.value =
 elements.filters.listeners.input();
 assert.match(elements.winner.innerHTML, /KFA2/);
 elements.minimum.value = '';
-for (const id of data.offers.slice(0,4).map(offer => offer.id)) elements.rows.listeners.change({target:{dataset:{id}}});
+for (const id of data.offers.slice(0,4).map(offer => offer.id)) elements.cards.listeners.change({target:{dataset:{id}}});
 assert.equal(elements.selectedCount.textContent, '3 / 3');
 assert.equal(elements.comparison.hidden, false);
 assert.match(elements.rows.innerHTML, /disabled/);
+assert.match(elements.cards.innerHTML, /disabled/);
+assert.match(elements.comparisonTable.innerHTML, /class="photo"/);
+elements.rows.listeners.change({target:{dataset:{id:data.offers[0].id}}});
+assert.equal(elements.selectedCount.textContent, '2 / 3');
 elements.clear.listeners.click();
 assert.equal(elements.comparison.hidden, true);
 elements.frontier.checked = true;
@@ -151,5 +184,16 @@ for (const failure of [new Error('Network error'), {ok:false,status:404}, {ok:tr
 const unsafeName = await page({ok:true, json:async () => ({...data,offers:[{...data.offers[0],name:'<img src=x onerror=alert(1)>'}]})});
 assert.match(unsafeName.rows.innerHTML, /&lt;img/);
 assert.doesNotMatch(unsafeName.rows.innerHTML, /<img src=x/);
+assert.doesNotMatch(unsafeName.cards.innerHTML, /<img src=x/);
+const pictured = data.offers.find(offer => offer.image);
+const imagePage = await page({ok:true,json:async () => ({...data,offers:[pictured]})});
+const brokenImage = {tagName:'IMG', classList:{contains:name => name === 'gpu-image'}, getAttribute:() => pictured.image, hidden:false, nextElementSibling:{hidden:true}};
+imagePage.document.listeners.error({target:brokenImage});
+assert.equal(brokenImage.hidden, true);
+assert.equal(brokenImage.nextElementSibling.hidden, false);
+imagePage.filters.listeners.input();
+assert.doesNotMatch(imagePage.cards.innerHTML, /class="gpu-image"/);
+assert.match(imagePage.cards.innerHTML, /Sin imagen/);
 console.log('GPU ranking, filters, grouping, frontier and page syntax: OK');
 console.log('Source matching, DOM controls, three-GPU comparison, escaping and loading failures: OK');
+console.log('Visual cards, table switching, shared selection and remote-image failure fallback: OK');

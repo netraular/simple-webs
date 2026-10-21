@@ -16,7 +16,7 @@ main{max-width:1220px;margin:auto;padding:28px 28px 48px} a{color:var(--green);t
 header{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap;border-bottom:2px solid var(--ink);padding-bottom:16px}
 h1,h2,p{margin:0} h1{font:600 38px/1.05 "Barlow Condensed",sans-serif} h1 span{color:var(--green)} h2{font:600 24px/1.15 "Barlow Condensed",sans-serif}
 .meta,.note,small{color:var(--muted);font-size:12px} .meta{margin-top:10px}.note{margin-top:12px;max-width:900px}
-.filters{display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1.4fr;gap:12px;margin:24px 0 14px}
+.filters{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;margin:24px 0 14px}.search{grid-column:1/-1}
 label.field{display:flex;flex-direction:column;gap:6px;color:var(--muted);font-size:12px;min-width:0}
 input,select,button{font:inherit;color:var(--ink)} input:not([type=checkbox]),select{min-height:44px;min-width:0;width:100%;border:1px solid #a6b5ac;border-radius:4px;background:var(--paper);padding:9px 10px}
 input[type=checkbox]{width:18px;height:18px;accent-color:var(--green);flex-shrink:0} button{min-height:44px;cursor:pointer} :focus-visible{outline:3px solid var(--gold);outline-offset:3px}
@@ -43,6 +43,7 @@ details{margin-top:28px;border-top:1px solid var(--line);padding-top:14px;font-s
 <p class="meta" id="snapshot">Cargando catálogo y puntuaciones…</p>
 <section class="filters" id="filters" aria-label="Filtros de tarjetas gráficas">
 <label class="field search">Modelo o ensamblador<input type="search" id="search" placeholder="RTX 3070, Radeon, MSI…"></label>
+<label class="field">Presupuesto mínimo (€)<input type="number" id="minBudget" min="0" step="any" placeholder="Sin mínimo"></label>
 <label class="field">Presupuesto máximo (€)<input type="number" id="budget" min="0" step="any" placeholder="Sin límite"></label>
 <label class="field">Memoria mínima<select id="vram"><option value="0">Cualquiera</option><option value="4">4 GB</option><option value="6">6 GB</option><option value="8">8 GB</option><option value="12">12 GB</option><option value="16">16 GB</option></select></label>
 <label class="field">G3D Mark mínimo<input type="number" id="minimum" min="0" step="1" placeholder="Sin mínimo"></label>
@@ -71,10 +72,10 @@ details{margin-top:28px;border-top:1px solid var(--line);padding-top:14px;font-s
 <script>
 "use strict";
 function rankOffers(offers, settings = {}) {
-  const {query = '', budget = Infinity, vram = 0, minimum = 0, group = true, frontier = false, sort = 'value'} = settings;
-  if (![budget, vram, minimum].every(value => typeof value === 'number' && value >= 0 && !Number.isNaN(value))) throw new RangeError('Filtros numéricos no válidos');
+  const {query = '', minBudget = 0, budget = Infinity, vram = 0, minimum = 0, group = true, frontier = false, sort = 'value'} = settings;
+  if (![minBudget, budget, vram, minimum].every(value => typeof value === 'number' && value >= 0 && !Number.isNaN(value)) || minBudget > budget) throw new RangeError('Filtros numéricos no válidos');
   const terms = query.toLowerCase().trim().split(/\s+/);
-  let rows = offers.filter(offer => offer.price <= budget && (offer.vram ?? 0) >= vram && (!minimum || (offer.score ?? 0) >= minimum) && terms.every(term => offer.name.toLowerCase().includes(term))).map(offer => ({...offer, value: offer.score ? offer.score / offer.price : null}));
+  let rows = offers.filter(offer => offer.price >= minBudget && offer.price <= budget && (offer.vram ?? 0) >= vram && (!minimum || (offer.score ?? 0) >= minimum) && terms.every(term => offer.name.toLowerCase().includes(term))).map(offer => ({...offer, value: offer.score ? offer.score / offer.price : null}));
   if (group) {
     const cheapest = new Map();
     for (const row of rows) {
@@ -91,7 +92,7 @@ function rankOffers(offers, settings = {}) {
     return (second[field] ?? -1) - (first[field] ?? -1) || first.price - second.price || first.id.localeCompare(second.id);
   });
 }
-const ui = Object.fromEntries(['snapshot','filters','search','budget','vram','minimum','sort','group','frontier','rankingTitle','count','winner','status','cards','gridView','tableView','table','rows','comparison','comparisonTable','selectedCount','clear','coverage'].map(id => [id, document.getElementById(id)]));
+const ui = Object.fromEntries(['snapshot','filters','search','minBudget','budget','vram','minimum','sort','group','frontier','rankingTitle','count','winner','status','cards','gridView','tableView','table','rows','comparison','comparisonTable','selectedCount','clear','coverage'].map(id => [id, document.getElementById(id)]));
 const euros = new Intl.NumberFormat('es-ES', {style:'currency', currency:'EUR', maximumFractionDigits:2});
 const number = new Intl.NumberFormat('es-ES', {maximumFractionDigits:1});
 const escapeHTML = value => String(value).replace(/[&<>"']/g, character => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[character]));
@@ -125,13 +126,15 @@ function renderComparison() {
 }
 function render() {
   if (!offers.length) return;
+  const minBudget = ui.minBudget.value === '' ? 0 : ui.minBudget.valueAsNumber;
   const budget = ui.budget.value === '' ? Infinity : ui.budget.valueAsNumber;
   const minimum = ui.minimum.value === '' ? 0 : ui.minimum.valueAsNumber;
-  if (budget < 0 || minimum < 0 || Number.isNaN(budget) || Number.isNaN(minimum)) {
-    ui.status.textContent = 'Introduce un presupuesto y una puntuación válidos, iguales o mayores que cero.';
+  const invalidNumbers = [minBudget, budget, minimum].some(value => value < 0 || Number.isNaN(value));
+  if (invalidNumbers || minBudget > budget) {
+    ui.status.textContent = invalidNumbers ? 'Introduce un presupuesto y una puntuación válidos, iguales o mayores que cero.' : 'El presupuesto mínimo no puede superar el máximo.';
     ui.status.hidden = false; ui.table.hidden = true; ui.cards.hidden = true; ui.winner.hidden = true; ui.count.textContent = ''; return;
   }
-  const rows = rankOffers(offers, {query:ui.search.value, budget, vram:Number(ui.vram.value), minimum, group:ui.group.checked, frontier:ui.frontier.checked, sort:ui.sort.value});
+  const rows = rankOffers(offers, {query:ui.search.value, minBudget, budget, vram:Number(ui.vram.value), minimum, group:ui.group.checked, frontier:ui.frontier.checked, sort:ui.sort.value});
   ui.count.textContent = `${rows.length} ofertas · ${rows.filter(row => row.score !== null).length} con benchmark`;
   ui.rankingTitle.textContent = {value:'Rendimiento por euro', score:'Mayor rendimiento', price:'Menor precio'}[ui.sort.value];
   const best = [...rows].filter(row => row.value !== null).sort((first, second) => second.value - first.value || first.price - second.price)[0];

@@ -53,8 +53,9 @@ for (const [name, expected] of [
   ['Asus ROG XG Mobile eGPU RTX 4090 16GB', null], ['RTX 5070 Ti Laptop GPU', null],
   ['Unknown 8GB', null]
 ]) assert.equal(identifyGPU(name), expected);
-const snapshot = JSON.parse(readFileSync(new URL('cex-snapshot.json', import.meta.url), 'utf8'));
-const benchmarks = JSON.parse(readFileSync(new URL('benchmarks.json', import.meta.url), 'utf8'));
+const historyURL = new URL('history/2026-10-21T11-18-57Z/', import.meta.url);
+const snapshot = JSON.parse(readFileSync(new URL('cex-snapshot.json', historyURL), 'utf8'));
+const benchmarks = JSON.parse(readFileSync(new URL('benchmarks.json', historyURL), 'utf8'));
 assert.equal(Object.keys(snapshot.images).length, 98, 'Verified remote-photo coverage in this capture');
 assert.ok(Number.isFinite(Date.parse(snapshot.imagesCheckedAt)));
 const imageFixture = {...snapshot, offers:snapshot.offers.slice(0,3), images:{}};
@@ -91,9 +92,18 @@ assert.throws(() => buildCatalogue({...snapshot, offers:[...snapshot.offers.slic
 assert.throws(() => buildCatalogue(snapshot, {...benchmarks, rows:[...benchmarks.rows, benchmarks.rows[0]]}));
 const dataURL = new URL('../../pages/data/gpus-cex.json', import.meta.url);
 assert.ok(existsSync(dataURL), 'Run build-gpus.mjs before the tests');
-const data = JSON.parse(readFileSync(dataURL, 'utf8'));
+const publishedData = JSON.parse(readFileSync(dataURL, 'utf8'));
+const data = JSON.parse(readFileSync(new URL('gpus-cex.json', historyURL), 'utf8'));
+assert.deepEqual(data.offers, rebuilt.offers, 'Historical data matches its archived sources');
 {
-  assert.deepEqual(data.offers, rebuilt.offers, 'Published data matches its sources');
+  const data = publishedData;
+  const currentSnapshot = JSON.parse(readFileSync(new URL('cex-snapshot.json', import.meta.url), 'utf8'));
+  const currentBenchmarks = JSON.parse(readFileSync(new URL('benchmarks.json', import.meta.url), 'utf8'));
+  const currentRebuilt = buildCatalogue(currentSnapshot, currentBenchmarks);
+  assert.deepEqual(data.offers, currentRebuilt.offers, 'Published data matches its sources');
+  for (const field of ['capturedAt','benchmarkCheckedAt','currency','metric','totalResults','source','catalogueNote']) {
+    assert.deepEqual(data[field], currentRebuilt[field], `Published ${field} matches its source`);
+  }
   assert.ok(data.offers.length > 0);
   assert.equal(new Set(data.offers.map(offer => offer.id)).size, data.offers.length);
   assert.ok(Number.isFinite(Date.parse(data.capturedAt)));
@@ -236,6 +246,15 @@ assert.equal(brokenImage.nextElementSibling.hidden, false);
 imagePage.filters.listeners.input();
 assert.doesNotMatch(imagePage.cards.innerHTML, /class="gpu-image"/);
 assert.match(imagePage.cards.innerHTML, /Sin imagen/);
+const publishedPage = await page({ok:true,json:async () => publishedData});
+assert.equal(publishedPage.status.hidden, true, 'Current catalogue loads successfully');
+assert.ok(publishedPage.snapshot.textContent.includes(`${publishedData.offers.length} ofertas`));
+assert.ok(publishedPage.snapshot.textContent.includes(`${publishedData.offers.filter(offer => offer.image).length} fotos de catálogo`));
+assert.ok(publishedPage.coverage.textContent.includes(`${publishedData.offers.filter(offer => offer.score !== null).length} de ${publishedData.offers.length}`));
+publishedPage.group.checked = false;
+publishedPage.group.listeners.change();
+assert.equal(displayedIDs(publishedPage.cards).length, publishedData.offers.length);
+assert.equal(displayedIDs(publishedPage.rows).length, publishedData.offers.length);
 console.log('GPU ranking, filters, grouping, frontier and page syntax: OK');
 console.log('Inclusive minimum/maximum budgets, open bounds and invalid-range recovery: OK');
 console.log('Source matching, DOM controls, three-GPU comparison, escaping and loading failures: OK');

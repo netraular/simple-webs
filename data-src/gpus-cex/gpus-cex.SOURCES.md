@@ -2,9 +2,12 @@
 
 ## Capture
 
-- CeX Spain, category 887, **21 October 2026**, recorded at 11:18:57 UTC.
+- CeX Spain, category 887, **3 November 2026**, recorded at 13:07:34.753 UTC.
 - [Original category](https://es.webuy.com/search/?categoryIds=887&categoryName=tarjetas-graficas-pci-e).
-- Read the rendered public listing, pages **1-6**, 17 offers per page, 102 results.
+- Read the rendered public listing in an explicitly authorized browser, pages
+  **1-6**, 17 offers per full page and four on the final page, **89 results**.
+  Verified all listing positions from 1 to 89, unique product IDs and the same
+  total on each page. A second full read produced the same IDs, names and prices.
   Page URLs use `page=1` through `page=6` alongside `categoryIds=887` and
   `categoryName=tarjetas-graficas-pci-e`. `cex-snapshot.json` preserves listing
   order, so the builder retains each offer's source page.
@@ -16,7 +19,7 @@
   offer ID with **HTTP HEAD only** and records a URL only after an HTTP success
   and an `image/*` content type. Redirects outside the CeX CDN are rejected.
   `imagesCheckedAt` is separate from the price-capture timestamp. The current
-  snapshot has **98 verified remote-photo URLs for 102 offers**.
+  snapshot has **85 verified remote-photo URLs for 89 offers**.
 - Photos remain on `es.static.webuy.com`; neither the checker nor the build
   downloads or saves image bodies. The browser fetches them directly with lazy
   loading, asynchronous decoding and no referrer. They are catalogue illustrations,
@@ -26,15 +29,30 @@
   share the same remote URLs. Fixed photo areas retain their dimensions on failure;
   absent or failed images display `Sin imagen`. Failed URLs are remembered for the
   page session so changing filters does not repeatedly request broken images.
-- The GTX 1070 and MSI RTX 5050 product pages additionally confirmed 120 EUR
-  and 225 EUR, respectively, and online stock at capture time. That observation
-  is not extrapolated to the other offers or exposed as live inventory.
+- This refresh reads catalogue sale prices only; individual product-page stock
+  and delivery availability were not checked. Observations from the previous
+  capture are not carried forward as current inventory claims.
+
+## History
+
+- The previous **21 October 2026, 11:18:57 UTC** capture is preserved unchanged
+  in [`history/2026-10-21T11-18-57Z/`](history/2026-10-21T11-18-57Z/), including
+  `cex-snapshot.json`, `benchmarks.json` and the published `gpus-cex.json`.
+  These retain all 102 previous offers, their prices, images and score mappings.
+- Compared by CeX product ID, this refresh has **31 additions, 44 removals and
+  21 changed sale prices** among the 58 products present in both captures
+  (16 increases and five decreases). Absence from the filtered listing does not
+  establish why a product disappeared or whether it remains available elsewhere.
+- See [`history/README.md`](history/README.md) for the archive naming convention.
+  Preserve the current source, performance references and published data together
+  before replacing a capture; do not overwrite existing historical files.
 
 ## Performance
 
 - [PassMark high-end chart](https://www.videocardbenchmark.net/high_end_gpus.html)
   and [mid-range chart](https://www.videocardbenchmark.net/mid_range_gpus.html),
-  consulted **21 October 2026**.
+  consulted **21 October 2026**. These references and their original consultation
+  date are unchanged in the 3 November CeX price refresh; they are not live scores.
 - `benchmarks.json` contains only selected factual **average G3D Mark** values,
   model names and reference IDs. No review text, chart artwork, dollar prices,
   percentage bars or CeX customer-star ratings are reused as performance data.
@@ -53,8 +71,10 @@
   approximate family references, not separately measured memory variants.
 - CeX names are retained as published, including potentially questionable memory
   labels. Unknown names and external/mobile GPU enclosures are not fuzzily
-  matched to desktop GPUs. There are **87 matched offers and 15 unscored offers**.
-  Unscored offers remain accessible, but cannot win the value ranking.
+  matched to desktop GPUs. There are **55 matched offers and 34 unscored offers**
+  in the current capture. Newly listed models without an existing verified
+  reference are left unscored. Unscored offers remain accessible, but cannot win
+  the value ranking.
 
 ## Calculation
 
@@ -91,7 +111,7 @@ node data-src/gpus-cex/test-gpus.mjs
 This checks up to four URLs concurrently, rejects HTML/error responses, updates
 only photo metadata in the source snapshot and rebuilds the published data. If no
 image verifies, it aborts without overwriting the source capture. Review the photo
-coverage assertion if the available images change. It does not refresh prices or
+coverage documentation if the available images change. It does not refresh prices or
 performance scores.
 
 The default build without `--check-images` and its tests operate on the **recorded
@@ -99,14 +119,23 @@ snapshot offline**. Neither mode downloads current prices. `capturedAt` and
 `benchmarkCheckedAt` come from the source captures, never from the rebuild time.
 `generatedAt` is separate.
 
-To refresh, re-read all CeX result pages with the same filters, record their
-total count, prices, names, IDs and capture time in `cex-snapshot.json`; update
-the selected PassMark values and consultation date in `benchmarks.json`, then
-rebuild and test. Review the coverage assertions when the catalogue changes.
-Do not merely change dates on old observations.
+To refresh, first archive the current `cex-snapshot.json`, `benchmarks.json` and
+`../../pages/data/gpus-cex.json` under `history/<current-capturedAt>/`, replacing
+colons in the timestamp with hyphens. Verify that each copy is byte-for-byte
+identical to its original. Then re-read all CeX result pages with the same
+filters and record their total count, prices, names, IDs and capture time in
+`cex-snapshot.json`. Recheck images, rebuild and test. Only update selected
+PassMark values and their consultation date after actually consulting PassMark
+again; a CeX-only refresh keeps the existing benchmark values and date.
+Do not merely change dates on old observations. Tests use the archived original
+capture for fixed regressions and independently validate the current published
+catalogue against its current sources and page-loading contract.
 
 Direct requests to the CeX public boxes endpoint and PassMark returned HTTP 403
-in this environment; the downloaded CeX HTML only contained the application
-shell. The captures were obtained through rendered-page text extraction, without
-browser automation or bypassing access controls. There is intentionally **no
-live-refresh button, unattended scraper or automatic freshness claim**.
+in the original capture environment. During this refresh, public text extraction
+read pages 1, 3 and 6 but returned failures or an empty application shell and
+Cloudflare checks on other pages. After explicit user authorization, an ordinary
+browser loaded all six public result pages; the IDs, names and sale prices were
+read from the rendered listing without bypassing access controls. No local
+server or screenshot files were needed. There is intentionally **no live-refresh
+button, unattended scraper or automatic freshness claim**.

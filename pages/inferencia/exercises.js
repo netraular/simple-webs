@@ -707,6 +707,8 @@ const generators = {
     const counts = [first, second, total - first - second];
     const core = statistics();
     const logCoefficient = core.gammaln(total + 1) - counts.reduce((sum, count) => sum + core.gammaln(count + 1), 0);
+    const coefficient = Math.round(Math.exp(logCoefficient));
+    const sequenceProbability = counts.reduce((product,count,index)=>product*probabilities[index]**count,1);
     const exact = Math.exp(logCoefficient + counts.reduce((sum, count, index) => sum + count * Math.log(probabilities[index]), 0));
     const marginal = core.binomial.pdf(first, total, probabilities[0]);
     const covariance = -total * probabilities[0] * probabilities[1];
@@ -715,7 +717,9 @@ const generators = {
       ['Categorías mutuamente excluyentes y exhaustivas para cada célula.', 'Células independientes con probabilidades constantes; los recuentos de categorías no son independientes.'], [
         probability('exact', 'Calcula P(X_A=x_A, X_B=x_B, X_C=x_C).', exact, 'Una secuencia tiene probabilidad producto; el coeficiente reúne todas las secuencias con esos recuentos.', [
           step('Contar las secuencias', `Coeficiente n!/(x_A!x_B!x_C!); Γ(m+1)=m!, incluido 0!=1.`, String.raw`\log C=\log\Gamma(n+1)-\sum_{i=A,B,C}\log\Gamma(x_i+1)`),
-          step('Evaluar sin factoriales grandes', `jStat.gammaln da log C=${format(logCoefficient)}; se añade Σ x_i log(p_i) y se exponencia: ${format(exact)}.`, String.raw`P(\boldsymbol X=\boldsymbol x)=\exp\!\left(\log C+\sum_i x_i\log p_i\right)`),
+          step('Evaluar el coeficiente', `El factorial de ${total} se divide por los factoriales de ${counts.join(', ')}. El numerador es ${core.factorial(total)} y el denominador es ${counts.map(count=>core.factorial(count)).join(' por ')}; obtenemos ${coefficient} secuencias diferentes.`),
+          step('Ponderar una secuencia', `Multiplicamos ${probabilities.map((chance,index)=>`${format(chance)} elevado a ${counts[index]}`).join(' por ')}. La probabilidad de una secuencia concreta es ${format(sequenceProbability)}; cualquier factor con exponente cero vale uno.`),
+          step('Reunir todas las secuencias', `Las ${coefficient} secuencias son excluyentes y tienen la misma probabilidad. Multiplicamos ${coefficient} por ${format(sequenceProbability)} y obtenemos ${format(exact)}. Para números grandes, el software calcula la misma expresión con logaritmos de factoriales y una exponencial final.`, String.raw`P(\boldsymbol X=\boldsymbol x)=\frac{n!}{\prod_i x_i!}\prod_i p_i^{x_i}`),
           step('Comprobar la restricción', `${counts.join(' + ')} = ${total}; omitir una categoría sin ajustar su recuento rompería el total.`)
         ], 'La masa corresponde a una terna de recuentos, no a una secuencia particular de células.'),
         probability('marginal-a', 'Calcula P(X_A=x_A), sin fijar X_B ni X_C.', marginal, 'Agrupa B y C como no A y usa una binomial.', [
@@ -808,17 +812,17 @@ const generators = {
       [`Recuentos observados enteros: [${values.join(', ')}]; n=${sampleSize} ventanas.`, `λ>0 se mide en detecciones esperadas por ventana; para evaluar la log-verosimilitud se propone λ₀=${candidate}.`],
       ['Las ventanas son independientes y tienen la misma exposición y media Poisson.', 'Se mantienen fijos los datos y n al comparar λ; la suma observada es positiva y el máximo es interior.'], [
         question('sufficient-statistic', 'Calcula T=Σx_i, el estadístico suficiente para λ con n fijo.', total, 'detecciones', 'Agrupa los exponentes de λ en el producto de masas Poisson.', [
-          step('Factorizar la muestra', 'L(λ;x)=exp(-nλ) λ^(Σx_i)/∏x_i!; los factoriales dependen solo de los datos.', String.raw`L(\lambda;\boldsymbol x)=h(\boldsymbol x)\exp\{T\log\lambda-n\lambda\},\quad h=\frac1{\prod_i x_i!}`),
-          step('Identificar la información del parámetro', `T=${values.join(' + ')}=${total}; η=log λ y A(η)=exp η para una observación.`)
+          step('Factorizar la muestra', 'La independencia permite multiplicar las masas de todas las ventanas. Cada masa aporta una exponencial de menos lambda, una potencia de lambda con su recuento y un factorial en el denominador. Agrupar las potencias concentra los datos en su suma; los factoriales son constantes cuando comparamos parámetros.', String.raw`L(\lambda;\boldsymbol x)=h(\boldsymbol x)\exp\{T\log\lambda-n\lambda\},\quad h=\frac1{\prod_i x_i!}`),
+          step('Identificar la información del parámetro', `Sumamos los recuentos ${values.join(', ')} y obtenemos T igual a ${total}. El parámetro natural es el logaritmo de lambda; para una observación, el normalizador es la exponencial del parámetro natural, es decir, lambda.`)
         ], 'Con n fijo, la parte de la verosimilitud que depende de λ usa los datos solo mediante T; no se afirma que el modelo sea verdadero.', 0),
         question('mle', 'Calcula el estimador de máxima verosimilitud de λ.', mean, 'detecciones esperadas por ventana', 'Deriva la log-verosimilitud respecto a λ con los datos fijos.', [
-          step('Derivar e igualar a cero', 'ℓ(λ)=T log λ-nλ-Σlog(x_i!); ℓ′(λ)=T/λ-n=0.', String.raw`\hat\lambda=\frac{T}{n}=\bar x`),
-          step('Sustituir la muestra', `${total}/${sampleSize}=${format(mean)}.`),
-          step('Comprobar que es máximo', `ℓ″(λ)=-T/λ²<0 porque T=${total}>0; el máximo es único.`)
+          step('Derivar e igualar a cero', 'Al tomar logaritmos, el producto se convierte en suma. La derivada del total por log lambda es el total dividido entre lambda; la del término menos n por lambda es menos n. Los factoriales no varían con lambda. Igualar la derivada a cero y despejar da el total dividido entre n.', String.raw`\ell'(\lambda)=T/\lambda-n=0\quad\Longrightarrow\quad\hat\lambda=T/n`),
+          step('Sustituir la muestra', `Dividimos el total ${total} entre las ${sampleSize} ventanas: la media estimada es ${format(mean)} detecciones por ventana.`),
+          step('Comprobar que es máximo', `La segunda derivada es menos el total dividido entre lambda al cuadrado. Como el total es ${total}, positivo, y lambda también es positivo, esa derivada es negativa. La log-verosimilitud es cóncava y el punto calculado es su máximo único.`)
         ], 'La media estimada puede ser fraccionaria aunque todas las observaciones sean enteras; no es una probabilidad posterior de λ.'),
         question('log-likelihood', 'Calcula ℓ(λ₀), incluyendo el término de los factoriales y usando logaritmos naturales.', logLikelihood, 'log-verosimilitud sin unidades', 'Incluye −Σlog(x_i!), aunque ese término no cambie el máximo.', [
-          step('Convertir el producto en suma', 'ℓ(λ₀)=T log λ₀-nλ₀-Σlog(x_i!); log(x_i!)=jStat.gammaln(x_i+1), también para x_i=0.', String.raw`\ell(\lambda_0)=T\log\lambda_0-n\lambda_0-\sum_i\log\Gamma(x_i+1)`),
-          step('Sustituir todos los términos', `${total} × log(${candidate})-${sampleSize} × ${candidate}-${format(logFactorials)}=${format(logLikelihood)}.`)
+          step('Convertir el producto en suma', 'La log-verosimilitud suma tres contribuciones: el total observado por el logaritmo natural de la media candidata, menos el número de ventanas por esa media, menos la suma de logaritmos de los factoriales observados. Para cero, el factorial es uno y su logaritmo es cero. La biblioteca usa la función gamma para evaluar esos mismos factoriales sin desbordamiento.', String.raw`\ell(\lambda_0)=T\log\lambda_0-n\lambda_0-\sum_i\log\Gamma(x_i+1)`),
+          step('Sustituir todos los términos', `El primer término es ${total} por el logaritmo natural de ${candidate}, que vale ${format(total*Math.log(candidate))}. Restamos ${sampleSize} por ${candidate}, es decir, ${sampleSize*candidate}, y después ${format(logFactorials)} por los factoriales. El resultado es ${format(logLikelihood)}. No es una probabilidad y puede ser negativo.`)
         ], 'La familia exponencial es una estructura de modelos; este ejemplo trata recuentos Poisson, no tiempos exponenciales.')
       ], 'math', {distribution:'poisson-sample', values, n:sampleSize, total, candidate});
   }

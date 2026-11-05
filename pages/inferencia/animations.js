@@ -793,6 +793,7 @@ export function mountAnimation(container, animationId, {formatMath} = {}) {
     const focused = root.className.includes('is-focused');
     root.className = focused ? 'animation-player' : 'animation-player is-focused';
     expand.setAttribute('aria-pressed',String(!focused));
+    expand.title = focused ? 'Ampliar clase' : 'Salir de la vista ampliada';
     resize();
   });
   expand.setAttribute('aria-pressed','false');
@@ -1034,7 +1035,7 @@ export function mountAnimation(container, animationId, {formatMath} = {}) {
 
   listen(document, 'visibilitychange', () => { if (document.hidden || document.visibilityState === 'hidden') stop(); });
   listen(view,'keydown',event => {
-    if (event.key === 'Escape' && root.className.includes('is-focused')) { root.className='animation-player'; expand.setAttribute('aria-pressed','false'); resize(); }
+    if (event.key === 'Escape' && root.className.includes('is-focused')) { root.className='animation-player'; expand.setAttribute('aria-pressed','false'); expand.title='Ampliar clase'; resize(); }
   });
   if (typeof view.ResizeObserver === 'function') {
     observer = new view.ResizeObserver(resize);
@@ -1043,6 +1044,7 @@ export function mountAnimation(container, animationId, {formatMath} = {}) {
   syncScene();
   syncControls();
   resize();
+  if (animation.kind === 'lecture' && view.innerWidth && view.innerWidth<=1100) expand.click();
 
   const cleanup = () => {
     if (disposed) return;

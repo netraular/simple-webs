@@ -10,7 +10,7 @@ Fuentes y correspondencia con los apuntes: [inferencia.SOURCES.md](inferencia.SO
 - Portada de orientación y mapa de las 36 lecciones con sus secciones de procedencia: cuatro temas y un puente opcional, sin inventar un quinto PDF. El orden es pedagógico, no una transcripción del índice.
 - 17 laboratorios y un explorador de 16 familias de distribuciones. Cada uno explica propósito, exploración, predicción, interpretación y límites. Multinomial, soporte triangular y normal bivariante tienen cálculos y gráficos propios; los controles conservan el último estado válido ante entradas incompatibles.
 - 29 generadores de ejercicios con semillas reproducibles, datos, supuestos, pistas, corrección y resolución desarrollada. El banco completo incluye apoyos adicionales de muestreo, chi-cuadrado, Student y Fisher: no se presentan como temas incluidos en los PDF.
-- 36 clases animadas propias: toda la teoría, significados de fórmulas, métodos, ejemplos de la lección, demostraciones y ejercicios resueltos. 1.222 escenas y 4.030 fragmentos de subtítulos; unas 8 a 15 min por clase a velocidad normal estimada, sin reproducción automática ni audio. Pausa, navegación por partes, velocidad, transcripción, descargas y vista ampliada; diapositivas y narración se muestran juntas.
+- 36 clases animadas propias: toda la teoría, significados de fórmulas, métodos, ejemplos de la lección, demostraciones y ejercicios resueltos. 1.224 escenas y 4.050 fragmentos de subtítulos; unas 8 a 17 min por clase a velocidad normal estimada, sin reproducción automática ni audio. Pausa, navegación por partes, velocidad, transcripción, descargas y vista ampliada; diapositivas y narración se muestran juntas. En pantallas de hasta 1.100 px, esa vista se abre directamente y se puede cerrar con su icono o Escape.
 - Glosario de 40 símbolos, búsqueda sin acentos, enlaces directos por fragmento de URL, progreso local y copia JSON.
 
 La corrección admite coma decimal, fracciones simples, notación científica y porcentajes explícitos, sin evaluar código. Una pista o solución consultada antes de acertar distingue la respuesta como asistida. Abrir una lección no la marca como estudiada.
@@ -44,6 +44,8 @@ El script solo actualiza URLs en dos archivos y es idempotente. Las pruebas rech
 En navegador se comprobaron fórmulas, fuente local, iconos, gráficos no vacíos y ausencia de errores de carga. Se revisaron capturas y desbordamientos a 1440, 768, 390 y 320 píxeles, menú móvil, corrección de Bayes, pistas, persistencia al recargar y actualización del laboratorio al cambiar la prevalencia. La animación cambió sus píxeles con movimiento normal y respetó la preferencia de movimiento reducido. Las capturas son temporales y no se incluyen en Git.
 
 Se validó el texto generado por la descarga del guion. El navegador integrado no notificó el evento de guardado del archivo; la transferencia a disco no se considera verificada. Las pruebas offline verifican todos los guiones y WebVTT. No se arrancaron servidores locales ni se modificó Kubernetes.
+
+La ampliación autocontenida se comprobó también en producción: portada y mapa, recursos versionados sin errores JavaScript y PDF/PEC/dependencias privadas con 404. La vista ampliada mantiene diapositiva, subtítulos y controles visibles juntos a 1440, 768, 390 y 320 px; se recorrieron las 41 escenas de familia exponencial a 320 px sin desbordamiento de página. Las fórmulas largas usan desplazamiento dentro de su propia zona. Esta comprobación visual no es una auditoría matemática exhaustiva del material.
 
 ## Exportar lecturas
 

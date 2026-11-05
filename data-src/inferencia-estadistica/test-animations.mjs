@@ -904,6 +904,7 @@ test('las clases sincronizan frases y diapositivas, también con movimiento redu
   const lecture = fullLectures()[0];
   for (const reducedMotion of [false,true]) {
     const dom = fakeDom({reducedMotion});
+    dom.view.innerWidth=320;
     const cleanup = mountAnimation(dom.container,lecture);
     const caption = dom.created.find(node=>node.className==='animation-caption');
     const board = dom.created.find(node=>node.className==='slide-board');
@@ -918,7 +919,6 @@ test('las clases sincronizan frases y diapositivas, también con movimiento redu
     const paused=caption.textContent;
     dom.advance(60000);
     assert.equal(caption.textContent,paused);
-    dom.byLabel('Ampliar clase').click();
     assert.ok(dom.container.children[0].className.includes('is-focused'));
     for (const handler of dom.view.listeners.get('keydown')) handler({key:'Escape'});
     assert.equal(dom.container.children[0].className,'animation-player');

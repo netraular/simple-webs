@@ -260,7 +260,49 @@ export const ANIMATIONS = [
   ]}
 ];
 
+export function createLessonAnimation(lesson, createExercise, paragraphs) {
+  if (!lesson?.id || typeof createExercise !== 'function' || typeof paragraphs !== 'function') throw new TypeError('La clase necesita lección, generador de ejercicios y lector de párrafos HTML.');
+  const types = {'cauchy-weibull':['cauchy','weibull'],marginales:['joint','continuous-joint'],'uniforme-montecarlo':['uniform','discrete'],'calculo-modelos':['normal','binomial','poisson']}[lesson.id] || [lesson.exerciseTypes[0]];
+  const exercises = types.map(type=>createExercise(type,1));
+  const narrate = (title, caption, chapter, tex) => ({title,caption,kind:'lesson',data:{chapter},...(tex ? {tex} : {})});
+  const steps = [narrate(lesson.title, `Vamos a estudiar esta lección desde su significado hasta el cálculo. ${lesson.objectives.join(' ')} Empezaremos por las ideas, leeremos las fórmulas y resolveremos ejemplos explicando por qué hacemos cada operación.`, 'Objetivos')];
+  for (const section of lesson.sections) {
+    paragraphs(section.body).forEach((text,index) => steps.push(narrate(`${section.title} · ${index+1}`,text,'Teoría')));
+  }
+  lesson.formulas.forEach((formula,index) => steps.push(narrate(`Fórmula ${index+1}: significado y condiciones`, `Leamos esta expresión con cuidado. ${formula.meaning} ${lesson.method[Math.min(index,lesson.method.length-1)]}`, 'Fórmulas', formula.tex)));
+  lesson.method.forEach((text,index) => steps.push(narrate(`Método · Paso ${index+1}`,text,'Método')));
+  paragraphs(lesson.example.body).forEach((text,index) => steps.push(narrate(`${lesson.example.title} · ${index+1}`,text,'Ejemplo de la lección')));
+  const demoId = {axiomas:'events','uniforme-montecarlo':'cdf','calculo-modelos':'normal','combinaciones-incorrelacion':'covariance'}[lesson.id] || lesson.animation;
+  const demo = ANIMATIONS.find(item => item.id === demoId);
+  if (demo) steps.push(...demo.steps.map(step => ({...step,title:`Demostración · ${step.title}`,data:{...step.data,chapter:'Demostración visual'}})));
+  exercises.forEach((exercise,index) => {
+    steps.push(narrate(`Ejercicio ${index+1}: planteamiento`, `Resolvamos ahora un problema nuevo. ${exercise.prompt} Los datos son los siguientes. ${exercise.given.join(' ')} Antes de calcular, fijamos los supuestos. ${exercise.assumptions.join(' ')}`, 'Ejercicios resueltos'));
+    exercise.questions.forEach((question,questionIndex) => {
+      steps.push(narrate(`Ejercicio ${index+1} · Apartado ${questionIndex+1}`, `La pregunta es: ${question.prompt} Buscamos ${question.unit}. Pensemos primero qué conjunto, intervalo o cantidad representa esa pregunta. ${question.hint}`, 'Ejercicios resueltos'));
+      question.steps.forEach((step,stepIndex) => steps.push(narrate(`E${index+1}.${questionIndex+1} · Paso ${stepIndex+1}: ${step.title}`,step.explanation,'Ejercicios resueltos',step.tex)));
+    });
+  });
+  steps.push(narrate('Errores que conviene reconocer', `Antes de terminar, repasemos los errores que pueden cambiar el significado del resultado. ${lesson.pitfalls.join(' ')} Un número correcto solo es útil si responde a la pregunta original y respeta sus supuestos.`, 'Repaso'));
+  steps.push(narrate('Comprueba que puedes explicarlo', `${lesson.check.question} La respuesta es ${lesson.check.options[lesson.check.answer]}. ${lesson.check.explanation} Ahora intenta reproducir el método y resolver una variante sin consultar la solución.`, 'Repaso'));
+  return {id:lesson.id,title:lesson.title,kind:'lecture',source:lesson.source,steps:steps.map(step => {
+    const segments = [];
+    for (const item of new Intl.Segmenter('es',{granularity:'sentence'}).segment(step.caption)) {
+      if (segments.length && !/\s$/.test(segments.at(-1))) segments[segments.length-1]+=item.segment;
+      else segments.push(item.segment);
+    }
+    const chunks = [];
+    for (const segment of segments) {
+      const words = segment.trim().split(/\s+/);
+      for (let index=0;index<words.length;index+=26) chunks.push(words.slice(index,index+26).join(' '));
+    }
+    let time = 0;
+    const cues = chunks.map(text => { const start=time; time+=Math.max(2,text.split(/\s+/).length/2.5+0.6); return {text,start,end:time}; });
+    return {...step,cues,duration:time};
+  })};
+}
+
 function findAnimation(animationId) {
+  if (animationId?.kind === 'lecture' && Array.isArray(animationId.steps) && animationId.steps.length) return animationId;
   const animation = typeof animationId === 'string' && ANIMATIONS.find(item => item.id === animationId);
   if (!animation) throw new RangeError('Identificador de animación desconocido');
   return animation;
@@ -280,12 +322,14 @@ function timestamp(seconds) {
 
 export function buildVtt(animationId) {
   let start = 0;
-  const cues = findAnimation(animationId).steps.map((step, index) => {
-    const end = start + step.duration;
-    const caption = step.caption.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-    const cue = `${index + 1}\n${timestamp(start)} --> ${timestamp(end)}\n${caption}\n`;
-    start = end;
-    return cue;
+  let identifier = 0;
+  const cues = findAnimation(animationId).steps.flatMap(step => {
+    const result = (step.cues || [{text:step.caption,start:0,end:step.duration}]).map(segment => {
+      const caption = segment.text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      return `${++identifier}\n${timestamp(start+segment.start)} --> ${timestamp(start+segment.end)}\n${caption}\n`;
+    });
+    start += step.duration;
+    return result;
   });
   return `WEBVTT\n\n${cues.join('\n')}`;
 }
@@ -723,11 +767,20 @@ export function mountAnimation(container, animationId, {formatMath} = {}) {
   let context = null;
   try { context = canvas.getContext('2d'); } catch { context = null; }
   stage.append(canvas);
+  const board = element('div','slide-board');
+  board.hidden = true;
+  stage.append(board);
   const math = element('div', 'animation-math');
   math.style.overflowX = 'auto';
   const caption = element('p', 'animation-caption');
   caption.setAttribute('aria-live', 'polite');
   caption.setAttribute('aria-atomic', 'true');
+  const layout = element('div','lecture-layout');
+  const media = element('div','lecture-media');
+  const narration = element('div','lecture-narration');
+  narration.append(element('p','eyebrow','NARRACIÓN · SUBTÍTULOS'),caption);
+  media.append(stage,math);
+  layout.append(media,narration);
   const controls = element('div', 'animation-controls');
   controls.setAttribute('role', 'group');
   controls.setAttribute('aria-label', 'Reproducción de la lección');
@@ -736,6 +789,13 @@ export function mountAnimation(container, animationId, {formatMath} = {}) {
   const pause = button('pause', 'Pausar', stop);
   const next = button('step-forward', 'Escena siguiente', () => goTo(index + 1));
   const reset = button('rotate-ccw', 'Reiniciar', () => { stop(); goTo(0); });
+  const expand = button('maximize','Ampliar clase', () => {
+    const focused = root.className.includes('is-focused');
+    root.className = focused ? 'animation-player' : 'animation-player is-focused';
+    expand.setAttribute('aria-pressed',String(!focused));
+    resize();
+  });
+  expand.setAttribute('aria-pressed','false');
   const seekField = element('label', 'control-field', 'Escena');
   const seek = element('input');
   seek.type = 'range';
@@ -768,7 +828,7 @@ export function mountAnimation(container, animationId, {formatMath} = {}) {
   position.setAttribute('aria-label', 'Escena actual y total');
   const clock = element('output');
   clock.setAttribute('aria-label', 'Tiempo de la lección');
-  controls.append(back, play, pause, next, reset, seekField, speedField, position, clock);
+  controls.append(back, play, pause, next, reset, expand, seekField, speedField, position, clock);
   const transcript = element('details', 'animation-transcript');
   transcript.append(element('summary', '', 'Transcripción completa'));
   const transcriptList = element('ol');
@@ -783,7 +843,7 @@ export function mountAnimation(container, animationId, {formatMath} = {}) {
   const txtDownload = button('file-text', 'Descargar guion de narración', () => download(animation.steps.map(step => step.caption).join('\n\n'), 'txt', 'text/plain;charset=utf-8'), 'Guion .txt');
   vttDownload.disabled = txtDownload.disabled = !view.URL?.createObjectURL || !view.Blob;
   downloads.append(vttDownload, txtDownload);
-  root.append(heading, stage, math, caption, controls, transcript, downloads);
+  root.append(heading, layout, controls, transcript, downloads);
   container.replaceChildren(root);
 
   function download(text, extension, mime) {
@@ -792,7 +852,7 @@ export function mountAnimation(container, animationId, {formatMath} = {}) {
     urls.add(url);
     const link = element('a');
     link.href = url;
-    link.download = `${animationId}.${extension}`;
+    link.download = `${animation.id}.${extension}`;
     link.hidden = true;
     root.append(link);
     link.click();
@@ -821,7 +881,17 @@ export function mountAnimation(container, animationId, {formatMath} = {}) {
   function syncScene() {
     const step = animation.steps[index];
     heading.textContent = step.title;
-    caption.textContent = step.caption;
+    board.hidden = step.kind !== 'lesson';
+    canvas.style.display = step.kind === 'lesson' ? 'none' : 'block';
+    board.replaceChildren();
+    if (step.kind === 'lesson') {
+      board.append(element('p','eyebrow',step.data.chapter),element('h3','',step.title));
+      const points = element('ol','slide-points');
+      step.cues.forEach(cue => points.append(element('li','',cue.text)));
+      board.append(points);
+      board.scrollTop = 0;
+    }
+    syncSubtitle();
     canvas.textContent = step.caption;
     canvas.setAttribute('aria-label', `${step.title}. ${step.caption}`);
     math.hidden = !step.tex;
@@ -835,6 +905,7 @@ export function mountAnimation(container, animationId, {formatMath} = {}) {
   }
 
   function draw() {
+    syncSubtitle();
     if (disposed || !context) return;
     context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
     context.clearRect(0, 0, logicalWidth, logicalHeight);
@@ -843,6 +914,7 @@ export function mountAnimation(container, animationId, {formatMath} = {}) {
     context.textBaseline = 'alphabetic';
     context.textAlign = 'left';
     const step = animation.steps[index];
+    if (step.kind === 'lesson') return;
     renderers[step.kind](context, logicalWidth, logicalHeight, step.data, reducedMotion ? 0 : elapsed / step.duration);
   }
 
@@ -890,6 +962,22 @@ export function mountAnimation(container, animationId, {formatMath} = {}) {
       index++;
     }
     if (index !== oldIndex) syncScene();
+    syncSubtitle();
+  }
+
+  function syncSubtitle() {
+    const step = animation.steps[index];
+    if (!step.cues) { caption.textContent=step.caption; return; }
+    const active = Math.max(0,step.cues.findIndex(cue=>elapsed<cue.end));
+    const cueIndex = elapsed >= step.duration ? step.cues.length-1 : active;
+    const changed = caption.textContent !== step.cues[cueIndex].text;
+    if (changed) caption.textContent=step.cues[cueIndex].text;
+    const points = board.children[2]?.children || [];
+    for (const [pointIndex,point] of Array.from(points).entries()) {
+      point.setAttribute('data-revealed',String(reducedMotion || pointIndex<=cueIndex));
+      point.setAttribute('data-active',String(pointIndex===cueIndex));
+      if (changed && pointIndex===cueIndex && point.offsetTop > board.scrollTop+board.clientHeight-80) board.scrollTop = point.offsetTop-board.offsetTop-100;
+    }
   }
 
   function tick(time) {
@@ -924,6 +1012,9 @@ export function mountAnimation(container, animationId, {formatMath} = {}) {
   }
 
   listen(document, 'visibilitychange', () => { if (document.hidden || document.visibilityState === 'hidden') stop(); });
+  listen(view,'keydown',event => {
+    if (event.key === 'Escape' && root.className.includes('is-focused')) { root.className='animation-player'; expand.setAttribute('aria-pressed','false'); resize(); }
+  });
   if (typeof view.ResizeObserver === 'function') {
     observer = new view.ResizeObserver(resize);
     observer.observe(stage);

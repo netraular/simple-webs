@@ -56,6 +56,7 @@ test('Currículo completo, IDs y asociaciones de cada lección', () => {
     assert.ok(lesson.sections.length >= 2);
     assert.ok(lesson.sections.every(section => section.body.length > 200));
     assert.ok(lesson.formulas.length > 0);
+    assert.ok(lesson.method.length === 3 && lesson.method.every(text => text.length > 70), lesson.id);
     assert.ok(lesson.check.answer >= 0 && lesson.check.answer < lesson.check.options.length);
     assert.ok(LAB_IDS.includes(lesson.visual), lesson.id);
     assert.ok(animations.has(lesson.animation), lesson.id);
@@ -161,6 +162,10 @@ test('Cada lección monta sus cuatro vistas y limpia los gráficos anteriores', 
         assert.equal(document.querySelectorAll('.lesson-panel:not([hidden])').length, 1);
         assert.equal(document.querySelectorAll('canvas').length, view === 'practice' ? 0 : 1);
         assert.equal(document.getElementById(`tab-${view}`).getAttribute('aria-selected'), 'true');
+        if (view === 'theory') {
+          assert.equal(document.querySelectorAll('.lesson-method li').length, 3);
+          assert.ok(document.querySelectorAll('.worked-example .solution[open]').length >= 2);
+        }
         const ids = [...document.querySelectorAll('[id]')].map(node => node.id);
         assert.equal(new Set(ids).size, ids.length, `${lesson.id}/${view}`);
       }

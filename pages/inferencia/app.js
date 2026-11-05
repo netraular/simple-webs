@@ -1,7 +1,7 @@
-import {COURSE} from './course.js?v=88ea0ba087a2';
+import {COURSE} from './course.js?v=34212586c1fb';
 import {EXERCISE_TYPES, generateExercise, gradeAnswer} from './exercises.js?v=f886b8b1d586';
-import {ANIMATIONS, mountAnimation} from './animations.js?v=18fb7fb5bd7f';
-import {mountLab} from './labs.js?v=594aabc9f5ff';
+import {ANIMATIONS, createLessonAnimation, mountAnimation} from './animations.js?v=9c130fbac4cf';
+import {mountLab} from './labs.js?v=b17f69aebd36';
 import {STORAGE_KEY, freshProgress, parseProgress, loadProgress, saveProgress, recordAnswer, recordAssistance, progressSummary} from './progress.js?v=56f36d8c8e05';
 
 export const LESSONS = COURSE.units.flatMap(unit => unit.lessons.map(lesson => ({...lesson, unit})));
@@ -103,6 +103,15 @@ export function mountAula(document, environment = {}) {
     const check = current.check;
     element('panel-theory').innerHTML = `<div class="theory-layout"><article class="theory-article"><div class="objectives"><h3>Al terminar esta lección</h3><ul>${current.objectives.map(text => `<li>${escapeHtml(text)}</li>`).join('')}</ul></div>${current.sections.map(section => `<section><h2>${escapeHtml(section.title)}</h2>${section.body}</section>`).join('')}<section><h2>La idea en símbolos</h2>${current.formulas.map(formula => `<div class="formula"><div class="math">${math(formula.tex)}</div><p>${escapeHtml(formula.meaning)}</p></div>`).join('')}</section><section class="example"><h3>${escapeHtml(current.example.title)}</h3>${current.example.body}</section><section class="pitfalls"><h3>Errores que conviene evitar</h3><ul>${current.pitfalls.map(text => `<li>${escapeHtml(text)}</li>`).join('')}</ul></section><section class="knowledge-check"><h3>Comprueba la idea</h3><p>${escapeHtml(check.question)}</p><form id="knowledgeForm"><div class="check-options">${check.options.map((option, index) => `<label class="check-option"><input type="radio" name="knowledge" value="${index}" required><span>${escapeHtml(option)}</span></label>`).join('')}</div><button type="submit" class="primary-button"><i data-lucide="check" aria-hidden="true"></i>Comprobar</button><p id="knowledgeFeedback" class="feedback" role="status" hidden></p></form></section><p class="source-note">Referencia: ${escapeHtml(current.source.document)} · ${escapeHtml(current.source.section)}. Explicación original de apoyo; los ejemplos son didácticos.</p></article><aside class="theory-visual"><h3>Una idea que puedes ver</h3><p>Ejemplo visual complementario</p><div id="theoryLab"></div><button type="button" class="text-button" data-open-view="lab"><i data-lucide="flask-conical" aria-hidden="true"></i>Abrir laboratorio</button></aside></div>`;
     activeCleanup = mountLab(element('theoryLab'), current.visual, {formatMath:math, params:LESSON_LAB_PRESETS[current.id] || {}});
+    const method = document.createElement('section');
+    method.className = 'lesson-method';
+    method.innerHTML = `<h2>Cómo razonar y calcular</h2><ol>${current.method.map(text => `<li>${escapeHtml(text)}</li>`).join('')}</ol>`;
+    element('panel-theory').querySelector('.example').before(method);
+    const worked = generateExercise(current.exerciseTypes[0], 1);
+    const example = document.createElement('section');
+    example.className = 'worked-example';
+    example.innerHTML = `<h2>Ejemplo resuelto con el método</h2><p>${escapeHtml(worked.prompt)}</p><h3>Datos y supuestos</h3><ul>${[...worked.given,...worked.assumptions].map(text => `<li>${escapeHtml(text)}</li>`).join('')}</ul>${worked.questions.map(question => `<details class="solution" open><summary>${escapeHtml(question.prompt)}</summary><ol>${question.steps.map(step => `<li><h4>${escapeHtml(step.title)}</h4><p>${escapeHtml(step.explanation)}</p>${step.tex ? `<div class="math">${math(step.tex)}</div>` : ''}</li>`).join('')}</ol></details>`).join('')}<button type="button" class="text-button" data-open-view="practice"><i data-lucide="shuffle" aria-hidden="true"></i>Practicar una variante</button>`;
+    element('panel-theory').querySelector('.example').after(example);
     const form = element('knowledgeForm');
     form.addEventListener('submit', event => {
       event.preventDefault();
@@ -118,7 +127,7 @@ export function mountAula(document, environment = {}) {
   }
 
   function renderLab() {
-    element('panel-lab').innerHTML = '<p class="section-intro">Laboratorio complementario con parámetros didácticos. Los valores que cambies aquí no modifican el enunciado de los ejercicios.</p><div id="lessonLab"></div>';
+    element('panel-lab').innerHTML = `<p class="section-intro">Pregunta de esta lección: ${escapeHtml(lesson().objectives.join(' '))} El laboratorio aísla un mecanismo con parámetros didácticos; no modifica el enunciado ni las soluciones de los ejercicios.</p><div id="lessonLab"></div>`;
     activeCleanup = mountLab(element('lessonLab'), lesson().visual, {formatMath:math, params:LESSON_LAB_PRESETS[lesson().id] || {}});
   }
 
@@ -151,7 +160,8 @@ export function mountAula(document, environment = {}) {
   }
 
   function renderAnimation() {
-    activeCleanup = mountAnimation(element('panel-animation'), lesson().animation, {formatMath:math});
+    const paragraphs = html => { const content=document.createElement('div'); content.innerHTML=html; return [...content.querySelectorAll('p')].map(paragraph=>paragraph.textContent); };
+    activeCleanup = mountAnimation(element('panel-animation'), createLessonAnimation(lesson(),generateExercise,paragraphs), {formatMath:math});
   }
 
   function renderView() {

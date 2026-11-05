@@ -3,23 +3,77 @@ import {test} from 'node:test';
 import {mkdtempSync, readFileSync, readdirSync, rmSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
+import {createRequire} from 'node:module';
+import {parseHTML} from 'linkedom';
+import {COURSE} from '../../pages/inferencia/course.js';
+import {generateExercise} from '../../pages/inferencia/exercises.js';
 import * as api from '../../pages/inferencia/animations.js';
 import {exportLectures} from './export-lecturas.mjs';
 
-const {ANIMATIONS, animationDuration, buildVtt, mountAnimation} = api;
+const {ANIMATIONS, animationDuration, buildVtt, createLessonAnimation, mountAnimation} = api;
+const require = createRequire(import.meta.url);
+globalThis.jStat = require('../../pages/inferencia/vendor/jstat.min.js').jStat;
+const katex = require('../../pages/inferencia/vendor/katex/katex.min.js');
+const paragraphs = html => [...parseHTML(`<div>${html}</div>`).document.querySelectorAll('p')].map(node=>node.textContent);
+const fullLectures = () => COURSE.units.flatMap(unit=>unit.lessons).map(current=>createLessonAnimation(current,generateExercise,paragraphs));
+
+test('36 clases contienen toda la teoría, métodos, fórmulas, ejemplos y soluciones sin resumir el guion', () => {
+  const lessons = COURSE.units.flatMap(unit=>unit.lessons);
+  for (const [index,lecture] of fullLectures().entries()) {
+    const current = lessons[index];
+    const script = lecture.steps.map(step=>step.caption).join('\n');
+    assert.equal(lecture.id,current.id);
+    assert.ok(lecture.steps.length>20,current.id);
+    assert.doesNotMatch(script,/undefined|\[object Object\]/);
+    for (const text of [...current.sections.flatMap(section=>paragraphs(section.body)),...current.method,...paragraphs(current.example.body),...current.formulas.map(formula=>formula.meaning),...current.pitfalls]) assert.ok(script.includes(text),`${current.id}: ${text}`);
+    const worked = generateExercise(current.exerciseTypes[0],1);
+    for (const question of worked.questions) for (const step of question.steps) assert.ok(script.includes(step.explanation),current.id);
+    let end = 0;
+    for (const step of lecture.steps) {
+      assert.equal(step.cues.map(cue=>cue.text).join(' ').replace(/\s+/g,' '),step.caption.replace(/\s+/g,' '));
+      close(step.cues[0].start,0);
+      close(step.cues.at(-1).end,step.duration);
+      for (const [cueIndex,cue] of step.cues.entries()) {
+        assert.ok(cue.text.split(/\s+/).length<=26);
+        assert.ok(cue.end>cue.start);
+        if (cueIndex) close(cue.start,step.cues[cueIndex-1].end);
+      }
+      if (step.tex) assert.doesNotThrow(()=>katex.renderToString(step.tex,{throwOnError:true}));
+      end += step.duration;
+    }
+    close(end,animationDuration(lecture));
+    const cues = buildVtt(lecture).trimEnd().split('\n\n').slice(1);
+    assert.equal(cues.length,sum(lecture.steps.map(step=>step.cues.length)));
+    let previous = 0;
+    const expected = lecture.steps.flatMap(step=>step.cues);
+    cues.forEach((cue,cueIndex)=>{
+      const [identifier,timing,text] = cue.split('\n');
+      const [start,finish] = timing.split(' --> ').map(parseTime);
+      assert.equal(identifier,String(cueIndex+1));
+      close(start,previous,0.001);
+      assert.equal(decodeCaption(text),expected[cueIndex].text);
+      previous=finish;
+    });
+    close(previous,end,0.001);
+  }
+});
 
 test('Exportación offline: todos los subtítulos y guiones, sin audio ni vídeo', () => {
   const directory = mkdtempSync(join(tmpdir(), 'inferencia-lecturas-'));
   try {
     const exported = exportLectures(directory);
-    assert.equal(exported.lectures, ANIMATIONS.length);
-    assert.equal(exported.scenes, 141);
-    assert.equal(readdirSync(directory).length, ANIMATIONS.length * 2 + 1);
+    const lectures = fullLectures();
+    assert.equal(exported.lectures, 36);
+    assert.equal(exported.scenes, sum(lectures.map(lecture=>lecture.steps.length)));
+    assert.equal(readdirSync(directory).length, 73);
     const manifest = JSON.parse(readFileSync(join(directory, 'lecturas.json'), 'utf8'));
-    for (const animation of ANIMATIONS) {
-      assert.equal(readFileSync(join(directory, `${animation.id}.vtt`), 'utf8'), buildVtt(animation.id));
+    for (const animation of lectures) {
+      assert.equal(readFileSync(join(directory, `${animation.id}.vtt`), 'utf8'), buildVtt(animation));
       assert.equal(readFileSync(join(directory, `${animation.id}.txt`), 'utf8'), animation.steps.map(step => step.caption).join('\n\n'));
-      assert.equal(manifest.find(item => item.id === animation.id).duration, animationDuration(animation.id));
+      const item = manifest.find(item => item.id === animation.id);
+      assert.equal(item.duration, animationDuration(animation));
+      assert.ok(item.scenes.every(scene=>scene.cues.length>0));
+      close(item.scenes.at(-1).cues.at(-1).end,item.duration);
     }
     assert.equal(readdirSync(directory).some(file => /\.(mp4|webm|wav|mp3)$/.test(file)), false);
   } finally { rmSync(directory, {recursive:true,force:true}); }
@@ -47,7 +101,7 @@ const parseTime = value => {
 };
 
 test('exact public API, original lessons and additional substantive visual scenes', () => {
-  assert.deepEqual(Object.keys(api).sort(), ['ANIMATIONS', 'animationDuration', 'buildVtt', 'mountAnimation'].sort());
+  assert.deepEqual(Object.keys(api).sort(), ['ANIMATIONS', 'animationDuration', 'buildVtt', 'createLessonAnimation', 'mountAnimation'].sort());
   assert.deepEqual(ANIMATIONS.map(animation => animation.id), [...expectedIds, ...newIds]);
   assert.equal(ANIMATIONS.length, 28);
   assert.equal(sum(ANIMATIONS.slice(0, 14).map(animation => animation.steps.length)), 71);
@@ -834,7 +888,7 @@ test('DPR sizing is stable, resize fallback and timer fallback clean up', () => 
   dom.cleanupCheck();
   const fallback = fakeDom({raf: false, resizeObserver: false});
   const fallbackCleanup = mountAnimation(fallback.container, 'density');
-  assert.equal(fallback.view.listenerCount(), 1);
+  assert.equal(fallback.view.listenerCount(), 2);
   fallback.byLabel('Reproducir').click();
   assert.equal(fallback.timers.size, 1);
   fallback.advance(lesson('density').steps[0].duration * 1000);
@@ -844,6 +898,35 @@ test('DPR sizing is stable, resize fallback and timer fallback clean up', () => 
   assert.equal(fallback.byTag('canvas').width, 800);
   fallbackCleanup();
   fallback.cleanupCheck();
+});
+
+test('las clases sincronizan frases y diapositivas, también con movimiento reducido, y limpian el modo ampliado', () => {
+  const lecture = fullLectures()[0];
+  for (const reducedMotion of [false,true]) {
+    const dom = fakeDom({reducedMotion});
+    const cleanup = mountAnimation(dom.container,lecture);
+    const caption = dom.created.find(node=>node.className==='animation-caption');
+    const board = dom.created.find(node=>node.className==='slide-board');
+    assert.equal(caption.textContent,lecture.steps[0].cues[0].text);
+    assert.equal(board.hidden,false);
+    assert.equal(dom.byTag('canvas').style.display,'none');
+    dom.byLabel('Reproducir').click();
+    dom.advance(lecture.steps[0].cues[0].end*1000+10);
+    assert.equal(caption.textContent,lecture.steps[0].cues[1].text);
+    assert.equal(board.children[2].children[1].attributes['data-active'],'true');
+    dom.byLabel('Pausar').click();
+    const paused=caption.textContent;
+    dom.advance(60000);
+    assert.equal(caption.textContent,paused);
+    dom.byLabel('Ampliar clase').click();
+    assert.ok(dom.container.children[0].className.includes('is-focused'));
+    for (const handler of dom.view.listeners.get('keydown')) handler({key:'Escape'});
+    assert.equal(dom.container.children[0].className,'animation-player');
+    dom.byLabel('Reiniciar').click();
+    assert.equal(caption.textContent,lecture.steps[0].cues[0].text);
+    cleanup();
+    dom.cleanupCheck();
+  }
 });
 
 test('transcript is exact, math fallback is text, downloads are separate and URLs revoked', async () => {

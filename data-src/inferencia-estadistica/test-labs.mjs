@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {test} from 'node:test';
 import {createRequire} from 'node:module';
-import {LAB_IDS, calculateLab, mountLab} from '../../pages/inferencia/labs.js';
+import {LAB_IDS, LAB_GUIDES, calculateLab, mountLab} from '../../pages/inferencia/labs.js';
 
 globalThis.jStat = createRequire(import.meta.url)('../../pages/inferencia/vendor/jstat.min.js').jStat;
 const close = (actual, expected, tolerance = 1e-9) => assert.ok(Number.isFinite(actual) && Math.abs(actual - expected) <= tolerance, `${actual} ≠ ${expected}`);
@@ -11,9 +11,10 @@ const probability = (family, params = {}) => calculateLab('models', {family, ...
 const families = ['bernoulli', 'binomial', 'geometric', 'negative-binomial', 'hypergeometric', 'poisson', 'discrete-uniform', 'uniform', 'exponential', 'gamma', 'normal', 'chi-square', 'student', 'fisher', 'cauchy', 'weibull'];
 
 test('Contrato: catorce laboratorios, resultados puros y sin mutar los parámetros', () => {
-  assert.deepEqual(LAB_IDS, ['math', 'events', 'bayes', 'variable', 'density', 'expectation', 'binomial', 'poisson', 'normal', 'joint', 'independence', 'covariance', 'sampling', 'models']);
+  assert.deepEqual(LAB_IDS, ['math', 'events', 'bayes', 'variable', 'density', 'expectation', 'binomial', 'poisson', 'normal', 'joint', 'independence', 'covariance', 'sampling', 'models', 'multinomial', 'continuous-joint', 'bivariate-normal']);
   assert.ok(Object.isFrozen(LAB_IDS));
   for (const id of LAB_IDS) {
+    assert.ok(LAB_GUIDES[id].length === 5 && LAB_GUIDES[id].every(text => text.length > 40), id);
     const lab = calculateLab(id);
     assert.deepEqual(Object.keys(lab).sort(), ['explanation', 'metrics', 'title', 'visual']);
     assert.ok(lab.title.length > 5 && lab.explanation.length > 100, id);
@@ -30,6 +31,29 @@ test('Contrato: catorce laboratorios, resultados puros y sin mutar los parámetr
   calculateLab('joint', params);
   assert.deepEqual(params.weights, [3, 2, 1, 4]);
   assert.equal(typeof mountLab, 'function');
+});
+
+test('Laboratorios específicos: multinomial, soporte triangular y normal condicional', () => {
+  const multinomial = calculateLab('multinomial');
+  close(sum(multinomial.visual.probabilities), 1);
+  close(multinomial.visual.probabilities[5], 0.1875);
+  close(multinomial.visual.covariance, -0.375);
+  multinomial.visual.probabilities.forEach((mass,index) => { if (Math.floor(index/4)+index%4>3) close(mass,0); });
+  const triangle = calculateLab('continuous-joint',{limit:2,knownX:0.5,threshold:0.8});
+  close(triangle.visual.density,0.5);
+  close(triangle.visual.marginal,0.75);
+  close(triangle.visual.probability,0.7/1.5);
+  assert.throws(()=>calculateLab('continuous-joint',{knownX:2}),RangeError);
+  close(calculateLab('continuous-joint',{threshold:5}).visual.probability,0);
+  const normal = calculateLab('bivariate-normal');
+  close(normal.visual.mean,32.4);
+  close(normal.visual.variance,10.24);
+  close(normal.visual.sd,3.2);
+  close(normal.visual.probability,globalThis.jStat.normal.cdf(-35,-32.4,3.2));
+  const uncorrelated = calculateLab('bivariate-normal',{rho:0});
+  close(uncorrelated.visual.mean,30);
+  close(uncorrelated.visual.variance,16);
+  assert.throws(()=>calculateLab('bivariate-normal',{rho:1}),RangeError);
 });
 
 test('Integral: constante, lineal, cuadrática, intervalo nulo y altura cero', () => {

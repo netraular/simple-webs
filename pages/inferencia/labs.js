@@ -1,4 +1,24 @@
-export const LAB_IDS = Object.freeze(['math', 'events', 'bayes', 'variable', 'density', 'expectation', 'binomial', 'poisson', 'normal', 'joint', 'independence', 'covariance', 'sampling', 'models']);
+export const LAB_IDS = Object.freeze(['math', 'events', 'bayes', 'variable', 'density', 'expectation', 'binomial', 'poisson', 'normal', 'joint', 'independence', 'covariance', 'sampling', 'models', 'multinomial', 'continuous-joint', 'bivariate-normal']);
+
+export const LAB_GUIDES = {
+  math: ['Relacionar altura, anchura e integral antes de trabajar con densidades.', 'Elige la función constante, fija un intervalo y duplica la altura.', 'Ambas áreas se duplican, pero su cociente no cambia. Una anchura cero aporta área cero.', 'El eje horizontal representa x y el vertical la función; la sombra acumula área.', 'Una función positiva no es una densidad hasta normalizarla. El área puede superar uno.'],
+  events: ['Traducir conjuntos y condicionamiento a regiones de un experimento.', 'Selecciona B y cambia el grupo de referencia de todo el espacio a dado A.', 'Con los pesos iniciales, el numerador es 0,10 y el denominador 0,40: la condicional vale 0,25.', 'Los puntos más tenues quedan fuera de la condición; los resaltados cumplen también el suceso.', 'Los puntos redondean proporciones, no son observaciones; las métricas conservan las probabilidades exactas.'],
+  bayes: ['Ver por qué sensibilidad y valor predictivo responden a preguntas distintas.', 'Mantén sensibilidad 0,90 y especificidad 0,95; reduce prevalencia de 0,10 a 0,01.', 'VPP baja de 2/3 a aproximadamente 0,154: el grupo sano aporta más falsos positivos.', 'VPP divide enfermos positivos entre todos los positivos, no entre todos los enfermos.', 'Los recuentos son esperados y pueden ser fraccionarios. Aumentar la cohorte no cambia VPP.'],
+  variable: ['Distinguir masa puntual de acumulación hasta un umbral.', 'Conserva los pesos y alterna masa y acumulada; después cambia solo el umbral.', 'Las masas suman uno. La acumulada incorpora cada masa al cruzar su valor, pero sus alturas no se suman.', 'Barras: P(X=x). Escalones: P(X≤x), incluido el umbral.', 'Los resultados posibles son 0, 1, 2 y 3. Entre ellos no hay masas que interpolar.'],
+  density: ['Entender probabilidades continuas como áreas y no alturas.', 'Estrecha el soporte y después iguala los dos límites del intervalo.', 'La altura sube para conservar área uno. Un intervalo sin anchura tiene probabilidad cero.', 'La sombra es probabilidad; la línea es densidad con unidades inversas a X.', 'Uniforme y triangular simétrica aíslan el concepto; no son curvas ajustadas a datos reales.'],
+  expectation: ['Interpretar centro y dispersión como ponderaciones por probabilidad.', 'Suma la misma cantidad a todos los resultados y conserva los pesos.', 'La media se desplaza; la varianza no cambia. Duplicar todos los resultados cuadruplica la varianza.', 'La línea señala la media. Los valores repetidos se agrupan sin perder sus masas.', 'La media puede no ser un resultado posible. Varianza y desviación tienen unidades diferentes.'],
+  binomial: ['Relacionar n fijo y p constante con un recuento de éxitos.', 'Conserva p y duplica n; compara media, varianza y soporte.', 'La media np y la varianza np(1-p) se duplican. El área de un intervalo fijo no tiene por qué hacerlo.', 'Cada barra es una masa entera; el intervalo seleccionado incluye sus extremos.', 'La binomial requiere ensayos independientes y p común. Cambiar familia cambia el mecanismo.'],
+  poisson: ['Separar tasa por exposición de probabilidad de un suceso.', 'Duplica lambda como al duplicar exposición con tasa constante.', 'Media y varianza se duplican. La masa en cero disminuye, porque vale exp(-lambda).', 'Las barras son masas; la cola omitida se cuantifica y se incluye en los cálculos.', 'Agrupamientos o cambios de tasa pueden invalidar el mecanismo Poisson.'],
+  normal: ['Traducir mediciones a áreas bajo una curva normal.', 'Fija un intervalo central y aumenta sigma; luego desplaza juntos media e intervalo.', 'Aumentar sigma reduce el área central fija; trasladar juntos media y límites conserva el área.', 'Sigma significa desviación típica, no varianza. La sombra representa probabilidad.', 'Las colas fuera del marco están incluidas en los cálculos. La normalidad es un supuesto.'],
+  joint: ['Distinguir celda conjunta, totales marginales y fila condicionada.', 'Selecciona una fila y divide cada celda por el total de esa fila.', 'Una fila positiva produce condicionales que suman uno; el denominador no es toda la tabla.', 'Los totales laterales e inferiores son marginales. El borde señala la celda de interés.', 'Una fila vacía no define condicionales. Esta tabla es discreta, no una superficie continua.'],
+  independence: ['Comprobar factorización conservando ambas marginales.', 'Fija marginales y mueve asociación desde cero hacia un extremo.', 'En cero cada celda coincide con su producto marginal; fuera de cero aparecen discrepancias.', 'Cada celda compara conjunta y producto. La métrica recoge la máxima diferencia.', 'Una discrepancia refuta independencia; una coincidencia aislada no la demuestra.'],
+  covariance: ['Explorar asociación lineal en una nube de pares.', 'Cambia el signo de rho objetivo y después cambia solo la semilla.', 'La orientación suele invertirse; la correlación empírica fluctúa entre realizaciones.', 'Las líneas cruzan las medias y la recta resume dirección lineal, no causalidad.', 'Las métricas son descriptivas con divisor m. La nube no certifica normalidad conjunta ni independencia.'],
+  sampling: ['Apoyo adicional: distinguir variación individual y variación entre medias.', 'Mantén sigma y multiplica por cuatro el tamaño de muestra.', 'La varianza de la media se divide por cuatro y su error estándar por dos.', 'Cada elemento del histograma es una media. La línea es exacta bajo población normal.', 'Es una ampliación de muestreo, no una demostración del TCL para cualquier población.'],
+  models: ['Elegir una familia por su soporte y mecanismo, no por su aspecto.', 'Cambia un parámetro y anticipa el efecto sobre centro, dispersión e intervalo.', 'Una tasa exponencial mayor acorta tiempos; una escala gamma mayor los alarga.', 'Barras: masas. Líneas: densidades. Los parámetros declaran sus convenciones.', 'La condicional se calcula por un cociente, sin renormalizar las alturas. Student, Fisher y chi-cuadrado son ampliaciones.'],
+  multinomial: ['Entender tres recuentos que comparten un total fijo.', 'Conserva n y cambia un peso de categoría; observa la tabla y sus marginales.', 'Las masas suman uno; X+Y>n es imposible y la tercera categoría vale n-X-Y.', 'Filas: primer recuento. Columnas: segundo. Los totales son marginales binomiales.', 'Ensayos independientes no implican recuentos independientes: su covarianza es negativa.'],
+  'continuous-joint': ['Distinguir soporte triangular, marginal y corte condicionado.', 'Mantén el umbral Y y aumenta el X conocido dentro del soporte.', 'El máximo de Y baja a L-x. Su densidad condicionada sube a 1/(L-x) y la cola se reduce.', 'El triángulo es soporte; la línea verde es el corte y su tramo oscuro supera el umbral.', 'El corte se normaliza por densidades. En x=L la marginal vale cero y no define esta condicional.'],
+  'bivariate-normal': ['Convertir una medida conocida en la distribución condicional de la otra.', 'Compara rho cero y positivo; desplaza X conocido por encima de su media.', 'Con rho cero se conserva la marginal. Con rho positivo y X alto sube la media condicional y baja la varianza.', 'Azul: Y dado X=x. Rosa: marginal Y. La sombra es cola condicional.', 'Se supone normalidad conjunta. Rho igual a uno o menos uno es degenerado; los cálculos incluyen colas fuera del marco.']
+};
 
 const COLORS = ['#0369a1', '#15803d', '#be123c', '#b45309'];
 const sum = values => values.reduce((total, value) => total + value, 0);
@@ -97,7 +117,10 @@ const DEFAULTS = {
   joint: {weights: [3, 2, 1, 4], row: 1, column: 1},
   independence: {pA: 0.5, pB: 0.6, association: 0},
   covariance: {rho: 0.6, count: 60, seed: 17},
-  sampling: {n: 10, repetitions: 500, mu: 10, sigma: 2, seed: 42}
+  sampling: {n: 10, repetitions: 500, mu: 10, sigma: 2, seed: 42},
+  multinomial: {n:3, weights:[2,1,1]},
+  'continuous-joint': {limit:2, knownX:0.5, threshold:0.8},
+  'bivariate-normal': {muX:12, muY:30, sigmaX:2, sigmaY:4, rho:0.6, knownX:14, threshold:35}
 };
 
 const FAMILIES = [
@@ -442,6 +465,47 @@ export function calculateLab(labId, raw = {}) {
       const conditional = ratio(cell, rows[params.row]);
       return result('Conjunta, marginal y condicional', 'Los cuatro pesos no negativos se dividen por el total. Una celda es una probabilidad conjunta; sumar su fila da la marginal de A, y sumar su columna da la marginal de B. Para P(B=columna | A=fila), el denominador es toda la fila, no toda la tabla. Las condicionales de una fila positiva suman uno; una fila sin masa no define condicionales.', [metric('P(A=fila, B=columna)', cell), metric('P(A=fila)', rows[params.row]), metric('P(B=columna)', columns[params.column]), metric('P(B=columna | A=fila)', conditional), metric('Suma conjunta', sum(probabilities))], plot('matrix', [0, 2], 'Columna: B', 'Fila: A', 'Color = masa conjunta; totales = marginales', {probabilities, rows, columns, selected: 2 * params.row + params.column, conditional, conditionalRow: probabilities.slice(2 * params.row, 2 * params.row + 2).map(value => ratio(value, rows[params.row]))}));
     }
+    case 'multinomial': {
+      numeric(params.n, 'Ensayos', 1, 6, true);
+      const categoryProbabilities = normalize(vector(params.weights, 'Pesos', 3));
+      const size = params.n + 1;
+      const factorial = value => { let product = 1; for (let factor = 2; factor <= value; factor++) product *= factor; return product; };
+      const probabilities = Array.from({length:size * size}, (_, index) => {
+        const first = Math.floor(index / size);
+        const second = index % size;
+        const third = params.n - first - second;
+        if (third < 0) return 0;
+        return factorial(params.n) / (factorial(first) * factorial(second) * factorial(third)) * categoryProbabilities[0] ** first * categoryProbabilities[1] ** second * categoryProbabilities[2] ** third;
+      });
+      const rows = Array.from({length:size}, (_, row) => sum(probabilities.slice(row * size, (row + 1) * size)));
+      const columns = Array.from({length:size}, (_, column) => sum(probabilities.filter((_, index) => index % size === column)));
+      const covariance = -params.n * categoryProbabilities[0] * categoryProbabilities[1];
+      return result('Trinomial: dos recuentos y un tercero determinado', 'Cada celda describe X e Y simultáneamente; Z es n-X-Y. La zona con X+Y>n tiene masa cero. Los pesos normalizados son probabilidades de categorías por ensayo, no masas de celdas. Los totales de filas y columnas son marginales binomiales. La suma conjunta es uno y la covarianza negativa refleja competencia por un total fijo, no necesariamente un mecanismo causal.', [metric('Suma conjunta', sum(probabilities)), ...categoryProbabilities.map((value, index) => metric(`Probabilidad categoría ${index + 1}`, value)), metric('E[X]', params.n * categoryProbabilities[0]), metric('E[Y]', params.n * categoryProbabilities[1]), metric('Cov(X,Y)', covariance)], plot('matrix', [0,size], 'Columnas: recuento Y', 'Filas: recuento X', 'Z=n-X-Y; totales marginales; ceros fuera del soporte', {probabilities, rows, columns, yDomain:[0,size], rowName:'X', columnName:'Y', categoryProbabilities, covariance}));
+    }
+    case 'continuous-joint': {
+      numeric(params.limit, 'L', 0.5, 5);
+      numeric(params.knownX, 'X conocido', 0, params.limit);
+      numeric(params.threshold, 'Umbral Y', 0, 5);
+      if (params.knownX >= params.limit) throw new RangeError('X conocido debe ser menor que L: en la frontera la marginal es cero.');
+      const width = params.limit - params.knownX;
+      const density = 2 / params.limit ** 2;
+      const marginal = density * width;
+      const probability = Math.max(0, width - params.threshold) / width;
+      const baseProbability = (Math.max(0, params.limit - params.threshold) / params.limit) ** 2;
+      return result('Triángulo: superficie, marginal y corte', 'El soporte es x≥0, y≥0, x+y≤L. Su área L²/2 multiplica la densidad constante 2/L² para obtener uno. La marginal fX(x) integra hasta L-x y vale 2(L-x)/L²; no es uniforme. El cociente entre densidad conjunta y marginal da una uniforme condicional de Y en [0,L-x]. El tramo oscuro del corte satisface Y>umbral. Su longitud dividida por L-x da la probabilidad condicional, distinta de integrar toda la región superior del triángulo.', [metric('Área total de probabilidad', 1), metric('Densidad conjunta', density, '1/unidades²'), metric('Marginal fX(x)', marginal, '1/unidad'), metric('Densidad de Y dado X=x', 1 / width, '1/unidad'), metric('Máximo Y dado X=x', width), metric('P(Y>umbral | X=x)', probability), metric('P(Y>umbral) marginal', baseProbability)], plot('region', [0,params.limit], 'X (unidades)', 'Y (unidades)', 'Triángulo: soporte; verde: corte; rosa: umbral', {yDomain:[0,params.limit], limit:params.limit, knownX:params.knownX, threshold:params.threshold, width, probability, density, marginal, tex:String.raw`f_{Y\mid X}(y\mid x)=\frac{1}{L-x},\quad 0<y<L-x`}));
+    }
+    case 'bivariate-normal': {
+      for (const key of ['muX','muY','knownX','threshold']) numeric(params[key], key, -100, 100);
+      for (const key of ['sigmaX','sigmaY']) numeric(params[key], key, 0.1, 20);
+      numeric(params.rho, 'Rho', -0.99, 0.99);
+      const stats = library();
+      const mean = params.muY + params.rho * params.sigmaY / params.sigmaX * (params.knownX - params.muX);
+      const variance = params.sigmaY ** 2 * (1 - params.rho ** 2);
+      const sd = Math.sqrt(variance);
+      const domain = [Math.min(mean - 4 * sd, params.muY - 4 * params.sigmaY), Math.max(mean + 4 * sd, params.muY + 4 * params.sigmaY)];
+      const probability = clampProbability(stats.normal.cdf(-params.threshold, -mean, sd));
+      return result('Normal bivariante: distribución condicional de Y', 'La normalidad conjunta permite condicionar en un X exacto mediante densidades. La media condicional se desplaza con rho por sigmaY/sigmaX por la distancia de X a su media. La varianza es sigmaY²(1-rho²); su raíz es la desviación usada para calcular la cola. La curva rosa mantiene la marginal original. Las dos curvas incluyen colas fuera del marco de al menos cuatro desviaciones; la probabilidad numérica incluye toda la cola derecha, no solo la sombra visible. Esto expresa incertidumbre de Y, no predicción exacta ni causalidad.', [metric('Media condicional', mean), metric('Varianza condicional', variance), metric('Sigma condicional', sd), metric('P(Y>umbral | X=x)', probability), metric('Media marginal Y', params.muY), metric('Sigma marginal Y', params.sigmaY)], plot('curve', domain, 'Y (unidades)', 'Densidad (1/unidad)', 'Azul: condicional; rosa: marginal; sombra: cola', {points:curvePoints(domain, value => stats.normal.pdf(value, mean, sd)), comparisonPoints:curvePoints(domain, value => stats.normal.pdf(value, params.muY, params.sigmaY)), selectedInterval:[params.threshold,domain[1]], mean, variance, sd, probability, tex:String.raw`\mu_{Y\mid x}=\mu_Y+\rho\frac{\sigma_Y}{\sigma_X}(x-\mu_X),\quad \sigma_{Y\mid x}=\sigma_Y\sqrt{1-\rho^2}`}));
+    }
     case 'independence': {
       numeric(params.pA, 'P(A=1)', 0, 1);
       numeric(params.pB, 'P(B=1)', 0, 1);
@@ -523,6 +587,9 @@ function controlsFor(labId, params) {
     case 'density': return [select('family', 'Densidad', [['uniform', 'Uniforme'], ['triangular', 'Triangular simétrica']]), slider('a', 'Soporte: a', -10, 10, 0.1), slider('b', 'Soporte: b', -10, 20, 0.1), slider('lower', 'Inicio del intervalo', -20, 30, 0.1), slider('upper', 'Fin del intervalo', -20, 30, 0.1)];
     case 'expectation': return [...[0, 1, 2].map(index => slider('values', `Resultado ${index + 1}`, -20, 20, 0.5, index)), ...weightControls(['resultado 1', 'resultado 2', 'resultado 3'])];
     case 'joint': return [...weightControls(['A=0, B=0', 'A=0, B=1', 'A=1, B=0', 'A=1, B=1']), select('row', 'Condición A', [[0, 'A=0'], [1, 'A=1']]), select('column', 'Respuesta B', [[0, 'B=0'], [1, 'B=1']])];
+    case 'multinomial': return [slider('n', 'Número fijo de ensayos', 1, 6, 1), ...weightControls(['categoría X','categoría Y','categoría Z'])];
+    case 'continuous-joint': return [slider('limit', 'Capacidad total L', 0.5, 5, 0.1), slider('knownX', 'X conocido (menor que L)', 0, 5, 0.05), slider('threshold', 'Umbral de Y', 0, 5, 0.05)];
+    case 'bivariate-normal': return [slider('muX', 'Media marginal X', -100, 100, 0.1), slider('muY', 'Media marginal Y', -100, 100, 0.1), slider('sigmaX', 'Desviación marginal X', 0.1, 20, 0.1), slider('sigmaY', 'Desviación marginal Y', 0.1, 20, 0.1), slider('rho', 'Correlación conjunta rho', -0.99, 0.99, 0.01), slider('knownX', 'Valor conocido de X', -100, 100, 0.1), slider('threshold', 'Umbral de Y', -100, 100, 0.1)];
     case 'independence': return [slider('pA', 'P(A=1)', 0, 1), slider('pB', 'P(B=1)', 0, 1), slider('association', 'Asociación dentro de límites válidos', -1, 1)];
     case 'covariance': return [slider('rho', 'Rho objetivo (no empírico)', -1, 1), slider('count', 'Puntos', 10, 150, 1), slider('seed', 'Semilla', 0, 4294967295, 1)];
     case 'sampling': return [slider('n', 'Tamaño de cada muestra', 1, 200, 1), slider('repetitions', 'Repeticiones', 2, 2000, 1), slider('mu', 'Media poblacional', -20, 20, 0.1), slider('sigma', 'Desviación poblacional', 0.05, 10, 0.05), slider('seed', 'Semilla', 0, 4294967295, 1)];
@@ -557,7 +624,7 @@ function draw(canvas, visual, width, height) {
   const right = width - (visual.kind === 'matrix' ? 58 : 14);
   const bottom = height - (visual.kind === 'matrix' ? 72 : 57);
   const {domain} = visual;
-  const maxHeight = Math.max(0.01, ...(visual.heights ?? []), ...(visual.points ?? []).map(point => point[1]));
+  const maxHeight = Math.max(0.01, ...(visual.heights ?? []), ...(visual.points ?? []).map(point => point[1]), ...(visual.comparisonPoints ?? []).map(point => point[1]));
   const yDomain = visual.yDomain ?? (visual.kind === 'dots' ? [0, 20] : visual.kind === 'matrix' ? [0, 2] : [0, maxHeight * 1.12]);
   const x = value => left + (value - domain[0]) / (domain[1] - domain[0]) * (right - left);
   const y = value => bottom - (value - yDomain[0]) / (yDomain[1] - yDomain[0]) * (bottom - top);
@@ -578,9 +645,9 @@ function draw(canvas, visual, width, height) {
     context.setLineDash([]);
   };
   text(visual.yTitle, 8, 16, width - 16);
-  for (let index = 0; index <= (visual.kind === 'matrix' ? 1 : 3); index++) {
+  for (let index = 0; index <= (visual.kind === 'matrix' ? visual.rows.length - 1 : 3); index++) {
     if (visual.kind === 'matrix') {
-      text(`A=${index}`, left - 5, y(index + 0.5) + 3, left - 8, '#475569', 'right');
+      text(`${visual.rowName || 'A'}=${index}`, left - 5, y(index + 0.5) + 3, left - 8, '#475569', 'right');
       continue;
     }
     const value = yDomain[0] + (yDomain[1] - yDomain[0]) * index / 3;
@@ -588,11 +655,11 @@ function draw(canvas, visual, width, height) {
     text(numberText(value), left - 5, y(value) + 3, left - 8, '#475569', 'right');
   }
   line([[domain[0], yDomain[1]], [domain[0], yDomain[0]], [domain[1], yDomain[0]]], '#64748b', 1);
-  const ticks = visual.kind === 'matrix' ? [0.5, 1.5] : visual.values && visual.values.length <= 5 ? visual.values : Array.from({length: 4}, (_, index) => domain[0] + (domain[1] - domain[0]) * index / 3);
-  for (const value of ticks) text(visual.kind === 'matrix' ? `B=${value - 0.5}` : numberText(value), x(value), bottom + 15, (right - left) / 4, '#475569', 'center');
+  const ticks = visual.kind === 'matrix' ? visual.columns.map((_, index) => index + 0.5) : visual.values && visual.values.length <= 5 ? visual.values : Array.from({length: 4}, (_, index) => domain[0] + (domain[1] - domain[0]) * index / 3);
+  for (const value of ticks) text(visual.kind === 'matrix' ? `${visual.columnName || 'B'}=${value - 0.5}` : numberText(value), x(value), bottom + 15, (right - left) / Math.max(4,ticks.length), '#475569', 'center');
   if (visual.kind === 'matrix') {
     visual.rows.forEach((value, index) => text(`Σ ${numberText(value)}`, right + 5, y(index + 0.5) + 3, width - right - 8));
-    visual.columns.forEach((value, index) => text(`Σ ${numberText(value)}`, x(index + 0.5), bottom + 29, (right - left) / 2 - 6, '#334155', 'center'));
+    visual.columns.forEach((value, index) => text(`Σ ${numberText(value)}`, x(index + 0.5), bottom + 29, (right - left) / visual.columns.length - 6, '#334155', 'center'));
   }
   text(visual.xTitle, (left + right) / 2, height - 24, right - left, '#334155', 'center');
   text(visual.legend, 8, height - 7, width - 16);
@@ -642,6 +709,20 @@ function draw(canvas, visual, width, height) {
       }
     }
     line(visual.points, COLORS[0], 2);
+    if (visual.comparisonPoints) line(visual.comparisonPoints, COLORS[2], 1.6);
+  }
+  if (visual.kind === 'region') {
+    context.beginPath();
+    context.moveTo(x(0),y(0));
+    context.lineTo(x(visual.limit),y(0));
+    context.lineTo(x(0),y(visual.limit));
+    context.closePath();
+    context.fillStyle = '#dbeafe';
+    context.fill();
+    line([[0,visual.limit],[visual.limit,0]], COLORS[0], 2);
+    line([[visual.knownX,0],[visual.knownX,visual.width]], COLORS[1], 4);
+    if (visual.threshold < visual.width) line([[visual.knownX,visual.threshold],[visual.knownX,visual.width]], '#064e3b', 7);
+    line([[0,visual.threshold],[visual.limit,visual.threshold]], COLORS[2], 1.6, true);
   }
   if (visual.kind === 'histogram') line(visual.points, COLORS[2], 2);
   if (visual.kind === 'scatter') {
@@ -672,8 +753,8 @@ function draw(canvas, visual, width, height) {
   }
   if (visual.kind === 'matrix') {
     visual.probabilities.forEach((value, index) => {
-      const row = Math.floor(index / 2);
-      const column = index % 2;
+      const row = Math.floor(index / visual.columns.length);
+      const column = index % visual.columns.length;
       context.fillStyle = `rgba(3,105,161,${0.08 + value * 0.72})`;
       context.fillRect(x(column), y(row + 1), x(column + 1) - x(column), y(row) - y(row + 1));
       if (index === visual.selected) {
@@ -682,7 +763,7 @@ function draw(canvas, visual, width, height) {
         context.strokeRect(x(column) + 1, y(row + 1) + 1, x(column + 1) - x(column) - 2, y(row) - y(row + 1) - 2);
       }
       const label = visual.products ? `${numberText(value)} / ${numberText(visual.products[index])}` : numberText(value);
-      text(label, x(column + 0.5), y(row + 0.5) + 4, (right - left) / 2 - 8, '#0f172a', 'center');
+      text(label, x(column + 0.5), y(row + 0.5) + 4, (right - left) / visual.columns.length - 8, '#0f172a', 'center');
     });
   }
   if (Number.isFinite(visual.mean)) line([[visual.mean, yDomain[0]], [visual.mean, yDomain[1]]], COLORS[1], 1.5, true);
@@ -719,6 +800,12 @@ export function mountLab(container, labId, {formatMath, params: initialParams = 
   const heading = element('h3');
   heading.id = `${instance}-title`;
   root.setAttribute('aria-labelledby', heading.id);
+  const guide = element('section', 'lab-guide');
+  const [purpose, experiment, prediction, reading, limits] = LAB_GUIDES[labId];
+  guide.append(element('p', '', purpose));
+  const explanations = element('dl');
+  for (const [title,text] of [['Explora',experiment],['Predicción razonada',prediction],['Cómo leer el resultado',reading],['Qué no demuestra',limits]]) explanations.append(element('dt','',title),element('dd','',text));
+  guide.append(explanations);
   const controls = element('div', 'lab-controls');
   controls.style.display = 'grid';
   controls.style.gridTemplateColumns = 'repeat(auto-fit, minmax(min(100%, 190px), 1fr))';
@@ -758,7 +845,7 @@ export function mountLab(container, labId, {formatMath, params: initialParams = 
   reset.append(resetIcon, element('span', '', 'Restablecer valores'));
   stage.append(canvas);
   figure.append(stage, caption);
-  root.append(heading, controls, reset, error, figure, metrics, formula);
+  root.append(heading, guide, controls, reset, error, figure, metrics, formula);
   container.append(root);
   let current;
   const resize = () => {

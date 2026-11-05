@@ -835,7 +835,7 @@ export function mountLab(container, labId, {formatMath, params: initialParams = 
   metrics.style.display = 'grid';
   metrics.style.gridTemplateColumns = 'repeat(auto-fit, minmax(min(100%, 150px), 1fr))';
   metrics.style.gap = '8px';
-  const formula = element('div', 'lab-caption');
+  const formula = element('div', 'lab-caption lab-formula');
   const reset = element('button', 'text-button');
   reset.type = 'button';
   reset.setAttribute('title', 'Restablecer valores');

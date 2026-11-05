@@ -10,7 +10,7 @@ const metricValue = (lab, label) => lab.metrics.find(item => item.label === labe
 const probability = (family, params = {}) => calculateLab('models', {family, ...params}).visual.probability;
 const families = ['bernoulli', 'binomial', 'geometric', 'negative-binomial', 'hypergeometric', 'poisson', 'discrete-uniform', 'uniform', 'exponential', 'gamma', 'normal', 'chi-square', 'student', 'fisher', 'cauchy', 'weibull'];
 
-test('Contrato: catorce laboratorios, resultados puros y sin mutar los parámetros', () => {
+test('Contrato: diecisiete laboratorios, resultados puros y sin mutar los parámetros', () => {
   assert.deepEqual(LAB_IDS, ['math', 'events', 'bayes', 'variable', 'density', 'expectation', 'binomial', 'poisson', 'normal', 'joint', 'independence', 'covariance', 'sampling', 'models', 'multinomial', 'continuous-joint', 'bivariate-normal']);
   assert.ok(Object.isFrozen(LAB_IDS));
   for (const id of LAB_IDS) {
@@ -411,6 +411,7 @@ test('Montaje simulado: ejes, leyendas, pie accesible, 16:9 y limpieza idempoten
     const canvas = owned.find(node => node.tag === 'canvas');
     const caption = owned.find(node => node.tag === 'figcaption');
     assert.ok(caption.textContent.length > 100, id);
+    assert.ok(owned.some(node=>node.className==='lab-caption lab-formula'),`${id}: fórmula en contenedor desplazable`);
     assert.equal(canvas.getAttribute('aria-describedby'), caption.id);
     assert.equal(canvas.getAttribute('role'), 'img');
     assert.equal(canvas.width, width * 2);

@@ -1,9 +1,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {readFileSync, existsSync, readdirSync} from 'node:fs';
+import {readFileSync, existsSync, readdirSync, cpSync, mkdtempSync, rmSync, writeFileSync} from 'node:fs';
 import {createRequire} from 'node:module';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
 import {parseHTML} from 'linkedom';
 import * as cssTree from 'css-tree';
+import {assetVersion, versionAssets} from './version-assets.mjs';
 import {COURSE} from '../../pages/inferencia/course.js';
 import {ANIMATIONS} from '../../pages/inferencia/animations.js';
 import {LAB_IDS} from '../../pages/inferencia/labs.js';
@@ -96,7 +99,7 @@ test('Published modules and imports use existing .js paths', () => {
   assert.ok(scripts.length > 0);
   for (const script of scripts) {
     const path = script.getAttribute('src');
-    assert.match(path, /\.js$/);
+    assert.match(new URL(path, 'https://example.test/').pathname, /\.js$/);
     assert.ok(existsSync(new URL(path, new URL('../../pages/inferencia-estadistica.html', import.meta.url))), path);
   }
   for (const file of files) {
@@ -105,7 +108,7 @@ test('Published modules and imports use existing .js paths', () => {
     assert.ok(existsSync(url), file);
     const source = readFileSync(url, 'utf8');
     for (const match of source.matchAll(/(?:^\s*(?:import|export)\s+(?:[^'"\n]*?\sfrom\s*)?|\bimport\s*\(\s*)['"]([^'"]+)['"]/gm)) {
-      assert.match(match[1], /\.js$/, `${file}: ${match[1]}`);
+      assert.match(new URL(match[1], url).pathname, /\.js$/, `${file}: ${match[1]}`);
       assert.ok(existsSync(new URL(match[1], url)), `${file}: ${match[1]}`);
     }
   }
@@ -279,4 +282,56 @@ test('Cada lección abre primero su ejercicio principal y conserva el orden peda
       assert.deepEqual([...document.querySelectorAll('#exerciseType option')].map(option => option.value), lesson.exerciseTypes);
     }
   } finally { aula.dispose(); }
+});
+
+function versionFixture() {
+  const root = mkdtempSync(join(tmpdir(), 'inferencia-assets-'));
+  cpSync(new URL('../../pages/inferencia/', import.meta.url), join(root, 'pages', 'inferencia'), {recursive:true});
+  cpSync(new URL('../../pages/inferencia-estadistica.html', import.meta.url), join(root, 'pages', 'inferencia-estadistica.html'));
+  return root;
+}
+
+test('El versionado de recursos es determinista e idempotente', () => {
+  const root = versionFixture();
+  try {
+    const first = versionAssets(root);
+    assert.equal(Object.keys(first.versions).length, 11);
+    assert.deepEqual(versionAssets(root).changed, []);
+    const generated = readFileSync(join(root, 'pages', 'inferencia-estadistica.html'), 'utf8');
+    for (const match of generated.matchAll(/(?:src|href)="(inferencia\/[^"?]+\.(?:js|css))\?v=([a-f0-9]+)"/g)) {
+      assert.equal(match[2], assetVersion(readFileSync(join(root, 'pages', match[1]))));
+    }
+  } finally { rmSync(root, {recursive:true,force:true}); }
+});
+
+test('El versionado propaga cambios del temario al módulo y al HTML', () => {
+  const root = versionFixture();
+  try {
+    const first = versionAssets(root);
+    const courseFile = join(root, 'pages', 'inferencia', 'course.js');
+    writeFileSync(courseFile, readFileSync(courseFile, 'utf8') + '\n');
+    const second = versionAssets(root);
+    assert.notEqual(first.versions['inferencia/course.js'], second.versions['inferencia/course.js']);
+    assert.notEqual(first.versions['inferencia/app.js'], second.versions['inferencia/app.js']);
+    assert.deepEqual(second.changed, ['pages/inferencia/app.js', 'pages/inferencia-estadistica.html']);
+    assert.deepEqual(versionAssets(root).changed, []);
+  } finally { rmSync(root, {recursive:true,force:true}); }
+});
+
+test('Las URLs publicadas llevan la huella actual de todos sus recursos', () => {
+  const entry = new URL('../../pages/inferencia-estadistica.html', import.meta.url);
+  const {document} = parseHTML(html);
+  const assets = [...document.querySelectorAll('script[src],link[rel="stylesheet"]')];
+  assert.equal(assets.length, 6);
+  for (const element of assets) {
+    const url = new URL(element.getAttribute('src') || element.getAttribute('href'), entry);
+    assert.equal(url.searchParams.get('v'), assetVersion(readFileSync(url)), `${url.pathname}: ejecuta node version-assets.mjs`);
+  }
+  const appUrl = new URL('../../pages/inferencia/app.js', import.meta.url);
+  const imports = [...readFileSync(appUrl, 'utf8').matchAll(/from ['"]([^'"]+\.js\?v=[a-f0-9]+)['"]/g)];
+  assert.equal(imports.length, 5);
+  for (const match of imports) {
+    const url = new URL(match[1], appUrl);
+    assert.equal(url.searchParams.get('v'), assetVersion(readFileSync(url)), `${url.pathname}: ejecuta node version-assets.mjs`);
+  }
 });

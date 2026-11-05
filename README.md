@@ -46,9 +46,14 @@ above or the production deployment, rather than opening the file directly.
 
 ```sh
 npm --prefix data-src/inferencia-estadistica ci --ignore-scripts
+node data-src/inferencia-estadistica/version-assets.mjs
 npm --prefix data-src/inferencia-estadistica test
 node data-src/inferencia-estadistica/export-lecturas.mjs
 ```
+
+After classroom source edits, regenerate the content-versioned URLs before
+testing and committing. This avoids stale browser/CDN JavaScript after a publish;
+the web server still has no build step.
 
 The export command writes WebVTT, narration text and scene metadata to the ignored
 `_work/lecturas/` directory. No audio or video rendering is required.

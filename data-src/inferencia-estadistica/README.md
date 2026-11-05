@@ -31,6 +31,15 @@ Las dependencias de desarrollo son `linkedom` y `css-tree`; no forman parte de l
 
 Se comprobó la publicación en `webs.raular.com` y la aparición del aula en la portada. Los módulos publicados usan `.js`, porque el nginx actual entrega `.mjs` como `application/octet-stream`, que el navegador rechaza. Los scripts de desarrollo mantienen `.mjs`; los dos archivos de metadatos de paquete preservan ESM para las pruebas y CommonJS para las bibliotecas UMD, sin introducir un build.
 
+La entrega de archivos estáticos tiene caché de 120 segundos. Las URLs de entrada y de los módulos incluyen una huella de contenido para no ejecutar una copia anterior tras publicar. Después de editar código, estilos o temario y antes de probar/commitear, ejecuta:
+
+```sh
+node version-assets.mjs
+npm test
+```
+
+El script solo actualiza URLs en dos archivos y es idempotente. Las pruebas rechazan huellas desactualizadas. No se ejecuta en el pod ni necesita un proceso de compilación o una herramienta de bundling.
+
 En navegador se comprobaron fórmulas, fuente local, iconos, gráficos no vacíos y ausencia de errores de carga. Se revisaron capturas y desbordamientos a 1440, 768, 390 y 320 píxeles, menú móvil, corrección de Bayes, pistas, persistencia al recargar y actualización del laboratorio al cambiar la prevalencia. La animación cambió sus píxeles con movimiento normal y respetó la preferencia de movimiento reducido. Las capturas son temporales y no se incluyen en Git.
 
 Se validó el texto generado por la descarga del guion. El navegador integrado no notificó el evento de guardado del archivo; la transferencia a disco no se considera verificada. Las pruebas offline verifican todos los guiones y WebVTT. No se arrancaron servidores locales ni se modificó Kubernetes.

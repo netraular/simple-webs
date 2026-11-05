@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {test} from 'node:test';
 import {createRequire} from 'node:module';
-import {LAB_IDS, calculateLab, mountLab} from '../../pages/inferencia/labs.mjs';
+import {LAB_IDS, calculateLab, mountLab} from '../../pages/inferencia/labs.js';
 
 globalThis.jStat = createRequire(import.meta.url)('../../pages/inferencia/vendor/jstat.min.js').jStat;
 const close = (actual, expected, tolerance = 1e-9) => assert.ok(Number.isFinite(actual) && Math.abs(actual - expected) <= tolerance, `${actual} ≠ ${expected}`);

@@ -3,7 +3,7 @@ import {test} from 'node:test';
 import {mkdtempSync, readFileSync, readdirSync, rmSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
-import * as api from '../../pages/inferencia/animations.mjs';
+import * as api from '../../pages/inferencia/animations.js';
 import {exportLectures} from './export-lecturas.mjs';
 
 const {ANIMATIONS, animationDuration, buildVtt, mountAnimation} = api;
@@ -122,7 +122,7 @@ test('module initialization and VTT generation do not access a runtime jStat glo
   const descriptor = Object.getOwnPropertyDescriptor(globalThis, 'jStat');
   try {
     Object.defineProperty(globalThis, 'jStat', {configurable: true, get() { throw new Error('jStat unavailable during import'); }});
-    const isolated = await import('../../pages/inferencia/animations.mjs?without-jstat');
+    const isolated = await import('../../pages/inferencia/animations.js?without-jstat');
     assert.deepEqual(isolated.ANIMATIONS.map(animation => animation.id), [...expectedIds, ...newIds]);
     for (const id of newIds) assert.equal(isolated.buildVtt(id), buildVtt(id));
   } finally {

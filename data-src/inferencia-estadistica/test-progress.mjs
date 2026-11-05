@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {COURSE} from '../../pages/inferencia/course.mjs';
-import {STORAGE_KEY, freshProgress, parseProgress, loadProgress, saveProgress, recordAnswer, recordAssistance, progressSummary} from '../../pages/inferencia/progress.mjs';
+import {COURSE} from '../../pages/inferencia/course.js';
+import {STORAGE_KEY, freshProgress, parseProgress, loadProgress, saveProgress, recordAnswer, recordAssistance, progressSummary} from '../../pages/inferencia/progress.js';
 
 test('Progreso inicial y copia con las lecciones reales', () => {
   const progress = freshProgress(COURSE);

@@ -1,15 +1,15 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {readFileSync, existsSync} from 'node:fs';
+import {readFileSync, existsSync, readdirSync} from 'node:fs';
 import {createRequire} from 'node:module';
 import {parseHTML} from 'linkedom';
 import * as cssTree from 'css-tree';
-import {COURSE} from '../../pages/inferencia/course.mjs';
-import {ANIMATIONS} from '../../pages/inferencia/animations.mjs';
-import {LAB_IDS} from '../../pages/inferencia/labs.mjs';
-import {EXERCISE_TYPES} from '../../pages/inferencia/exercises.mjs';
-import {LESSONS, VIEWS, LESSON_LAB_PRESETS, parseRoute, escapeHtml, mountAula} from '../../pages/inferencia/app.mjs';
-import {STORAGE_KEY, freshProgress, progressSummary} from '../../pages/inferencia/progress.mjs';
+import {COURSE} from '../../pages/inferencia/course.js';
+import {ANIMATIONS} from '../../pages/inferencia/animations.js';
+import {LAB_IDS} from '../../pages/inferencia/labs.js';
+import {EXERCISE_TYPES} from '../../pages/inferencia/exercises.js';
+import {LESSONS, VIEWS, LESSON_LAB_PRESETS, parseRoute, escapeHtml, mountAula} from '../../pages/inferencia/app.js';
+import {STORAGE_KEY, freshProgress, progressSummary} from '../../pages/inferencia/progress.js';
 
 const require = createRequire(import.meta.url);
 const katex = require('../../pages/inferencia/vendor/katex/katex.min.js');
@@ -87,6 +87,30 @@ test('CSS válido y recursos locales existentes, sin PDF ni dependencias remotas
   for (const file of ['jstat.LICENSE','lucide.LICENSE','atkinson.LICENSE','katex/LICENSE']) assert.ok(existsSync(new URL(`../../pages/inferencia/vendor/${file}`, import.meta.url)), file);
 });
 
+test('Published modules and imports use existing .js paths', () => {
+  const directory = new URL('../../pages/inferencia/', import.meta.url);
+  const files = readdirSync(directory).filter(file => /\.(?:mjs|js)$/.test(file)).sort();
+  assert.deepEqual(files, ['animations.js','app.js','course.js','exercises.js','labs.js','progress.js']);
+  const {document} = parseHTML(html);
+  const scripts = [...document.querySelectorAll('script[type="module"]')];
+  assert.ok(scripts.length > 0);
+  for (const script of scripts) {
+    const path = script.getAttribute('src');
+    assert.match(path, /\.js$/);
+    assert.ok(existsSync(new URL(path, new URL('../../pages/inferencia-estadistica.html', import.meta.url))), path);
+  }
+  for (const file of files) {
+    const url = new URL(file, directory);
+    assert.match(file, /\.js$/);
+    assert.ok(existsSync(url), file);
+    const source = readFileSync(url, 'utf8');
+    for (const match of source.matchAll(/(?:^\s*(?:import|export)\s+(?:[^'"\n]*?\sfrom\s*)?|\bimport\s*\(\s*)['"]([^'"]+)['"]/gm)) {
+      assert.match(match[1], /\.js$/, `${file}: ${match[1]}`);
+      assert.ok(existsSync(new URL(match[1], url)), `${file}: ${match[1]}`);
+    }
+  }
+});
+
 test('Las rutas y el texto externo se validan', () => {
   assert.deepEqual(parseRoute('#bayes-diagnostico/practice'), {lessonId:'bayes-diagnostico',view:'practice'});
   assert.deepEqual(parseRoute('#unknown/invalid'), {lessonId:'proporciones',view:'theory'});
@@ -96,7 +120,7 @@ test('Las rutas y el texto externo se validan', () => {
 test('La portada registra el curso y todos los controles tienen iconos disponibles', () => {
   const metadata = JSON.parse(readFileSync(new URL('../../webs.json', import.meta.url), 'utf8'));
   assert.match(metadata['inferencia-estadistica.html'].title, /Inferencia/);
-  const modules = ['app.mjs','animations.mjs','labs.mjs'].map(file => readFileSync(new URL(`../../pages/inferencia/${file}`, import.meta.url), 'utf8')).join('\n');
+  const modules = ['app.js','animations.js','labs.js'].map(file => readFileSync(new URL(`../../pages/inferencia/${file}`, import.meta.url), 'utf8')).join('\n');
   const names = new Set([...`${html}\n${modules}`.matchAll(/data-lucide=["']([^"']+)["']|button\('([^']+)'/g)].map(match => match[1] || match[2]));
   const iconNames = new Set(Object.keys(lucide.icons).map(name => name.replace(/-/g, '').toLowerCase()));
   for (const name of names) assert.ok(iconNames.has(name.replace(/-/g, '').toLowerCase()), name);

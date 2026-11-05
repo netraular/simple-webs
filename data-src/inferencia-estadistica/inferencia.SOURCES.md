@@ -2,7 +2,7 @@
 
 Fecha de revisión: 2026-11-05.
 
-El módulo `pages/inferencia/course.mjs` contiene material didáctico original en español para una persona graduada en biología: **36 lecciones, cinco unidades y 40 entradas de glosario**. Las explicaciones, ejemplos y comprobaciones se han redactado para este curso; no son transcripciones de los documentos.
+El módulo `pages/inferencia/course.js` contiene material didáctico original en español para una persona graduada en biología: **36 lecciones, cinco unidades y 40 entradas de glosario**. Las explicaciones, ejemplos y comprobaciones se han redactado para este curso; no son transcripciones de los documentos.
 
 ## Privacidad y método
 

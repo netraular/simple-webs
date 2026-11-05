@@ -1,7 +1,7 @@
 import {mkdirSync, writeFileSync} from 'node:fs';
 import {resolve, join} from 'node:path';
 import {fileURLToPath, pathToFileURL} from 'node:url';
-import {ANIMATIONS, animationDuration, buildVtt} from '../../pages/inferencia/animations.mjs';
+import {ANIMATIONS, animationDuration, buildVtt} from '../../pages/inferencia/animations.js';
 
 export function exportLectures(output = fileURLToPath(new URL('./_work/lecturas/', import.meta.url))) {
   const destination = resolve(output);

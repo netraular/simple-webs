@@ -3,7 +3,7 @@ import {test} from 'node:test';
 import {existsSync} from 'node:fs';
 import {createRequire} from 'node:module';
 import {fileURLToPath} from 'node:url';
-import {EXERCISE_TYPES, generateExercise, gradeAnswer, parseAnswer} from '../../pages/inferencia/exercises.mjs';
+import {EXERCISE_TYPES, generateExercise, gradeAnswer, parseAnswer} from '../../pages/inferencia/exercises.js';
 
 const vendor = new URL('../../pages/inferencia/vendor/jstat.min.js', import.meta.url);
 const vendorAvailable = existsSync(vendor);

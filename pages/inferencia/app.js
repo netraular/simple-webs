@@ -1,8 +1,8 @@
-import {COURSE} from './course.mjs';
-import {EXERCISE_TYPES, generateExercise, gradeAnswer} from './exercises.mjs';
-import {ANIMATIONS, mountAnimation} from './animations.mjs';
-import {mountLab} from './labs.mjs';
-import {STORAGE_KEY, freshProgress, parseProgress, loadProgress, saveProgress, recordAnswer, recordAssistance, progressSummary} from './progress.mjs';
+import {COURSE} from './course.js';
+import {EXERCISE_TYPES, generateExercise, gradeAnswer} from './exercises.js';
+import {ANIMATIONS, mountAnimation} from './animations.js';
+import {mountLab} from './labs.js';
+import {STORAGE_KEY, freshProgress, parseProgress, loadProgress, saveProgress, recordAnswer, recordAssistance, progressSummary} from './progress.js';
 
 export const LESSONS = COURSE.units.flatMap(unit => unit.lessons.map(lesson => ({...lesson, unit})));
 export const VIEWS = ['theory', 'lab', 'practice', 'animation'];

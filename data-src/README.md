@@ -12,6 +12,7 @@ into `../../pages/data/`, and keep their download cache in their own `_work/`
 | [`auroras/`](auroras/) | `auroras.html` | `auroras.json` | `node build-auroras.mjs` · `node test-auroras.mjs` |
 | [`comparador-paises/`](comparador-paises/) | `comparador-paises.html` | — (data lives inside the page) | `node test-comparador.mjs` |
 | [`gpus-cex/`](gpus-cex/) | `gpus-cex.html` | `gpus-cex.json` | `node build-gpus.mjs` · `node test-gpus.mjs` (offline snapshot rebuild, not a live refresh) |
+| [`inferencia-estadistica/`](inferencia-estadistica/) | `inferencia-estadistica.html` | optional `_work/lecturas/` subtitle and narration exports | `npm ci --ignore-scripts` · `npm test` · `node export-lecturas.mjs` |
 
 `fire-calculator.html` and `calculadora-estilo-vida.html` have no data pipeline.
 

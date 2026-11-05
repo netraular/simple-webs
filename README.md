@@ -28,6 +28,33 @@ from `pages/`) so the relative `data/` fetches resolve. The landing page lists
 the pages too: in production from nginx's `_list/` endpoint, locally from the
 server's directory index of `pages/`.
 
+## Statistics classroom
+
+[`pages/inferencia-estadistica.html`](pages/inferencia-estadistica.html) is a
+Spanish learning workspace with 36 lessons grounded in the four supplied theory
+documents, a mathematics bridge, visual laboratories, 29 reproducible exercise
+types, and 28 animated readings (141 captioned scenes). Its local HTML/CSS/JS
+assets live under [`pages/inferencia/`](pages/inferencia/) and need **no build or
+backend**. Progress belongs to this browser and can be exported/imported as JSON.
+
+The teaching PDFs remain local and git-ignored: nginx serves the entire checkout,
+so they must not enter the public repository. The page publishes original
+explanations and new exercises, not the current assessment or its answers.
+KaTeX, jStat, Lucide and fonts are vendored with their licenses, with no runtime
+CDN dependencies. Use HTTP serving for the modules: the existing preview command
+above or the production deployment, rather than opening the file directly.
+
+```sh
+npm --prefix data-src/inferencia-estadistica ci --ignore-scripts
+npm --prefix data-src/inferencia-estadistica test
+node data-src/inferencia-estadistica/export-lecturas.mjs
+```
+
+The export command writes WebVTT, narration text and scene metadata to the ignored
+`_work/lecturas/` directory. No audio or video rendering is required.
+See [`data-src/inferencia-estadistica/README.md`](data-src/inferencia-estadistica/README.md)
+for conventions and verification limits.
+
 ## Title & description
 
 Optional, keyed by filename in `webs.json`; falls back to the filename:

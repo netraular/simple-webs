@@ -1,8 +1,29 @@
 import assert from 'node:assert/strict';
 import {test} from 'node:test';
+import {mkdtempSync, readFileSync, readdirSync, rmSync} from 'node:fs';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
 import * as api from '../../pages/inferencia/animations.mjs';
+import {exportLectures} from './export-lecturas.mjs';
 
 const {ANIMATIONS, animationDuration, buildVtt, mountAnimation} = api;
+
+test('Exportación offline: todos los subtítulos y guiones, sin audio ni vídeo', () => {
+  const directory = mkdtempSync(join(tmpdir(), 'inferencia-lecturas-'));
+  try {
+    const exported = exportLectures(directory);
+    assert.equal(exported.lectures, ANIMATIONS.length);
+    assert.equal(exported.scenes, 141);
+    assert.equal(readdirSync(directory).length, ANIMATIONS.length * 2 + 1);
+    const manifest = JSON.parse(readFileSync(join(directory, 'lecturas.json'), 'utf8'));
+    for (const animation of ANIMATIONS) {
+      assert.equal(readFileSync(join(directory, `${animation.id}.vtt`), 'utf8'), buildVtt(animation.id));
+      assert.equal(readFileSync(join(directory, `${animation.id}.txt`), 'utf8'), animation.steps.map(step => step.caption).join('\n\n'));
+      assert.equal(manifest.find(item => item.id === animation.id).duration, animationDuration(animation.id));
+    }
+    assert.equal(readdirSync(directory).some(file => /\.(mp4|webm|wav|mp3)$/.test(file)), false);
+  } finally { rmSync(directory, {recursive:true,force:true}); }
+});
 const expectedIds = ['math', 'events', 'bayes', 'variable', 'density', 'expectation', 'binomial', 'poisson', 'normal', 'joint', 'independence', 'covariance', 'sampling', 'models'];
 const newIds = ['algebra', 'calculus', 'combinatorics', 'cdf', 'moments', 'hypergeometric', 'geometric-negative', 'exponential', 'gamma', 'cauchy-weibull', 'multinomial', 'continuous-joint', 'bivariate-normal', 'exponential-family'];
 const close = (actual, expected, tolerance = 1e-10) => assert.ok(Math.abs(actual - expected) <= tolerance, `${actual} != ${expected}`);

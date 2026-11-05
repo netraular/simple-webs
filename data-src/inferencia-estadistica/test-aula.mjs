@@ -13,6 +13,7 @@ import {STORAGE_KEY, freshProgress, progressSummary} from '../../pages/inferenci
 
 const require = createRequire(import.meta.url);
 const katex = require('../../pages/inferencia/vendor/katex/katex.min.js');
+const lucide = require('../../pages/inferencia/vendor/lucide.min.js');
 globalThis.jStat = require('../../pages/inferencia/vendor/jstat.min.js').jStat;
 const html = readFileSync(new URL('../../pages/inferencia-estadistica.html', import.meta.url), 'utf8');
 
@@ -90,6 +91,15 @@ test('Las rutas y el texto externo se validan', () => {
   assert.deepEqual(parseRoute('#bayes-diagnostico/practice'), {lessonId:'bayes-diagnostico',view:'practice'});
   assert.deepEqual(parseRoute('#unknown/invalid'), {lessonId:'proporciones',view:'theory'});
   assert.equal(escapeHtml('<img onerror="x">'), '&lt;img onerror=&quot;x&quot;&gt;');
+});
+
+test('La portada registra el curso y todos los controles tienen iconos disponibles', () => {
+  const metadata = JSON.parse(readFileSync(new URL('../../webs.json', import.meta.url), 'utf8'));
+  assert.match(metadata['inferencia-estadistica.html'].title, /Inferencia/);
+  const modules = ['app.mjs','animations.mjs','labs.mjs'].map(file => readFileSync(new URL(`../../pages/inferencia/${file}`, import.meta.url), 'utf8')).join('\n');
+  const names = new Set([...`${html}\n${modules}`.matchAll(/data-lucide=["']([^"']+)["']|button\('([^']+)'/g)].map(match => match[1] || match[2]));
+  const iconNames = new Set(Object.keys(lucide.icons).map(name => name.replace(/-/g, '').toLowerCase()));
+  for (const name of names) assert.ok(iconNames.has(name.replace(/-/g, '').toLowerCase()), name);
 });
 
 test('Cada lección monta sus cuatro vistas y limpia los gráficos anteriores', () => {

@@ -20,7 +20,7 @@ const lucide = require('../../pages/inferencia/vendor/lucide.min.js');
 globalThis.jStat = require('../../pages/inferencia/vendor/jstat.min.js').jStat;
 const html = readFileSync(new URL('../../pages/inferencia-estadistica.html', import.meta.url), 'utf8');
 
-function harness(raw) {
+function harness(raw, hash = '#proporciones/theory') {
   const {document, window} = parseHTML(html);
   Object.defineProperty(window.HTMLSelectElement.prototype, 'value', {
     configurable:true,
@@ -35,7 +35,7 @@ function harness(raw) {
   window.matchMedia = () => ({matches:false});
   const saved = new Map(raw ? [[STORAGE_KEY, raw]] : []);
   const storage = {getItem:key => saved.get(key), setItem:(key, value) => saved.set(key, value)};
-  const location = {hash:''};
+  const location = {hash};
   const history = {replaceState(state, title, hash){location.hash = hash;}};
   const aula = mountAula(document, {storage, location, history});
   const click = target => target.dispatchEvent(new window.Event('click', {bubbles:true}));
@@ -63,6 +63,27 @@ test('Currículo completo, IDs y asociaciones de cada lección', () => {
     assert.ok(lesson.source.document && lesson.source.section);
     for (const section of lesson.sections) assert.doesNotMatch(section.body, /<script|on\w+\s*=|javascript:/i);
   }
+});
+
+test('El inicio distingue cuatro PDF y apoyo opcional sin registrar estudio ni dejar gráficos activos', () => {
+  const {document, aula, click} = harness(undefined, '');
+  try {
+    assert.equal(document.getElementById('courseOverview').hidden, false);
+    assert.equal(document.getElementById('lessonContent').hidden, true);
+    assert.equal(document.querySelectorAll('canvas').length, 0);
+    assert.equal(document.querySelectorAll('.curriculum-unit').length, 5);
+    assert.match(document.getElementById('courseOverview').textContent, /apoyo opcional/);
+    assert.match(document.getElementById('courseOverview').textContent, /no página por página/);
+    assert.deepEqual(aula.progress.studied, []);
+    click(document.querySelector('#courseOverview [data-lesson="sucesos"]'));
+    assert.equal(aula.route.lessonId, 'sucesos');
+    assert.equal(document.getElementById('courseOverview').hidden, true);
+    assert.equal(document.getElementById('lessonContent').hidden, false);
+    aula.setView('animation');
+    click(document.getElementById('overviewToggle'));
+    assert.equal(document.querySelectorAll('canvas').length, 0);
+    assert.deepEqual(aula.progress.studied, []);
+  } finally { aula.dispose(); }
 });
 
 test('KaTeX representa todas las fórmulas del temario y las escenas', () => {
@@ -136,6 +157,7 @@ test('Cada lección monta sus cuatro vistas y limpia los gráficos anteriores', 
       for (const view of VIEWS) {
         assert.equal(aula.navigate(lesson.id, view, false), true);
         assert.equal(document.getElementById('lessonTitle').textContent, lesson.title);
+        assert.ok(document.getElementById('lessonReference').textContent.includes(lesson.source.section));
         assert.equal(document.querySelectorAll('.lesson-panel:not([hidden])').length, 1);
         assert.equal(document.querySelectorAll('canvas').length, view === 'practice' ? 0 : 1);
         assert.equal(document.getElementById(`tab-${view}`).getAttribute('aria-selected'), 'true');

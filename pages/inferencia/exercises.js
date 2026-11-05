@@ -87,8 +87,45 @@ function probability(id, prompt, answer, hint, steps, interpretation) {
   return question(id, prompt, answer, 'probabilidad entre 0 y 1', hint, steps, interpretation, 0.0005);
 }
 
+const METHODS = {
+  events: 'El experimento elige una célula equiprobablemente. Por eso podemos convertir recuentos en probabilidades dividiendo entre el total; antes hay que corregir los solapamientos para contar cada célula una sola vez.',
+  conditional: 'La información dada selecciona un subgrupo. La intersección indica los casos que cumplen las dos condiciones y el denominador reúne todos los casos de la condición conocida, no toda la población.',
+  bayes: 'Infección y ausencia de infección son grupos disjuntos y exhaustivos. Primero ponderamos las probabilidades de la prueba por el tamaño de cada grupo. Para invertir la pregunta, dividimos la ruta de interés entre todas las rutas compatibles con lo observado.',
+  discrete: 'Los pesos describen razones, no probabilidades normalizadas. Su suma determina la constante; después cada valor se pondera por su masa. Para la varianza hay que promediar cuadrados antes de restar el cuadrado de la media.',
+  continuous: 'La probabilidad continua es un área. Una integral suma altura por anchura y una primitiva permite evaluar esa acumulación entre dos límites. Normalizamos sobre todo el soporte antes de integrar la región solicitada.',
+  binomial: 'Hay un número fijo de ensayos independientes con la misma probabilidad. Una secuencia con k éxitos tiene un producto de k factores p y n menos k factores de fracaso; el coeficiente binomial cuenta las posiciones equivalentes.',
+  poisson: 'El parámetro lambda cuenta eventos esperados en la exposición especificada. La masa combina la exponencial negativa, la potencia de lambda y el factorial del recuento. Para una cola sumamos masas o usamos el complemento de la acumulada.',
+  normal: 'Restar la media y dividir por la desviación típica traduce el umbral a desviaciones respecto al centro. Phi acumula la normal estándar; un intervalo resta dos acumuladas y una cola derecha usa el complemento. Un cuantil invierte esta operación.',
+  uniform: 'La densidad es constante y el área total es uno. Por ello una probabilidad de intervalo es su longitud dentro del soporte dividida entre la longitud total. No incluimos partes exteriores al soporte.',
+  exponential: 'La tasa es el inverso del tiempo medio. La supervivencia es la exponencial negativa de tasa por tiempo; la acumulada es su complemento. La carencia de memoria procede de un riesgo constante, no de una fecha fija para el evento.',
+  geometric: 'La variable cuenta ensayos hasta el primer éxito, incluido el último. Para obtener k ensayos necesitamos k menos uno fracasos y un éxito final. No hay posiciones libres para ese último éxito; el soporte empieza en uno.',
+  hypergeometric: 'La selección es uniforme y sin reemplazo. Contamos por separado los elementos de interés y los restantes con combinaciones, multiplicamos ambas elecciones y dividimos por todas las selecciones del tamaño solicitado.',
+  gamma: 'Una suma de etapas exponenciales independientes con escala común es gamma. La forma cuenta las etapas enteras en este ejemplo; la escala estira sus tiempos. Una probabilidad requiere integrar la densidad mediante la acumulada, no evaluar su altura.',
+  'chi-square': 'Este es un apoyo adicional de muestreo normal. El pivote de la varianza usa n menos uno grados de libertad porque la media se estima de la misma muestra; al reescalar los límites se puede consultar la acumulada chi-cuadrado.',
+  student: 'Este es un apoyo adicional de muestreo normal con desviación desconocida. Dividimos la diferencia de medias por el error estándar estimado. El pivote sigue Student con n menos uno grados de libertad, no una normal estándar exacta.',
+  fisher: 'Este es un apoyo adicional para muestras normales independientes. El cociente de varianzas normalizadas usa los grados de libertad de cada muestra por separado. Intercambiar numerador y denominador cambia la distribución y la cola.',
+  joint: 'Cada celda es una pareja simultánea. Sumar una fila o columna elimina una variable y produce una marginal; dividir la celda por la marginal de la condición normaliza el subgrupo seleccionado.',
+  covariance: 'La covarianza compara variación compartida: calculamos la esperanza del producto y restamos el producto de medias. La correlación divide además por las dos desviaciones, siempre que sean positivas; ninguna de las dos implica causalidad.',
+  independence: 'La independencia exige que todas las masas conjuntas coincidan con productos de marginales. Una sola discrepancia basta para refutarla; una sola coincidencia no basta para demostrarla.',
+  transform: 'Primero transformamos cada resultado y después ponderamos por su probabilidad original. Una operación no lineal, como elevar al cuadrado, no se puede aplicar simplemente a la media; se necesita calcular la esperanza de los valores transformados.',
+  sample: 'Este es un apoyo adicional de muestreo iid. La media suma n observaciones con coeficiente uno entre n: la linealidad conserva la media y la independencia permite sumar varianzas escaladas por el cuadrado de ese coeficiente.',
+  combinatorics: 'Antes de contar decidimos si importan las posiciones y si hay reemplazo. Multiplicar opciones cuenta secuencias; dividir por las reordenaciones de los elementos seleccionados elimina únicamente el orden que el experimento no distingue.',
+  'negative-binomial': 'Contamos fracasos antes del éxito número r. El último ensayo es necesariamente un éxito; el coeficiente cuenta cómo colocar los r menos uno éxitos anteriores. El total de ensayos varía, a diferencia del diseño binomial.',
+  cauchy: 'La acumulada de Cauchy se expresa mediante arctangentes y permite calcular intervalos y mediana. Sus colas impiden definir esperanza y varianza: la simetría no autoriza cancelar dos integrales divergentes.',
+  weibull: 'La supervivencia eleva el tiempo relativo a la escala a la potencia de forma. Para un cuantil, deshacemos primero la exponencial con el logaritmo y después la potencia con una raíz. La escala tiene unidades de tiempo; la forma no.',
+  multinomial: 'Las categorías son excluyentes y cubren cada ensayo. El factorial multinomial cuenta secuencias con esos recuentos y el producto de potencias pondera cada secuencia. Los ensayos son independientes, pero los recuentos comparten un total fijo.',
+  'bivariate-normal': 'La normalidad conjunta permite obtener una normal condicional. Su media incorpora el desplazamiento de la medida conocida y su varianza se reduce por uno menos rho al cuadrado. Para tipificar usamos la raíz de esa varianza, no la varianza misma.',
+  'continuous-joint': 'El soporte es un triángulo, no su rectángulo exterior. Un corte fija una coordenada y determina los límites de la otra; la integral doble normaliza todo el soporte. Una condicional divide el corte por su marginal positiva.',
+  'exponential-family': 'Las observaciones Poisson independientes producen un producto de masas. El logaritmo lo convierte en una suma y concentra los datos en el recuento total. Derivamos respecto al parámetro con los datos fijos y comprobamos que el punto crítico sea un máximo.'
+};
+
 function exercise(type, seed, prompt, given, assumptions, questions, visualType, params) {
-  return {id:`${type}-${seed}`, type, title:EXERCISE_TYPES.find(item => item.id === type).title, prompt, given, assumptions, questions, visual:{type:visualType, params}};
+  const developed = questions.map(item => ({...item, steps:[
+    step('Identificar la pregunta y justificar el método', `${item.prompt} ${METHODS[type]} Para este apartado: ${item.hint}`),
+    ...item.steps,
+    step('Comprobar e interpretar', `El resultado es ${format(item.answer)} ${item.unit}. ${item.unit === 'probabilidad entre 0 y 1' ? 'Está entre cero y uno; si lo expresamos como porcentaje multiplicamos por cien, sin cambiar el suceso. ' : 'Las unidades corresponden a la cantidad pedida; no se deben intercambiar una media, una varianza y una desviación. '}${item.interpretation}`)
+  ]}));
+  return {id:`${type}-${seed}`, type, title:EXERCISE_TYPES.find(item => item.id === type).title, prompt, given, assumptions, questions:developed, visual:{type:visualType, params}};
 }
 
 function statistics() {

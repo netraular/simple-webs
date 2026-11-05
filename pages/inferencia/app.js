@@ -1,5 +1,5 @@
 import {COURSE} from './course.js?v=88ea0ba087a2';
-import {EXERCISE_TYPES, generateExercise, gradeAnswer} from './exercises.js?v=eb2ddef8acc1';
+import {EXERCISE_TYPES, generateExercise, gradeAnswer} from './exercises.js?v=f886b8b1d586';
 import {ANIMATIONS, mountAnimation} from './animations.js?v=18fb7fb5bd7f';
 import {mountLab} from './labs.js?v=594aabc9f5ff';
 import {STORAGE_KEY, freshProgress, parseProgress, loadProgress, saveProgress, recordAnswer, recordAssistance, progressSummary} from './progress.js?v=56f36d8c8e05';
@@ -38,6 +38,7 @@ export function mountAula(document, environment = {}) {
   let progress = loaded.progress;
   let storageWarning = loaded.warning;
   let route = parseRoute(location.hash, progress.lastLesson);
+  let overview = !location.hash || location.hash === '#inicio';
   let activeCleanup = null;
   let activeExercise = null;
   let practiceType = null;
@@ -91,7 +92,7 @@ export function mountAula(document, environment = {}) {
       const matching = unit.lessons.filter(item => normalize([unit.title, item.title, ...item.objectives, ...item.formulas.map(formula => formula.meaning)].join(' ')).includes(query));
       if (!matching.length) return '';
       const open = query || matching.some(item => item.id === route.lessonId);
-      return `<details class="unit-group"${open ? ' open' : ''}><summary><span class="unit-number">${unit.number}</span><span>${escapeHtml(unit.title)}</span></summary><p class="unit-description">${matching.length} lecciones</p>${matching.map(item => `<button type="button" class="lesson-link${progress.studied.includes(item.id) ? ' is-studied' : ''}" data-lesson="${item.id}"${item.id === route.lessonId ? ' aria-current="page"' : ''}><span class="lesson-indicator" aria-hidden="true">${progress.studied.includes(item.id) ? '✓' : ''}</span><span>${escapeHtml(item.title)}</span></button>`).join('')}</details>`;
+      return `<details class="unit-group"${open ? ' open' : ''}><summary><span class="unit-number">${unit.number || '+'}</span><span>${unit.number === 0 ? 'Apoyo opcional: ' : ''}${escapeHtml(unit.title)}</span></summary><p class="unit-description">${matching.length} lecciones${unit.number === 0 ? ' · No es un quinto tema' : ` · PDF Tema ${unit.number}`}</p>${matching.map(item => `<button type="button" class="lesson-link${progress.studied.includes(item.id) ? ' is-studied' : ''}" data-lesson="${item.id}"${!overview && item.id === route.lessonId ? ' aria-current="page"' : ''}><span class="lesson-indicator" aria-hidden="true">${progress.studied.includes(item.id) ? '✓' : ''}</span><span>${escapeHtml(item.title)}</span></button>`).join('')}</details>`;
     }).join('');
     element('courseNav').innerHTML = groups || '<p class="empty-state">No hay lecciones con ese concepto.</p>';
     updateProgress();
@@ -168,13 +169,16 @@ export function mountAula(document, environment = {}) {
   }
 
   function updateRoute() {
-    const hash = `#${route.lessonId}/${route.view}`;
+    const hash = overview ? '#inicio' : `#${route.lessonId}/${route.view}`;
     if (history?.replaceState) history.replaceState(null, '', hash);
     else location.hash = hash;
   }
 
   function navigate(lessonId, view = route.view, focus = true) {
     if (disposed || !LESSONS.some(item => item.id === lessonId) || !VIEWS.includes(view)) return false;
+    overview = false;
+    element('courseOverview').hidden = true;
+    element('lessonContent').hidden = false;
     const changed = lessonId !== route.lessonId;
     route = {lessonId, view};
     progress.lastLesson = lessonId;
@@ -183,6 +187,7 @@ export function mountAula(document, environment = {}) {
     element('unitLabel').textContent = `${current.unit.number === 0 ? 'Puente' : `Tema ${current.unit.number}`} · ${current.unit.title}`;
     element('lessonTitle').textContent = current.title;
     element('lessonSubtitle').textContent = `${current.objectives[0]} · Lectura y práctica orientativas: ${current.duration} min`;
+    element('lessonReference').textContent = current.unit.number === 0 ? `Apoyo opcional: ${current.source.section}. No corresponde a un quinto PDF.` : `En tu PDF: ${current.source.document} · ${current.source.section}. Las referencias son secciones, no números de página.`;
     document.title = `${current.title} · Inferencia`;
     const index = LESSONS.findIndex(item => item.id === lessonId);
     element('previousLesson').disabled = index === 0;
@@ -196,6 +201,24 @@ export function mountAula(document, environment = {}) {
     element('sidebar').classList.remove('is-open');
     element('menuToggle').setAttribute('aria-expanded', 'false');
     return true;
+  }
+
+  function showOverview() {
+    if (disposed) return;
+    overview = true;
+    activeCleanup?.();
+    activeCleanup = null;
+    activeExercise = null;
+    element('lessonContent').hidden = true;
+    const home = element('courseOverview');
+    home.hidden = false;
+    home.innerHTML = `<header class="course-introduction"><p class="eyebrow">CUATRO TEMAS · UN RECORRIDO DE APRENDIZAJE</p><h1>Inferencia estadística</h1><p>De los sucesos a las distribuciones de varias variables, con ejemplos de biología y las matemáticas explicadas desde su significado.</p><p>El curso desarrolla los cuatro temarios aportados. El <strong>puente matemático es un apoyo opcional</strong>, no un quinto PDF: puedes usarlo si necesitas repasar unidades, álgebra, cálculo o matrices.</p><div class="settings-actions"><button type="button" class="primary-button" data-lesson="${progress.lastLesson}"><i data-lucide="book-open" aria-hidden="true"></i>${progressSummary(progress).studied ? 'Retomar el recorrido' : 'Comenzar con las bases'}</button><button type="button" class="text-button" data-lesson="sucesos"><i data-lucide="arrow-right" aria-hidden="true"></i>Empezar el Tema 1</button></div></header><section class="course-orientation"><h2>Una lección, cuatro formas de trabajar</h2><dl class="view-guide"><div><dt><i data-lucide="book-open" aria-hidden="true"></i>Teoría</dt><dd>Desarrolla las ideas, el significado de los símbolos, el método de resolución y ejemplos. Incluye supuestos, errores frecuentes y una comprobación conceptual; es el texto base del estudio.</dd></div><div><dt><i data-lucide="flask-conical" aria-hidden="true"></i>Laboratorio</dt><dd>Un experimento matemático interactivo: cambia una condición y compara la predicción con el gráfico y sus métricas. Cada laboratorio explica qué representa y qué conclusiones permite; no son datos reales ni sustituye la justificación de un cálculo.</dd></div><div><dt><i data-lucide="pencil-line" aria-hidden="true"></i>Ejercicios</dt><dd>Problemas originales con variantes y resolución detallada. En Práctica puedes intentarlos antes de abrir la solución; en Resolución guiada se muestran todos los pasos, con sus razones y la interpretación del resultado.</dd></div><div><dt><i data-lucide="clapperboard" aria-hidden="true"></i>Lectura animada</dt><dd>Una clase en diapositivas con narración escrita, teoría y ejemplos resueltos. Los subtítulos son la explicación completa, no un resumen. Por ahora no hay audio: el mismo guion servirá para la voz futura.</dd></div></dl></section><section class="course-orientation"><h2>Recorrido y correspondencia con los PDF</h2><p>El orden sigue las dependencias de aprendizaje, no página por página. Se agrupan secciones relacionadas y se adelantan herramientas: combinatoria antes de condicionamiento; definición formal junto a la variable; las dos uniformes juntas; momentos multinomiales junto al modelo.</p><p>La referencia <strong>«En tu PDF»</strong> de cada lección indica el nombre y las <strong>secciones del documento</strong>, no páginas. El PDF es un apoyo opcional: no se necesita para abrir una fórmula, entender un método o consultar una resolución. Los ejemplos son nuevos y las ampliaciones se señalan.</p>${COURSE.units.map(unit => `<details class="curriculum-unit"${unit.number === 1 ? ' open' : ''}><summary>${unit.number ? `Tema ${unit.number}` : 'Apoyo opcional'} · ${escapeHtml(unit.title)}</summary><p>${escapeHtml(unit.description)}</p><ol>${unit.lessons.map(item => `<li><button type="button" class="curriculum-link" data-lesson="${item.id}">${escapeHtml(item.title)}</button><span class="curriculum-reference">${escapeHtml(item.source.section)}</span></li>`).join('')}</ol></details>`).join('')}</section><section class="course-orientation"><h2>Estudiar con criterio</h2><p>Lee o sigue la clase animada, reproduce el razonamiento del ejemplo y después resuelve una variante sin ayuda. En el laboratorio, anticipa el cambio antes de mirar el resultado. Comprueba siempre soporte, unidades y supuestos: acertar una cifra no demuestra por sí solo que se domine una idea.</p><p>El progreso se guarda solo en este navegador. Abrir una lección no la marca como estudiada; esa marca la decides tú. Las respuestas con ayuda se distinguen de las autónomas. Las cifras biológicas son ficticias, no evidencia experimental ni recomendaciones clínicas.</p><p>Los ejercicios adicionales del banco completo, como Student, Fisher o muestreo, no son temas nuevos de los cuatro PDF. La carpeta docente original y la evaluación vigente no se publican.</p></section>`;
+    document.title = 'Inferencia estadística · Inicio y mapa del curso';
+    renderNav();
+    icons();
+    updateRoute();
+    element('sidebar').classList.remove('is-open');
+    element('menuToggle').setAttribute('aria-expanded', 'false');
   }
 
   function openDialog(title, content) {
@@ -237,8 +260,9 @@ export function mountAula(document, environment = {}) {
   listen(element('courseSearch'), 'input', renderNav);
   listen(element('courseNav'), 'click', event => {
     const button = event.target.closest('[data-lesson]');
-    if (button) navigate(button.dataset.lesson);
+    if (button) navigate(button.dataset.lesson, overview ? 'theory' : route.view);
   });
+  listen(element('overviewToggle'), 'click', showOverview);
   listen(element('lessonTabs'), 'click', event => {
     const button = event.target.closest('[data-view]');
     if (button) navigate(route.lessonId, button.dataset.view, false);
@@ -252,6 +276,8 @@ export function mountAula(document, environment = {}) {
     element(`tab-${VIEWS[nextIndex]}`).focus?.();
   });
   listen(element('workspace'), 'click', event => {
+    const lessonButton = event.target.closest('[data-lesson]');
+    if (lessonButton) navigate(lessonButton.dataset.lesson, 'theory');
     const button = event.target.closest('[data-open-view]');
     if (button) navigate(route.lessonId, button.dataset.openView, false);
   });
@@ -319,10 +345,12 @@ export function mountAula(document, environment = {}) {
     } catch (error) { if (element('importStatus')) element('importStatus').textContent = `No se importó la copia: ${error.message}`; }
   });
   listen(window, 'hashchange', () => {
+    if (!location.hash || location.hash === '#inicio') { showOverview(); return; }
     const next = parseRoute(location.hash, progress.lastLesson);
     navigate(next.lessonId, next.view);
   });
-  navigate(route.lessonId, route.view, false);
+  if (overview) showOverview();
+  else navigate(route.lessonId, route.view, false);
   return {navigate, setView:view => navigate(route.lessonId, view, false), get progress(){return progress;}, get route(){return {...route};}, get exercise(){return activeExercise;}, dispose(){
     if (disposed) return;
     disposed = true;

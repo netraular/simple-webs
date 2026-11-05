@@ -86,7 +86,9 @@ function checkStructure(typeId) {
       assert.deepEqual(Object.keys(item).sort(), ['answer', 'hint', 'id', 'interpretation', 'prompt', 'steps', 'tolerance', 'unit']);
       assert.ok(Number.isFinite(item.answer) && Number.isFinite(item.tolerance) && item.tolerance >= 0);
       for (const field of ['id', 'hint', 'interpretation', 'prompt', 'unit']) assert.ok(typeof item[field] === 'string' && item[field].length > 0);
-      assert.ok(item.steps.length > 0);
+      assert.ok(item.steps.length >= 3);
+      assert.match(item.steps[0].title, /justificar el método/);
+      assert.equal(item.steps.at(-1).title, 'Comprobar e interpretar');
       for (const explanation of item.steps) {
         assert.ok(explanation.title && explanation.explanation);
         assert.ok(Object.keys(explanation).every(key => ['title', 'explanation', 'tex'].includes(key)));

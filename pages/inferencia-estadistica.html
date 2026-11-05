@@ -7,16 +7,16 @@
   <meta name="theme-color" content="#117568">
   <title>Inferencia · Aula de estadística</title>
   <link rel="stylesheet" href="inferencia/vendor/katex/katex.min.css?v=0c8126645bb9">
-  <link rel="stylesheet" href="inferencia/aula.css?v=23ffcb22b4a9">
+  <link rel="stylesheet" href="inferencia/aula.css?v=d3beb6a53420">
   <script src="inferencia/vendor/katex/katex.min.js?v=76d534cf1167" defer></script>
   <script src="inferencia/vendor/lucide.min.js?v=3411692820cb" defer></script>
   <script src="inferencia/vendor/jstat.min.js?v=e478a6ab6324" defer></script>
-  <script type="module" src="inferencia/app.js?v=0307b2d317bd"></script>
+  <script type="module" src="inferencia/app.js?v=948ed46c749f"></script>
 </head>
 <body>
   <a class="skip-link" href="#workspace">Ir al contenido</a>
   <header class="topbar">
-    <a class="brand" href="inferencia-estadistica.html"><span class="brand-mark" aria-hidden="true">∑</span><span>Inferencia<small>Aula de estadística</small></span></a>
+    <a class="brand" href="#inicio"><span class="brand-mark" aria-hidden="true">∑</span><span>Inferencia<small>Aula de estadística</small></span></a>
     <div class="course-status"><span id="courseProgressText">0 de 0 lecciones estudiadas</span><progress id="courseProgress" value="0" max="1" aria-label="Progreso del curso"></progress></div>
     <button id="menuToggle" class="icon-button mobile-menu" type="button" title="Temario" aria-label="Abrir temario" aria-expanded="false" aria-controls="sidebar"><i data-lucide="panel-left" aria-hidden="true"></i></button>
     <button id="settingsToggle" class="icon-button" type="button" title="Progreso y preferencias" aria-label="Progreso y preferencias"><i data-lucide="settings-2" aria-hidden="true"></i></button>
@@ -26,11 +26,14 @@
       <div class="sidebar-heading"><span class="eyebrow">TU RECORRIDO</span><a href="../" class="icon-button" title="Otras webs" aria-label="Otras webs"><i data-lucide="arrow-up-left" aria-hidden="true"></i></a></div>
       <label class="search"><i data-lucide="search" aria-hidden="true"></i><input id="courseSearch" type="search" placeholder="Buscar un concepto" aria-label="Buscar lecciones"></label>
       <nav id="courseNav" aria-label="Unidades y lecciones"><p>Cargando temario…</p></nav>
+      <button id="overviewToggle" type="button" class="text-button"><i data-lucide="map" aria-hidden="true"></i>Inicio y mapa del curso</button>
       <button id="glossaryToggle" type="button" class="text-button"><i data-lucide="book-a" aria-hidden="true"></i>Diccionario de símbolos</button>
       <button id="sourcesToggle" type="button" class="text-button"><i data-lucide="library" aria-hidden="true"></i>Materiales y cobertura</button>
     </aside>
     <main id="workspace" class="workspace" tabindex="-1">
-      <div class="lesson-heading"><div><p id="unitLabel" class="eyebrow">FUNDAMENTOS</p><h1 id="lessonTitle">Inferencia estadística</h1><p id="lessonSubtitle" class="lesson-subtitle">Preparando la primera lección…</p></div><label class="studied-toggle"><input id="lessonStudied" type="checkbox">Estudiada</label></div>
+      <section id="courseOverview" aria-label="Inicio y mapa del curso" hidden></section>
+      <div id="lessonContent">
+      <div class="lesson-heading"><div><p id="unitLabel" class="eyebrow">FUNDAMENTOS</p><h1 id="lessonTitle">Inferencia estadística</h1><p id="lessonSubtitle" class="lesson-subtitle">Preparando la primera lección…</p><p id="lessonReference" class="source-note"></p></div><label class="studied-toggle"><input id="lessonStudied" type="checkbox">Estudiada</label></div>
       <div id="lessonTabs" class="lesson-tabs" role="tablist" aria-label="Vistas de la lección">
         <button id="tab-theory" type="button" role="tab" aria-selected="true" aria-controls="panel-theory" data-view="theory"><i data-lucide="book-open" aria-hidden="true"></i>Teoría</button>
         <button id="tab-lab" type="button" role="tab" aria-selected="false" aria-controls="panel-lab" data-view="lab" tabindex="-1"><i data-lucide="flask-conical" aria-hidden="true"></i>Laboratorio</button>
@@ -42,6 +45,7 @@
       <section id="panel-practice" class="lesson-panel" role="tabpanel" aria-labelledby="tab-practice" hidden></section>
       <section id="panel-animation" class="lesson-panel" role="tabpanel" aria-labelledby="tab-animation" hidden></section>
       <footer class="lesson-footer"><button id="previousLesson" type="button" class="text-button"><i data-lucide="arrow-left" aria-hidden="true"></i>Anterior</button><span id="lessonPosition"></span><button id="nextLesson" type="button" class="text-button">Siguiente<i data-lucide="arrow-right" aria-hidden="true"></i></button></footer>
+      </div>
       <p id="appStatus" class="status" role="status" aria-live="polite"></p>
     </main>
   </div>

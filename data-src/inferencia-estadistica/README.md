@@ -7,9 +7,10 @@ Fuentes y correspondencia con los apuntes: [inferencia.SOURCES.md](inferencia.SO
 ## Alcance
 
 - 36 lecciones: puente matemático y los cuatro temas suministrados, incluidos familia exponencial/GLM, multinomial y normal bivariante.
-- 14 laboratorios y un explorador de 16 familias de distribuciones. Cada tema abre el modelo adecuado; los controles conservan el último estado válido cuando una entrada no respeta el soporte.
+- Portada de orientación y mapa de las 36 lecciones con sus secciones de procedencia: cuatro temas y un puente opcional, sin inventar un quinto PDF. El orden es pedagógico, no una transcripción del índice.
+- 17 laboratorios y un explorador de 16 familias de distribuciones. Cada uno explica propósito, exploración, predicción, interpretación y límites. Multinomial, soporte triangular y normal bivariante tienen cálculos y gráficos propios; los controles conservan el último estado válido ante entradas incompatibles.
 - 29 generadores de ejercicios con semillas reproducibles, datos, supuestos, pistas, corrección y resolución desarrollada. El banco completo incluye apoyos adicionales de muestreo, chi-cuadrado, Student y Fisher: no se presentan como temas incluidos en los PDF.
-- 28 lecturas animadas, 141 escenas, sin reproducción automática ni audio. Subtítulos legibles, pausa, escenas, velocidad, transcripción y descargas. Algunas lecturas se comparten entre lecciones relacionadas.
+- 36 clases animadas propias: toda la teoría, significados de fórmulas, métodos, ejemplos de la lección, demostraciones y ejercicios resueltos. 1.222 escenas y 4.030 fragmentos de subtítulos; unas 8 a 15 min por clase a velocidad normal estimada, sin reproducción automática ni audio. Pausa, navegación por partes, velocidad, transcripción, descargas y vista ampliada; diapositivas y narración se muestran juntas.
 - Glosario de 40 símbolos, búsqueda sin acentos, enlaces directos por fragmento de URL, progreso local y copia JSON.
 
 La corrección admite coma decimal, fracciones simples, notación científica y porcentajes explícitos, sin evaluar código. Una pista o solución consultada antes de acertar distingue la respuesta como asistida. Abrir una lección no la marca como estudiada.
@@ -25,7 +26,7 @@ npm ci --ignore-scripts
 npm test
 ```
 
-Las dependencias de desarrollo son `linkedom` y `css-tree`; no forman parte de la aplicación publicada. Las suites cubren cálculos de referencia, semillas, soportes, lectura de respuestas, renderizado de fórmulas con KaTeX, sintaxis CSS, recursos locales, navegación de las 36 lecciones, ayudas, copias de progreso y ciclo de vida del reproductor. El DOM simulado verifica comportamiento, no la presentación real en navegador.
+Las dependencias de desarrollo son `linkedom` y `css-tree`; no forman parte de la aplicación publicada. Las 151 pruebas cubren cálculos de referencia, semillas, soportes, respuestas, fórmulas con KaTeX, CSS, recursos locales, todas las vistas, ayudas, progreso y ciclo de vida del reproductor. Se comprueba que ninguna clase omita párrafos, métodos o soluciones, que los subtítulos preserven el texto y tengan tiempos contiguos, y que avancen también con movimiento reducido. El DOM simulado verifica comportamiento, no la presentación real en navegador.
 
 ### Verificación pública, 2026-11-05
 
@@ -53,10 +54,10 @@ node export-lecturas.mjs --out /ruta/de/salida
 
 Por defecto genera en `_work/lecturas/`, excluido de Git:
 
-- Un `.vtt` y un `.txt` por lectura.
-- Un manifiesto `lecturas.json` con títulos, tiempos, fórmulas y subtítulos por escena.
+- Un `.vtt` y un `.txt` por cada una de las 36 lecciones: 72 archivos.
+- Un manifiesto `lecturas.json` con procedencia, capítulos, títulos, fórmulas, tiempos de escena y tiempos absolutos de cada fragmento de subtítulo.
 
-El texto de los `.txt` coincide con los subtítulos del reproductor. Es la base para producir audio en el futuro. Si la duración de la voz cambia, habrá que ajustar los tiempos de las escenas: los actuales se calculan para lectura silenciosa, no para sincronización automática de audio.
+El texto de los `.txt` coincide con la narración completa del reproductor; el `.vtt` reparte ese mismo texto en fragmentos de hasta 26 palabras. Aula y exportador comparten el constructor de clases y los ejemplos con semilla 1, sin mantener un segundo temario. Los tiempos estiman 2,5 palabras por segundo con pausas; no sincronizan audio inexistente. Para TTS, genera la voz a partir del guion y reajusta escenas y fragmentos con la duración real. Conserva las fórmulas del manifiesto para las diapositivas; revisa la pronunciación de símbolos y comandos en la herramienta de voz antes de generar el audio final.
 
 ## Publicación
 

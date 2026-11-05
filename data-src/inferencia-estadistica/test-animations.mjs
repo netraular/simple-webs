@@ -924,6 +924,11 @@ test('las clases sincronizan frases y diapositivas, también con movimiento redu
     assert.equal(dom.container.children[0].className,'animation-player');
     dom.byLabel('Reiniciar').click();
     assert.equal(caption.textContent,lecture.steps[0].cues[0].text);
+    const outline = dom.byLabel('Ir a una parte de la clase');
+    outline.value='2';
+    outline.dispatch('change');
+    assert.equal(dom.byLabel('Seleccionar escena').value,'2');
+    assert.equal(caption.textContent,lecture.steps[2].cues[0].text);
     cleanup();
     dom.cleanupCheck();
   }

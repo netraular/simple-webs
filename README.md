@@ -32,8 +32,9 @@ server's directory index of `pages/`.
 
 [`pages/inferencia-estadistica.html`](pages/inferencia-estadistica.html) is a
 Spanish learning workspace with 36 lessons grounded in the four supplied theory
-documents, a mathematics bridge, visual laboratories, 29 reproducible exercise
-types, and 28 animated readings (141 captioned scenes). Its local HTML/CSS/JS
+documents, an optional mathematics bridge, 17 visual laboratories, 29 reproducible
+exercise types, and 36 complete animated classes with worked solutions and
+segmented subtitles. Its local HTML/CSS/JS
 assets live under [`pages/inferencia/`](pages/inferencia/) and need **no build or
 backend**. Progress belongs to this browser and can be exported/imported as JSON.
 
@@ -55,8 +56,13 @@ After classroom source edits, regenerate the content-versioned URLs before
 testing and committing. This avoids stale browser/CDN JavaScript after a publish;
 the web server still has no build step.
 
-The export command writes WebVTT, narration text and scene metadata to the ignored
-`_work/lecturas/` directory. No audio or video rendering is required.
+The course opens on an orientation and a map of the four PDFs: lesson order is
+pedagogical, not a literal reproduction of their page order. Each class uses the
+same theory and solved exercises as the classroom, with progressively revealed
+slides and simultaneous subtitles. The export command writes 36 WebVTT files,
+36 narration scripts and a manifest with scene/formula/cue metadata to the ignored
+`_work/lecturas/` directory. Cue timings are estimates and must be retimed after
+real TTS audio is generated. No audio or video rendering is required.
 See [`data-src/inferencia-estadistica/README.md`](data-src/inferencia-estadistica/README.md)
 for conventions and verification limits.
 

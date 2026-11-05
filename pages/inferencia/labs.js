@@ -867,7 +867,7 @@ export function mountLab(container, labId, {formatMath, params: initialParams = 
     current = calculated;
     heading.textContent = current.title;
     canvas.setAttribute('aria-label', current.title);
-    const tableText = current.visual.kind === 'matrix' ? ` Marginal A: ${current.visual.rows.map(numberText).join(', ')}; marginal B: ${current.visual.columns.map(numberText).join(', ')}. Celdas por filas: ${current.visual.probabilities.map(numberText).join(', ')}.${current.visual.products ? ` Productos marginales: ${current.visual.products.map(numberText).join(', ')}.` : ''}` : '';
+    const tableText = current.visual.kind === 'matrix' ? ` Marginal ${current.visual.rowName || 'A'}: ${current.visual.rows.map(numberText).join(', ')}; marginal ${current.visual.columnName || 'B'}: ${current.visual.columns.map(numberText).join(', ')}. Celdas por filas: ${current.visual.probabilities.map(numberText).join(', ')}.${current.visual.products ? ` Productos marginales: ${current.visual.products.map(numberText).join(', ')}.` : ''}` : '';
     caption.textContent = `${current.explanation}${tableText} ${current.metrics.map(item => `${item.label}: ${numberText(item.value)}${item.unit ? ` ${item.unit}` : ''}`).join('; ')}.`;
     metrics.replaceChildren(...current.metrics.map(item => {
       const field = element('div', 'metric');

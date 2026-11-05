@@ -829,6 +829,26 @@ export function mountAnimation(container, animationId, {formatMath} = {}) {
   const clock = element('output');
   clock.setAttribute('aria-label', 'Tiempo de la lección');
   controls.append(back, play, pause, next, reset, expand, seekField, speedField, position, clock);
+  let outline = null;
+  if (animation.kind === 'lecture') {
+    const field = element('label','control-field lecture-outline','Parte de la clase');
+    outline = element('select');
+    outline.setAttribute('aria-label','Ir a una parte de la clase');
+    let chapter = null;
+    for (const [sceneIndex,step] of animation.steps.entries()) {
+      if (chapter?.label !== step.data.chapter) {
+        chapter = element('optgroup');
+        chapter.label = step.data.chapter;
+        outline.append(chapter);
+      }
+      const option = element('option','',`${sceneIndex+1}. ${step.title}`);
+      option.value = String(sceneIndex);
+      chapter.append(option);
+    }
+    field.append(outline);
+    controls.append(field);
+    listen(outline,'change',()=>{ goTo(Number(outline.value)); syncControls(); });
+  }
   const transcript = element('details', 'animation-transcript');
   transcript.append(element('summary', '', 'Transcripción completa'));
   const transcriptList = element('ol');
@@ -871,6 +891,7 @@ export function mountAnimation(container, animationId, {formatMath} = {}) {
     play.disabled = running;
     pause.disabled = !running;
     seek.value = String(index);
+    if (outline) outline.value = String(index);
     seek.setAttribute('aria-valuetext', `${index + 1} de ${animation.steps.length}: ${animation.steps[index].title}`);
     position.textContent = `Escena ${index + 1} de ${animation.steps.length}`;
     const totalElapsed = animation.steps.slice(0, index).reduce((sum, step) => sum + step.duration, 0) + elapsed;

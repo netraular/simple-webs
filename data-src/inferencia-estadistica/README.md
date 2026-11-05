@@ -25,7 +25,15 @@ npm ci --ignore-scripts
 npm test
 ```
 
-Las dependencias de desarrollo son `linkedom` y `css-tree`; no forman parte de la aplicación publicada. Las suites cubren cálculos de referencia, semillas, soportes, lectura de respuestas, renderizado de fórmulas con KaTeX, sintaxis CSS, recursos locales, navegación de las 36 lecciones, ayudas, copias de progreso y ciclo de vida del reproductor. El DOM simulado verifica comportamiento, no la presentación real en navegador. No se han tomado capturas ni arrancado servidores automáticamente.
+Las dependencias de desarrollo son `linkedom` y `css-tree`; no forman parte de la aplicación publicada. Las suites cubren cálculos de referencia, semillas, soportes, lectura de respuestas, renderizado de fórmulas con KaTeX, sintaxis CSS, recursos locales, navegación de las 36 lecciones, ayudas, copias de progreso y ciclo de vida del reproductor. El DOM simulado verifica comportamiento, no la presentación real en navegador.
+
+### Verificación pública, 2026-11-05
+
+Se comprobó la publicación en `webs.raular.com` y la aparición del aula en la portada. Los módulos publicados usan `.js`, porque el nginx actual entrega `.mjs` como `application/octet-stream`, que el navegador rechaza. Los scripts de desarrollo mantienen `.mjs`; los dos archivos de metadatos de paquete preservan ESM para las pruebas y CommonJS para las bibliotecas UMD, sin introducir un build.
+
+En navegador se comprobaron fórmulas, fuente local, iconos, gráficos no vacíos y ausencia de errores de carga. Se revisaron capturas y desbordamientos a 1440, 768, 390 y 320 píxeles, menú móvil, corrección de Bayes, pistas, persistencia al recargar y actualización del laboratorio al cambiar la prevalencia. La animación cambió sus píxeles con movimiento normal y respetó la preferencia de movimiento reducido. Las capturas son temporales y no se incluyen en Git.
+
+Se validó el texto generado por la descarga del guion. El navegador integrado no notificó el evento de guardado del archivo; la transferencia a disco no se considera verificada. Las pruebas offline verifican todos los guiones y WebVTT. No se arrancaron servidores locales ni se modificó Kubernetes.
 
 ## Exportar lecturas
 

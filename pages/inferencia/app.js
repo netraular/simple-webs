@@ -123,7 +123,7 @@ export function mountAula(document, environment = {}) {
 
   function renderPractice() {
     const current = lesson();
-    const available = entireBank ? EXERCISE_TYPES : EXERCISE_TYPES.filter(type => current.exerciseTypes.includes(type.id));
+    const available = entireBank ? EXERCISE_TYPES : current.exerciseTypes.map(id => EXERCISE_TYPES.find(type => type.id === id));
     if (!available.some(type => type.id === practiceType)) practiceType = available[0].id;
     activeExercise = generateExercise(practiceType, seed);
     const exerciseId = activeExercise.id;

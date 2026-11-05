@@ -269,3 +269,14 @@ test('Consultar la solución justo antes de responder cuenta como ayuda', () => 
     assert.equal(progressSummary(aula.progress).independent, 0);
   } finally { aula.dispose(); }
 });
+
+test('Cada lección abre primero su ejercicio principal y conserva el orden pedagógico', () => {
+  const {document, aula} = harness();
+  try {
+    for (const lesson of LESSONS) {
+      aula.navigate(lesson.id, 'practice');
+      assert.equal(aula.exercise.type, lesson.exerciseTypes[0], lesson.id);
+      assert.deepEqual([...document.querySelectorAll('#exerciseType option')].map(option => option.value), lesson.exerciseTypes);
+    }
+  } finally { aula.dispose(); }
+});

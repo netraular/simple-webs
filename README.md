@@ -30,41 +30,13 @@ server's directory index of `pages/`.
 
 ## Statistics classroom
 
-[`pages/inferencia-estadistica.html`](pages/inferencia-estadistica.html) is a
-Spanish learning workspace with 36 lessons grounded in the four supplied theory
-documents, an optional mathematics bridge, 17 visual laboratories, 29 reproducible
-exercise types, and 36 complete animated classes with worked solutions and
-segmented subtitles. Its local HTML/CSS/JS
-assets live under [`pages/inferencia/`](pages/inferencia/) and need **no build or
-backend**. Progress belongs to this browser and can be exported/imported as JSON.
-
-The teaching PDFs remain local and git-ignored: nginx serves the entire checkout,
-so they must not enter the public repository. The page publishes original
-explanations and new exercises, not the current assessment or its answers.
-KaTeX, jStat, Lucide and fonts are vendored with their licenses, with no runtime
-CDN dependencies. Use HTTP serving for the modules: the existing preview command
-above or the production deployment, rather than opening the file directly.
-
-```sh
-npm --prefix data-src/inferencia-estadistica ci --ignore-scripts
-node data-src/inferencia-estadistica/version-assets.mjs
-npm --prefix data-src/inferencia-estadistica test
-node data-src/inferencia-estadistica/export-lecturas.mjs
-```
-
-After classroom source edits, regenerate the content-versioned URLs before
-testing and committing. This avoids stale browser/CDN JavaScript after a publish;
-the web server still has no build step.
-
-The course opens on an orientation and a map of the four PDFs: lesson order is
-pedagogical, not a literal reproduction of their page order. Each class uses the
-same theory and solved exercises as the classroom, with progressively revealed
-slides and simultaneous subtitles. The export command writes 36 WebVTT files,
-36 narration scripts and a manifest with scene/formula/cue metadata to the ignored
-`_work/lecturas/` directory. Cue timings are estimates and must be retimed after
-real TTS audio is generated. No audio or video rendering is required.
-See [`data-src/inferencia-estadistica/README.md`](data-src/inferencia-estadistica/README.md)
-for conventions and verification limits.
+The classroom now lives in its own Docusaurus repository,
+[netraular/inferencia-estadistica-uoc](https://github.com/netraular/inferencia-estadistica-uoc),
+and is public at **https://webs.raular.com/inferencia/**.
+Its content, activities and tests are no longer maintained here.
+The old HTML URLs redirect to the new site through the nginx configuration
+owned by `proxmox-k8s`. Browser progress remains compatible because the public
+origin and storage key are unchanged. Local teaching PDFs remain ignored.
 
 ## Title & description
 

@@ -50,7 +50,7 @@ main{max-width:1230px;margin:auto;padding:25px 28px 42px}a{color:var(--green);te
   <div class="heading">
     <div><h2 id="results-title">Modelos</h2><p id="count" class="muted" aria-live="polite"></p></div>
     <div class="tools">
-      <label class="field">Orden<select id="sort"><option value="price">Menor precio</option><option value="litres">M&aacute;s capacidad</option><option value="watts">M&aacute;s potencia</option><option value="depth">Menor fondo</option></select></label>
+      <label class="field">Orden<select id="sort"><option value="recommended">Recomendados</option><option value="price">Menor precio</option><option value="litres">M&aacute;s capacidad</option><option value="watts">M&aacute;s potencia</option><option value="depth">Menor fondo</option></select></label>
       <div class="views" role="group" aria-label="Vista de resultados">
         <button type="button" class="icon-button" id="grid-view" title="Tarjetas" aria-label="Tarjetas" aria-pressed="true" aria-controls="cards"><span class="icon grid-icon" aria-hidden="true"></span></button>
         <button type="button" class="icon-button" id="table-view" title="Tabla" aria-label="Tabla" aria-pressed="false" aria-controls="catalog-table"><span class="icon table-icon" aria-hidden="true"></span></button>
@@ -69,6 +69,7 @@ main{max-width:1230px;margin:auto;padding:25px 28px 42px}a{color:var(--green);te
 </section>
 <details>
   <summary>Fuentes y precios</summary>
+  <p class="note">El orden recomendado prioriza precio y prestaciones para calentar y descongelar a diario. El grill, el horno y la instalaci&oacute;n integrable merecen la pena si los necesitas. Las recomendaciones se basan en fichas y precios publicados, no en pruebas de rendimiento.</p>
   <p class="note">Selecci&oacute;n manual, no un listado exhaustivo. Un precio de tienda indica lo que se mostraba en la fecha de consulta; puede cambiar y no incorpora el env&iacute;o. Amazon puede mostrar otro importe seg&uacute;n la direcci&oacute;n de entrega. Los chollos son importes publicados en otra fecha, no ofertas verificadas como vigentes. Los modelos sin precio de tienda quedan fuera cuando se fija un presupuesto; si se limita el fondo, se excluyen los modelos sin esa medida.</p>
   <p class="note">La potencia indicada es la de salida en modo microondas, no el consumo el&eacute;ctrico ni la potencia del grill. Las fichas enlazadas recogen las medidas exteriores en orden ancho &times; alto &times; fondo.</p>
   <div class="links source-links"><a href="https://www.chollometro.com/categorias/microondas" target="_blank" rel="noopener noreferrer">Microondas en Chollometro</a><a href="https://www.amazon.es/gp/bestsellers/kitchen/3578790031" target="_blank" rel="noopener noreferrer">Listado de Amazon.es</a></div>
@@ -78,6 +79,16 @@ main{max-width:1230px;margin:auto;padding:25px 28px 42px}a{color:var(--green);te
 <script type="application/json" id="data">
 {
   "checked": "2026-11-19",
+  "recommendations": [
+    ["hisense-h20mobp1hi", "Para calentar a diario: inverter, 20 l y fondo de 32,9 cm a un precio de referencia bajo."],
+    ["cecotec-3010", "Para un hueco justo: 31,5 cm de fondo y mandos mecánicos. Sin grill."],
+    ["cecotec-3160", "Para gratinar sin subir mucho de precio: grill de 800 W. Confirma el fondo antes de comprar."],
+    ["orbegozo-mig-2130", "Alternativa con grill de 900 W y mandos sencillos. Sin precio de tienda verificado."],
+    ["orbegozo-mi-2061-ce", "Para recipientes cuadrados: base plana sin plato giratorio. Necesita 36,5 cm de fondo."],
+    ["lg-mh6565cpw", "Para raciones grandes: 25 l, 1.000 W de microondas y grill. Requiere más fondo."],
+    ["lg-mj3965bps", "Para usar también como horno: convección y 39 l. Es el más profundo del catálogo inicial."],
+    ["bosch-bfl524mb0", "Para encastrar en el mueble: comprueba las medidas del hueco, no solo el fondo del aparato."]
+  ],
   "models": [
     {
       "id": "cecotec-3010", "brand": "Cecotec", "model": "ProClean 3010", "kind": "solo",
@@ -143,8 +154,9 @@ main{max-width:1230px;margin:auto;padding:25px 28px 42px}a{color:var(--green);te
 <script>
 "use strict";
 const byId = id => document.getElementById(id);
-const {checked, models} = JSON.parse(byId('data').textContent);
+const {checked, models, recommendations} = JSON.parse(byId('data').textContent);
 const byModel = new Map(models.map(model => [model.id, model]));
+const recommendation = new Map(recommendations.map(([id, summary], index) => [id, {position:index + 1, summary}]));
 const selected = new Set();
 const filters = byId('filters');
 const kinds = {solo:'Sin grill', grill:'Con grill', oven:'Con horno'};
@@ -168,9 +180,12 @@ const links = model => `<div class="links">${model.spec === amazon(model) ? '' :
 const pick = model => `<label class="pick"><input type="checkbox" data-model="${escapeHTML(model.id)}" aria-label="Comparar ${escapeHTML(name(model))}">Comparar</label>`;
 const image = model => `<div class="photo"><span class="icon microwave" aria-hidden="true"${model.image ? ' hidden' : ''}></span>${model.image ? `<img loading="lazy" decoding="async" referrerpolicy="no-referrer" src="${escapeHTML(model.image)}" alt="${escapeHTML(name(model))}">` : ''}</div>`;
 const metric = (label, value) => `<div><dt>${label}</dt><dd>${value}</dd></div>`;
-const card = model => `<article class="product"><div class="product-top"><span class="kind">${type(model)}</span>${pick(model)}</div>${image(model)}<div class="product-body"><h3>${escapeHTML(name(model))}</h3><dl class="facts">${metric('Capacidad', units(model.litres, 'l'))}${metric('Microondas', units(model.watts, 'W'))}${metric('Fondo', units(model.size?.[2], 'cm'))}</dl><div class="offers">${offer(model)}${deal(model)}</div>${links(model)}</div></article>`;
-const row = model => `<tr><td>${pick(model)}</td><th scope="row">${escapeHTML(name(model))}</th><td>${type(model)}</td><td>${units(model.litres, 'l')}</td><td>${units(model.watts, 'W')}</td><td>${units(model.size?.[2], 'cm')}</td><td>${offer(model)}${deal(model)}</td><td>${links(model)}</td></tr>`;
+const summary = model => escapeHTML(recommendation.get(model.id)?.summary ?? '');
+const label = model => `${byId('sort').value === 'recommended' && recommendation.has(model.id) ? `${recommendation.get(model.id).position}. ` : ''}${escapeHTML(name(model))}`;
+const card = model => `<article class="product"><div class="product-top"><span class="kind">${type(model)}</span>${pick(model)}</div>${image(model)}<div class="product-body"><h3>${label(model)}</h3><p class="note quick">${summary(model)}</p><dl class="facts">${metric('Capacidad', units(model.litres, 'l'))}${metric('Microondas', units(model.watts, 'W'))}${metric('Fondo', units(model.size?.[2], 'cm'))}</dl><div class="offers">${offer(model)}${deal(model)}</div>${links(model)}</div></article>`;
+const row = model => `<tr><td>${pick(model)}</td><th scope="row">${label(model)}<p class="note quick">${summary(model)}</p></th><td>${type(model)}</td><td>${units(model.litres, 'l')}</td><td>${units(model.watts, 'W')}</td><td>${units(model.size?.[2], 'cm')}</td><td>${offer(model)}${deal(model)}</td><td>${links(model)}</td></tr>`;
 const compareRows = [
+  ['Uso recomendado', model => summary(model) || 'No consta'],
   ['Precio de tienda', offer], ['Chollo publicado', model => deal(model) || 'No consta'],
   ['Tipo', model => kinds[model.kind]], ['Instalación', install],
   ['Capacidad', model => units(model.litres, 'l')], ['Potencia de microondas', model => units(model.watts, 'W')],
@@ -201,7 +216,8 @@ function render() {
     (!form.budget || (model.offer && model.offer.price <= Number(form.budget))) &&
     (!form.depth || (model.size && model.size[2] <= Number(form.depth))));
   const price = (left, right) => (left.offer?.price ?? Infinity) - (right.offer?.price ?? Infinity);
-  const sorters = {price, litres:(left, right) => right.litres - left.litres, watts:(left, right) => right.watts - left.watts, depth:(left, right) => (left.size?.[2] ?? Infinity) - (right.size?.[2] ?? Infinity)};
+  const rank = model => recommendation.get(model.id)?.position ?? Infinity;
+  const sorters = {recommended:(left, right) => rank(left) - rank(right), price, litres:(left, right) => right.litres - left.litres, watts:(left, right) => right.watts - left.watts, depth:(left, right) => (left.size?.[2] ?? Infinity) - (right.size?.[2] ?? Infinity)};
   const sorter = sorters[byId('sort').value];
   available.sort((left, right) => sorter(left, right) || price(left, right) || collator.compare(name(left), name(right)));
   byId('count').textContent = `${available.length} de ${models.length} modelos`;

@@ -27,6 +27,10 @@
     "title": "GPUs CeX · Rendimiento por euro",
     "description": "Compara 102 ofertas de tarjetas gráficas de segunda mano en CeX España por rendimiento PassMark por euro, con filtros de presupuesto y memoria, comparación de hasta tres GPU y fuentes fechadas. Benchmark sintético, no FPS en juegos."
   },
+  "microondas.html": {
+    "title": "Microondas · Comparador de compra",
+    "description": "Filtra microondas por presupuesto, litros, tipo y fondo, y compara hasta tres modelos. Precios de referencia fechados, chollos de Chollometro y enlaces a fichas y Amazon España."
+  },
   "auroras.html": {
     "title": "Abisko · Cuándo viajar para ver auroras",
     "description": "Meses y año orientativos para buscar auroras en Abisko durante el siguiente ciclo solar, dentro del horizonte aproximado de 2035–2036. Combina historial geomagnético y oscuridad, con límites claros: es un escenario, no una fecha confirmada ni una garantía de auroras intensas. Datos de GFZ, Kyoto, SILSO y NOAA."

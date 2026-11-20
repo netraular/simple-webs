@@ -37,12 +37,12 @@ main{max-width:1230px;margin:auto;padding:25px 28px 42px}a{color:var(--green);te
   <label class="field search">Marca o modelo<input name="query" type="search" placeholder="Cecotec, LG&hellip;"></label>
   <label class="field">Presupuesto m&aacute;ximo (&euro;)<input name="budget" type="number" min="0" step="0.01" placeholder="Sin l&iacute;mite"></label>
   <label class="field">Capacidad m&iacute;nima<select name="litres"><option value="0">Cualquiera</option><option value="20">20 l</option><option value="23">23 l</option><option value="25">25 l</option></select></label>
-  <label class="field">Potencia de microondas<select name="watts"><option value="">Cualquiera</option><option value="700">700 W</option><option value="800">800 W</option><option value="900">900 W</option><option value="1000">1.000 W</option></select></label>
+  <label class="field">Potencia de microondas<select name="watts"><option value="">Cualquiera</option><option value="700">700 W</option><option value="800">800 W</option><option value="900">900 W</option><option value="1000">1.000 W</option><option value="1100">1.100 W</option></select></label>
   <label class="field">Tipo<select name="kind"><option value="">Todos</option><option value="solo">Sin grill</option><option value="grill">Con grill</option><option value="oven">Con horno</option></select></label>
   <label class="field">Instalaci&oacute;n<select name="install"><option value="">Todas</option><option value="counter">Sobremesa</option><option value="built-in">Integrable</option></select></label>
   <label class="field">Fondo m&aacute;ximo (cm)<input name="depth" type="number" min="0" step="0.1" placeholder="Sin l&iacute;mite"></label>
+  <label class="field">Origen del precio<select name="source"><option value="">Todos</option><option value="store">Precios de tienda</option><option value="weekly">Chollos de la semana</option></select></label>
   <button class="icon-button" type="reset" title="Restablecer filtros" aria-label="Restablecer filtros"><span class="icon reset-icon" aria-hidden="true"></span></button>
-  <label class="scope"><input name="weekly" type="checkbox">Solo chollos de la semana</label>
 </form>
 <p class="note">Precios publicados, no en directo. El presupuesto suma el env&iacute;o cuando se indica. Las medidas no incluyen el espacio de ventilaci&oacute;n.</p>
 <div class="comparebar">
@@ -74,7 +74,7 @@ main{max-width:1230px;margin:auto;padding:25px 28px 42px}a{color:var(--green);te
   <summary>Fuentes y precios</summary>
   <p class="note">El orden recomendado es editorial: prioriza el precio y las prestaciones para calentar y descongelar a diario. El grill, el horno y la instalaci&oacute;n integrable se valoran para sus usos espec&iacute;ficos. Las rese&ntilde;as orientan sobre detalles de uso, no se usan las estrellas para ordenar ni para inferir fiabilidad. No hay una prueba de rendimiento com&uacute;n a todos los modelos.</p>
   <p class="note">La semana cubre las dos p&aacute;ginas de Microondas en Chollometro y se cotej&oacute; con la b&uacute;squeda general. Las publicaciones del mismo modelo se agrupan; no se incluyen accesorios. El precio y el stock se confirman en la tienda. Si no consta el env&iacute;o, el presupuesto no lo puede sumar.</p>
-  <p class="note">Con la vista semanal, el presupuesto y el orden por precio usan el menor importe semanal. En el cat&aacute;logo completo tambi&eacute;n cuentan los precios de tienda consultados. Las referencias anteriores a la semana no cuentan. Sin precio elegible o sin fondo conocido, un modelo queda fuera del filtro correspondiente.</p>
+  <p class="note">El presupuesto y el orden por precio usan el menor importe del origen seleccionado. Los chollos son precios publicados, no necesariamente vigentes. Las referencias anteriores a la semana no cuentan. Sin precio elegible o sin fondo conocido, un modelo queda fuera del filtro correspondiente.</p>
   <p class="note">La potencia indicada es la de salida en modo microondas, no el consumo el&eacute;ctrico ni la potencia del grill. Las fichas enlazadas recogen las medidas exteriores en orden ancho &times; alto &times; fondo.</p>
   <div class="links source-links"><a href="https://www.chollometro.com/categorias/microondas" target="_blank" rel="noopener noreferrer">Microondas en Chollometro</a><a href="https://www.amazon.es/gp/bestsellers/kitchen/3578790031" target="_blank" rel="noopener noreferrer">Listado de Amazon.es</a></div>
 </details>
@@ -281,11 +281,13 @@ const install = model => model.builtIn ? 'Integrable' : 'Sobremesa';
 const type = model => model.builtIn ? `${kinds[model.kind]} · ${install(model)}` : kinds[model.kind];
 const units = (value, unit) => value == null ? 'No consta' : `${number.format(value)} ${unit}`;
 const dims = model => model.size ? `${model.size.map(value => number.format(value)).join(' × ')} cm` : 'No consta';
-const offer = model => model.offer ? `<strong class="price">${euro.format(model.offer.price)}</strong> <small>${link(model.offer.url, model.offer.store)}</small>` : '<span class="muted">Sin precio de tienda</span>';
 const deal = model => model.deal ? `<span class="historical">Chollo anterior: ${link(model.deal.url, euro.format(model.deal.price))} · ${escapeHTML(model.deal.store)} · ${formatDate(model.deal.date)}</span>` : '';
-const weeklyCost = item => Math.round((item.price + (item.shipping ?? 0)) * 100) / 100;
-const weeklyPrices = model => model.weekly?.length ? `<div class="weekly-prices"><span class="weekly-title">Chollos de la semana</span>${model.weekly.map(item => `<div class="price-line"><strong class="price">${link(item.url, euro.format(item.price))}</strong> · ${escapeHTML(item.store)} <small>· ${formatDate(item.date)}${item.shipping == null ? '' : ` · + ${euro.format(item.shipping)} envío`}${item.condition ? ` · ${escapeHTML(item.condition)}` : ''}</small></div>`).join('')}</div>` : '';
-const prices = model => `${weeklyPrices(model)}${model.offer || !model.weekly?.length ? offer(model) : ''}${deal(model)}`;
+const costWithShipping = item => Math.round((item.price + (item.shipping ?? 0)) * 100) / 100;
+const storeOffers = model => model.offers ?? (model.offer ? [model.offer] : []);
+const priceList = (items, title) => items?.length ? `<div class="weekly-prices"><span class="weekly-title">${title}</span>${items.map(item => `<div class="price-line"><strong class="price">${link(item.url, euro.format(item.price))}</strong> · ${escapeHTML(item.store)} <small>${item.date ? `· ${formatDate(item.date)}` : ''}${item.shipping == null ? '' : item.shipping === 0 ? ' · Envío gratis' : ` · + ${euro.format(item.shipping)} envío`}${item.condition ? ` · ${escapeHTML(item.condition)}` : ''}</small></div>`).join('')}</div>` : '';
+const offer = model => priceList(storeOffers(model), 'Precios de tienda') || '<span class="muted">Sin precio de tienda</span>';
+const weeklyPrices = model => priceList(model.weekly, 'Chollos de la semana');
+const prices = model => `${storeOffers(model).length || !model.weekly?.length ? offer(model) : ''}${weeklyPrices(model)}${deal(model)}`;
 const links = model => `<div class="links">${model.spec === amazon(model) ? '' : link(model.spec, 'Ficha')}${link(amazon(model), model.asin ? 'Amazon.es' : 'Buscar en Amazon')}</div>`;
 const pick = model => `<label class="pick"><input type="checkbox" data-model="${escapeHTML(model.id)}" aria-label="Comparar ${escapeHTML(name(model))}">Comparar</label>`;
 const image = model => `<div class="photo"><span class="icon microwave" aria-hidden="true"${model.image ? ' hidden' : ''}></span>${model.image ? `<img loading="lazy" decoding="async" referrerpolicy="no-referrer" src="${escapeHTML(model.image)}" alt="${escapeHTML(name(model))}">` : ''}</div>`;
@@ -321,8 +323,9 @@ function renderSelection() {
 function render() {
   const form = Object.fromEntries(new FormData(filters));
   const tokens = normal(form.query.trim()).split(/\s+/).filter(Boolean);
-  const catalog = form.weekly ? models.filter(model => model.weekly?.length) : models;
-  const cost = model => Math.min(form.weekly ? Infinity : model.offer?.price ?? Infinity, ...(model.weekly ?? []).map(weeklyCost));
+  const eligible = model => form.source === 'store' ? storeOffers(model) : form.source === 'weekly' ? model.weekly ?? [] : [...storeOffers(model), ...(model.weekly ?? [])];
+  const catalog = form.source ? models.filter(model => eligible(model).length) : models;
+  const cost = model => Math.min(...eligible(model).map(costWithShipping));
   const available = catalog.filter(model => tokens.every(token => normal(name(model)).includes(token)) &&
     (!form.kind || model.kind === form.kind) && model.litres >= Number(form.litres) &&
     (!form.watts || model.watts === Number(form.watts)) &&
@@ -336,7 +339,7 @@ function render() {
   const sorter = sorters[order];
   available.sort((left, right) => sorter(left, right) || price(left, right) || collator.compare(name(left), name(right)));
   const dealCount = available.reduce((total, model) => total + (model.weekly?.length ?? 0), 0);
-  byId('count').textContent = `${available.length} de ${catalog.length} modelos${form.weekly ? ` · ${dealCount} ${dealCount === 1 ? 'chollo' : 'chollos'}` : ''}`;
+  byId('count').textContent = `${available.length} de ${catalog.length} modelos${form.source === 'weekly' ? ` · ${dealCount} ${dealCount === 1 ? 'chollo' : 'chollos'}` : ''}`;
   byId('empty').hidden = available.length !== 0;
   byId('cards').hidden = tableView || !available.length;
   byId('catalog-table').hidden = !tableView || !available.length;

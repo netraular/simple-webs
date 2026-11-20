@@ -20,12 +20,15 @@ main{max-width:1230px;margin:auto;padding:25px 28px 42px}a{color:var(--green);te
 .comparebar{position:sticky;top:0;z-index:1;margin:17px 0 18px;padding:8px 12px;background:var(--light);border-left:3px solid var(--green)}.comparebar strong{font-weight:600}.comparebar .tools{gap:4px 12px}.comparebar button{padding:0 6px;min-height:35px;border:0;background:transparent;text-decoration:underline;text-underline-offset:3px}.comparebar button:disabled{opacity:.5}.heading{margin:16px 0 12px}.heading .field{display:flex;align-items:center}.heading select{width:auto;max-width:100%}.views{display:flex;gap:2px;padding:2px;border:1px solid var(--line);border-radius:5px;background:var(--paper)}.views button{border:0;min-height:38px;width:42px;padding:0}.views button[aria-pressed=true]{color:white;background:var(--ink)}
 .cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}.product{display:flex;flex-direction:column;min-width:0;border:1px solid var(--line);background:var(--paper);border-radius:6px;overflow:hidden}.product:has(input:checked){outline:2px solid var(--green);outline-offset:-2px}.product-top{padding:10px 12px 0}.kind{font-size:11px;font-weight:600;text-transform:uppercase;color:var(--green)}.pick{display:inline-flex;align-items:center;gap:5px;min-height:32px;font-size:12px;cursor:pointer}.pick:has(:disabled){opacity:.6;cursor:default}.pick input{width:17px;height:17px;accent-color:var(--green);margin:0;flex:none}
 .photo{display:grid;place-items:center;min-width:0;height:145px;margin:6px 12px;color:var(--mute);font-size:12px}.photo img{width:100%;height:100%;object-fit:contain;min-height:0}.photo .icon{width:44px;height:44px}.product-body{flex:1;display:flex;flex-direction:column;padding:10px 14px 14px}.product-body h3{margin-bottom:11px}.facts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;padding:10px 0;border-block:1px solid var(--line)}.facts dt{font-size:11px;color:var(--mute)}.facts dd{font-size:17px;font-weight:600;overflow-wrap:anywhere}.offers{padding:10px 0;margin-top:auto}.price{color:var(--green);font-size:21px;font-weight:700;white-space:nowrap}.historical{display:block;color:var(--warm);font-size:12px;margin-top:3px}.links{justify-content:flex-start;gap:6px 14px;font-size:12px}.links a{display:inline-flex;align-items:center;min-height:28px}
-.scroller{overflow:auto;background:var(--paper);border-block:1px solid var(--line)}table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}th,td{text-align:left;padding:9px 10px;vertical-align:middle;border-bottom:1px solid var(--line)}th{background:#e8f0eb;font-weight:600}thead th{font-size:12px}tbody tr:last-child>*{border-bottom:0}tbody tr:has(input:checked){background:var(--light)}.comparison{margin:18px 0 24px}#cara-a-cara{scroll-margin-top:100px}.comparison table{table-layout:fixed;min-width:480px}.comparison th,.comparison td{overflow-wrap:anywhere}.comparison tbody th{width:22%;font-size:12px}.catalog-table table{min-width:810px}.msg{padding:22px 0;color:var(--mute)}details{border-top:1px solid var(--line);margin-top:24px;padding-top:12px}summary{cursor:pointer;font-weight:600}details p{max-width:78ch;margin-top:8px}.source-links{margin-top:8px}
+.scroller{overflow:auto;background:var(--paper);border-block:1px solid var(--line)}table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}th,td{text-align:left;padding:9px 10px;vertical-align:middle;border-bottom:1px solid var(--line)}th{background:#e8f0eb;font-weight:600}thead th{font-size:12px}tbody tr:last-child>*{border-bottom:0}tbody tr:has(input:checked){background:var(--light)}.comparison table{table-layout:fixed;min-width:480px}.comparison thead{position:sticky;top:0;z-index:1}.comparison th,.comparison td{overflow-wrap:anywhere}.comparison tbody th{width:22%;font-size:12px}.catalog-table table{min-width:810px}.msg{padding:22px 0;color:var(--mute)}details{border-top:1px solid var(--line);margin-top:24px;padding-top:12px}summary{cursor:pointer;font-weight:600}details p{max-width:78ch;margin-top:8px}.source-links{margin-top:8px}
 .scope{grid-column:1/-1;display:flex;align-items:center;gap:8px;min-height:32px}.scope input,.pick input{accent-color:var(--green)}.scope input{width:17px;height:17px;margin:0;flex:none}.product-body .quick{margin-bottom:10px}.catalog-table .quick{font-weight:400}.weekly-prices{margin-bottom:6px;font-size:12px}.weekly-prices:last-child{margin-bottom:0}.weekly-prices .price{font-size:17px}.weekly-prices small{font-size:11px}.price-line{margin-top:3px}.weekly-title{color:var(--warm);font-weight:600}.catalog-table .weekly-prices,.comparison .weekly-prices{margin-bottom:0}
 .comparebar .button{min-height:44px;background:var(--green);color:var(--paper);font-weight:600;text-decoration:none}.comparebar #clear{min-height:44px}.comparison{width:min(920px,calc(100% - 28px));max-width:none;max-height:calc(100% - 28px);margin:auto;padding:14px;border:1px solid var(--line);border-radius:8px;color:var(--ink);background:var(--paper);overflow:hidden}.comparison[open]{display:flex;flex-direction:column}.comparison::backdrop{background:#172e2899}body:has(.comparison[open]){overflow:hidden}.comparison .heading{flex:none;margin:0 0 10px}.comparison .scroller{min-height:0;overscroll-behavior:contain}
+.extra-filters{display:contents}#more-filters,.reset-label{display:none}.chevron{--icon:url('https://cdn.jsdelivr.net/npm/lucide-static@0.468.0/icons/chevron-down.svg')}#more-filters[aria-expanded=true] .chevron{transform:rotate(180deg)}.price-line small{display:block;color:var(--mute)}
 @media(max-width:900px){.filters{grid-template-columns:repeat(3,minmax(0,1fr))}.cards{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:590px){main{padding:16px 14px 30px}.masthead{padding-top:12px}h1{font-size:40px}.filters{grid-template-columns:repeat(2,minmax(0,1fr))}.search{grid-column:1/-1}.cards{grid-template-columns:minmax(0,1fr)}.heading>.tools{width:100%;justify-content:space-between}.masthead .stamp{margin-top:3px}}
 @media(max-width:590px){
+  .field input,.field select{font-size:16px;min-height:44px}#more-filters,.reset-label{display:inline-flex}#more-filters{padding-inline:6px;min-height:44px}#more-filters[aria-expanded=false]+.extra-filters{display:none}.filters [type=reset]{grid-area:3/2;width:100%;min-height:44px}.views{display:none}
+  .back,.pick,.links a,.product .offer-link,.product .historical a{display:inline-flex;align-items:center;min-height:44px}.pick{padding-inline:6px;font-size:14px}.pick input{width:20px;height:20px}.product .offer-link{flex-wrap:wrap;column-gap:5px}.comparison .heading button{min-height:44px}
   html:has(.comparebar:not([hidden])){scroll-padding-bottom:calc(106px + env(safe-area-inset-bottom))}main:has(.comparebar:not([hidden])){padding-bottom:calc(120px + env(safe-area-inset-bottom))}
   .comparebar{position:fixed;inset:auto 0 0;z-index:2;display:grid;grid-template-columns:1fr auto;gap:0 8px;margin:0;padding:0 14px calc(8px + env(safe-area-inset-bottom));border-left:0;border-top:1px solid var(--green)}.comparebar .tools{display:contents}.comparebar #clear{grid-column:2;grid-row:1}.comparebar .button{grid-column:1/-1;grid-row:2}
   .comparison{padding:10px}.comparison table,.comparison thead,.comparison tbody{display:block;min-width:0}.comparison tr{display:grid;grid-template-columns:repeat(var(--columns),minmax(0,1fr))}.comparison thead th:first-child{display:none}.comparison tbody th{grid-column:1/-1;width:auto}.comparison th,.comparison td{min-width:0;padding:7px 6px}.comparison td+td,.comparison thead th+th+th{border-left:1px solid var(--line)}.comparison .price{white-space:normal}.comparison tbody tr:last-child>th{border-bottom:1px solid var(--line)}
@@ -42,13 +45,16 @@ main{max-width:1230px;margin:auto;padding:25px 28px 42px}a{color:var(--green);te
 <form id="filters" class="filters" aria-label="Filtros de microondas">
   <label class="field search">Marca o modelo<input name="query" type="search" placeholder="Cecotec, LG&hellip;"></label>
   <label class="field">Presupuesto m&aacute;ximo (&euro;)<input name="budget" type="number" min="0" step="0.01" placeholder="Sin l&iacute;mite"></label>
-  <label class="field">Capacidad m&iacute;nima<select name="litres"><option value="0">Cualquiera</option><option value="20">20 l</option><option value="23">23 l</option><option value="25">25 l</option></select></label>
   <label class="field">Potencia de microondas<select name="watts"><option value="">Cualquiera</option><option value="700">700 W</option><option value="800">800 W</option><option value="900">900 W</option><option value="1000">1.000 W</option><option value="1100">1.100 W</option></select></label>
-  <label class="field">Tipo<select name="kind"><option value="">Todos</option><option value="solo">Sin grill</option><option value="grill">Con grill</option><option value="oven">Con horno</option></select></label>
-  <label class="field">Instalaci&oacute;n<select name="install"><option value="">Todas</option><option value="counter">Sobremesa</option><option value="built-in">Integrable</option></select></label>
-  <label class="field">Fondo m&aacute;ximo (cm)<input name="depth" type="number" min="0" step="0.1" placeholder="Sin l&iacute;mite"></label>
-  <label class="field">Origen del precio<select name="source"><option value="">Todos</option><option value="store">Precios de tienda</option><option value="weekly">Chollos de la semana</option></select></label>
-  <button class="icon-button" type="reset" title="Restablecer filtros" aria-label="Restablecer filtros"><span class="icon reset-icon" aria-hidden="true"></span></button>
+  <button class="button" type="button" id="more-filters" aria-expanded="false" aria-controls="extra-filters"><span>M&aacute;s filtros<span id="more-filters-count"></span></span><span class="icon chevron" aria-hidden="true"></span></button>
+  <div class="extra-filters" id="extra-filters">
+    <label class="field">Capacidad m&iacute;nima<select name="litres"><option value="0">Cualquiera</option><option value="20">20 l</option><option value="23">23 l</option><option value="25">25 l</option></select></label>
+    <label class="field">Tipo<select name="kind"><option value="">Todos</option><option value="solo">Sin grill</option><option value="grill">Con grill</option><option value="oven">Con horno</option></select></label>
+    <label class="field">Instalaci&oacute;n<select name="install"><option value="">Todas</option><option value="counter">Sobremesa</option><option value="built-in">Integrable</option></select></label>
+    <label class="field">Fondo m&aacute;ximo (cm)<input name="depth" type="number" min="0" step="0.1" placeholder="Sin l&iacute;mite"></label>
+    <label class="field">Origen del precio<select name="source"><option value="">Todos</option><option value="store">Precios de tienda</option><option value="weekly">Chollos semanales</option></select></label>
+  </div>
+  <button class="icon-button" type="reset" title="Limpiar filtros" aria-label="Limpiar filtros"><span class="icon reset-icon" aria-hidden="true"></span><span class="reset-label">Limpiar</span></button>
 </form>
 <p class="note">Precios publicados, no en directo. El presupuesto suma el env&iacute;o cuando se indica. Las medidas no incluyen el espacio de ventilaci&oacute;n.</p>
 <div class="comparebar" id="comparebar" hidden>
@@ -387,11 +393,16 @@ const dims = model => model.size ? `${model.size.map(value => number.format(valu
 const deal = model => model.deal ? `<span class="historical">Chollo anterior: ${link(model.deal.url, euro.format(model.deal.price))} · ${escapeHTML(model.deal.store)} · ${formatDate(model.deal.date)}</span>` : '';
 const costWithShipping = item => Math.round((item.price + (item.shipping ?? 0)) * 100) / 100;
 const storeOffers = model => model.offers ?? (model.offer ? [model.offer] : []);
-const priceList = (items, title) => items?.length ? `<div class="weekly-prices"><span class="weekly-title">${title}</span>${items.map(item => `<div class="price-line"><strong class="price">${link(item.url, euro.format(item.price))}</strong> · ${escapeHTML(item.store)} <small>${item.date ? `· ${formatDate(item.date)}` : ''}${item.shipping == null ? '' : item.shipping === 0 ? ' · Envío gratis' : ` · + ${euro.format(item.shipping)} envío`}${item.condition ? ` · ${escapeHTML(item.condition)}` : ''}</small></div>`).join('')}</div>` : '';
+const priceLine = item => {
+  const shipping = item.shipping == null ? '' : item.shipping === 0 ? 'Envío gratis' : `+ ${euro.format(item.shipping)} envío`;
+  const details = [item.date && formatDate(item.date), shipping, item.condition].filter(Boolean).join(' · ');
+  return `<div class="price-line"><a class="offer-link" href="${escapeHTML(item.url)}" target="_blank" rel="noopener noreferrer"><strong class="price">${euro.format(item.price)}</strong> <span>${escapeHTML(item.store)}</span></a>${details ? `<small>${escapeHTML(details)}</small>` : ''}</div>`;
+};
+const priceList = (items, title) => items?.length ? `<div class="weekly-prices"><span class="weekly-title">${title}</span>${items.map(priceLine).join('')}</div>` : '';
 const offer = model => priceList(storeOffers(model), 'Precios de tienda') || '<span class="muted">Sin precio de tienda</span>';
 const weeklyPrices = model => priceList(model.weekly, 'Chollos de la semana');
 const prices = model => `${storeOffers(model).length || !model.weekly?.length ? offer(model) : ''}${weeklyPrices(model)}${deal(model)}`;
-const links = model => `<div class="links">${model.spec === amazon(model) ? '' : link(model.spec, 'Ficha')}${link(amazon(model), model.asin ? 'Amazon.es' : 'Buscar en Amazon')}</div>`;
+const links = model => `<div class="links">${model.spec === amazon(model) ? '' : link(model.spec, 'Ficha del producto')}${link(amazon(model), model.asin ? 'Amazon.es' : 'Buscar en Amazon')}</div>`;
 const pick = model => `<label class="pick"><input type="checkbox" data-model="${escapeHTML(model.id)}" aria-label="Comparar ${escapeHTML(name(model))}">Comparar</label>`;
 const image = model => `<div class="photo"><span class="icon microwave" aria-hidden="true"${model.image ? ' hidden' : ''}></span>${model.image ? `<img loading="lazy" decoding="async" referrerpolicy="no-referrer" src="${escapeHTML(model.image)}" alt="${escapeHTML(name(model))}">` : ''}</div>`;
 const metric = (label, value) => `<div><dt>${label}</dt><dd>${value}</dd></div>`;
@@ -400,14 +411,16 @@ const label = (model, position) => `${position ? `${position}. ` : ''}${escapeHT
 const card = (model, position) => `<article class="product"><div class="product-top"><span class="kind">${type(model)}</span>${pick(model)}</div>${image(model)}<div class="product-body"><h3>${label(model, position)}</h3><p class="note quick">${summary(model)}</p><dl class="facts">${metric('Capacidad', units(model.litres, 'l'))}${metric('Microondas', units(model.watts, 'W'))}${metric('Fondo', units(model.size?.[2], 'cm'))}</dl><div class="offers">${prices(model)}</div>${links(model)}</div></article>`;
 const row = (model, position) => `<tr><td>${pick(model)}</td><th scope="row">${label(model, position)}<p class="note quick">${summary(model)}</p></th><td>${type(model)}</td><td>${units(model.litres, 'l')}</td><td>${units(model.watts, 'W')}</td><td>${units(model.size?.[2], 'cm')}</td><td>${prices(model)}</td><td>${links(model)}</td></tr>`;
 const compareRows = [
-  ['Uso recomendado', model => summary(model) || 'No consta'],
   ['Precio de tienda', offer], ['Chollos de la semana', model => weeklyPrices(model) || 'No consta'],
   ['Chollo anterior', model => deal(model) || 'No consta'],
   ['Tipo', model => kinds[model.kind]], ['Instalación', install],
   ['Capacidad', model => units(model.litres, 'l')], ['Potencia de microondas', model => units(model.watts, 'W')],
   ['Potencia de grill', model => model.kind === 'solo' ? 'Sin grill' : units(model.grill, 'W')],
-  ['Ancho × alto × fondo', dims], ['Plato', model => model.flat ? 'Sin plato giratorio' : units(model.plate, 'cm')], ['Enlaces', links]
+  ['Ancho × alto × fondo', dims], ['Plato', model => model.flat ? 'Sin plato giratorio' : units(model.plate, 'cm')],
+  ['Uso recomendado', model => summary(model) || 'No consta'], ['Enlaces', links]
 ];
+const compactView = matchMedia('(max-width:590px)');
+const moreFilters = byId('more-filters');
 let tableView = false;
 
 function renderSelection() {
@@ -431,6 +444,8 @@ function openComparison() {
 
 function render() {
   const form = Object.fromEntries(new FormData(filters));
+  const extraCount = [form.litres !== '0', form.kind, form.install, form.depth, form.source].filter(Boolean).length;
+  byId('more-filters-count').textContent = extraCount ? ` (${extraCount})` : '';
   const tokens = normal(form.query.trim()).split(/\s+/).filter(Boolean);
   const eligible = model => form.source === 'store' ? storeOffers(model) : form.source === 'weekly' ? model.weekly ?? [] : [...storeOffers(model), ...(model.weekly ?? [])];
   const catalog = form.source ? models.filter(model => eligible(model).length) : models;
@@ -463,11 +478,18 @@ function render() {
 filters.addEventListener('submit', event => event.preventDefault());
 filters.addEventListener('input', render);
 filters.addEventListener('reset', () => requestAnimationFrame(render));
+moreFilters.addEventListener('click', () => moreFilters.setAttribute('aria-expanded', String(moreFilters.getAttribute('aria-expanded') === 'false')));
 byId('empty-reset').addEventListener('click', () => filters.reset());
 byId('sort').addEventListener('change', render);
 byId('grid-view').addEventListener('click', () => { if (tableView) { tableView = false; render(); } });
 byId('table-view').addEventListener('click', () => { if (!tableView) { tableView = true; render(); } });
+compactView.addEventListener('change', event => { if (event.matches && tableView) { tableView = false; render(); } });
 byId('compare-open').addEventListener('click', openComparison);
+byId('comparison').addEventListener('keydown', event => {
+  if (event.key !== 'Escape') return;
+  event.preventDefault();
+  event.currentTarget.close();
+});
 byId('clear').addEventListener('click', () => { selected.clear(); renderSelection(); });
 document.addEventListener('change', event => {
   const id = event.target.dataset.model;

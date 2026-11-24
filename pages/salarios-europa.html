@@ -36,6 +36,27 @@
     h1 { margin: 10px 0 2px; font-size: 2.85rem; line-height: 1.08; }
     .subtitle { margin: 8px 0 0; color: var(--muted); }
     .layout { display: grid; grid-template-columns: minmax(0, .95fr) minmax(0, 1.05fr); gap: 30px; padding-block: 28px 34px; }
+    .map-section { grid-column: 1 / -1; }
+    .map-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(15rem, 19rem); grid-template-rows: auto 1fr; border-block: 1px solid var(--line); }
+    .map-art { grid-area: 1 / 1 / 3 / 2; display: grid; place-items: center; min-width: 0; background: #e4efed; }
+    .map-art svg { display: block; width: 100%; height: auto; max-height: 465px; }
+    .map-land { fill: var(--map-fill, #dce2dd); stroke: #f9fcfa; stroke-width: .8px; vector-effect: non-scaling-stroke; }
+    .map-country { cursor: pointer; }
+    .map-country[aria-pressed="true"] { stroke: var(--ink); stroke-width: 1.65px; }
+    .map-country:hover, .map-country:focus-visible { outline: none; stroke: #914705; stroke-width: 2.25px; }
+    .map-pickers, .map-controls { grid-column: 2; display: grid; align-content: start; gap: 12px; min-width: 0; padding: 14px; border-left: 1px solid var(--line); background: var(--paper); }
+    .map-controls { padding-top: 0; }
+    .map-reading { padding-block: 8px; border-block: 1px solid var(--line); color: var(--muted); }
+    .map-reading strong { display: block; color: var(--ink); font-size: 1.2rem; font-variant-numeric: tabular-nums; }
+    .map-detail { font-size: .86rem; }
+    .map-scale { display: flex; height: 12px; border-radius: 2px; overflow: hidden; }
+    .map-scale span { flex: 1; background: var(--tone); }
+    .map-limits { display: flex; justify-content: space-between; color: var(--muted); font-size: .78rem; }
+    .map-keys { display: grid; gap: 4px; color: var(--muted); font-size: .8rem; }
+    .map-key { display: flex; gap: 6px; align-items: baseline; }
+    .map-key i { flex: 0 0 13px; height: 10px; border-radius: 2px; background: #dce2dd; }
+    #map-no-minimum i { background: #a7b6ae; }
+    #map-range-key i { background: var(--hatch); }
     .section-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 4px 12px; flex-wrap: wrap; margin-bottom: 12px; }
     h2 { margin: 0; font-size: 1.38rem; line-height: 1.25; }
     .period { color: var(--muted); font-size: .82rem; font-weight: bold; }
@@ -97,6 +118,10 @@
     @media (max-width: 850px) {
       .layout { grid-template-columns: minmax(0, 1fr); }
       .table-scroll { max-height: 18rem; }
+      .map-layout { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto; }
+      .map-art, .map-pickers, .map-controls { grid-column: 1; grid-row: auto; }
+      .map-pickers { grid-template-columns: repeat(2, minmax(0, 1fr)); border-left: 0; }
+      .map-controls { padding-top: 10px; border-left: 0; border-top: 1px solid var(--line); }
     }
     @media (max-width: 420px) {
       h1 { font-size: 2.18rem; }
@@ -118,6 +143,45 @@
   <noscript><p class="wrap">Activa JavaScript para consultar las tablas salariales.</p></noscript>
   <p class="wrap" id="load-error" hidden>No se han podido cargar los datos salariales.</p>
   <main class="wrap layout" id="dashboard" hidden>
+    <section class="map-section" id="map-section" aria-labelledby="map-title" hidden>
+      <div class="section-heading">
+        <h2 id="map-title">Mapa salarial de Europa</h2>
+        <span class="period" id="map-period"></span>
+      </div>
+      <div class="map-layout">
+        <div class="map-pickers">
+          <div class="control">
+            <label for="map-metric">Indicador</label>
+            <select id="map-metric">
+              <optgroup label="Salario bruto">
+                <option value="monthly">Mínimo mensual</option>
+                <option value="annual">Mínimo anual equivalente</option>
+                <option value="median">Mediana anual</option>
+              </optgroup>
+              <optgroup id="map-brackets" label="Porcentaje por tramo anual"></optgroup>
+            </select>
+          </div>
+          <div class="control">
+            <label for="map-country">País</label>
+            <select id="map-country"></select>
+          </div>
+        </div>
+        <div class="map-art" id="map-art"></div>
+        <div class="map-controls">
+          <div class="map-reading" aria-live="polite"><span id="map-name"></span><strong id="map-value"></strong></div>
+          <a class="map-detail" href="#distribution">Ver distribución salarial</a>
+          <div class="map-legend">
+            <div class="map-scale" id="map-scale" aria-hidden="true"></div>
+            <div class="map-limits"><span id="map-min"></span><span id="map-max"></span></div>
+          </div>
+          <div class="map-keys map-legend">
+            <span class="map-key"><i aria-hidden="true"></i>Sin dato</span>
+            <span class="map-key" id="map-no-minimum"><i aria-hidden="true"></i>Sin mínimo nacional</span>
+            <span class="map-key" id="map-range-key" hidden><i aria-hidden="true"></i>Intervalo: el color indica el límite inferior</span>
+          </div>
+        </div>
+      </div>
+    </section>
     <section aria-labelledby="minimum-title">
       <div class="section-heading">
         <h2 id="minimum-title">Salario mínimo nacional</h2>
@@ -182,9 +246,11 @@
     <p><strong>Mínimos:</strong> <a href="https://ec.europa.eu/eurostat/databrowser/view/earn_mw_cur/default/table">Eurostat</a> reparte las pagas extra en 12 meses. El equivalente anual multiplica por 12 el importe mensual de la fecha indicada. Para el <a href="https://www.gov.uk/government/publications/the-national-minimum-wage-in-2026/the-national-minimum-wage-in-2026">Reino Unido</a>, el equivalente parte de 12,71 GBP/h (a partir de 21 años) y 37,5 h semanales, con el <a href="https://data.ecb.europa.eu/data/datasets/EXR/EXR.D.GBP.EUR.SP00.A">cambio del BCE</a>. Sin un mínimo nacional pueden existir mínimos sectoriales o territoriales.</p>
     <p><strong>Tramos:</strong> se refieren a salarios brutos de jornada completa en 2022, no a toda la población. La <a href="https://ec.europa.eu/eurostat/databrowser/view/earn_ses22_adeci/default/table">encuesta de Eurostat</a> cubre en general empresas con al menos 10 empleados y excluye agricultura y administración pública. Para el Reino Unido se usa la <a href="https://www.ons.gov.uk/employmentandlabourmarket/peopleinwork/earningsandworkinghours/datasets/allemployeesashetable1">ASHE de la ONS</a> y el <a href="https://data.ecb.europa.eu/data/datasets/EXR/EXR.A.GBP.EUR.SP00.A">cambio medio de 2022</a>.</p>
     <p><strong>Estimación:</strong> se interpola entre los percentiles publicados. Por debajo de P10 o por encima de P90 solo se muestra un intervalo cuando el dato no permite precisar más. Los intervalos no son porcentajes exactos ni se deben sumar entre sí.</p>
+    <p><strong>Mapa:</strong> fronteras de <a href="https://www.naturalearthdata.com/">Natural Earth</a>.</p>
   </footer>
 
   <script src="data/salarios-europa.js"></script>
+  <script src="data/salarios-europa-mapa.js"></script>
   <script>
     const snapshot = window.SALARIOS_EUROPA;
     const byId = id => document.getElementById(id);
@@ -225,6 +291,12 @@
       function minimumLabel(country, multiplier = 1) {
         if (country.monthly === null) return country.noNationalMinimum ? 'Sin mínimo nacional' : 'Sin dato';
         return `${country.code === 'GB' ? '≈ ' : ''}${money.format(country.monthly * multiplier)}`;
+      }
+
+      function option(value, text) {
+        const element = node('option', text);
+        element.value = value;
+        return element;
       }
 
       function renderTable() {
@@ -270,24 +342,30 @@
         return [rank, rank];
       }
 
-      function chartRow(lower, upper, [lowerMin, lowerMax], [upperMin, upperMax]) {
-        const minimum = Math.max(0, upperMin - lowerMax);
-        const maximum = Math.max(0, upperMax - lowerMin);
-        const isRange = maximum > minimum;
-        const value = isRange ? `${decimal.format(Math.floor(minimum * 10) / 10)}–${percent(Math.ceil(maximum * 10) / 10)}` : minimum > 0 && minimum < .1 ? '<0,1 %' : `≈ ${percent(minimum)}`;
+      function bracketBounds([lowerMin, lowerMax], [upperMin, upperMax]) {
+        return [Math.max(0, upperMin - lowerMax), Math.max(0, upperMax - lowerMin)];
+      }
+
+      function bracketLabel(minimum, maximum) {
+        if (maximum > minimum) return `${decimal.format(Math.floor(minimum * 10) / 10)}–${percent(Math.ceil(maximum * 10) / 10)}`;
+        return minimum > 0 && minimum < .1 ? '<0,1 %' : `≈ ${percent(minimum)}`;
+      }
+
+      function chartRow(lower, upper, [minimum, maximum]) {
         const row = node('li', undefined, 'chart-row');
         const track = node('span', undefined, 'track');
         track.setAttribute('aria-hidden', 'true');
         track.style.setProperty('--base', `${minimum}%`);
         track.style.setProperty('--uncertainty', `${maximum - minimum}%`);
         track.append(node('span', undefined, 'bar'), node('span', undefined, 'range'));
-        row.append(node('span', label(lower, upper)), track, node('span', value, 'chart-value'));
+        row.append(node('span', label(lower, upper)), track, node('span', bracketLabel(minimum, maximum), 'chart-value'));
         return row;
       }
 
       function renderCountry(code) {
         selected = code;
         select.value = code;
+        renderMapCountry(code);
         for (const button of table.querySelectorAll('[data-code]')) button.setAttribute('aria-pressed', button.dataset.code === code);
         const country = byCode.get(code);
         const points = country.percentiles;
@@ -301,14 +379,151 @@
           return;
         }
         const accumulated = cutoffs.map(salary => cumulative(points, salary));
-        byId('chart-rows').replaceChildren(...cutoffs.slice(1).map((upper, index) => chartRow(cutoffs[index], upper, accumulated[index], accumulated[index + 1])));
+        byId('chart-rows').replaceChildren(...cutoffs.slice(1).map((upper, index) => chartRow(cutoffs[index], upper, bracketBounds(accumulated[index], accumulated[index + 1]))));
       }
 
-      select.replaceChildren(...sorted.map(country => {
-        const option = node('option', country.name);
-        option.value = country.code;
-        return option;
-      }));
+      function setupMap(markup) {
+        if (!markup) return () => {};
+        const frame = byId('map-art');
+        frame.innerHTML = markup;
+        const svg = frame.querySelector('svg');
+        svg.setAttribute('role', 'group');
+        svg.setAttribute('aria-label', 'Mapa interactivo de Europa');
+        const metric = byId('map-metric');
+        const countrySelect = byId('map-country');
+        const tones = ['#d4eee3', '#a8dcca', '#7ec7af', '#4ba98d', '#258069', '#0c5547'];
+        const directions = new Map([['ArrowLeft', [-1, 0]], ['ArrowRight', [1, 0]], ['ArrowUp', [0, -1]], ['ArrowDown', [0, 1]]]);
+        const shapes = new Map();
+        let readings = new Map();
+
+        function svgNode(tag, attrs = {}) {
+          const element = document.createElementNS(svg.namespaceURI, tag);
+          for (const [name, value] of Object.entries(attrs)) element.setAttribute(name, value);
+          return element;
+        }
+
+        const defs = svgNode('defs');
+        tones.forEach((tone, index) => {
+          const pattern = svgNode('pattern', { id: `salary-interval-${index}`, patternUnits: 'userSpaceOnUse', width: 7, height: 7 });
+          pattern.append(svgNode('rect', { width: 7, height: 7, fill: tone }), svgNode('path', { d: 'M -1 1 L 1 -1 M 0 7 L 7 0 M 6 8 L 8 6', stroke: '#c48940', 'stroke-width': 1.8 }));
+          defs.append(pattern);
+          const swatch = node('span');
+          swatch.style.setProperty('--tone', tone);
+          byId('map-scale').append(swatch);
+        });
+        svg.prepend(defs);
+        byId('map-brackets').replaceChildren(...cutoffs.slice(1).map((upper, index) => option(`bracket-${index}`, label(cutoffs[index], upper))));
+        countrySelect.replaceChildren(...sorted.map(country => option(country.code, country.name)));
+
+        function showReading(code) {
+          byId('map-name').textContent = byCode.get(code).name;
+          byId('map-value').textContent = readings.get(code).text;
+        }
+
+        function neighbor(origin, [horizontal, vertical]) {
+          const current = origin.getBBox();
+          let closest = null;
+          let best = Infinity;
+          for (const [code, shape] of shapes) {
+            if (shape === origin) continue;
+            const box = shape.getBBox();
+            const deltaX = box.x + box.width / 2 - (current.x + current.width / 2);
+            const deltaY = box.y + box.height / 2 - (current.y + current.height / 2);
+            if (deltaX * horizontal + deltaY * vertical <= 0) continue;
+            const score = Math.hypot(deltaX, deltaY) + 2 * Math.abs(deltaX * vertical - deltaY * horizontal);
+            if (score < best) {
+              closest = code;
+              best = score;
+            }
+          }
+          return closest;
+        }
+
+        for (const shape of svg.querySelectorAll('path[id], circle[id]')) {
+          shape.classList.add('map-land');
+          const code = shape.id;
+          if (!byCode.has(code)) {
+            shape.setAttribute('aria-hidden', 'true');
+            continue;
+          }
+          shapes.set(code, shape);
+          shape.classList.add('map-country');
+          shape.setAttribute('role', 'button');
+          shape.setAttribute('aria-keyshortcuts', 'ArrowLeft ArrowRight ArrowUp ArrowDown');
+          shape.addEventListener('pointerenter', () => showReading(code));
+          shape.addEventListener('pointerleave', () => showReading(selected));
+          shape.addEventListener('click', () => renderCountry(code));
+          shape.addEventListener('keydown', event => {
+            if (event.key === 'Enter' || event.key === ' ') {
+              event.preventDefault();
+              renderCountry(code);
+            } else if (directions.has(event.key)) {
+              event.preventDefault();
+              const next = neighbor(shape, directions.get(event.key));
+              if (next) {
+                renderCountry(next);
+                shapes.get(next).focus();
+              }
+            }
+          });
+        }
+
+        function readMetric(country, mode, bracket) {
+          if (mode === 'monthly' || mode === 'annual') {
+            const multiplier = mode === 'annual' ? 12 : 1;
+            const value = country.monthly === null ? null : country.monthly * multiplier;
+            return { minimum: value, maximum: value, text: minimumLabel(country, multiplier), noMinimum: country.noNationalMinimum };
+          }
+          if (!country.percentiles) return { minimum: null, maximum: null, text: 'Sin dato' };
+          if (mode === 'median') {
+            const value = country.percentiles.find(([rank]) => rank === 50)[1];
+            return { minimum: value, maximum: value, text: money.format(value) };
+          }
+          const [minimum, maximum] = bracketBounds(cumulative(country.percentiles, cutoffs[bracket]), cumulative(country.percentiles, cutoffs[bracket + 1]));
+          return { minimum, maximum, text: bracketLabel(minimum, maximum) };
+        }
+
+        function colorMap() {
+          const mode = metric.value;
+          const isMinimum = mode === 'monthly' || mode === 'annual';
+          const isBracket = mode.startsWith('bracket-');
+          const bracket = isBracket ? Number(mode.slice('bracket-'.length)) : -1;
+          readings = new Map(sorted.map(country => [country.code, readMetric(country, mode, bracket)]));
+          const step = isBracket ? 5 : mode === 'monthly' ? 500 : 5000;
+          const highest = Math.max(...[...readings.values()].map(reading => reading.maximum ?? 0));
+          const top = Math.max(step, Math.ceil(highest / step) * step);
+          const format = isBracket ? percent : value => money.format(value);
+          byId('map-min').textContent = format(0);
+          byId('map-max').textContent = format(top);
+          byId('map-period').textContent = isMinimum ? minimumDate.textContent : earningsYear;
+          byId('map-no-minimum').hidden = !isMinimum;
+          byId('map-range-key').hidden = !isBracket;
+          for (const [code, shape] of shapes) {
+            const { minimum, maximum, text, noMinimum } = readings.get(code);
+            const index = Math.min(tones.length - 1, Math.floor(minimum / top * tones.length));
+            const fill = minimum === null ? (noMinimum ? '#a7b6ae' : '#dce2dd') : maximum > minimum ? `url(#salary-interval-${index})` : tones[index];
+            shape.style.setProperty('--map-fill', fill);
+            shape.setAttribute('aria-label', `${byCode.get(code).name}: ${text}`);
+          }
+          showReading(selected);
+        }
+
+        metric.addEventListener('change', colorMap);
+        countrySelect.addEventListener('change', () => renderCountry(countrySelect.value));
+        colorMap();
+        byId('map-section').hidden = false;
+        return code => {
+          countrySelect.value = code;
+          for (const [countryCode, shape] of shapes) {
+            shape.setAttribute('aria-pressed', countryCode === code);
+            shape.setAttribute('tabindex', countryCode === code ? '0' : '-1');
+          }
+          showReading(code);
+        };
+      }
+
+      const renderMapCountry = setupMap(window.SALARIOS_EUROPA_MAPA);
+      select.replaceChildren(...sorted.map(country => option(country.code, country.name)));
       select.addEventListener('change', () => renderCountry(select.value));
       byId('search').addEventListener('input', renderTable);
       byId('order').addEventListener('change', renderTable);

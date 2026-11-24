@@ -87,6 +87,7 @@
     .mini-track > span { display: block; width: var(--width); height: 100%; border-radius: inherit; background: var(--green); }
     .empty { margin: 12px; color: var(--muted); }
     .distribution { scroll-margin-top: 12px; }
+    .distribution-links { display: flex; flex-wrap: wrap; align-items: baseline; gap: 5px 12px; font-size: .86rem; }
     .country-control { max-width: 100%; }
     .salary-lookup { display: grid; grid-template-columns: minmax(8.5rem, 1fr) minmax(0, 1.5fr); align-items: start; gap: 8px 14px; padding-block: 10px; margin-bottom: 12px; border-block: 1px solid var(--line); }
     .salary-result { color: var(--muted); font-size: .86rem; }
@@ -118,6 +119,21 @@
     .legend i { width: 14px; height: 9px; border-radius: 2px; background: var(--green); }
     .legend .hatched { background: var(--hatch); border: 1px solid var(--ochre); }
     .no-series { min-height: 6rem; padding: 14px; border: 1px solid var(--line); border-radius: 6px; background: var(--paper); }
+    .comparison { grid-column: 1 / -1; min-width: 0; scroll-margin-top: 12px; }
+    .comparison-scroll { max-height: 34rem; }
+    .comparison-table th, .comparison-table td { text-align: right; white-space: nowrap; }
+    .comparison-table tr > :first-child { position: sticky; left: 0; text-align: left; box-shadow: 1px 0 var(--line); }
+    .comparison-table thead th { z-index: 2; }
+    .comparison-table thead th:first-child { z-index: 3; }
+    .comparison-table tbody th { top: auto; z-index: 1; background: var(--paper); }
+    .comparison-table tbody tr:has(input:checked) th { background: var(--washed); }
+    .comparison-table .comparison-interval { background: #fcf3e1; color: #79470e; }
+    .comparison-sort { display: inline-flex; gap: 6px; align-items: baseline; padding: 3px 0; border: 0; background: transparent; font-weight: bold; }
+    .comparison-sort span:last-child { min-width: .8rem; color: var(--green); }
+    .comparison-country, .comparison-toggle { display: flex; gap: 8px; align-items: center; }
+    .comparison-toggle { min-height: 42px; }
+    .comparison-country input, .comparison-toggle input { width: 1rem; height: 1rem; margin: 0; accent-color: var(--green); }
+    .comparison-key { margin: 6px 0 0; color: var(--muted); font-size: .82rem; }
     footer { border-top: 1px solid var(--line); padding-block: 19px 32px; }
     footer summary { width: fit-content; font-weight: bold; cursor: pointer; }
     footer p { max-width: 90ch; margin: 8px 0 0; color: var(--muted); font-size: .88rem; }
@@ -228,7 +244,7 @@
     <section class="distribution" id="distribution" aria-labelledby="distribution-title">
       <div class="section-heading">
         <h2 id="distribution-title" tabindex="-1">Distribución salarial</h2>
-        <time class="period" id="distribution-year"></time>
+        <div class="distribution-links"><time class="period" id="distribution-year"></time><a href="#comparison">Comparar países</a></div>
       </div>
       <div class="control country-control">
         <label for="country">País</label>
@@ -263,6 +279,40 @@
       </div>
       <p class="no-series" id="no-series" hidden>No hay una distribución comparable para este país en las fuentes utilizadas.</p>
     </section>
+
+    <section class="comparison" id="comparison" aria-labelledby="comparison-title">
+      <div class="section-heading">
+        <h2 id="comparison-title">Comparar países</h2>
+        <span class="period" id="comparison-period"></span>
+      </div>
+      <div class="controls">
+        <div class="control grow">
+          <label for="comparison-search">Buscar país</label>
+          <input id="comparison-search" type="search" placeholder="Ej. España" autocomplete="off">
+        </div>
+        <div class="control">
+          <label for="comparison-mode">Vista</label>
+          <select id="comparison-mode">
+            <option value="bracket">Por tramo</option>
+            <option value="cumulative">Acumulado</option>
+          </select>
+        </div>
+        <div class="control">
+          <label for="comparison-salary">Sueldo de referencia (€)</label>
+          <input id="comparison-salary" type="number" min="0" step="any" inputmode="decimal">
+        </div>
+        <label class="comparison-toggle"><input id="comparison-only" type="checkbox"> Solo marcados</label>
+      </div>
+      <p class="matches" id="comparison-count" role="status"></p>
+      <div class="table-scroll comparison-scroll" role="region" aria-labelledby="comparison-title" tabindex="0">
+        <table class="comparison-table" aria-label="Distribución del salario bruto anual por país">
+          <thead><tr id="comparison-head"></tr></thead>
+          <tbody id="comparison-rows"></tbody>
+        </table>
+        <p class="empty" id="comparison-empty" hidden></p>
+      </div>
+      <p class="comparison-key">≈ Estimación · Sombreado: intervalo · — Sin dato</p>
+    </section>
   </main>
 
   <footer class="wrap">
@@ -271,6 +321,7 @@
       <p><strong>Mínimos:</strong> <a href="https://ec.europa.eu/eurostat/databrowser/view/earn_mw_cur/default/table">Eurostat</a> reparte las pagas extra en 12 meses. El equivalente anual multiplica por 12 el importe mensual de la fecha indicada. Para el <a href="https://www.gov.uk/government/publications/the-national-minimum-wage-in-2026/the-national-minimum-wage-in-2026">Reino Unido</a>, el equivalente parte de 12,71 GBP/h (a partir de 21 años) y 37,5 h semanales, con el <a href="https://data.ecb.europa.eu/data/datasets/EXR/EXR.D.GBP.EUR.SP00.A">cambio del BCE</a>. Sin un mínimo nacional pueden existir mínimos sectoriales o territoriales.</p>
       <p><strong>Tramos:</strong> se refieren a salarios brutos de jornada completa en 2022, no a toda la población. La <a href="https://ec.europa.eu/eurostat/databrowser/view/earn_ses22_adeci/default/table">encuesta de Eurostat</a> cubre en general empresas con al menos 10 empleados y excluye agricultura y administración pública. Para el Reino Unido se usa la <a href="https://www.ons.gov.uk/employmentandlabourmarket/peopleinwork/earningsandworkinghours/datasets/allemployeesashetable1">ASHE de la ONS</a> y el <a href="https://data.ecb.europa.eu/data/datasets/EXR/EXR.A.GBP.EUR.SP00.A">cambio medio de 2022</a>.</p>
       <p><strong>Estimación:</strong> el percentil de un sueldo estima la proporción que cobra menos. El porcentaje por tramo no indica cuántas personas cobran exactamente ese importe. Se interpola entre los percentiles publicados. Por debajo de P10 o por encima de P90 se conserva el intervalo cuando no se puede precisar más. Los intervalos no son porcentajes exactos ni se deben sumar entre sí.</p>
+      <p><strong>Comparación:</strong> la columna «Por debajo de la referencia» muestra el percentil del sueldo introducido para cada país. La tabla ordena los intervalos por su límite inferior y, en caso de empate, por el superior.</p>
       <p><strong>Mapa:</strong> fronteras de <a href="https://www.naturalearthdata.com/">Natural Earth</a>.</p>
     </details>
   </footer>
@@ -287,7 +338,9 @@
       const integer = new Intl.NumberFormat('es-ES', { useGrouping: 'always' });
       const names = new Intl.DisplayNames('es', { type: 'region' });
       const collator = new Intl.Collator('es');
-      const sorted = countries.map(country => ({ ...country, name: names.of(country.code) })).sort((left, right) => collator.compare(left.name, right.name));
+      const sorted = countries.map(country => ({
+        ...country, name: names.of(country.code), median: country.percentiles?.find(([rank]) => rank === 50)?.[1] ?? null
+      })).sort((left, right) => collator.compare(left.name, right.name));
       const byCode = new Map(sorted.map(country => [country.code, country]));
       const highestMinimum = Math.max(...sorted.map(country => country.monthly ?? 0));
       const cutoffs = [-Infinity, 20000, 30000, 40000, 50000, 60000, 70000, 80000, 90000, 100000, Infinity];
@@ -297,6 +350,7 @@
         cumulative: cutoffs.slice(1, -1).map(upper => ({ lower: -Infinity, upper, label: label(-Infinity, upper) }))
       };
       const simplify = text => text.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLocaleLowerCase('es');
+      const countryMatches = (country, query) => simplify(country.name).includes(query) || country.code.toLowerCase() === query;
       const percent = value => `${decimal.format(value)} %`;
       const units = [...document.querySelectorAll('[data-unit]')];
       const chartModes = [...document.querySelectorAll('[data-chart-mode]')];
@@ -335,7 +389,7 @@
       function renderTable() {
         const query = simplify(byId('search').value.trim());
         const order = byId('order').value;
-        const results = sorted.filter(country => simplify(country.name).includes(query) || country.code.toLowerCase() === query);
+        const results = sorted.filter(country => countryMatches(country, query));
         const group = country => country.monthly !== null ? 0 : country.noNationalMinimum ? 1 : 2;
         if (order !== 'name') results.sort((left, right) => group(left) - group(right) || (order === 'high' ? right.monthly - left.monthly : left.monthly - right.monthly));
         byId('minimum-column').textContent = unit === 'month' ? 'Bruto al mes' : 'Equiv. anual bruto';
@@ -433,13 +487,142 @@
         const country = byCode.get(code);
         const points = country.percentiles;
         byId('country-minimum').textContent = minimumLabel(country);
-        byId('country-median').textContent = points ? money.format(points.find(([rank]) => rank === 50)[1]) : 'Sin dato';
+        byId('country-median').textContent = country.median === null ? 'Sin dato' : money.format(country.median);
         byId('chart').hidden = !points;
         byId('salary-lookup').hidden = !points;
         byId('no-series').hidden = Boolean(points);
         byId('distribution-note').textContent = points ? `Jornada completa · ${country.code === 'GB' ? 'ONS' : 'Eurostat'}` : '';
         renderChart(points);
         renderSalary();
+      }
+
+      function setupComparison() {
+        const mode = byId('comparison-mode');
+        const head = byId('comparison-head');
+        const rows = byId('comparison-rows');
+        const filter = byId('comparison-search');
+        const reference = byId('comparison-salary');
+        const onlyMarked = byId('comparison-only');
+        const marked = new Set();
+        let sortColumn = 0;
+        let sortDirection = 1;
+
+        byId('comparison-period').textContent = `${earningsYear} · Jornada completa`;
+        reference.value = salaryInput.value;
+
+        function renderCount(visible) {
+          byId('comparison-count').textContent = `${visible.length} de ${sorted.length} países · ${visible.filter(country => country.percentiles).length} con datos · ${marked.size} marcados`;
+        }
+
+        function renderRows() {
+          const query = simplify(filter.value.trim());
+          const visible = sorted.filter(country => countryMatches(country, query) && (!onlyMarked.checked || marked.has(country.code)));
+          const salary = reference.valueAsNumber;
+          const validSalary = Number.isFinite(salary) && salary >= 0;
+          const activeBands = bands[mode.value];
+          const entries = visible.map(country => {
+            const points = country.percentiles;
+            const values = points ? [[country.median, country.median], validSalary ? cumulative(points, salary) : null, ...activeBands.map(band => distributionBounds(points, band))] : Array(2 + activeBands.length).fill(null);
+            return { country, values };
+          });
+          entries.sort((left, right) => {
+            const namesOrder = collator.compare(left.country.name, right.country.name);
+            if (sortColumn === 0) return sortDirection * namesOrder;
+            const leftValue = left.values[sortColumn - 1];
+            const rightValue = right.values[sortColumn - 1];
+            if (!leftValue || !rightValue) return Number(!leftValue) - Number(!rightValue) || namesOrder;
+            return sortDirection * (leftValue[0] - rightValue[0] || leftValue[1] - rightValue[1]) || namesOrder;
+          });
+          for (const [index, column] of Array.from(head.cells).entries()) {
+            const arrow = column.querySelector('[aria-hidden]');
+            if (index === sortColumn) {
+              column.setAttribute('aria-sort', sortDirection === 1 ? 'ascending' : 'descending');
+              arrow.textContent = sortDirection === 1 ? '↑' : '↓';
+            } else {
+              column.removeAttribute('aria-sort');
+              arrow.textContent = '↕';
+            }
+          }
+          rows.replaceChildren(...entries.map(({ country, values }) => {
+            const row = node('tr');
+            const countryCell = node('th');
+            countryCell.scope = 'row';
+            const name = node('div', undefined, 'comparison-country');
+            const check = node('input');
+            check.type = 'checkbox';
+            check.checked = marked.has(country.code);
+            check.setAttribute('aria-label', `Marcar ${country.name}`);
+            check.addEventListener('change', () => {
+              if (check.checked) marked.add(country.code);
+              else marked.delete(country.code);
+              if (onlyMarked.checked) {
+                onlyMarked.focus();
+                renderRows();
+              } else renderCount(visible);
+            });
+            const link = node('a', country.name);
+            link.href = '#distribution';
+            link.addEventListener('click', () => renderCountry(country.code));
+            name.append(check, link);
+            countryCell.append(name);
+            row.append(countryCell, ...values.map((value, index) => {
+              if (value === null) {
+                const cell = node('td', '—', 'missing');
+                cell.setAttribute('aria-label', 'Sin dato');
+                return cell;
+              }
+              const cell = node('td', index === 0 ? money.format(value[0]) : shareLabel(...value), 'amount');
+              if (value[0] < value[1]) cell.classList.add('comparison-interval');
+              return cell;
+            }));
+            return row;
+          }));
+          const empty = byId('comparison-empty');
+          empty.hidden = visible.length !== 0;
+          empty.textContent = onlyMarked.checked && !marked.size ? 'No hay países marcados.' : 'No hay países que coincidan.';
+          renderCount(visible);
+        }
+
+        function renderHead() {
+          const headings = ['País', 'Mediana anual', 'Por debajo de la referencia', ...bands[mode.value].map(band => band.label)];
+          head.replaceChildren(...headings.map((label, index) => {
+            const cell = node('th');
+            cell.scope = 'col';
+            const button = node('button', undefined, 'comparison-sort');
+            button.type = 'button';
+            const arrow = node('span');
+            arrow.setAttribute('aria-hidden', 'true');
+            button.append(node('span', label), arrow);
+            button.addEventListener('click', () => {
+              sortDirection = index === sortColumn ? -sortDirection : index === 0 ? 1 : -1;
+              sortColumn = index;
+              renderRows();
+            });
+            cell.append(button);
+            return cell;
+          }));
+          renderRows();
+        }
+
+        mode.addEventListener('change', () => {
+          if (sortColumn >= 3) {
+            sortColumn = 0;
+            sortDirection = 1;
+          }
+          renderHead();
+        });
+        filter.addEventListener('input', renderRows);
+        onlyMarked.addEventListener('change', renderRows);
+        reference.addEventListener('input', () => {
+          salaryInput.value = reference.value;
+          renderSalary();
+          renderRows();
+        });
+        renderHead();
+        return () => {
+          reference.value = salaryInput.value;
+          renderRows();
+        };
       }
 
       function setupMap(markup) {
@@ -536,7 +719,7 @@
           }
           if (!country.percentiles) return { minimum: null, maximum: null, text: 'Sin dato' };
           if (mode === 'median') {
-            const value = country.percentiles.find(([rank]) => rank === 50)[1];
+            const value = country.median;
             return { minimum: value, maximum: value, text: money.format(value) };
           }
           const [minimum, maximum] = distributionBounds(country.percentiles, bands.bracket[bracket]);
@@ -583,9 +766,13 @@
       }
 
       const renderMapCountry = setupMap(window.SALARIOS_EUROPA_MAPA);
+      const syncComparisonSalary = setupComparison();
       select.replaceChildren(...sorted.map(country => option(country.code, country.name)));
       select.addEventListener('change', () => renderCountry(select.value));
-      salaryInput.addEventListener('input', renderSalary);
+      salaryInput.addEventListener('input', () => {
+        renderSalary();
+        syncComparisonSalary();
+      });
       for (const button of chartModes) button.addEventListener('click', () => {
         chartMode = button.dataset.chartMode;
         for (const choice of chartModes) choice.setAttribute('aria-pressed', choice === button);

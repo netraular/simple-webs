@@ -88,6 +88,12 @@
     .empty { margin: 12px; color: var(--muted); }
     .distribution { scroll-margin-top: 12px; }
     .country-control { max-width: 100%; }
+    .salary-lookup { display: grid; grid-template-columns: minmax(8.5rem, 1fr) minmax(0, 1.5fr); align-items: start; gap: 8px 14px; padding-block: 10px; margin-bottom: 12px; border-block: 1px solid var(--line); }
+    .salary-result { color: var(--muted); font-size: .86rem; }
+    .salary-result p { margin: 0 0 3px; }
+    .salary-result strong { color: var(--ink); font-variant-numeric: tabular-nums; }
+    .chart-mode { margin-bottom: 5px; }
+    .chart-mode .units { width: fit-content; }
     .metrics { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); margin: 12px 0 14px; border-block: 1px solid var(--line); background: var(--washed); }
     .metric { padding: 8px 12px; }
     .metric + .metric { border-left: 1px solid var(--line); }
@@ -113,7 +119,7 @@
     .legend .hatched { background: var(--hatch); border: 1px solid var(--ochre); }
     .no-series { min-height: 6rem; padding: 14px; border: 1px solid var(--line); border-radius: 6px; background: var(--paper); }
     footer { border-top: 1px solid var(--line); padding-block: 19px 32px; }
-    footer h2 { font-size: 1rem; }
+    footer summary { width: fit-content; font-weight: bold; cursor: pointer; }
     footer p { max-width: 90ch; margin: 8px 0 0; color: var(--muted); font-size: .88rem; }
     @media (max-width: 850px) {
       .layout { grid-template-columns: minmax(0, 1fr); }
@@ -126,6 +132,7 @@
     @media (max-width: 420px) {
       h1 { font-size: 2.18rem; }
       .layout { gap: 24px; padding-block: 22px 26px; }
+      .salary-lookup { grid-template-columns: minmax(0, 1fr); }
       .chart { --columns: minmax(7.2rem, 1fr) minmax(1.75rem, 1fr) 5.8rem; }
       .ticks span:nth-child(2) { visibility: hidden; }
     }
@@ -232,7 +239,24 @@
         <div class="metric"><span>Mediana bruta al año</span><strong id="country-median"></strong></div>
       </div>
       <p class="distribution-note" id="distribution-note"></p>
+      <div class="salary-lookup" id="salary-lookup" hidden>
+        <div class="control">
+          <label for="salary-amount">Consultar salario bruto anual (€)</label>
+          <input id="salary-amount" type="number" min="0" step="any" inputmode="decimal" value="40000">
+        </div>
+        <div class="salary-result" role="status">
+          <p>Percentil estimado: <strong id="salary-percentile"></strong></p>
+          <p id="salary-below"></p>
+          <p id="salary-share"></p>
+        </div>
+      </div>
       <div class="chart" id="chart">
+        <div class="chart-mode">
+          <div class="units" role="group" aria-label="Vista de la distribución">
+            <button type="button" data-chart-mode="bracket" aria-pressed="true">Por tramo</button>
+            <button type="button" data-chart-mode="cumulative" aria-pressed="false">Acumulado</button>
+          </div>
+        </div>
         <div class="chart-axis" aria-hidden="true"><div class="ticks"><span>0 %</span><span>50 %</span><span>100 %</span></div></div>
         <ol class="chart-rows" id="chart-rows" aria-label="Porcentaje por tramo de salario bruto anual en euros"></ol>
         <div class="legend"><span><i aria-hidden="true"></i>Estimación o límite inferior</span><span><i class="hatched" aria-hidden="true"></i>Margen sin precisar</span></div>
@@ -242,11 +266,13 @@
   </main>
 
   <footer class="wrap">
-    <h2>Fuentes y método</h2>
-    <p><strong>Mínimos:</strong> <a href="https://ec.europa.eu/eurostat/databrowser/view/earn_mw_cur/default/table">Eurostat</a> reparte las pagas extra en 12 meses. El equivalente anual multiplica por 12 el importe mensual de la fecha indicada. Para el <a href="https://www.gov.uk/government/publications/the-national-minimum-wage-in-2026/the-national-minimum-wage-in-2026">Reino Unido</a>, el equivalente parte de 12,71 GBP/h (a partir de 21 años) y 37,5 h semanales, con el <a href="https://data.ecb.europa.eu/data/datasets/EXR/EXR.D.GBP.EUR.SP00.A">cambio del BCE</a>. Sin un mínimo nacional pueden existir mínimos sectoriales o territoriales.</p>
-    <p><strong>Tramos:</strong> se refieren a salarios brutos de jornada completa en 2022, no a toda la población. La <a href="https://ec.europa.eu/eurostat/databrowser/view/earn_ses22_adeci/default/table">encuesta de Eurostat</a> cubre en general empresas con al menos 10 empleados y excluye agricultura y administración pública. Para el Reino Unido se usa la <a href="https://www.ons.gov.uk/employmentandlabourmarket/peopleinwork/earningsandworkinghours/datasets/allemployeesashetable1">ASHE de la ONS</a> y el <a href="https://data.ecb.europa.eu/data/datasets/EXR/EXR.A.GBP.EUR.SP00.A">cambio medio de 2022</a>.</p>
-    <p><strong>Estimación:</strong> se interpola entre los percentiles publicados. Por debajo de P10 o por encima de P90 solo se muestra un intervalo cuando el dato no permite precisar más. Los intervalos no son porcentajes exactos ni se deben sumar entre sí.</p>
-    <p><strong>Mapa:</strong> fronteras de <a href="https://www.naturalearthdata.com/">Natural Earth</a>.</p>
+    <details>
+      <summary>Fuentes y método</summary>
+      <p><strong>Mínimos:</strong> <a href="https://ec.europa.eu/eurostat/databrowser/view/earn_mw_cur/default/table">Eurostat</a> reparte las pagas extra en 12 meses. El equivalente anual multiplica por 12 el importe mensual de la fecha indicada. Para el <a href="https://www.gov.uk/government/publications/the-national-minimum-wage-in-2026/the-national-minimum-wage-in-2026">Reino Unido</a>, el equivalente parte de 12,71 GBP/h (a partir de 21 años) y 37,5 h semanales, con el <a href="https://data.ecb.europa.eu/data/datasets/EXR/EXR.D.GBP.EUR.SP00.A">cambio del BCE</a>. Sin un mínimo nacional pueden existir mínimos sectoriales o territoriales.</p>
+      <p><strong>Tramos:</strong> se refieren a salarios brutos de jornada completa en 2022, no a toda la población. La <a href="https://ec.europa.eu/eurostat/databrowser/view/earn_ses22_adeci/default/table">encuesta de Eurostat</a> cubre en general empresas con al menos 10 empleados y excluye agricultura y administración pública. Para el Reino Unido se usa la <a href="https://www.ons.gov.uk/employmentandlabourmarket/peopleinwork/earningsandworkinghours/datasets/allemployeesashetable1">ASHE de la ONS</a> y el <a href="https://data.ecb.europa.eu/data/datasets/EXR/EXR.A.GBP.EUR.SP00.A">cambio medio de 2022</a>.</p>
+      <p><strong>Estimación:</strong> el percentil de un sueldo estima la proporción que cobra menos. El porcentaje por tramo no indica cuántas personas cobran exactamente ese importe. Se interpola entre los percentiles publicados. Por debajo de P10 o por encima de P90 se conserva el intervalo cuando no se puede precisar más. Los intervalos no son porcentajes exactos ni se deben sumar entre sí.</p>
+      <p><strong>Mapa:</strong> fronteras de <a href="https://www.naturalearthdata.com/">Natural Earth</a>.</p>
+    </details>
   </footer>
 
   <script src="data/salarios-europa.js"></script>
@@ -266,13 +292,20 @@
       const highestMinimum = Math.max(...sorted.map(country => country.monthly ?? 0));
       const cutoffs = [-Infinity, 20000, 30000, 40000, 50000, 60000, 70000, 80000, 90000, 100000, Infinity];
       const label = (lower, upper) => lower === -Infinity ? `Menos de ${money.format(upper)}` : upper === Infinity ? `Más de ${money.format(lower)}` : `${integer.format(lower)}–${money.format(upper)}`;
+      const bands = {
+        bracket: cutoffs.slice(1).map((upper, index) => ({ lower: cutoffs[index], upper, label: label(cutoffs[index], upper) })),
+        cumulative: cutoffs.slice(1, -1).map(upper => ({ lower: -Infinity, upper, label: label(-Infinity, upper) }))
+      };
       const simplify = text => text.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLocaleLowerCase('es');
       const percent = value => `${decimal.format(value)} %`;
       const units = [...document.querySelectorAll('[data-unit]')];
+      const chartModes = [...document.querySelectorAll('[data-chart-mode]')];
       const select = byId('country');
       const table = byId('minimum-rows');
+      const salaryInput = byId('salary-amount');
       let selected = 'ES';
       let unit = 'month';
+      let chartMode = 'bracket';
 
       const [minimumYear, semester] = minimumPeriod.split('-');
       const minimumDate = byId('minimum-date');
@@ -330,7 +363,7 @@
       }
 
       function cumulative(points, salary) {
-        if (salary === -Infinity) return [0, 0];
+        if (salary <= 0) return [0, 0];
         if (salary === Infinity) return [100, 100];
         if (salary < points[0][1]) return [0, points[0][0]];
         const index = points.findIndex(([, value]) => value >= salary);
@@ -346,20 +379,50 @@
         return [Math.max(0, upperMin - lowerMax), Math.max(0, upperMax - lowerMin)];
       }
 
-      function bracketLabel(minimum, maximum) {
+      function distributionBounds(points, { lower, upper }) {
+        const upperBounds = cumulative(points, upper);
+        return lower === -Infinity ? upperBounds : bracketBounds(cumulative(points, lower), upperBounds);
+      }
+
+      function shareLabel(minimum, maximum) {
         if (maximum > minimum) return `${decimal.format(Math.floor(minimum * 10) / 10)}–${percent(Math.ceil(maximum * 10) / 10)}`;
         return minimum > 0 && minimum < .1 ? '<0,1 %' : `≈ ${percent(minimum)}`;
       }
 
-      function chartRow(lower, upper, [minimum, maximum]) {
+      function chartRow(band, [minimum, maximum]) {
         const row = node('li', undefined, 'chart-row');
         const track = node('span', undefined, 'track');
         track.setAttribute('aria-hidden', 'true');
         track.style.setProperty('--base', `${minimum}%`);
         track.style.setProperty('--uncertainty', `${maximum - minimum}%`);
         track.append(node('span', undefined, 'bar'), node('span', undefined, 'range'));
-        row.append(node('span', label(lower, upper)), track, node('span', bracketLabel(minimum, maximum), 'chart-value'));
+        row.append(node('span', band.label), track, node('span', shareLabel(minimum, maximum), 'chart-value'));
         return row;
+      }
+
+      function renderSalary() {
+        const points = byCode.get(selected).percentiles;
+        const salary = salaryInput.valueAsNumber;
+        const quote = byId('salary-percentile');
+        const below = byId('salary-below');
+        const share = byId('salary-share');
+        if (!points || !Number.isFinite(salary) || salary < 0) {
+          quote.textContent = '—';
+          below.textContent = '';
+          share.textContent = '';
+          return;
+        }
+        const [minimum, maximum] = cumulative(points, salary);
+        quote.textContent = minimum === maximum ? `P${decimal.format(minimum)}` : `P${decimal.format(Math.floor(minimum * 10) / 10)}–P${decimal.format(Math.ceil(maximum * 10) / 10)}`;
+        below.textContent = `${shareLabel(minimum, maximum)} cobra menos.`;
+        const band = bands.bracket.find(({ upper }) => salary < upper || (upper === 100000 && salary === upper));
+        share.textContent = `${shareLabel(...distributionBounds(points, band))} cobra en el tramo ${band.label.toLocaleLowerCase('es')}.`;
+      }
+
+      function renderChart(points) {
+        const chartRows = byId('chart-rows');
+        chartRows.setAttribute('aria-label', chartMode === 'cumulative' ? 'Porcentaje acumulado de salario bruto anual en euros' : 'Porcentaje por tramo de salario bruto anual en euros');
+        chartRows.replaceChildren(...(points ? bands[chartMode].map(band => chartRow(band, distributionBounds(points, band))) : []));
       }
 
       function renderCountry(code) {
@@ -372,14 +435,11 @@
         byId('country-minimum').textContent = minimumLabel(country);
         byId('country-median').textContent = points ? money.format(points.find(([rank]) => rank === 50)[1]) : 'Sin dato';
         byId('chart').hidden = !points;
+        byId('salary-lookup').hidden = !points;
         byId('no-series').hidden = Boolean(points);
         byId('distribution-note').textContent = points ? `Jornada completa · ${country.code === 'GB' ? 'ONS' : 'Eurostat'}` : '';
-        if (!points) {
-          byId('chart-rows').replaceChildren();
-          return;
-        }
-        const accumulated = cutoffs.map(salary => cumulative(points, salary));
-        byId('chart-rows').replaceChildren(...cutoffs.slice(1).map((upper, index) => chartRow(cutoffs[index], upper, bracketBounds(accumulated[index], accumulated[index + 1]))));
+        renderChart(points);
+        renderSalary();
       }
 
       function setupMap(markup) {
@@ -412,7 +472,7 @@
           byId('map-scale').append(swatch);
         });
         svg.prepend(defs);
-        byId('map-brackets').replaceChildren(...cutoffs.slice(1).map((upper, index) => option(`bracket-${index}`, label(cutoffs[index], upper))));
+        byId('map-brackets').replaceChildren(...bands.bracket.map((band, index) => option(`bracket-${index}`, band.label)));
         countrySelect.replaceChildren(...sorted.map(country => option(country.code, country.name)));
 
         function showReading(code) {
@@ -479,8 +539,8 @@
             const value = country.percentiles.find(([rank]) => rank === 50)[1];
             return { minimum: value, maximum: value, text: money.format(value) };
           }
-          const [minimum, maximum] = bracketBounds(cumulative(country.percentiles, cutoffs[bracket]), cumulative(country.percentiles, cutoffs[bracket + 1]));
-          return { minimum, maximum, text: bracketLabel(minimum, maximum) };
+          const [minimum, maximum] = distributionBounds(country.percentiles, bands.bracket[bracket]);
+          return { minimum, maximum, text: shareLabel(minimum, maximum) };
         }
 
         function colorMap() {
@@ -525,6 +585,12 @@
       const renderMapCountry = setupMap(window.SALARIOS_EUROPA_MAPA);
       select.replaceChildren(...sorted.map(country => option(country.code, country.name)));
       select.addEventListener('change', () => renderCountry(select.value));
+      salaryInput.addEventListener('input', renderSalary);
+      for (const button of chartModes) button.addEventListener('click', () => {
+        chartMode = button.dataset.chartMode;
+        for (const choice of chartModes) choice.setAttribute('aria-pressed', choice === button);
+        renderChart(byCode.get(selected).percentiles);
+      });
       byId('search').addEventListener('input', renderTable);
       byId('order').addEventListener('change', renderTable);
       for (const button of units) button.addEventListener('click', () => {

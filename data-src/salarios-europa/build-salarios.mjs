@@ -4,6 +4,7 @@ import { writeFileSync } from 'node:fs';
 const api = 'https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/';
 const minimumPeriod = '2026-S2';
 const earningsYear = '2022';
+const priceYear = '2025';
 const countries = 'AD AL AM AT AZ BA BE BG BY CH CY CZ DE DK EE ES FI FR GB GE GR HR HU IE IS IT KZ LI LT LU LV MC MD ME MK MT NL NO PL PT RO RS RU SE SI SK SM TR UA VA XK'.split(' ');
 const noNationalMinimum = new Set(['AT', 'BA', 'CH', 'DK', 'FI', 'IS', 'IT', 'LI', 'NO', 'SE']);
 const quantileCodes = [[10, 'P10'], [50, 'MED'], [90, 'P90']];
@@ -34,23 +35,27 @@ function valueAt(data, coordinates) {
 
 const minimum = eurostat('earn_mw_cur', { time: minimumPeriod, currency: 'EUR' });
 const earnings = eurostat('earn_ses22_adeci', { time: earningsYear, unit: 'EUR', worktime: 'FT' });
+const prices = eurostat('prc_ppp_ind_1', { indic_ppp: 'PLI_EU27_2020', ppp_cat18: 'E011', sinceTimePeriod: earningsYear, untilTimePeriod: priceYear });
 const data = countries.map(code => {
+  const geo = code === 'GR' ? 'EL' : code === 'GB' ? 'UK' : code;
+  const priceIndex = valueAt(prices, { geo, time: priceYear });
+  const earningsPriceIndex = valueAt(prices, { geo, time: earningsYear });
+  const country = { code, priceIndex, earningsPriceIndex };
   if (code === 'GB') {
-    return { code, monthly: Math.round(ukHourly * ukHours * 52 / 12 / ukJulyRate), noNationalMinimum: false,
+    return { ...country, monthly: Math.round(ukHourly * ukHours * 52 / 12 / ukJulyRate), noNationalMinimum: false,
       percentiles: ukPercentiles.map(([rank, pounds]) => [rank, Math.round(pounds / ukAnnualRate)]) };
   }
-  const geo = code === 'GR' ? 'EL' : code;
   const monthly = valueAt(minimum, { geo });
   const points = quantileCodes.map(([rank, quant_inc]) => [rank, valueAt(earnings, { geo, quant_inc })]);
   const complete = points.every(([, value], index) => value !== null && (index === 0 || value > points[index - 1][1]));
-  return { code, monthly, noNationalMinimum: monthly === null && noNationalMinimum.has(code), percentiles: complete ? points : null };
+  return { ...country, monthly, noNationalMinimum: monthly === null && noNationalMinimum.has(code), percentiles: complete ? points : null };
 });
 
-if (!data.some(country => country.code === 'ES' && country.monthly !== null && country.percentiles !== null)) {
+if (!data.some(country => country.code === 'ES' && [country.monthly, country.percentiles, country.priceIndex, country.earningsPriceIndex].every(value => value !== null))) {
   throw new Error('Faltan datos de referencia en las series de Eurostat.');
 }
 
-const snapshot = { minimumPeriod, earningsYear, countries: data };
+const snapshot = { minimumPeriod, earningsYear, priceYear, countries: data };
 const output = `window.SALARIOS_EUROPA = ${JSON.stringify(snapshot)};\n`;
 writeFileSync(new URL('../../pages/data/salarios-europa.js', import.meta.url), output);
-console.log(`${data.length} países: ${data.filter(country => country.monthly !== null).length} mínimos y ${data.filter(country => country.percentiles !== null).length} distribuciones.`);
+console.log(`${data.length} países: ${data.filter(country => country.monthly !== null).length} mínimos, ${data.filter(country => country.percentiles !== null).length} distribuciones y ${data.filter(country => country.priceIndex !== null).length} niveles de precios.`);

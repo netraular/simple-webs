@@ -51,7 +51,9 @@
     .map-detail { font-size: .86rem; }
     .map-scale { display: flex; height: 12px; border-radius: 2px; overflow: hidden; }
     .map-scale span { flex: 1; background: var(--tone); }
-    .map-limits { display: flex; justify-content: space-between; color: var(--muted); font-size: .78rem; }
+    .map-limits { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); color: var(--muted); font-size: .78rem; }
+    .map-limits span:nth-child(2) { text-align: center; }
+    .map-limits span:last-child { grid-column: 3; text-align: right; }
     .map-keys { display: grid; gap: 4px; color: var(--muted); font-size: .8rem; }
     .map-key { display: flex; gap: 6px; align-items: baseline; }
     .map-key i { flex: 0 0 13px; height: 10px; border-radius: 2px; background: #dce2dd; }
@@ -97,7 +99,8 @@
     .chart-mode .units { width: fit-content; }
     .metrics { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); margin: 12px 0 14px; border-block: 1px solid var(--line); background: var(--washed); }
     .metric { padding: 8px 12px; }
-    .metric + .metric { border-left: 1px solid var(--line); }
+    .metric:nth-child(even) { border-left: 1px solid var(--line); }
+    .metric:nth-child(n+3) { border-top: 1px solid var(--line); }
     .metric span, .metric strong { display: block; }
     .metric span { color: var(--muted); font-size: .8rem; }
     .metric strong { margin-top: 2px; font-size: 1.1rem; overflow-wrap: anywhere; }
@@ -181,6 +184,10 @@
                 <option value="annual">Mínimo anual equivalente</option>
                 <option value="median">Mediana anual</option>
               </optgroup>
+              <optgroup label="Coste de vida">
+                <option value="priceIndex">Nivel de precios (UE = 100)</option>
+                <option value="adjustedMedian">Mediana ajustada por precios</option>
+              </optgroup>
               <optgroup id="map-brackets" label="Porcentaje por tramo anual"></optgroup>
             </select>
           </div>
@@ -195,7 +202,7 @@
           <a class="map-detail" href="#distribution">Ver distribución salarial</a>
           <div class="map-legend">
             <div class="map-scale" id="map-scale" aria-hidden="true"></div>
-            <div class="map-limits"><span id="map-min"></span><span id="map-max"></span></div>
+            <div class="map-limits"><span id="map-min"></span><span id="map-benchmark" hidden>UE 100</span><span id="map-max"></span></div>
           </div>
           <div class="map-keys map-legend">
             <span class="map-key"><i aria-hidden="true"></i>Sin dato</span>
@@ -253,6 +260,8 @@
       <div class="metrics">
         <div class="metric"><span>Mínimo bruto al mes</span><strong id="country-minimum"></strong></div>
         <div class="metric"><span>Mediana bruta al año</span><strong id="country-median"></strong></div>
+        <div class="metric"><span id="country-price-label"></span><strong id="country-prices"></strong></div>
+        <div class="metric"><span>Mediana ajustada por precios</span><strong id="country-adjusted"></strong></div>
       </div>
       <p class="distribution-note" id="distribution-note"></p>
       <div class="salary-lookup" id="salary-lookup" hidden>
@@ -305,7 +314,7 @@
       </div>
       <p class="matches" id="comparison-count" role="status"></p>
       <div class="table-scroll comparison-scroll" role="region" aria-labelledby="comparison-title" tabindex="0">
-        <table class="comparison-table" aria-label="Distribución del salario bruto anual por país">
+        <table class="comparison-table" aria-label="Salario bruto anual y nivel de precios por país">
           <thead><tr id="comparison-head"></tr></thead>
           <tbody id="comparison-rows"></tbody>
         </table>
@@ -320,6 +329,8 @@
       <summary>Fuentes y método</summary>
       <p><strong>Mínimos:</strong> <a href="https://ec.europa.eu/eurostat/databrowser/view/earn_mw_cur/default/table">Eurostat</a> reparte las pagas extra en 12 meses. El equivalente anual multiplica por 12 el importe mensual de la fecha indicada. Para el <a href="https://www.gov.uk/government/publications/the-national-minimum-wage-in-2026/the-national-minimum-wage-in-2026">Reino Unido</a>, el equivalente parte de 12,71 GBP/h (a partir de 21 años) y 37,5 h semanales, con el <a href="https://data.ecb.europa.eu/data/datasets/EXR/EXR.D.GBP.EUR.SP00.A">cambio del BCE</a>. Sin un mínimo nacional pueden existir mínimos sectoriales o territoriales.</p>
       <p><strong>Tramos:</strong> se refieren a salarios brutos de jornada completa en 2022, no a toda la población. La <a href="https://ec.europa.eu/eurostat/databrowser/view/earn_ses22_adeci/default/table">encuesta de Eurostat</a> cubre en general empresas con al menos 10 empleados y excluye agricultura y administración pública. Para el Reino Unido se usa la <a href="https://www.ons.gov.uk/employmentandlabourmarket/peopleinwork/earningsandworkinghours/datasets/allemployeesashetable1">ASHE de la ONS</a> y el <a href="https://data.ecb.europa.eu/data/datasets/EXR/EXR.A.GBP.EUR.SP00.A">cambio medio de 2022</a>.</p>
+      <p><strong>Coste de vida:</strong> el <a href="https://ec.europa.eu/eurostat/databrowser/view/prc_ppp_ind_1/default/table">índice de precios de Eurostat</a> compara una cesta de consumo de los hogares en 2025. Un valor de 120 significa que cuesta un 20 % más que la referencia de la UE. No es un presupuesto personal ni mide el coste de una ciudad.</p>
+      <p><strong>Poder adquisitivo:</strong> la mediana bruta de 2022 se divide por el índice de precios de 2022 y se multiplica por 100. El resultado se expresa en estándares de poder adquisitivo (EPA), no en euros, y no descuenta impuestos.</p>
       <p><strong>Estimación:</strong> el percentil de un sueldo estima la proporción que cobra menos. El porcentaje por tramo no indica cuántas personas cobran exactamente ese importe. Se interpola entre los percentiles publicados. Por debajo de P10 o por encima de P90 se conserva el intervalo cuando no se puede precisar más. Los intervalos no son porcentajes exactos ni se deben sumar entre sí.</p>
       <p><strong>Comparación:</strong> la columna «Por debajo de la referencia» muestra el percentil del sueldo introducido para cada país. La tabla ordena los intervalos por su límite inferior y, en caso de empate, por el superior.</p>
       <p><strong>Mapa:</strong> fronteras de <a href="https://www.naturalearthdata.com/">Natural Earth</a>.</p>
@@ -332,15 +343,17 @@
     const snapshot = window.SALARIOS_EUROPA;
     const byId = id => document.getElementById(id);
 
-    function setup({ minimumPeriod, earningsYear, countries }) {
+    function setup({ minimumPeriod, earningsYear, priceYear = '—', countries }) {
       const money = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0, useGrouping: 'always' });
       const decimal = new Intl.NumberFormat('es-ES', { maximumFractionDigits: 1 });
       const integer = new Intl.NumberFormat('es-ES', { useGrouping: 'always' });
       const names = new Intl.DisplayNames('es', { type: 'region' });
       const collator = new Intl.Collator('es');
-      const sorted = countries.map(country => ({
-        ...country, name: names.of(country.code), median: country.percentiles?.find(([rank]) => rank === 50)?.[1] ?? null
-      })).sort((left, right) => collator.compare(left.name, right.name));
+      const sorted = countries.map(country => {
+        const median = country.percentiles?.find(([rank]) => rank === 50)?.[1] ?? null;
+        const adjustedMedian = median !== null && country.earningsPriceIndex > 0 ? median * 100 / country.earningsPriceIndex : null;
+        return { ...country, name: names.of(country.code), median, adjustedMedian, priceIndex: country.priceIndex ?? null };
+      }).sort((left, right) => collator.compare(left.name, right.name));
       const byCode = new Map(sorted.map(country => [country.code, country]));
       const highestMinimum = Math.max(...sorted.map(country => country.monthly ?? 0));
       const cutoffs = [-Infinity, 20000, 30000, 40000, 50000, 60000, 70000, 80000, 90000, 100000, Infinity];
@@ -352,6 +365,13 @@
       const simplify = text => text.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLocaleLowerCase('es');
       const countryMatches = (country, query) => simplify(country.name).includes(query) || country.code.toLowerCase() === query;
       const percent = value => `${decimal.format(value)} %`;
+      const moneyLabel = value => money.format(value);
+      const summaryMetrics = {
+        median: { title: 'Mediana anual', format: moneyLabel },
+        priceIndex: { title: `Precios ${priceYear} (UE = 100)`, format: value => decimal.format(value) },
+        adjustedMedian: { title: 'Mediana ajustada (EPA)', format: value => `${integer.format(Math.round(value))} EPA` }
+      };
+      const metricLabel = (country, key) => country[key] === null ? 'Sin dato' : summaryMetrics[key].format(country[key]);
       const units = [...document.querySelectorAll('[data-unit]')];
       const chartModes = [...document.querySelectorAll('[data-chart-mode]')];
       const select = byId('country');
@@ -367,6 +387,7 @@
       minimumDate.textContent = `1 ${semester === 'S2' ? 'jul' : 'ene'} ${minimumYear}`;
       byId('distribution-year').dateTime = earningsYear;
       byId('distribution-year').textContent = earningsYear;
+      byId('country-price-label').textContent = `Nivel de precios ${priceYear} (UE = 100)`;
 
       function node(tag, text, className) {
         const element = document.createElement(tag);
@@ -487,7 +508,9 @@
         const country = byCode.get(code);
         const points = country.percentiles;
         byId('country-minimum').textContent = minimumLabel(country);
-        byId('country-median').textContent = country.median === null ? 'Sin dato' : money.format(country.median);
+        byId('country-median').textContent = metricLabel(country, 'median');
+        byId('country-prices').textContent = metricLabel(country, 'priceIndex');
+        byId('country-adjusted').textContent = metricLabel(country, 'adjustedMedian');
         byId('chart').hidden = !points;
         byId('salary-lookup').hidden = !points;
         byId('no-series').hidden = Boolean(points);
@@ -504,6 +527,13 @@
         const reference = byId('comparison-salary');
         const onlyMarked = byId('comparison-only');
         const marked = new Set();
+        const summaryColumns = Object.entries(summaryMetrics).map(([key, { title, format }]) => ({
+          title, format, read: country => country[key] === null ? null : [country[key], country[key]]
+        }));
+        summaryColumns.push({
+          title: 'Por debajo de la referencia', format: shareLabel,
+          read: (country, salary) => country.percentiles && Number.isFinite(salary) && salary >= 0 ? cumulative(country.percentiles, salary) : null
+        });
         let sortColumn = 0;
         let sortDirection = 1;
 
@@ -511,18 +541,17 @@
         reference.value = salaryInput.value;
 
         function renderCount(visible) {
-          byId('comparison-count').textContent = `${visible.length} de ${sorted.length} países · ${visible.filter(country => country.percentiles).length} con datos · ${marked.size} marcados`;
+          byId('comparison-count').textContent = `${visible.length} de ${sorted.length} países · ${visible.filter(country => country.percentiles).length} con distribución salarial · ${marked.size} marcados`;
         }
 
         function renderRows() {
           const query = simplify(filter.value.trim());
           const visible = sorted.filter(country => countryMatches(country, query) && (!onlyMarked.checked || marked.has(country.code)));
           const salary = reference.valueAsNumber;
-          const validSalary = Number.isFinite(salary) && salary >= 0;
           const activeBands = bands[mode.value];
           const entries = visible.map(country => {
             const points = country.percentiles;
-            const values = points ? [[country.median, country.median], validSalary ? cumulative(points, salary) : null, ...activeBands.map(band => distributionBounds(points, band))] : Array(2 + activeBands.length).fill(null);
+            const values = [...summaryColumns.map(column => column.read(country, salary)), ...activeBands.map(band => points ? distributionBounds(points, band) : null)];
             return { country, values };
           });
           entries.sort((left, right) => {
@@ -571,7 +600,8 @@
                 cell.setAttribute('aria-label', 'Sin dato');
                 return cell;
               }
-              const cell = node('td', index === 0 ? money.format(value[0]) : shareLabel(...value), 'amount');
+              const format = summaryColumns[index]?.format ?? shareLabel;
+              const cell = node('td', format(...value), 'amount');
               if (value[0] < value[1]) cell.classList.add('comparison-interval');
               return cell;
             }));
@@ -584,7 +614,7 @@
         }
 
         function renderHead() {
-          const headings = ['País', 'Mediana anual', 'Por debajo de la referencia', ...bands[mode.value].map(band => band.label)];
+          const headings = ['País', ...summaryColumns.map(column => column.title), ...bands[mode.value].map(band => band.label)];
           head.replaceChildren(...headings.map((label, index) => {
             const cell = node('th');
             cell.scope = 'col';
@@ -605,7 +635,7 @@
         }
 
         mode.addEventListener('change', () => {
-          if (sortColumn >= 3) {
+          if (sortColumn > summaryColumns.length) {
             sortColumn = 0;
             sortDirection = 1;
           }
@@ -635,6 +665,7 @@
         const metric = byId('map-metric');
         const countrySelect = byId('map-country');
         const tones = ['#d4eee3', '#a8dcca', '#7ec7af', '#4ba98d', '#258069', '#0c5547'];
+        const priceTones = ['#277386', '#60a4ad', '#b8dce2', '#f7e1b5', '#dea363', '#a75931'];
         const directions = new Map([['ArrowLeft', [-1, 0]], ['ArrowRight', [1, 0]], ['ArrowUp', [0, -1]], ['ArrowDown', [0, 1]]]);
         const shapes = new Map();
         let readings = new Map();
@@ -650,9 +681,6 @@
           const pattern = svgNode('pattern', { id: `salary-interval-${index}`, patternUnits: 'userSpaceOnUse', width: 7, height: 7 });
           pattern.append(svgNode('rect', { width: 7, height: 7, fill: tone }), svgNode('path', { d: 'M -1 1 L 1 -1 M 0 7 L 7 0 M 6 8 L 8 6', stroke: '#c48940', 'stroke-width': 1.8 }));
           defs.append(pattern);
-          const swatch = node('span');
-          swatch.style.setProperty('--tone', tone);
-          byId('map-scale').append(swatch);
         });
         svg.prepend(defs);
         byId('map-brackets').replaceChildren(...bands.bracket.map((band, index) => option(`bracket-${index}`, band.label)));
@@ -717,11 +745,11 @@
             const value = country.monthly === null ? null : country.monthly * multiplier;
             return { minimum: value, maximum: value, text: minimumLabel(country, multiplier), noMinimum: country.noNationalMinimum };
           }
-          if (!country.percentiles) return { minimum: null, maximum: null, text: 'Sin dato' };
-          if (mode === 'median') {
-            const value = country.median;
-            return { minimum: value, maximum: value, text: money.format(value) };
+          if (Object.hasOwn(summaryMetrics, mode)) {
+            const value = country[mode];
+            return { minimum: value, maximum: value, text: metricLabel(country, mode) };
           }
+          if (!country.percentiles) return { minimum: null, maximum: null, text: 'Sin dato' };
           const [minimum, maximum] = distributionBounds(country.percentiles, bands.bracket[bracket]);
           return { minimum, maximum, text: shareLabel(minimum, maximum) };
         }
@@ -730,21 +758,32 @@
           const mode = metric.value;
           const isMinimum = mode === 'monthly' || mode === 'annual';
           const isBracket = mode.startsWith('bracket-');
+          const isPrice = mode === 'priceIndex';
           const bracket = isBracket ? Number(mode.slice('bracket-'.length)) : -1;
           readings = new Map(sorted.map(country => [country.code, readMetric(country, mode, bracket)]));
+          const values = [...readings.values()].map(reading => reading.maximum).filter(value => value !== null);
           const step = isBracket ? 5 : mode === 'monthly' ? 500 : 5000;
-          const highest = Math.max(...[...readings.values()].map(reading => reading.maximum ?? 0));
-          const top = Math.max(step, Math.ceil(highest / step) * step);
-          const format = isBracket ? percent : value => money.format(value);
-          byId('map-min').textContent = format(0);
+          const highest = Math.max(0, ...values);
+          const priceRadius = isPrice ? Math.ceil(Math.max(20, ...values.map(value => Math.abs(value - 100))) / 10) * 10 : 0;
+          const bottom = isPrice ? 100 - priceRadius : 0;
+          const top = isPrice ? 100 + priceRadius : Math.max(step, Math.ceil(highest / step) * step);
+          const palette = isPrice ? priceTones : tones;
+          const format = isBracket ? percent : summaryMetrics[mode]?.format ?? moneyLabel;
+          byId('map-scale').replaceChildren(...palette.map(tone => {
+            const swatch = node('span');
+            swatch.style.setProperty('--tone', tone);
+            return swatch;
+          }));
+          byId('map-min').textContent = format(bottom);
           byId('map-max').textContent = format(top);
-          byId('map-period').textContent = isMinimum ? minimumDate.textContent : earningsYear;
+          byId('map-benchmark').hidden = !isPrice;
+          byId('map-period').textContent = isPrice ? priceYear : isMinimum ? minimumDate.textContent : earningsYear;
           byId('map-no-minimum').hidden = !isMinimum;
           byId('map-range-key').hidden = !isBracket;
           for (const [code, shape] of shapes) {
             const { minimum, maximum, text, noMinimum } = readings.get(code);
-            const index = Math.min(tones.length - 1, Math.floor(minimum / top * tones.length));
-            const fill = minimum === null ? (noMinimum ? '#a7b6ae' : '#dce2dd') : maximum > minimum ? `url(#salary-interval-${index})` : tones[index];
+            const index = Math.min(palette.length - 1, Math.floor((minimum - bottom) / (top - bottom) * palette.length));
+            const fill = minimum === null ? (noMinimum ? '#a7b6ae' : '#dce2dd') : maximum > minimum ? `url(#salary-interval-${index})` : palette[index];
             shape.style.setProperty('--map-fill', fill);
             shape.setAttribute('aria-label', `${byCode.get(code).name}: ${text}`);
           }

@@ -1,0 +1,338 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Salario mínimo nacional y distribución del salario bruto anual en Europa, con datos de Eurostat y ONS.">
+  <title>Salarios en Europa</title>
+  <link rel="icon" href="../favicon.ico">
+  <style>
+    :root {
+      color-scheme: light;
+      --canvas: #f4f8f6;
+      --paper: #fff;
+      --ink: #172f2a;
+      --muted: #4a655d;
+      --line: #cbdad4;
+      --green: #086c57;
+      --washed: #e1efe8;
+      --ochre: #9c5e17;
+      --hatch: repeating-linear-gradient(130deg, #f8e6c6 0 4px, #b37a32 4px 6px);
+      font: 16px/1.5 "Trebuchet MS", "Gill Sans", sans-serif;
+      color: var(--ink);
+      background: var(--canvas);
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; }
+    a { color: var(--green); text-underline-offset: .2em; }
+    button, input, select { font: inherit; color: inherit; }
+    button, select { cursor: pointer; }
+    :focus-visible { outline: 2px solid var(--green); outline-offset: 3px; }
+    [hidden] { display: none !important; }
+    .wrap { max-width: 1280px; margin-inline: auto; padding-inline: clamp(16px, 4vw, 56px); }
+    .masthead { border-top: 4px solid var(--green); border-bottom: 1px solid var(--line); background: repeating-linear-gradient(0deg, #e9f2ee 0 31px, #e2eee8 31px 32px); }
+    .masthead .wrap { padding-block: 18px 26px; }
+    .back { font-size: .86rem; font-weight: bold; }
+    h1 { margin: 10px 0 2px; font-size: 2.85rem; line-height: 1.08; }
+    .subtitle { margin: 8px 0 0; color: var(--muted); }
+    .layout { display: grid; grid-template-columns: minmax(0, .95fr) minmax(0, 1.05fr); gap: 30px; padding-block: 28px 34px; }
+    .section-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 4px 12px; flex-wrap: wrap; margin-bottom: 12px; }
+    h2 { margin: 0; font-size: 1.38rem; line-height: 1.25; }
+    .period { color: var(--muted); font-size: .82rem; font-weight: bold; }
+    .controls { display: flex; gap: 8px; align-items: end; flex-wrap: wrap; }
+    .control { display: grid; min-width: 0; gap: 4px; }
+    .control.grow { flex: 1 1 10rem; }
+    label, .control-label { color: var(--muted); font-size: .82rem; font-weight: bold; }
+    input, select, .units { height: 42px; min-width: 0; border: 1px solid var(--line); border-radius: 6px; background: var(--paper); }
+    input, select { padding: 6px 9px; }
+    .units { display: flex; padding: 3px; }
+    .units button { min-width: 4.9em; border: 0; border-radius: 4px; padding: 0 6px; background: transparent; font-size: .86rem; }
+    .units button[aria-pressed="true"] { background: var(--green); color: var(--paper); }
+    .matches { color: var(--muted); font-size: .82rem; margin: 7px 0; }
+    .table-scroll { max-height: 34rem; overflow: auto; border: 1px solid var(--line); border-radius: 6px; background: var(--paper); }
+    table { width: 100%; border-collapse: separate; border-spacing: 0; text-align: left; }
+    th, td { padding: 7px 12px; border-bottom: 1px solid var(--line); }
+    th { position: sticky; top: 0; z-index: 1; background: var(--washed); font-size: .82rem; }
+    th:last-child, td:last-child { text-align: right; }
+    tr:last-child td { border-bottom: 0; }
+    tr:has(button[aria-pressed="true"]) td { background: #e9f4ed; }
+    td:first-child { width: 48%; padding-block: 3px; }
+    .country-button { display: block; width: 100%; min-height: 35px; border: 0; border-radius: 4px; padding: 4px 0; text-align: left; background: none; font-weight: bold; overflow-wrap: anywhere; }
+    .country-button:hover, .country-button[aria-pressed="true"] { color: var(--green); text-decoration: underline; text-underline-offset: .22em; }
+    .amount, .chart-value, .metric strong { font-variant-numeric: tabular-nums; }
+    .amount { font-size: .92rem; font-weight: bold; }
+    .missing { color: var(--muted); font-size: .83rem; }
+    .mini-track { display: block; width: min(100%, 7.5rem); height: 3px; margin: 3px 0 2px auto; border-radius: 2px; background: var(--washed); }
+    .mini-track > span { display: block; width: var(--width); height: 100%; border-radius: inherit; background: var(--green); }
+    .empty { margin: 12px; color: var(--muted); }
+    .distribution { scroll-margin-top: 12px; }
+    .country-control { max-width: 100%; }
+    .metrics { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); margin: 12px 0 14px; border-block: 1px solid var(--line); background: var(--washed); }
+    .metric { padding: 8px 12px; }
+    .metric + .metric { border-left: 1px solid var(--line); }
+    .metric span, .metric strong { display: block; }
+    .metric span { color: var(--muted); font-size: .8rem; }
+    .metric strong { margin-top: 2px; font-size: 1.1rem; overflow-wrap: anywhere; }
+    .distribution-note { margin: 0 0 8px; color: var(--muted); font-size: .85rem; }
+    .chart { --columns: minmax(7.5rem, 1fr) minmax(1.75rem, 1.45fr) 5.8rem; }
+    .chart-axis, .chart-row { display: grid; grid-template-columns: var(--columns); align-items: center; gap: 8px; }
+    .chart-axis { color: var(--muted); font-size: .72rem; }
+    .ticks { display: flex; justify-content: space-between; grid-column: 2; }
+    .chart-rows { list-style: none; padding: 0; margin: 3px 0 10px; }
+    .chart-row { min-height: 33px; border-bottom: 1px solid var(--line); font-size: .87rem; }
+    .chart-row:last-child { border-bottom: 0; }
+    .track { display: flex; height: 13px; overflow: hidden; border-radius: 3px; background: var(--washed); }
+    .bar, .range { height: 100%; }
+    .bar { width: var(--base); background: var(--green); }
+    .range { width: var(--uncertainty); background: var(--hatch); }
+    .chart-value { text-align: right; font-weight: bold; white-space: nowrap; }
+    .legend { display: flex; gap: 4px 16px; flex-wrap: wrap; font-size: .8rem; color: var(--muted); }
+    .legend span { display: inline-flex; gap: 6px; align-items: center; }
+    .legend i { width: 14px; height: 9px; border-radius: 2px; background: var(--green); }
+    .legend .hatched { background: var(--hatch); border: 1px solid var(--ochre); }
+    .no-series { min-height: 6rem; padding: 14px; border: 1px solid var(--line); border-radius: 6px; background: var(--paper); }
+    footer { border-top: 1px solid var(--line); padding-block: 19px 32px; }
+    footer h2 { font-size: 1rem; }
+    footer p { max-width: 90ch; margin: 8px 0 0; color: var(--muted); font-size: .88rem; }
+    @media (max-width: 850px) {
+      .layout { grid-template-columns: minmax(0, 1fr); }
+      .table-scroll { max-height: 18rem; }
+    }
+    @media (max-width: 420px) {
+      h1 { font-size: 2.18rem; }
+      .layout { gap: 24px; padding-block: 22px 26px; }
+      .chart { --columns: minmax(7.2rem, 1fr) minmax(1.75rem, 1fr) 5.8rem; }
+      .ticks span:nth-child(2) { visibility: hidden; }
+    }
+  </style>
+</head>
+<body>
+  <header class="masthead">
+    <div class="wrap">
+      <a class="back" href="../index.html">&larr; Todas las webs</a>
+      <h1>Salarios en Europa</h1>
+      <p class="subtitle">Mínimo nacional y distribución del salario bruto anual.</p>
+    </div>
+  </header>
+
+  <noscript><p class="wrap">Activa JavaScript para consultar las tablas salariales.</p></noscript>
+  <p class="wrap" id="load-error" hidden>No se han podido cargar los datos salariales.</p>
+  <main class="wrap layout" id="dashboard" hidden>
+    <section aria-labelledby="minimum-title">
+      <div class="section-heading">
+        <h2 id="minimum-title">Salario mínimo nacional</h2>
+        <time class="period" id="minimum-date"></time>
+      </div>
+      <div class="controls">
+        <div class="control grow">
+          <label for="search">Buscar país</label>
+          <input id="search" type="search" placeholder="Ej. España" autocomplete="off">
+        </div>
+        <div class="control">
+          <label for="order">Orden</label>
+          <select id="order">
+            <option value="high">Mayor mínimo</option>
+            <option value="low">Menor mínimo</option>
+            <option value="name">Nombre A–Z</option>
+          </select>
+        </div>
+        <div class="control">
+          <span class="control-label" id="unit-label">Importe bruto</span>
+          <div class="units" role="group" aria-labelledby="unit-label">
+            <button type="button" data-unit="month" aria-pressed="true">Mensual</button>
+            <button type="button" data-unit="year" aria-pressed="false">Anual</button>
+          </div>
+        </div>
+      </div>
+      <p class="matches" id="matches" role="status"></p>
+      <div class="table-scroll" role="region" aria-labelledby="minimum-title" tabindex="0">
+        <table>
+          <thead><tr><th scope="col">País</th><th scope="col" id="minimum-column">Bruto al mes</th></tr></thead>
+          <tbody id="minimum-rows"></tbody>
+        </table>
+        <p class="empty" id="no-matches" hidden>No hay países que coincidan.</p>
+      </div>
+    </section>
+
+    <section class="distribution" id="distribution" aria-labelledby="distribution-title">
+      <div class="section-heading">
+        <h2 id="distribution-title" tabindex="-1">Distribución salarial</h2>
+        <time class="period" id="distribution-year"></time>
+      </div>
+      <div class="control country-control">
+        <label for="country">País</label>
+        <select id="country"></select>
+      </div>
+      <div class="metrics">
+        <div class="metric"><span>Mínimo bruto al mes</span><strong id="country-minimum"></strong></div>
+        <div class="metric"><span>Mediana bruta al año</span><strong id="country-median"></strong></div>
+      </div>
+      <p class="distribution-note" id="distribution-note"></p>
+      <div class="chart" id="chart">
+        <div class="chart-axis" aria-hidden="true"><div class="ticks"><span>0 %</span><span>50 %</span><span>100 %</span></div></div>
+        <ol class="chart-rows" id="chart-rows" aria-label="Porcentaje por tramo de salario bruto anual en euros"></ol>
+        <div class="legend"><span><i aria-hidden="true"></i>Estimación o límite inferior</span><span><i class="hatched" aria-hidden="true"></i>Margen sin precisar</span></div>
+      </div>
+      <p class="no-series" id="no-series" hidden>No hay una distribución comparable para este país en las fuentes utilizadas.</p>
+    </section>
+  </main>
+
+  <footer class="wrap">
+    <h2>Fuentes y método</h2>
+    <p><strong>Mínimos:</strong> <a href="https://ec.europa.eu/eurostat/databrowser/view/earn_mw_cur/default/table">Eurostat</a> reparte las pagas extra en 12 meses. El equivalente anual multiplica por 12 el importe mensual de la fecha indicada. Para el <a href="https://www.gov.uk/government/publications/the-national-minimum-wage-in-2026/the-national-minimum-wage-in-2026">Reino Unido</a>, el equivalente parte de 12,71 GBP/h (a partir de 21 años) y 37,5 h semanales, con el <a href="https://data.ecb.europa.eu/data/datasets/EXR/EXR.D.GBP.EUR.SP00.A">cambio del BCE</a>. Sin un mínimo nacional pueden existir mínimos sectoriales o territoriales.</p>
+    <p><strong>Tramos:</strong> se refieren a salarios brutos de jornada completa en 2022, no a toda la población. La <a href="https://ec.europa.eu/eurostat/databrowser/view/earn_ses22_adeci/default/table">encuesta de Eurostat</a> cubre en general empresas con al menos 10 empleados y excluye agricultura y administración pública. Para el Reino Unido se usa la <a href="https://www.ons.gov.uk/employmentandlabourmarket/peopleinwork/earningsandworkinghours/datasets/allemployeesashetable1">ASHE de la ONS</a> y el <a href="https://data.ecb.europa.eu/data/datasets/EXR/EXR.A.GBP.EUR.SP00.A">cambio medio de 2022</a>.</p>
+    <p><strong>Estimación:</strong> se interpola entre los percentiles publicados. Por debajo de P10 o por encima de P90 solo se muestra un intervalo cuando el dato no permite precisar más. Los intervalos no son porcentajes exactos ni se deben sumar entre sí.</p>
+  </footer>
+
+  <script src="data/salarios-europa.js"></script>
+  <script>
+    const snapshot = window.SALARIOS_EUROPA;
+    const byId = id => document.getElementById(id);
+
+    function setup({ minimumPeriod, earningsYear, countries }) {
+      const money = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0, useGrouping: 'always' });
+      const decimal = new Intl.NumberFormat('es-ES', { maximumFractionDigits: 1 });
+      const integer = new Intl.NumberFormat('es-ES', { useGrouping: 'always' });
+      const names = new Intl.DisplayNames('es', { type: 'region' });
+      const collator = new Intl.Collator('es');
+      const sorted = countries.map(country => ({ ...country, name: names.of(country.code) })).sort((left, right) => collator.compare(left.name, right.name));
+      const byCode = new Map(sorted.map(country => [country.code, country]));
+      const highestMinimum = Math.max(...sorted.map(country => country.monthly ?? 0));
+      const cutoffs = [-Infinity, 20000, 30000, 40000, 50000, 60000, 70000, 80000, 90000, 100000, Infinity];
+      const label = (lower, upper) => lower === -Infinity ? `Menos de ${money.format(upper)}` : upper === Infinity ? `Más de ${money.format(lower)}` : `${integer.format(lower)}–${money.format(upper)}`;
+      const simplify = text => text.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLocaleLowerCase('es');
+      const percent = value => `${decimal.format(value)} %`;
+      const units = [...document.querySelectorAll('[data-unit]')];
+      const select = byId('country');
+      const table = byId('minimum-rows');
+      let selected = 'ES';
+      let unit = 'month';
+
+      const [minimumYear, semester] = minimumPeriod.split('-');
+      const minimumDate = byId('minimum-date');
+      minimumDate.dateTime = `${minimumYear}-${semester === 'S2' ? '07' : '01'}-01`;
+      minimumDate.textContent = `1 ${semester === 'S2' ? 'jul' : 'ene'} ${minimumYear}`;
+      byId('distribution-year').dateTime = earningsYear;
+      byId('distribution-year').textContent = earningsYear;
+
+      function node(tag, text, className) {
+        const element = document.createElement(tag);
+        if (text !== undefined) element.textContent = text;
+        if (className) element.className = className;
+        return element;
+      }
+
+      function minimumLabel(country, multiplier = 1) {
+        if (country.monthly === null) return country.noNationalMinimum ? 'Sin mínimo nacional' : 'Sin dato';
+        return `${country.code === 'GB' ? '≈ ' : ''}${money.format(country.monthly * multiplier)}`;
+      }
+
+      function renderTable() {
+        const query = simplify(byId('search').value.trim());
+        const order = byId('order').value;
+        const results = sorted.filter(country => simplify(country.name).includes(query) || country.code.toLowerCase() === query);
+        const group = country => country.monthly !== null ? 0 : country.noNationalMinimum ? 1 : 2;
+        if (order !== 'name') results.sort((left, right) => group(left) - group(right) || (order === 'high' ? right.monthly - left.monthly : left.monthly - right.monthly));
+        byId('minimum-column').textContent = unit === 'month' ? 'Bruto al mes' : 'Equiv. anual bruto';
+        byId('matches').textContent = `${results.length} de ${sorted.length} países`;
+        byId('no-matches').hidden = results.length !== 0;
+        table.replaceChildren(...results.map(country => {
+          const row = node('tr');
+          const name = node('td');
+          const button = node('button', country.name, 'country-button');
+          button.type = 'button';
+          button.dataset.code = country.code;
+          button.setAttribute('aria-pressed', country.code === selected);
+          name.append(button);
+          const value = node('td', minimumLabel(country, unit === 'month' ? 1 : 12), country.monthly === null ? 'missing' : 'amount');
+          if (country.monthly !== null) {
+            const track = node('span', undefined, 'mini-track');
+            track.setAttribute('aria-hidden', 'true');
+            track.style.setProperty('--width', `${country.monthly / highestMinimum * 100}%`);
+            track.append(node('span'));
+            value.append(track);
+          }
+          row.append(name, value);
+          return row;
+        }));
+      }
+
+      function cumulative(points, salary) {
+        if (salary === -Infinity) return [0, 0];
+        if (salary === Infinity) return [100, 100];
+        if (salary < points[0][1]) return [0, points[0][0]];
+        const index = points.findIndex(([, value]) => value >= salary);
+        if (index < 0) return [points.at(-1)[0], 100];
+        if (index === 0) return [points[0][0], points[0][0]];
+        const [startRank, startValue] = points[index - 1];
+        const [endRank, endValue] = points[index];
+        const rank = startRank + (salary - startValue) / (endValue - startValue) * (endRank - startRank);
+        return [rank, rank];
+      }
+
+      function chartRow(lower, upper, [lowerMin, lowerMax], [upperMin, upperMax]) {
+        const minimum = Math.max(0, upperMin - lowerMax);
+        const maximum = Math.max(0, upperMax - lowerMin);
+        const isRange = maximum > minimum;
+        const value = isRange ? `${decimal.format(Math.floor(minimum * 10) / 10)}–${percent(Math.ceil(maximum * 10) / 10)}` : minimum > 0 && minimum < .1 ? '<0,1 %' : `≈ ${percent(minimum)}`;
+        const row = node('li', undefined, 'chart-row');
+        const track = node('span', undefined, 'track');
+        track.setAttribute('aria-hidden', 'true');
+        track.style.setProperty('--base', `${minimum}%`);
+        track.style.setProperty('--uncertainty', `${maximum - minimum}%`);
+        track.append(node('span', undefined, 'bar'), node('span', undefined, 'range'));
+        row.append(node('span', label(lower, upper)), track, node('span', value, 'chart-value'));
+        return row;
+      }
+
+      function renderCountry(code) {
+        selected = code;
+        select.value = code;
+        for (const button of table.querySelectorAll('[data-code]')) button.setAttribute('aria-pressed', button.dataset.code === code);
+        const country = byCode.get(code);
+        const points = country.percentiles;
+        byId('country-minimum').textContent = minimumLabel(country);
+        byId('country-median').textContent = points ? money.format(points.find(([rank]) => rank === 50)[1]) : 'Sin dato';
+        byId('chart').hidden = !points;
+        byId('no-series').hidden = Boolean(points);
+        byId('distribution-note').textContent = points ? `Jornada completa · ${country.code === 'GB' ? 'ONS' : 'Eurostat'}` : '';
+        if (!points) {
+          byId('chart-rows').replaceChildren();
+          return;
+        }
+        const accumulated = cutoffs.map(salary => cumulative(points, salary));
+        byId('chart-rows').replaceChildren(...cutoffs.slice(1).map((upper, index) => chartRow(cutoffs[index], upper, accumulated[index], accumulated[index + 1])));
+      }
+
+      select.replaceChildren(...sorted.map(country => {
+        const option = node('option', country.name);
+        option.value = country.code;
+        return option;
+      }));
+      select.addEventListener('change', () => renderCountry(select.value));
+      byId('search').addEventListener('input', renderTable);
+      byId('order').addEventListener('change', renderTable);
+      for (const button of units) button.addEventListener('click', () => {
+        unit = button.dataset.unit;
+        for (const choice of units) choice.setAttribute('aria-pressed', choice === button);
+        renderTable();
+      });
+      table.addEventListener('click', event => {
+        const button = event.target.closest('button[data-code]');
+        if (!button) return;
+        renderCountry(button.dataset.code);
+        if (matchMedia('(max-width: 850px)').matches) {
+          byId('distribution-title').focus({ preventScroll: true });
+          byId('distribution').scrollIntoView();
+        }
+      });
+      renderTable();
+      renderCountry(selected);
+      byId('dashboard').hidden = false;
+    }
+
+    if (snapshot) setup(snapshot);
+    else byId('load-error').hidden = false;
+  </script>
+</body>
+</html>

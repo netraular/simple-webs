@@ -4,6 +4,15 @@ Desde la raíz, `node data-src/salarios-europa/build-salarios.mjs` (Node.js y
 `curl`) regenera `pages/data/salarios-europa.js`. La página no llama a las API
 en tiempo de ejecución y se puede abrir directamente como archivo local.
 
+## Mapa
+
+`node data-src/salarios-europa/build-mapa.mjs` (Node.js, `curl` y `npx`)
+regenera el SVG local en `pages/data/salarios-europa-mapa.js` con fronteras
+[Natural Earth 1:50m](https://www.naturalearthdata.com/about/terms-of-use/)
+v5.1.2, de dominio público, y Mapshaper. La vista usa una proyección
+azimutal equivalente de Lambert centrada en Europa y marcadores para los
+países demasiado pequeños para seleccionar su área a esta escala.
+
 ## Salario mínimo
 
 - [Eurostat, `earn_mw_cur`](https://ec.europa.eu/eurostat/databrowser/view/earn_mw_cur/default/table): salario mínimo nacional bruto mensual en euros, foto del 1 de julio de 2026. La [metodología de Eurostat](https://ec.europa.eu/eurostat/statistics-explained/index.php?title=Minimum_wage_statistics) ajusta las pagas extra a 12 mensualidades y explica las ausencias de mínimo nacional. El equivalente anual de la web es 12 veces el mensual, no la suma de mínimos vigentes durante el año.

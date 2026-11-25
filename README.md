@@ -48,17 +48,17 @@ Optional, keyed by filename in `webs.json`; falls back to the filename:
 
 ## Amigo invisible
 
-Genera un sorteo con Node.js y guarda el resultado fuera del repositorio:
+Genera un sorteo con Node.js y guarda la página de resultados fuera del repositorio:
 
 ```sh
 node data-src/amigo-invisible/sortear.mjs Ana Bruno Carla Dani \
-	--fijo=Ana:Bruno --salida="$HOME/amigo-invisible.json"
+	--fijo=Ana:Bruno --salida="$HOME/amigo-invisible.html"
+xdg-open "$HOME/amigo-invisible.html"
 ```
 
 Repite `--fijo=Persona:Destinatario` para cada asignación que deba mantenerse.
-Abre [el visor](pages/amigo-invisible.html) directamente en el navegador y
-selecciona el JSON con **Abrir sorteo**. El visor no sube el archivo. No guardes
-resultados dentro del checkout, porque se sirve públicamente.
+El HTML contiene todas las parejas y se abre sin servidor ni archivos adicionales.
+No lo guardes dentro del checkout, porque se sirve públicamente.
 
 ## Data files
 

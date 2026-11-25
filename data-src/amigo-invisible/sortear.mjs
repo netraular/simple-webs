@@ -1,6 +1,6 @@
 import { randomInt } from 'node:crypto';
-import { writeFileSync } from 'node:fs';
 import { parseArgs } from 'node:util';
+import { writeDraw } from './escribir-sorteo.mjs';
 
 try {
   const { positionals, values } = parseArgs({
@@ -10,6 +10,7 @@ try {
       salida: { type: 'string' },
     },
   });
+  if (!values.salida) throw new Error('Indica el archivo HTML de destino con --salida.');
   const names = positionals.map(name => name.trim());
   const people = new Set(names);
   if (names.length < 2 || names.includes('') || people.size !== names.length) {
@@ -47,14 +48,9 @@ try {
     recibe: fixed.get(name) ?? recipients[next++],
     fija: fixed.has(name),
   }));
-  const json = `${JSON.stringify(assignments, null, 2)}\n`;
-  if (values.salida !== undefined) {
-    writeFileSync(values.salida, json, { flag: 'wx', mode: 0o600 });
-  } else {
-    process.stdout.write(json);
-  }
+  writeDraw(assignments, values.salida);
 } catch (error) {
   console.error(error.message);
-  console.error('Uso: node sortear.mjs Nombre1 Nombre2 [...] [--fijo=Nombre1:Nombre2] [--salida=ruta.json]');
+  console.error('Uso: node sortear.mjs Nombre1 Nombre2 [...] [--fijo=Nombre1:Nombre2] --salida=ruta.html');
   process.exitCode = 1;
 }

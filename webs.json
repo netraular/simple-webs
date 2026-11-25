@@ -35,6 +35,10 @@
     "title": "Microondas · Comparador de compra",
     "description": "Compara chollos semanales de microondas, con un orden recomendado, detalles rápidos por modelo y filtros de presupuesto, capacidad, tipo y fondo."
   },
+  "amigo-invisible.html": {
+    "title": "Amigo invisible",
+    "description": "Consulta quién regala a quién y qué asignaciones se mantienen."
+  },
   "auroras.html": {
     "title": "Abisko · Cuándo viajar para ver auroras",
     "description": "Meses y año orientativos para buscar auroras en Abisko durante el siguiente ciclo solar, dentro del horizonte aproximado de 2035–2036. Combina historial geomagnético y oscuridad, con límites claros: es un escenario, no una fecha confirmada ni una garantía de auroras intensas. Datos de GFZ, Kyoto, SILSO y NOAA."

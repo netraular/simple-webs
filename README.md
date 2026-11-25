@@ -46,6 +46,20 @@ Optional, keyed by filename in `webs.json`; falls back to the filename:
 { "my-page.html": { "title": "My Page", "description": "What it does." } }
 ```
 
+## Amigo invisible
+
+Genera un sorteo con Node.js y guarda el resultado fuera del repositorio:
+
+```sh
+node data-src/amigo-invisible/sortear.mjs Ana Bruno Carla Dani \
+	--fijo=Ana:Bruno --salida="$HOME/amigo-invisible.json"
+```
+
+Repite `--fijo=Persona:Destinatario` para cada asignación que deba mantenerse.
+Abre [el visor](pages/amigo-invisible.html) directamente en el navegador y
+selecciona el JSON con **Abrir sorteo**. El visor no sube el archivo. No guardes
+resultados dentro del checkout, porque se sirve públicamente.
+
 ## Data files
 
 Pages that need data fetch it from `pages/data/`. Regenerate it with the scripts
